@@ -6,23 +6,15 @@ O StockShift é uma aplicação desenvolvida com [Next.js](https://nextjs.org/),
 
 ## Tecnologias Utilizadas
 
-<div style="display: flex; flex-direction: column; gap: 20px">
-<a href="https://nextjs.org/">
-    <img src="https://i.imgur.com/VYlsYev.png" width="100"/>
-</a>
-<a href="https://www.prisma.io/">
-    <img src="https://i.imgur.com/MWawZiX.png" width="100"/>
-</a>
-<a href="https://www.mongodb.com/pt-br">
-    <img src="https://i.imgur.com/YdvEb85.png" width="100"/>
-</a>
-<a href="https://ui.shadcn.com/">
-    <img src="https://i.imgur.com/rGWZujA.png" width="100"/>
-</a>
-<a href="https://lucide.dev/">
-    <img src="https://i.imgur.com/QHkMslx.png" width="100"/>
-</a>
-</div>
+<a href="https://nextjs.org/"><img src="https://i.imgur.com/VYlsYev.png" width="100"/></a>\
+\
+<a href="https://www.prisma.io/"><img src="https://i.imgur.com/MWawZiX.png" width="100"/></a>\
+\
+<a href="https://www.mongodb.com/pt-br"><img src="https://i.imgur.com/YdvEb85.png" width="100"/></a>\
+\
+<a href="https://ui.shadcn.com/"><img src="https://i.imgur.com/rGWZujA.png" width="100"/></a>\
+\
+<a href="https://lucide.dev/"><img src="https://i.imgur.com/QHkMslx.png" width="100"/></a>
 
 ## Primeiros Passos
 
