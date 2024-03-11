@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
+    "@upstash/ratelimit": "^1.0.1",
+    "@vercel/kv": "^1.0.1",
     "bcryptjs": "^2.4.3",
+    "jose": "^5.2.3",
     "jsonwebtoken": "^9.0.2",
     "next": "14.1.3",
     "prisma-zod-generator": "^0.8.13",

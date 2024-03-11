@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { UserCreateInputObjectSchema } from "../../../../../prisma/generated/schemas";
-import { genericError } from "../../utils/genericError";
+import { genericError } from "@/app/api/utils/genericError";
+import { UserCreateInputObjectSchema } from "../../../../prisma/generated/schemas";
 
 const generatePasswordHash = async (password: string) => {
   const saltRounds = 10;
