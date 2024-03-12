@@ -1,7 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { ProductCreateInputObjectSchema } from "../../../../prisma/generated/schemas";
+import { uploadToBucket } from "@/lib/cloudinary";
+import prisma from "@/lib/prisma";
+import { genericError } from "../utils/genericError";
 
 export const GET = async () => {
-  const response = await fetch("https://jsonplaceholder.typicode.com/posts");
-  const data = await response.json();
-  return NextResponse.json(data);
+  try {
+    const products = await prisma.product.findMany();
+
+    return NextResponse.json(products);
+  } catch (error) {
+    return genericError(error);
+  }
+};
+
+export const POST = async (request: NextRequest) => {
+  try {
+    const bodyJson = await request.json();
+    const imageToUpload = bodyJson.imageUrl;
+    const productValidated = ProductCreateInputObjectSchema.parse(bodyJson);
+
+    const imageUrl = await uploadToBucket(imageToUpload, productValidated.name as string);
+
+    const productToAdd = {
+      ...productValidated,
+      imageUrl,
+    };
+
+    const result = await prisma.product.create({
+      data: productToAdd,
+    });
+
+    console.log(result);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    return genericError(error);
+  }
 };
