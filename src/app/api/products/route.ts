@@ -4,9 +4,13 @@ import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 import { genericError } from "../utils/genericError";
 
+export const getAllProducts = async () => {
+  return await prisma.product.findMany();
+};
+
 export const GET = async () => {
   try {
-    const products = await prisma.product.findMany();
+    const products = await getAllProducts();
 
     return NextResponse.json(products);
   } catch (error) {

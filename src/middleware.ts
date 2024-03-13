@@ -16,8 +16,7 @@ export const middleware = async (req: NextRequest) => {
   // if (!success) {
   //   return NextResponse.redirect(new URL("/blocked", req.url));
   // }
-  const cookies = req.cookies;
-  const token = cookies.get("token")?.value
+  const token = req.cookies.get("token")?.value;
 
   if (!token) {
     return NextResponse.json({ message: "No token provided" });

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { sign } from "@/app/services/jwtSignVerify";
 import { genericError } from "@/app/api/utils/genericError";
+import { cookies } from "next/headers";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -26,6 +27,11 @@ export const POST = async (request: NextRequest) => {
     }
 
     const token = await sign({ userId: user.id }, process.env.JWT_SECRET as string);
+
+    cookies().set("token", token, {
+      path: "/",
+      expires: new Date(Date.now() + 60 * 60 * 1000),
+    });
 
     return NextResponse.json({
       token,
