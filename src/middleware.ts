@@ -19,13 +19,13 @@ export const middleware = async (req: NextRequest) => {
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
-    return NextResponse.json({ message: "No token provided" });
+    return NextResponse.json({ message: "No token provided" }, { status: 401 });
   }
   try {
     await verify(token, process.env.JWT_SECRET as string);
     return NextResponse.next();
   } catch (error) {
-    return NextResponse.json({ message: "Invalid token" });
+    return NextResponse.json({ message: "Invalid token" }, { status: 401 });
   }
 };
 

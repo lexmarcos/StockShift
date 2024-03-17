@@ -77,7 +77,7 @@ const productColumns: ColumnDef<IResponseGetProducts>[] = [
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("price"));
 
-      const formatted = new Intl.NumberFormat("en-US", {
+      const formatted = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
       }).format(amount);
@@ -105,7 +105,7 @@ export default function Products() {
     error,
     isFetching,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["get-products"],
     queryFn: () => api.products.getProducts(),
   });
 

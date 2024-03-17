@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { ProductCreateInputObjectSchema } from "../../../../prisma/generated/schemas";
 import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
 import { genericError } from "../utils/genericError";
+import { UpdateProductSchema } from "./products.schemas.zod";
 
 export const getAllProducts = async () => {
   return await prisma.product.findMany();
@@ -18,24 +21,64 @@ export const GET = async () => {
   }
 };
 
+export const createProduct = async (data: z.infer<typeof ProductCreateInputObjectSchema>) => {
+  const imageToUpload = data.imageUrl;
+  const productValidated = ProductCreateInputObjectSchema.parse(data);
+
+  let imageUrl = "";
+  if (imageToUpload) {
+    imageUrl = await uploadToBucket(imageToUpload as string, productValidated.name as string);
+  }
+
+  const productToAdd = {
+    ...productValidated,
+    imageUrl,
+  };
+
+  return await prisma.product.create({
+    data: productToAdd,
+  });
+};
+
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const imageToUpload = bodyJson.imageUrl;
-    const productValidated = ProductCreateInputObjectSchema.parse(bodyJson);
+    const result = createProduct(bodyJson);
 
-    const imageUrl = await uploadToBucket(imageToUpload, productValidated.name as string);
+    return NextResponse.json(result);
+  } catch (error) {
+    return genericError(error);
+  }
+};
 
-    const productToAdd = {
-      ...productValidated,
-      imageUrl,
-    };
+export const DELETE = async (request: NextRequest) => {
+  try {
+    const { id } = await request.json();
 
-    const result = await prisma.product.create({
-      data: productToAdd,
+    const result = await prisma.product.delete({
+      where: {
+        id: id as string,
+      },
     });
 
-    console.log(result);
+    return NextResponse.json(result);
+  } catch (error) {
+    return genericError(error);
+  }
+};
+
+export const PUT = async (request: NextRequest) => {
+  try {
+    const bodyJson = await request.json();
+    const productValidated = UpdateProductSchema.parse(bodyJson);
+    const { id, ...rest } = productValidated;
+
+    const result = await prisma.product.update({
+      where: {
+        id: bodyJson.id as string,
+      },
+      data: rest,
+    });
 
     return NextResponse.json(result);
   } catch (error) {
