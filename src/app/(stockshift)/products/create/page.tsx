@@ -25,6 +25,8 @@ import {
   ProductOptionalDefaults,
   ProductOptionalDefaultsSchema,
 } from "../../../../prisma/generated/zod";
+import { NumberFormatBase } from "react-number-format";
+import InputCurrency from "@/components/InputCurrency/InputCurrency";
 
 export default function InputForm() {
   const { toast } = useToast();
@@ -131,10 +133,8 @@ export default function InputForm() {
     );
   };
 
-  console.log(form.formState.errors);
-
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-full">
       <Card className="w-6/12 p-8">
         <h1 className="text-2xl mb-4 font-bold">Criar Produto</h1>
         <Form {...form}>
@@ -165,44 +165,45 @@ export default function InputForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field: { onChange, ...rest } }) => (
-                <FormItem>
-                  <FormLabel>Preço</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Preço do produto"
-                      type="number"
-                      {...rest}
-                      value={rest.value?.toString() || ""}
-                      onChange={(e) => onChange(e.target.valueAsNumber)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field: { onChange, value, ...rest } }) => (
-                <FormItem>
-                  <FormLabel>Quantidade</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={value?.toString() || ""}
-                      placeholder="Quantos produtos você tem?"
-                      {...rest}
-                      type="number"
-                      onChange={(e) => onChange(e.target.valueAsNumber || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field: { onChange, ...rest } }) => (
+                  <FormItem>
+                    <FormLabel>Preço</FormLabel>
+                    <FormControl>
+                      <InputCurrency
+                        placeholder="Preço do produto"
+                        onChange={(value) => onChange(value)}
+                        customInput={Input}
+                        {...rest}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field: { onChange, value, ...rest } }) => (
+                  <FormItem>
+                    <FormLabel>Quantidade</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={value?.toString() || ""}
+                        placeholder="Quantos produtos você tem?"
+                        {...rest}
+                        type="number"
+                        onChange={(e) => onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="categoryIDs"

@@ -26,7 +26,7 @@ import { api } from "@/app/services/api/api";
 import {
   CategoryOptionalDefaults,
   CategoryOptionalDefaultsSchema,
-} from "../../../prisma/generated/zod";
+} from "../../../../prisma/generated/zod";
 
 interface IDrawerCategoriesProps {
   isOpen: boolean;
@@ -48,10 +48,7 @@ export function DrawerCreateCategories({ isOpen, onClose }: IDrawerCategoriesPro
     },
   });
 
-  console.log(form.formState.errors);
-
   function onSubmit(data: CategoryOptionalDefaults) {
-    console.log("aqui");
     createCategoryMutation.mutate(data);
   }
 
@@ -82,7 +79,6 @@ export function DrawerCreateCategories({ isOpen, onClose }: IDrawerCategoriesPro
                     </FormItem>
                   )}
                 />
-                <button type="submit">Test</button>
                 <DrawerFooter>
                   <Button type="submit">Criar Categoria</Button>
                   <DrawerClose asChild>

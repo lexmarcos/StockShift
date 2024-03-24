@@ -30,7 +30,7 @@ export const POST = async (request: NextRequest) => {
 
     cookies().set("token", token, {
       path: "/",
-      expires: new Date(Date.now() + 60 * 60 * 1000),
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     return NextResponse.json({

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { genericError } from "@/app/api/utils/genericError";
-import { UserCreateInputObjectSchema } from "../../../../prisma/generated/schemas";
+import { UserOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
 
 const generatePasswordHash = async (password: string) => {
   const saltRounds = 10;
@@ -14,7 +14,7 @@ const generatePasswordHash = async (password: string) => {
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const { username, password, email, name } = UserCreateInputObjectSchema.parse(bodyJson);
+    const { username, password, email, name } = UserOptionalDefaultsSchema.parse(bodyJson);
     const hashedPassword = await generatePasswordHash(password);
 
     const result = await prisma.user.create({

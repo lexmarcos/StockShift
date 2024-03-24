@@ -36,8 +36,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../services/api/api";
-import { IResponseGetProducts } from "../services/api/routes/products/types";
+import { api } from "../../services/api/api";
+import { IResponseGetProducts } from "../../services/api/routes/products/types";
 import { DrawerCreateCategories } from "./drawerCreateCategories";
 
 const productColumns: ColumnDef<IResponseGetProducts>[] = [

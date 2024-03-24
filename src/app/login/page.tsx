@@ -7,11 +7,10 @@ import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../services/api/api";
 import { useState } from "react";
-import { useCookies } from "react-cookie";
 import { useRouter } from "next/navigation";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 function Login() {
-  const [, setCookie] = useCookies(["token"]);
   const router = useRouter();
   const mutation = useMutation({
     mutationFn: (data: ISignIn) => {
@@ -61,10 +60,15 @@ function Login() {
             <Input
               id="password"
               placeholder="Senha"
+              type="password"
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button onClick={() => handleSubmit()} className="mt-4">
-              Entrar
+            <Button onClick={() => handleSubmit()} disabled={mutation.isPending}>
+              {!mutation.isPending ? (
+                "Entrar"
+              ) : (
+                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+              )}
             </Button>
           </div>
         </Card>
