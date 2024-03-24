@@ -7,7 +7,6 @@ import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../services/api/api";
 import { useState } from "react";
-import { cookies } from "next/headers";
 import { useCookies } from "react-cookie";
 import { useRouter } from "next/navigation";
 
@@ -18,7 +17,8 @@ function Login() {
     mutationFn: (data: ISignIn) => {
       return api.auth.signin(data);
     },
-    onSuccess: (data) => {
+    onSuccess: (data: IResponseSignIn) => {
+      localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/");
     },
   });

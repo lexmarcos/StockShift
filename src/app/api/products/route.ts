@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ProductCreateInputObjectSchema } from "../../../../prisma/generated/schemas";
 import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 import { genericError } from "../utils/genericError";
-import { UpdateProductSchema } from "./products.schemas.zod";
+import {
+  Product,
+  ProductOptionalDefaultsSchema,
+  ProductSchema,
+} from "../../../../prisma/generated/zod";
 
 export const getAllProducts = async () => {
   return await prisma.product.findMany();
@@ -21,9 +24,9 @@ export const GET = async () => {
   }
 };
 
-export const createProduct = async (data: z.infer<typeof ProductCreateInputObjectSchema>) => {
+export const createProduct = async (data: Product) => {
   const imageToUpload = data.imageUrl;
-  const productValidated = ProductCreateInputObjectSchema.parse(data);
+  const productValidated = ProductOptionalDefaultsSchema.parse(data);
 
   let imageUrl = "";
   if (imageToUpload) {
@@ -36,7 +39,12 @@ export const createProduct = async (data: z.infer<typeof ProductCreateInputObjec
   };
 
   return await prisma.product.create({
-    data: productToAdd,
+    data: {
+      ...productToAdd,
+      categories: {
+        connect: productToAdd.categoryIDs?.map((id) => ({ id })),
+      },
+    },
   });
 };
 
@@ -70,7 +78,7 @@ export const DELETE = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const productValidated = UpdateProductSchema.parse(bodyJson);
+    const productValidated = ProductOptionalDefaultsSchema.parse(bodyJson);
     const { id, ...rest } = productValidated;
 
     const result = await prisma.product.update({

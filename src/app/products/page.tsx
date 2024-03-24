@@ -38,6 +38,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api/api";
 import { IResponseGetProducts } from "../services/api/routes/products/types";
+import { DrawerCreateCategories } from "./drawerCreateCategories";
 
 const productColumns: ColumnDef<IResponseGetProducts>[] = [
   {
@@ -128,8 +129,18 @@ export default function Products() {
     },
   });
 
+  const [showDrawerOfCreateCategories, setShowDrawerOfCreateCategories] = React.useState(false);
+
   return (
     <div className="w-full">
+      <DrawerCreateCategories
+        isOpen={showDrawerOfCreateCategories}
+        onClose={() => setShowDrawerOfCreateCategories(false)}
+      />
+      <div className="flex items-center justify-between py-4">
+        <h1 className="text-2xl font-bold">Products</h1>
+        <Button onClick={() => setShowDrawerOfCreateCategories(true)}>Criar Categoria</Button>
+      </div>
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter emails..."
