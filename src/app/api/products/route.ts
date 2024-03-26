@@ -11,7 +11,11 @@ import {
 } from "../../../../prisma/generated/zod";
 
 export const getAllProducts = async () => {
-  return await prisma.product.findMany();
+  return await prisma.product.findMany({
+    include: {
+      categories: true,
+    },
+  });
 };
 
 export const GET = async () => {

@@ -17,16 +17,25 @@ export const POST = async (request: NextRequest) => {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found or password wrong" }, { status: 404 });
+      return NextResponse.json(
+        { message: "User not found or password wrong" },
+        { status: 404 }
+      );
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      return NextResponse.json({ message: "User not found or password wrong" }, { status: 404 });
+      return NextResponse.json(
+        { message: "User not found or password wrong" },
+        { status: 404 }
+      );
     }
-
-    const token = await sign({ userId: user.id }, process.env.JWT_SECRET as string);
+    console.log("chegou no login");
+    const token = await sign(
+      { userId: user.id },
+      process.env.JWT_SECRET as string
+    );
 
     cookies().set("token", token, {
       path: "/",
