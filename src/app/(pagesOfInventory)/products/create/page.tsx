@@ -79,7 +79,7 @@ export default function InputForm() {
   }));
 
   async function onSubmit(data: ProductOptionalDefaults) {
-    data.price = Number(data.price);
+    data.price = (data.price ?? 0) / 100;
     data.quantity = Number(data.quantity);
     data.imageUrl = await convertImageToBase64(acceptedFiles[0]);
     createProductMutation.mutate(data);
@@ -131,7 +131,6 @@ export default function InputForm() {
       </Card>
     );
   };
-
   return (
     <div className="flex items-center justify-center h-full">
       <Card className="w-6/12 p-8">
@@ -173,8 +172,8 @@ export default function InputForm() {
                     <FormLabel>Preço</FormLabel>
                     <FormControl>
                       <InputCurrency
+                        onValueChange={({ floatValue }, _) => onChange(floatValue)}
                         placeholder="Preço do produto"
-                        onChange={(value) => onChange(value)}
                         customInput={Input}
                         {...rest}
                       />
