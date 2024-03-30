@@ -3,10 +3,7 @@ import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 
 import { genericError } from "../utils/genericError";
-import {
-  Product,
-  ProductOptionalDefaultsSchema,
-} from "../../../../prisma/generated/zod";
+import { Product, ProductOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
 
 export const getAllProducts = async () => {
   return await prisma.product.findMany({
@@ -33,10 +30,7 @@ export const createProduct = async (data: Product) => {
 
   let imageUrl = "";
   if (imageToUpload) {
-    imageUrl = await uploadToBucket(
-      imageToUpload as string,
-      productValidated.name as string
-    );
+    imageUrl = await uploadToBucket(imageToUpload as string, productValidated.name as string);
   }
 
   const productToAdd = {

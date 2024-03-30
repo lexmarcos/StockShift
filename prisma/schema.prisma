@@ -16,12 +16,14 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(auto()) @map("_id") @db.ObjectId
-  email    String    @unique
-  name     String
-  username String    @unique
-  password String
-  products Product[]
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  email        String      @unique
+  name         String
+  username     String      @unique
+  password     String
+  products     Product[]
+  inventoryIDs String[]    @default([]) @db.ObjectId
+  inventories  Inventory[] @relation(fields: [inventoryIDs], references: [id])
 }
 
 model Inventory {
@@ -30,6 +32,8 @@ model Inventory {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+  userIDs   String[]  @default([]) @db.ObjectId
+  users     User[]    @relation(fields: [userIDs], references: [id])
 }
 
 model ProductTemplate {

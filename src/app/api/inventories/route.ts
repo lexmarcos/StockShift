@@ -25,6 +25,14 @@ export const GET = async () => {
           hasSome: ["66075a762206290c72142dc5"],
         },
       },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
     return NextResponse.json(inventories);
   } catch (error) {

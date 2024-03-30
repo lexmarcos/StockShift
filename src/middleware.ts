@@ -17,7 +17,6 @@ export const middleware = async (req: NextRequest) => {
   //   return NextResponse.redirect(new URL("/blocked", req.url));
   // }
   const token = req.cookies.get("token")?.value;
-
   if (!token && !req.nextUrl.pathname.includes("signin")) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
