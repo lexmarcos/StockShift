@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify } from "./app/services/jwtSignVerify";
+import { verify } from "./services/jwtSignVerify";
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv";
 
@@ -18,6 +18,14 @@ export const middleware = async (req: NextRequest) => {
   // }
   const token = req.cookies.get("token")?.value;
 
+  if (!token && !req.nextUrl.pathname.includes("signin")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  if (req.nextUrl.pathname.includes("signin")) {
+    return NextResponse.next();
+  }
+
   if (!token) {
     return NextResponse.json({ message: "No token provided" }, { status: 401 });
   }
@@ -30,5 +38,5 @@ export const middleware = async (req: NextRequest) => {
 };
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: "/((?!_next|fonts|examples|[w-]+.w+).*)",
 };

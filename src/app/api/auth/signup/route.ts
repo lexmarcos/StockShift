@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { genericError } from "@/app/api/utils/genericError";
-import { UserOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
+import { UserOptionalDefaultsSchema } from "../../../../../prisma/generated/zod";
 
 const generatePasswordHash = async (password: string) => {
   const saltRounds = 10;

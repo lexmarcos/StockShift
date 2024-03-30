@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
-import { z } from "zod";
 
 import { genericError } from "../utils/genericError";
 import {
   Product,
   ProductOptionalDefaultsSchema,
-  ProductSchema,
 } from "../../../../prisma/generated/zod";
 
 export const getAllProducts = async () => {
   return await prisma.product.findMany({
     include: {
       categories: true,
+      Inventory: true,
     },
   });
 };
@@ -34,7 +33,10 @@ export const createProduct = async (data: Product) => {
 
   let imageUrl = "";
   if (imageToUpload) {
-    imageUrl = await uploadToBucket(imageToUpload as string, productValidated.name as string);
+    imageUrl = await uploadToBucket(
+      imageToUpload as string,
+      productValidated.name as string
+    );
   }
 
   const productToAdd = {

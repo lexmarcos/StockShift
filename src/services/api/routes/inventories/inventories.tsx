@@ -1,5 +1,5 @@
-import { apiInstance } from "@/app/services/api/instance";
-import { InventoryOptionalDefaults } from "../../../../../../prisma/generated/zod";
+import { apiInstance } from "@/services/api/instance";
+import { InventoryOptionalDefaults } from "../../../../../prisma/generated/zod";
 import { Inventory } from "@prisma/client";
 
 export const inventoriesApi = {

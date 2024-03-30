@@ -22,7 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { api } from "@/app/services/api/api";
+import { api } from "@/services/api/api";
 import {
   CategoryOptionalDefaults,
   CategoryOptionalDefaultsSchema,
@@ -33,7 +33,10 @@ interface IDrawerCategoriesProps {
   onClose: () => void;
 }
 
-export function DrawerCreateCategories({ isOpen, onClose }: IDrawerCategoriesProps) {
+export function DrawerCreateCategories({
+  isOpen,
+  onClose,
+}: IDrawerCategoriesProps) {
   const form = useForm<CategoryOptionalDefaults>({
     resolver: zodResolver(CategoryOptionalDefaultsSchema),
     defaultValues: {

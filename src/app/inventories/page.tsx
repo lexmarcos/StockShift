@@ -5,7 +5,7 @@ import { BadgeDollarSignIcon, Boxes } from "lucide-react";
 import ModalCreateInventory from "./modalCreateInventory";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../services/api/api";
+import { api } from "../../services/api/api";
 
 export default function Inventories() {
   const [isModalCreateInventoryOpen, setIsModalCreateInventoryOpen] =

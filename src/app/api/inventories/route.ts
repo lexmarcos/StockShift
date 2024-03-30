@@ -19,7 +19,13 @@ export const POST = async (request: NextRequest) => {
 
 export const GET = async () => {
   try {
-    const inventories = await prisma.inventory.findMany();
+    const inventories = await prisma.inventory.findMany({
+      where: {
+        userIDs: {
+          hasSome: ["66075a762206290c72142dc5"],
+        },
+      },
+    });
     return NextResponse.json(inventories);
   } catch (error) {
     return genericError(error);

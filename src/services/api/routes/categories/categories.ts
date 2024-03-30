@@ -1,5 +1,8 @@
-import { apiInstance } from "@/app/services/api/instance";
-import { Category, CategoryOptionalDefaults } from "../../../../../../prisma/generated/zod";
+import { apiInstance } from "@/services/api/instance";
+import {
+  Category,
+  CategoryOptionalDefaults,
+} from "../../../../../prisma/generated/zod";
 
 export const categoriesApi = {
   getAll: async () => {

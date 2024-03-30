@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { sign } from "@/app/services/jwtSignVerify";
+import { sign } from "@/services/jwtSignVerify";
 import { genericError } from "@/app/api/utils/genericError";
 import { cookies } from "next/headers";
 
@@ -38,6 +38,11 @@ export const POST = async (request: NextRequest) => {
     );
 
     cookies().set("token", token, {
+      path: "/",
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    });
+
+    cookies().set("user", JSON.stringify(user), {
       path: "/",
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });

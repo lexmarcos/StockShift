@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { api } from "@/app/services/api/api";
+import { api } from "@/services/api/api";
 import { useToast } from "@/components/ui/use-toast";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { Card } from "@/components/ui/card";
@@ -55,7 +55,8 @@ export default function InputForm() {
   });
 
   const createProductMutation = useMutation({
-    mutationFn: (data: ProductOptionalDefaults) => api.products.createProduct(data),
+    mutationFn: (data: ProductOptionalDefaults) =>
+      api.products.createProduct(data),
     onSuccess: () => {
       toast({
         color: "green",
@@ -101,7 +102,12 @@ export default function InputForm() {
 
   const renderSelectedImageOrCaptions = () => {
     if (acceptedFiles.length === 0) {
-      return <p>Arraste e solte a imagem do produto aqui ou clique para selecionar a imagem</p>;
+      return (
+        <p>
+          Arraste e solte a imagem do produto aqui ou clique para selecionar a
+          imagem
+        </p>
+      );
     }
     return (
       <img
@@ -122,10 +128,16 @@ export default function InputForm() {
           isFileDialogActive ? "border-white border-2" : null,
         ])}
       >
-        {isDragActive ? <p>Solte a imagem aqui...</p> : renderSelectedImageOrCaptions()}
+        {isDragActive ? (
+          <p>Solte a imagem aqui...</p>
+        ) : (
+          renderSelectedImageOrCaptions()
+        )}
         {fileRejections.length > 0 && (
           <div className="mt-3">
-            <span className="text-red-600">Somente 1 imagem por produto. tente novamente</span>
+            <span className="text-red-600">
+              Somente 1 imagem por produto. tente novamente
+            </span>
           </div>
         )}
       </Card>
@@ -136,7 +148,10 @@ export default function InputForm() {
       <Card className="w-6/12 p-8">
         <h1 className="text-2xl mb-4 font-bold">Criar Produto</h1>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 w-full">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-3 w-full"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -157,7 +172,11 @@ export default function InputForm() {
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Input placeholder="Descrição do produto" value={value as string} {...rest} />
+                    <Input
+                      placeholder="Descrição do produto"
+                      value={value as string}
+                      {...rest}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +191,9 @@ export default function InputForm() {
                     <FormLabel>Preço</FormLabel>
                     <FormControl>
                       <InputCurrency
-                        onValueChange={({ floatValue }, _) => onChange(floatValue)}
+                        onValueChange={({ floatValue }, _) =>
+                          onChange(floatValue)
+                        }
                         placeholder="Preço do produto"
                         customInput={Input}
                         {...rest}

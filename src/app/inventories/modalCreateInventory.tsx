@@ -29,7 +29,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { api } from "../services/api/api";
+import { api } from "../../services/api/api";
 import { ReloadIcon } from "@radix-ui/react-icons";
 
 interface IModalCreateInventoryProps {

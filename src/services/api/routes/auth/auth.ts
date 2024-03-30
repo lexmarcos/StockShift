@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = "http://localhost:3000/auth";
+const baseURL = "http://localhost:3000/api/auth";
 export const authApiRoutes = {
   signin: async (data: ISignIn): Promise<IResponseSignIn> => {
     const res = await fetch(`${baseURL}/signin`, {
