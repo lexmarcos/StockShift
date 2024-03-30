@@ -31,7 +31,7 @@ export const POST = async (request: NextRequest) => {
         { status: 404 }
       );
     }
-    console.log("chegou no login");
+
     const token = await sign(
       { userId: user.id },
       process.env.JWT_SECRET as string
