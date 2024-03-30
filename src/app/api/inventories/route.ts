@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { InventoryOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
 import prisma from "@/lib/prisma";
 import { genericError } from "../utils/genericError";
+import { cookies } from "next/headers";
 
 export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json();
     const validatedBody = InventoryOptionalDefaultsSchema.parse(body);
 
+    const user = JSON.parse(cookies().get("user")?.value as string);
+
     const result = await prisma.inventory.create({
-      data: validatedBody,
+      data: {
+        ...validatedBody,
+        users: { connect: { id: user.id } },
+      },
     });
     return NextResponse.json(result);
   } catch (error) {
@@ -19,10 +25,12 @@ export const POST = async (request: NextRequest) => {
 
 export const GET = async () => {
   try {
+    const user = JSON.parse(cookies().get("user")?.value as string);
+
     const inventories = await prisma.inventory.findMany({
       where: {
         userIDs: {
-          hasSome: ["66075a762206290c72142dc5"],
+          hasSome: [user.id],
         },
       },
       include: {

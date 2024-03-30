@@ -9,4 +9,7 @@ export const inventoriesApi = {
   create: async (data: InventoryOptionalDefaults) => {
     return apiInstance.post<Inventory>("inventories", data);
   },
+  select: async (inventoryId: string) => {
+    return apiInstance.update<Inventory>(`inventories/${inventoryId}/select`, {});
+  },
 };

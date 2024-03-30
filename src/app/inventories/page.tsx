@@ -4,17 +4,27 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { BadgeDollarSignIcon, Boxes } from "lucide-react";
 import ModalCreateInventory from "./modalCreateInventory";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api/api";
+import { useRouter } from "next/navigation";
 
 export default function Inventories() {
   const [isModalCreateInventoryOpen, setIsModalCreateInventoryOpen] =
     useState(false);
 
+  const router = useRouter();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["inventories"],
     queryFn: () => {
       return api.inventories.getAll();
+    },
+  });
+
+  const selectInventoryMutation = useMutation({
+    mutationFn: (inventoryId: string) => api.inventories.select(inventoryId),
+    onSuccess: () => {
+      router.push("/dashboard");
     },
   });
 
@@ -30,9 +40,12 @@ export default function Inventories() {
           Criar estoque +
         </Button>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4">
         {data?.map((inventory) => (
-          <Card className="p-3 w-full hover:outline-2 hover:outline hover:outline-slate-400 cursor-pointer">
+          <Card
+            className="p-3 w-full hover:outline-2 hover:outline hover:outline-slate-400 cursor-pointer"
+            onClick={() => selectInventoryMutation.mutate(inventory.id)}
+          >
             <CardContent>
               <CardTitle className="mt-2 font-bold text-xl">
                 {inventory.name}

@@ -1,13 +1,13 @@
+import { genericError } from "@/app/api/utils/genericError";
+import { IParamsWithId } from "@/app/api/utils/genericTypes";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { genericError } from "../../utils/genericError";
+import { getUserByCookie } from "@/app/api/utils/cookies";
 
-export const POST = async (request: NextRequest) => {
+export const PUT = async (request: NextRequest, { params }: IParamsWithId) => {
+  const idOfInventory = params.id;
   try {
-    const body = await request.json();
-    const idOfInventory = body.id;
-
     if (!idOfInventory) {
       return NextResponse.json(
         { message: "Inventory ID is required" },
@@ -17,11 +17,11 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    const user = JSON.parse(cookies().get("user")?.value || "");
+    const user = getUserByCookie();
 
     if (!user) {
       return NextResponse.json(
-        { message: "User not found" },
+        { message: "User or inventory not found" },
         {
           status: 404,
         }
@@ -41,12 +41,17 @@ export const POST = async (request: NextRequest) => {
 
     if (!inventory) {
       return NextResponse.json(
-        { message: "Inventory not found" },
+        { message: "User or inventory not found" },
         {
           status: 404,
         }
       );
     }
+
+    cookies().set(
+      "user",
+      JSON.stringify({ ...user, inventoryId: idOfInventory })
+    );
 
     return NextResponse.json(inventory);
   } catch (error) {

@@ -21,6 +21,7 @@ model User {
   name         String
   username     String      @unique
   password     String
+  role         String      @default("STOCK_MANAGER") // STOCK_MANAGER | ADMIN
   products     Product[]
   inventoryIDs String[]    @default([]) @db.ObjectId
   inventories  Inventory[] @relation(fields: [inventoryIDs], references: [id])
