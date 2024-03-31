@@ -1,11 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import {
-  Home,
-  LineChart, Package, ShoppingCart,
-  Users
-} from "lucide-react";
+import { Home, LineChart, Package, ShoppingCart, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "../ui/badge";
@@ -42,7 +38,7 @@ export default function NavLinks() {
           6
         </Badge>
       </Link>
-      <Link href="/products" className={generateClassNamesOfActiveRoute("/products")}>
+      <Link href="/app/products" className={generateClassNamesOfActiveRoute("/app/products")}>
         <Package className="h-4 w-4" />
         Produtos{" "}
       </Link>

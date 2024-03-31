@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 
 export const getUserByCookie = () => {
-  const user = JSON.parse(cookies().get("user")?.value as string);
+  const userOfCookie = cookies().get("user")?.value as string;
+  if (!userOfCookie) return {};
+
+  const user = JSON.parse(userOfCookie);
 
   return user;
 };

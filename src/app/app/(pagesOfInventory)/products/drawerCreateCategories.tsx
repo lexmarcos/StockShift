@@ -26,7 +26,7 @@ import { api } from "@/services/api/api";
 import {
   CategoryOptionalDefaults,
   CategoryOptionalDefaultsSchema,
-} from "../../../../prisma/generated/zod";
+} from "../../../../../prisma/generated/zod";
 
 interface IDrawerCategoriesProps {
   isOpen: boolean;

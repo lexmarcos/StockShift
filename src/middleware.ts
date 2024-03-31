@@ -1,41 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verify } from "./services/jwtSignVerify";
-import { Ratelimit } from "@upstash/ratelimit";
-import { kv } from "@vercel/kv";
+import { getUserByCookie } from "./app/api/utils/cookies";
+import { cookies } from "next/headers";
 
-// const ratelimit = new Ratelimit({
-//   redis: kv,
-//   // 5 requests from the same IP in 10 seconds
-//   limiter: Ratelimit.slidingWindow(5, "10 s"),
-// });
-
-export const middleware = async (req: NextRequest) => {
-  // const ip = req.ip ?? "127.0.0.1";
-  // const { success, pending, limit, reset, remaining } = await ratelimit.limit(ip);
-  // console.log({ success, pending, limit, reset, remaining });
-  // if (!success) {
-  //   return NextResponse.redirect(new URL("/blocked", req.url));
-  // }
-  const token = req.cookies.get("token")?.value;
-  if (!token && !req.nextUrl.pathname.includes("auth")) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  if (req.nextUrl.pathname.includes("auth")) {
-    return NextResponse.next();
-  }
-
-  if (!token) {
-    return NextResponse.json({ message: "No token provided" }, { status: 401 });
-  }
+async function handleTokenValidation(
+  token: string,
+  req: NextRequest
+): Promise<void | NextResponse> {
   try {
     await verify(token, process.env.JWT_SECRET as string);
-    return NextResponse.next();
   } catch (error) {
-    return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    // Retorna um NextResponse com status 401 se o token for inválido
+    return NextResponse.redirect(new URL("/auth/logout", req.url));
   }
+}
+
+export const middleware = async (req: NextRequest) => {
+  const token = req.cookies.get("token");
+  const user = getUserByCookie();
+  const pathname = req.nextUrl.pathname;
+
+  // Redirecionamentos para usuários não autenticados ou na página de login
+  if (!token) {
+    if (pathname.includes("signin")) return NextResponse.next();
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  }
+
+  // Valida o token e retorna uma resposta se o token for inválido
+  const tokenValidationResponse = await handleTokenValidation(token.value, req);
+  if (tokenValidationResponse) return tokenValidationResponse;
+
+  // Redireciona usuários autenticados que estão na página de login
+  if (pathname.includes("signin")) {
+    const redirectUrl = user?.inventoryId ? "/app/dashboard" : "/app/inventories";
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
+  }
+
+  // Redireciona usuários autenticados sem inventário escolhido e que não estão acessando a página de inventários
+  if (!user?.inventoryId && !pathname.includes("inventories")) {
+    return NextResponse.redirect(new URL("/app/inventories", req.url));
+  }
+
+  return NextResponse.next();
 };
 
 export const config = {
-  matcher: "/((?!_next|fonts|examples|[w-]+.w+).*)",
+  matcher: "/((?!_next|fonts|auth|api/auth|examples|[\\w-]+\\.\\w+).*)",
 };

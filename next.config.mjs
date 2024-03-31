@@ -5,7 +5,7 @@ const nextConfig = {
       // Basic redirect
       {
         source: "/",
-        destination: "/dashboard",
+        destination: "/app/dashboard",
         permanent: true,
       },
     ];

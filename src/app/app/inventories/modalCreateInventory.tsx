@@ -13,7 +13,7 @@ import {
   Inventory,
   InventoryOptionalDefaults,
   InventoryOptionalDefaultsSchema,
-} from "../../../prisma/generated/zod";
+} from "../../../../prisma/generated/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -29,7 +29,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { api } from "../../services/api/api";
+import { api } from "../../../services/api/api";
 import { ReloadIcon } from "@radix-ui/react-icons";
 
 interface IModalCreateInventoryProps {

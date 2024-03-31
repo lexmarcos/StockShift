@@ -1,7 +1,5 @@
 "use client";
-import {
-  CircleUser, Search
-} from "lucide-react";
+import { CircleUser, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/navbar/navbar";
 import NavbarMobile from "@/components/navbar/navbarMobile";
+import AvatarDropdown from "@/components/avatarDropdown/avatarDropdown";
 
 export default function RootLayout({
   children,
@@ -39,22 +38,7 @@ export default function RootLayout({
               </div>
             </form>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AvatarDropdown />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">{children}</main>
       </div>

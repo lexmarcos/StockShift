@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
-import { api } from "../../services/api/api";
+import { api } from "../../../services/api/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ReloadIcon } from "@radix-ui/react-icons";
@@ -18,7 +18,7 @@ function Login() {
     },
     onSuccess: (data: IResponseSignIn) => {
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/");
+      router.push("/app/inventories");
     },
   });
 
@@ -63,10 +63,7 @@ function Login() {
               type="password"
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button
-              onClick={() => handleSubmit()}
-              disabled={mutation.isPending}
-            >
+            <Button onClick={() => handleSubmit()} disabled={mutation.isPending}>
               {!mutation.isPending ? (
                 "Entrar"
               ) : (

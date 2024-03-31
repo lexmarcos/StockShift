@@ -14,4 +14,17 @@ export const authApiRoutes = {
     }
     return res.json();
   },
+  logout: async (): Promise<IResponseSignIn> => {
+    const res = await fetch(`${baseURL}/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) {
+      throw new Error("Erro na requisição");
+    }
+    return res.json();
+  },
 };

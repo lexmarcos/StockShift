@@ -24,7 +24,7 @@ import { MultipleCombobox } from "@/components/multipleCombobox/multipleCombobox
 import {
   ProductOptionalDefaults,
   ProductOptionalDefaultsSchema,
-} from "../../../../../prisma/generated/zod";
+} from "../../../../../../prisma/generated/zod";
 import InputCurrency from "@/components/InputCurrency/InputCurrency";
 
 export default function InputForm() {
