@@ -37,7 +37,9 @@ export default function AvatarDropdown() {
         <DropdownMenuItem>Settings</DropdownMenuItem>
         <DropdownMenuItem>Support</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => logoutMutation.mutate()}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+          Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

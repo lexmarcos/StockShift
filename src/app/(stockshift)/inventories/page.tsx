@@ -9,7 +9,8 @@ import { api } from "../../../services/api/api";
 import { useRouter } from "next/navigation";
 
 export default function Inventories() {
-  const [isModalCreateInventoryOpen, setIsModalCreateInventoryOpen] = useState(false);
+  const [isModalCreateInventoryOpen, setIsModalCreateInventoryOpen] =
+    useState(false);
 
   const router = useRouter();
 
@@ -23,7 +24,7 @@ export default function Inventories() {
   const selectInventoryMutation = useMutation({
     mutationFn: (inventoryId: string) => api.inventories.select(inventoryId),
     onSuccess: () => {
-      router.push("/app/dashboard");
+      router.push("/dashboard");
     },
   });
 
@@ -35,7 +36,9 @@ export default function Inventories() {
       />
       <div className="flex justify-between">
         <h1 className="font-bold text-4xl">Estoques</h1>
-        <Button onClick={() => setIsModalCreateInventoryOpen(true)}>Criar estoque +</Button>
+        <Button onClick={() => setIsModalCreateInventoryOpen(true)}>
+          Criar estoque +
+        </Button>
       </div>
       <div className="grid grid-cols-4 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4">
         {data?.map((inventory) => (
@@ -45,7 +48,9 @@ export default function Inventories() {
             onClick={() => selectInventoryMutation.mutate(inventory.id)}
           >
             <CardContent>
-              <CardTitle className="mt-2 font-bold text-xl">{inventory.name}</CardTitle>
+              <CardTitle className="mt-2 font-bold text-xl">
+                {inventory.name}
+              </CardTitle>
               <div className="flex gap-3 mt-5 ">
                 <Boxes /> <span>302</span>
               </div>

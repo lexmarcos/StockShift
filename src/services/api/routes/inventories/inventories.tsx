@@ -10,6 +10,9 @@ export const inventoriesApi = {
     return apiInstance.post<Inventory>("inventories", data);
   },
   select: async (inventoryId: string) => {
-    return apiInstance.update<Inventory>(`inventories/${inventoryId}/select`, {});
+    return apiInstance.update<Inventory>(
+      `inventories/${inventoryId}/select`,
+      {}
+    );
   },
 };

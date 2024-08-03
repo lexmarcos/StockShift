@@ -18,7 +18,7 @@ function Login() {
     },
     onSuccess: (data: IResponseSignIn) => {
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/app/inventories");
+      router.push("/inventories");
     },
   });
 
@@ -63,7 +63,10 @@ function Login() {
               type="password"
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button onClick={() => handleSubmit()} disabled={mutation.isPending}>
+            <Button
+              onClick={() => handleSubmit()}
+              disabled={mutation.isPending}
+            >
               {!mutation.isPending ? (
                 "Entrar"
               ) : (

@@ -8,6 +8,9 @@ export const productsAPIRoutes = {
     return apiInstance.get<IResponseGetProducts[]>("products");
   },
   createProduct: async (data: z.infer<typeof ProductCreateInputSchema>) => {
-    return apiInstance.post<z.infer<typeof ProductCreateInputSchema>>("products", data);
+    return apiInstance.post<z.infer<typeof ProductCreateInputSchema>>(
+      "products",
+      data
+    );
   },
 };

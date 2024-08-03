@@ -1,13 +1,21 @@
 import Link from "next/link";
 import {
   Activity,
-  ArrowUpRight, CreditCard,
-  DollarSign, Users
+  ArrowUpRight,
+  CreditCard,
+  DollarSign,
+  Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -27,7 +35,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +20.1% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -37,7 +47,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +180.1% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -47,7 +59,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground">+19% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +19% from last month
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -57,7 +71,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">+201 since last hour</p>
+            <p className="text-xs text-muted-foreground">
+              +201 since last hour
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -66,7 +82,9 @@ export default function Home() {
           <CardHeader className="flex flex-row items-center">
             <div className="grid gap-2">
               <CardTitle>Transactions</CardTitle>
-              <CardDescription>Recent transactions from your store.</CardDescription>
+              <CardDescription>
+                Recent transactions from your store.
+              </CardDescription>
             </div>
             <Button asChild size="sm" className="ml-auto gap-1">
               <Link href="#">
@@ -81,7 +99,9 @@ export default function Home() {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead className="hidden xl:table-column">Type</TableHead>
-                  <TableHead className="hidden xl:table-column">Status</TableHead>
+                  <TableHead className="hidden xl:table-column">
+                    Status
+                  </TableHead>
                   <TableHead className="hidden xl:table-column">Date</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
@@ -112,7 +132,9 @@ export default function Home() {
                       olivia@example.com
                     </div>
                   </TableCell>
-                  <TableCell className="hidden xl:table-column">Refund</TableCell>
+                  <TableCell className="hidden xl:table-column">
+                    Refund
+                  </TableCell>
                   <TableCell className="hidden xl:table-column">
                     <Badge className="text-xs" variant="outline">
                       Declined
@@ -130,7 +152,9 @@ export default function Home() {
                       noah@example.com
                     </div>
                   </TableCell>
-                  <TableCell className="hidden xl:table-column">Subscription</TableCell>
+                  <TableCell className="hidden xl:table-column">
+                    Subscription
+                  </TableCell>
                   <TableCell className="hidden xl:table-column">
                     <Badge className="text-xs" variant="outline">
                       Approved
@@ -192,8 +216,12 @@ export default function Home() {
                 <AvatarFallback>OM</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">Olivia Martin</p>
-                <p className="text-sm text-muted-foreground">olivia.martin@email.com</p>
+                <p className="text-sm font-medium leading-none">
+                  Olivia Martin
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  olivia.martin@email.com
+                </p>
               </div>
               <div className="ml-auto font-medium">+$1,999.00</div>
             </div>
@@ -204,7 +232,9 @@ export default function Home() {
               </Avatar>
               <div className="grid gap-1">
                 <p className="text-sm font-medium leading-none">Jackson Lee</p>
-                <p className="text-sm text-muted-foreground">jackson.lee@email.com</p>
+                <p className="text-sm text-muted-foreground">
+                  jackson.lee@email.com
+                </p>
               </div>
               <div className="ml-auto font-medium">+$39.00</div>
             </div>
@@ -214,8 +244,12 @@ export default function Home() {
                 <AvatarFallback>IN</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">Isabella Nguyen</p>
-                <p className="text-sm text-muted-foreground">isabella.nguyen@email.com</p>
+                <p className="text-sm font-medium leading-none">
+                  Isabella Nguyen
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  isabella.nguyen@email.com
+                </p>
               </div>
               <div className="ml-auto font-medium">+$299.00</div>
             </div>
@@ -237,7 +271,9 @@ export default function Home() {
               </Avatar>
               <div className="grid gap-1">
                 <p className="text-sm font-medium leading-none">Sofia Davis</p>
-                <p className="text-sm text-muted-foreground">sofia.davis@email.com</p>
+                <p className="text-sm text-muted-foreground">
+                  sofia.davis@email.com
+                </p>
               </div>
               <div className="ml-auto font-medium">+$39.00</div>
             </div>

@@ -37,18 +37,23 @@ model Inventory {
   users     User[]    @relation(fields: [userIDs], references: [id])
 }
 
+model ProductAttribute {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  label String
+  type String
+  templatesIDs String[] @db.ObjectId
+  templates ProductTemplate[] @relation(fields: [templatesIDs], references: [id])
+}
+
 model ProductTemplate {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description Boolean
-  price       Boolean
-  quantity    Boolean
-  attributes  Json?
-  image       Boolean
-  categories  Boolean
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  commonAttributes String[]  @default(["description", "price", "quantity", "attributes", "image", "categories"])
+  productAttributeIDs String[] @db.ObjectId
+  specificAttributes ProductAttribute[] @relation(fields: [productAttributeIDs], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  products         Product[]
 }
 
 model Category {

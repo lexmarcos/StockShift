@@ -8,3 +8,7 @@ export const genericError = (error: any) => {
   }
   return new NextResponse(error, { status: 500 });
 };
+
+export const noUserError = () => {
+  return NextResponse.json({ message: "User not found" }, { status: 404 });
+};

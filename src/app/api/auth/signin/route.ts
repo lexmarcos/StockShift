@@ -14,6 +14,11 @@ export const POST = async (request: NextRequest) => {
       where: {
         username,
       },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+      },
     });
 
     if (!user) {
@@ -37,12 +42,14 @@ export const POST = async (request: NextRequest) => {
       process.env.JWT_SECRET as string
     );
 
+    const { password: _, ...userWithoutPassword } = user;
+
     cookies().set("token", token, {
       path: "/",
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    cookies().set("user", JSON.stringify(user), {
+    cookies().set("user", JSON.stringify(userWithoutPassword), {
       path: "/",
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });

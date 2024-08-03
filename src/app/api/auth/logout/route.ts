@@ -12,5 +12,8 @@ export const POST = async (request: NextRequest) => {
   cookies().delete("token");
   cookies().delete("user");
 
-  return NextResponse.json({ message: "Logout efetuado com sucesso" }, { status: 200 });
+  return NextResponse.json(
+    { message: "Logout efetuado com sucesso" },
+    { status: 200 }
+  );
 };

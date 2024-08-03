@@ -2,14 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 
-import { genericError } from "../utils/genericError";
-import { Product, ProductOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
+import { genericError, noUserError } from "../utils/genericError";
+import {
+  Product,
+  ProductOptionalDefaultsSchema,
+} from "../../../../prisma/generated/zod";
+import { IUserCookie, getUserByCookie } from "../utils/cookies";
 
 export const getAllProducts = async () => {
-  return await prisma.product.findMany({
+  return prisma.product.findMany({
     include: {
       categories: true,
       Inventory: true,
+    },
+    where: {
+      userId: getUserByCookie().id,
+      inventoryId: getUserByCookie().inventoryId,
     },
   });
 };
@@ -24,13 +32,16 @@ export const GET = async () => {
   }
 };
 
-export const createProduct = async (data: Product) => {
+export const createProduct = async (data: Product, user: IUserCookie) => {
   const imageToUpload = data.imageUrl;
   const productValidated = ProductOptionalDefaultsSchema.parse(data);
 
   let imageUrl = "";
   if (imageToUpload) {
-    imageUrl = await uploadToBucket(imageToUpload as string, productValidated.name as string);
+    imageUrl = await uploadToBucket(
+      imageToUpload as string,
+      productValidated.name as string
+    );
   }
 
   const productToAdd = {
@@ -38,12 +49,14 @@ export const createProduct = async (data: Product) => {
     imageUrl,
   };
 
-  return await prisma.product.create({
+  return prisma.product.create({
     data: {
       ...productToAdd,
       categories: {
         connect: productToAdd.categoryIDs?.map((id) => ({ id })),
       },
+      userId: user.id,
+      inventoryId: user.inventoryId,
     },
   });
 };
@@ -51,7 +64,13 @@ export const createProduct = async (data: Product) => {
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const result = createProduct(bodyJson);
+    const user = getUserByCookie();
+
+    if (!user) {
+      return noUserError();
+    }
+
+    const result = createProduct(bodyJson, user);
 
     return NextResponse.json(result);
   } catch (error) {

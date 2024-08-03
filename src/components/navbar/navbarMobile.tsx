@@ -14,7 +14,10 @@ export default function NavbarMobile() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col">
-        <Link href="#" className="flex items-center gap-2 text-lg font-semibold">
+        <Link
+          href="#"
+          className="flex items-center gap-2 text-lg font-semibold"
+        >
           <Package2 className="h-6 w-6" />
           <span className="sr-only">StockShift</span>
         </Link>

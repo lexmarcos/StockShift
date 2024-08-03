@@ -6,5 +6,7 @@ export const generateZodErrorMessage = (error: ZodError) => {
     path: err.path.join("."),
     message: err.message,
   }));
-  return new NextResponse(JSON.stringify({ errors: formattedErrors }), { status: 400 });
+  return new NextResponse(JSON.stringify({ errors: formattedErrors }), {
+    status: 400,
+  });
 };

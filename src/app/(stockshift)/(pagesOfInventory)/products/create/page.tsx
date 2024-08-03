@@ -26,19 +26,10 @@ import {
   ProductOptionalDefaultsSchema,
 } from "../../../../../../prisma/generated/zod";
 import InputCurrency from "@/components/InputCurrency/InputCurrency";
+import Image from "next/image";
 
 export default function InputForm() {
   const { toast } = useToast();
-
-  const getUserIdInLocalStorage = () => {
-    if (typeof window === "undefined") return "";
-    const user = localStorage.getItem("user");
-    if (user) {
-      const userParsed = JSON.parse(user);
-      return userParsed.id;
-    }
-    return "";
-  };
 
   const form = useForm<ProductOptionalDefaults>({
     resolver: zodResolver(ProductOptionalDefaultsSchema),
@@ -50,7 +41,7 @@ export default function InputForm() {
       categoryIDs: [],
       attributes: [],
       imageUrl: "",
-      userId: getUserIdInLocalStorage(),
+      inventoryId: "",
     },
   });
 
@@ -79,10 +70,19 @@ export default function InputForm() {
     label: item.name,
   }));
 
+  const convertPrice = (data: ProductOptionalDefaults) => {
+    return (data.price ?? 0) / 100;
+  };
+
+  const doConvertImage = async (file: File) => {
+    if (!file) return "";
+    return await convertImageToBase64(acceptedFiles[0]);
+  };
+
   async function onSubmit(data: ProductOptionalDefaults) {
-    data.price = (data.price ?? 0) / 100;
+    data.price = convertPrice(data);
     data.quantity = Number(data.quantity);
-    data.imageUrl = await convertImageToBase64(acceptedFiles[0]);
+    data.imageUrl = await doConvertImage(acceptedFiles[0]);
     createProductMutation.mutate(data);
   }
 
@@ -110,11 +110,12 @@ export default function InputForm() {
       );
     }
     return (
-      <img
+      <Image
         src={URL.createObjectURL(acceptedFiles[0])}
         alt="Imagem do produto"
         className="object-cover"
         width="100"
+        height="100"
       />
     );
   };

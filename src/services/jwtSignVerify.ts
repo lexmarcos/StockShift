@@ -12,7 +12,10 @@ export async function sign(payload: {}, secret: string): Promise<string> {
     .sign(new TextEncoder().encode(secret));
 }
 
-export async function verify(token: string, secret: string): Promise<JWTPayload> {
+export async function verify(
+  token: string,
+  secret: string
+): Promise<JWTPayload> {
   const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
 
   return payload;

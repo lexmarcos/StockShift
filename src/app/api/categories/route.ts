@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { genericError } from "@/app/api/utils/genericError";
 import prisma from "@/lib/prisma";
-import { CategoryOptionalDefaultsSchema, CategorySchema } from "../../../../prisma/generated/zod";
+import {
+  CategoryOptionalDefaultsSchema,
+  CategorySchema,
+} from "../../../../prisma/generated/zod";
 
 export const POST = async (request: NextRequest) => {
   try {

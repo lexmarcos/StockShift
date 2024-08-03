@@ -3,7 +3,7 @@ import { genericError } from "../../../utils/genericError";
 import prisma from "@/lib/prisma";
 import { IParamsWithId } from "@/app/api/utils/genericTypes";
 
-export const GET = async (request: NextRequest, { params }: IParamsWithId) => {
+export const GET = async (_: NextRequest, { params }: IParamsWithId) => {
   const id = params.id;
 
   if (!id)

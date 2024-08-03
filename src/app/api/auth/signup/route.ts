@@ -14,7 +14,8 @@ const generatePasswordHash = async (password: string) => {
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const { username, password, email, name } = UserOptionalDefaultsSchema.parse(bodyJson);
+    const { username, password, email, name } =
+      UserOptionalDefaultsSchema.parse(bodyJson);
     const hashedPassword = await generatePasswordHash(password);
 
     const result = await prisma.user.create({

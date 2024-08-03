@@ -7,7 +7,9 @@ cloudinary.config({
 });
 
 export const uploadToBucket = async (file: string, publicId: string) => {
-  const result = await cloudinary.uploader.upload(file, { public_id: publicId });
+  const result = await cloudinary.uploader.upload(file, {
+    public_id: publicId,
+  });
 
   return result.secure_url;
 };
