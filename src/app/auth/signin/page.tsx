@@ -63,10 +63,7 @@ function Login() {
               type="password"
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button
-              onClick={() => handleSubmit()}
-              disabled={mutation.isPending}
-            >
+            <Button onClick={() => handleSubmit()} disabled={mutation.isPending}>
               {!mutation.isPending ? (
                 "Entrar"
               ) : (

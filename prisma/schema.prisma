@@ -38,22 +38,22 @@ model Inventory {
 }
 
 model ProductAttribute {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  label String
-  type String
-  templatesIDs String[] @db.ObjectId
-  templates ProductTemplate[] @relation(fields: [templatesIDs], references: [id])
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  label        String
+  type         String
+  templatesIDs String[]          @db.ObjectId
+  templates    ProductTemplate[] @relation(fields: [templatesIDs], references: [id])
 }
 
 model ProductTemplate {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  commonAttributes String[]  @default(["description", "price", "quantity", "attributes", "image", "categories"])
-  productAttributeIDs String[] @db.ObjectId
-  specificAttributes ProductAttribute[] @relation(fields: [productAttributeIDs], references: [id])
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  products         Product[]
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  commonAttributes    String[]           @default(["description", "price", "quantity", "attributes", "image", "categories"])
+  productAttributeIDs String[]           @db.ObjectId
+  specificAttributes  ProductAttribute[] @relation(fields: [productAttributeIDs], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  products            Product[]
 }
 
 model Category {
@@ -71,6 +71,7 @@ model Product {
   name              String
   description       String?
   price             Float?
+  sku               String?
   quantity          Int?
   categoryIDs       String[]         @default([]) @db.ObjectId
   categories        Category[]       @relation(fields: [categoryIDs], references: [id])

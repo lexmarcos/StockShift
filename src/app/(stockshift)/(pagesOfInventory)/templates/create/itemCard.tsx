@@ -2,11 +2,12 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { InputsNames } from "../../products/create/types";
 
 interface IItemCardsProps {
-  checkIsSelected: (value: string) => boolean;
-  selectItem: (value: string) => void;
-  value: string;
+  checkIsSelected: (value: InputsNames) => boolean;
+  selectItem: (value: InputsNames) => void;
+  value: InputsNames;
   title: string;
   description: string;
   icon: ReactNode;
@@ -29,7 +30,7 @@ export default function ItemCards({
       onClick={() => selectItem(value)}
     >
       {checkIsSelected(value) && (
-        <div className="absolute -top-3 -right-3 border border-2 border-blue-400 bg-blue-400 rounded-full">
+        <div className="absolute -top-3 -right-3 border-2 border-blue-400 bg-blue-400 rounded-full">
           <CheckCircle2 size={27} strokeWidth={2.5} />
         </div>
       )}
