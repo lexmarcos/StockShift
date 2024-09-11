@@ -1,4 +1,4 @@
-export interface IResponseGetProducts {
+export interface IResponseGetProduct {
   id: string;
   name: string;
   description: string;

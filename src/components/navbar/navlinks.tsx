@@ -1,10 +1,9 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import { Home, LineChart, Package, ShoppingCart, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "../ui/badge";
+import { SheetClose } from "../ui/sheet";
 
 export default function NavLinks() {
   const pathname = usePathname();
@@ -27,10 +26,7 @@ export default function NavLinks() {
 
   return (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-      <Link
-        href="/dashboard"
-        className={generateClassNamesOfActiveRoute("/dashboard")}
-      >
+      <Link href="/dashboard" className={generateClassNamesOfActiveRoute("/dashboard")}>
         <Home className="h-4 w-4" />
         Dashboard
       </Link>
@@ -41,10 +37,7 @@ export default function NavLinks() {
           6
         </Badge>
       </Link>
-      <Link
-        href="/products"
-        className={generateClassNamesOfActiveRoute("/(stockshift)/products")}
-      >
+      <Link href="/products" className={generateClassNamesOfActiveRoute("/products")}>
         <Package className="h-4 w-4" />
         Produtos{" "}
       </Link>

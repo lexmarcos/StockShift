@@ -24,6 +24,7 @@
     "@tanstack/react-table": "^8.13.2",
     "@upstash/ratelimit": "^1.0.1",
     "@vercel/kv": "^1.0.1",
+    "@yudiel/react-qr-scanner": "^2.0.8",
     "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",

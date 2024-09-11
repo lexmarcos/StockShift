@@ -1,5 +1,6 @@
 import axios from "axios";
-const baseURL = "http://192.168.0.10:3000/api/auth";
+const apiUrl = process.env.NEXT_PUBLIC_BFF_URL;
+const baseURL = `${apiUrl}/auth`;
 export const authApiRoutes = {
   signin: async (data: ISignIn): Promise<IResponseSignIn> => {
     const res = await fetch(`${baseURL}/signin`, {

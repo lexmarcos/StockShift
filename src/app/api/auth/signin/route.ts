@@ -30,7 +30,7 @@ export const POST = async (request: NextRequest) => {
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
-    if (!passwordMatch) {
+    if (!passwordMatch) { 
       return NextResponse.json(
         { message: "User not found or password wrong" },
         { status: 404 }

@@ -149,12 +149,13 @@ export default function ProductForm({
       <FormField
         control={form.control}
         name="price"
-        render={({ field: { onChange } }) => (
+        render={({ field: { onChange, value } }) => (
           <FormItem>
             <FormLabel>Preço</FormLabel>
             <FormControl>
               <InputCurrency
                 inputMode="decimal"
+                value={value && value > 0 ? value : ""}
                 onValueChange={({ floatValue }, _) => onChange(floatValue)}
                 placeholder="Preço em reais"
                 customInput={Input}
@@ -174,8 +175,8 @@ export default function ProductForm({
             <FormLabel>Quantidade</FormLabel>
             <FormControl>
               <Input
-                value={value?.toString() || ""}
-                placeholder="Quantos produtos você tem?"
+                value={value && value > 0 ? value : ""}
+                placeholder="Quantia dos produtos"
                 {...rest}
                 type="number"
                 onChange={(e) => onChange(e.target.valueAsNumber)}
@@ -210,7 +211,7 @@ export default function ProductForm({
       <FormField
         control={form.control}
         name="imageUrl"
-        render={({ field: { value, ...rest } }) => (
+        render={() => (
           <FormItem>
             <FormLabel>Imagem</FormLabel>
             <FormControl>

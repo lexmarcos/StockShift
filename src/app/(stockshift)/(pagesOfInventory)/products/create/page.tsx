@@ -25,9 +25,8 @@ export default function InputForm() {
       price: 0,
       quantity: 0,
       categoryIDs: [],
-      attributes: [],
+      // attributes: [],
       imageUrl: "",
-      inventoryId: "",
       sku: "",
     },
   });
@@ -76,8 +75,8 @@ export default function InputForm() {
   }
 
   return (
-    <div className="flex items-center justify-center h-full">
-      <Card className="md:w-6/12 md:p-8 p-4">
+    <div className="flex flex-1 flex-col">
+      <Card className="md:w-8/12 md:p-8 p-4">
         <h1 className="text-2xl mb-4 font-bold">Criar Produto</h1>
         <ProductForm
           form={form}

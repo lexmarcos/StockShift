@@ -6,8 +6,9 @@ generator zod {
   provider                         = "zod-prisma-types"
   createInputTypes                 = false
   createOptionalDefaultValuesTypes = true
-  createRelationValuesTypes        = true
+  createRelationValuesTypes        = false
   writeNullishInModelTypes         = true
+  addInputTypeValidation           = true
 }
 
 datasource db {
@@ -68,21 +69,22 @@ model Category {
 
 model Product {
   id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  /// @zod.string.min(3, { message: "O nome precisa ter 3 ou mais letras" })
   name              String
-  description       String?
-  price             Float?
-  sku               String?
-  quantity          Int?
+  description       String?          @default("")
+  price             Float?           @default(0.0)
+  sku               String?          @default("")
+  quantity          Int?             @default(0)
   categoryIDs       String[]         @default([]) @db.ObjectId
   categories        Category[]       @relation(fields: [categoryIDs], references: [id])
-  attributes        Json?
-  imageUrl          String?
+  // attributes        Json? 
+  imageUrl          String?          @default("")
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   User              User             @relation(fields: [userId], references: [id])
   userId            String           @default("") @db.ObjectId
   Inventory         Inventory        @relation(fields: [inventoryId], references: [id])
-  inventoryId       String           @db.ObjectId
+  inventoryId       String           @default("") @db.ObjectId
   ProductTemplate   ProductTemplate? @relation(fields: [productTemplateId], references: [id])
   productTemplateId String?          @db.ObjectId
 }

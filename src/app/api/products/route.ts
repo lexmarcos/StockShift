@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 
 import { genericError, noUserError } from "../utils/genericError";
 import {
-  Product,
+  ProductOptionalDefaults,
   ProductOptionalDefaultsSchema,
+  ProductSchema
 } from "../../../../prisma/generated/zod";
 import { IUserCookie, getUserByCookie } from "../utils/cookies";
 
@@ -32,20 +33,20 @@ export const GET = async () => {
   }
 };
 
-export const createProduct = async (data: Product, user: IUserCookie) => {
-  const imageToUpload = data.imageUrl;
-  const productValidated = ProductOptionalDefaultsSchema.parse(data);
+export const createProduct = async (product: ProductOptionalDefaults, user: IUserCookie) => {
+  const imageToUpload = product.imageUrl;
+  
 
   let imageUrl = "";
   if (imageToUpload) {
     imageUrl = await uploadToBucket(
       imageToUpload as string,
-      productValidated.name as string
+      product.name as string
     );
   }
 
   const productToAdd = {
-    ...productValidated,
+    ...product,
     imageUrl,
   };
 
@@ -70,7 +71,9 @@ export const POST = async (request: NextRequest) => {
       return noUserError();
     }
 
-    const result = createProduct(bodyJson, user);
+    const product = ProductOptionalDefaultsSchema.parse(bodyJson);
+
+    const result = createProduct(product, user);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -97,7 +100,7 @@ export const DELETE = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const productValidated = ProductOptionalDefaultsSchema.parse(bodyJson);
+    const productValidated = ProductSchema.parse(bodyJson);
     const { id, ...rest } = productValidated;
 
     const result = await prisma.product.update({
