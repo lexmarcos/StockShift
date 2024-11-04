@@ -6,7 +6,11 @@ import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Command, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CommandList } from "cmdk";
 import { Badge } from "../ui/badge";
 
@@ -22,7 +26,12 @@ interface IMultipleComboboxProps {
   onChange: (value: string[]) => void;
 }
 
-export function MultipleCombobox({ items, placeholder, value, onChange }: IMultipleComboboxProps) {
+export function MultipleCombobox({
+  items,
+  placeholder,
+  value,
+  onChange,
+}: IMultipleComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
   const selectOrUnselectItem = (item: IComboboxItem) => {
@@ -49,7 +58,9 @@ export function MultipleCombobox({ items, placeholder, value, onChange }: IMulti
 
   const renderPlaceholderOrSelectedItems = () => {
     if (value.length === 0) {
-      return <span className="text-muted-foreground text-sm">{placeholder}</span>;
+      return (
+        <span className="text-muted-foreground text-sm">{placeholder}</span>
+      );
     }
 
     return renderSelectedItems();
@@ -87,7 +98,7 @@ export function MultipleCombobox({ items, placeholder, value, onChange }: IMulti
                       "mr-2 h-4 w-4",
                       value.some((arrayItem) => arrayItem === item.value)
                         ? "opacity-100"
-                        : "opacity-0"
+                        : "opacity-0",
                     )}
                   />
                   {item.label}

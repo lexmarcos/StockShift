@@ -1,4 +1,13 @@
-import { Badge, Home, LineChart, Menu, Package, Package2, ShoppingCart, Users } from "lucide-react";
+import {
+  Badge,
+  Home,
+  LineChart,
+  Menu,
+  Package,
+  Package2,
+  ShoppingCart,
+  Users,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "../ui/sheet";
 import NavLinks from "./navlinks";
@@ -33,13 +42,18 @@ export default function NavbarMobile() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col">
-        <Link href="#" className="flex items-center gap-2 text-lg font-semibold">
+        <Link
+          href="#"
+          className="flex items-center gap-2 text-lg font-semibold"
+        >
           <Package2 className="h-6 w-6" />
           <span className="">StockShift</span>
         </Link>
         <nav className="grid items-start text-sm font-medium lg:px-4">
           <Link href="/dashboard">
-            <SheetClose className={generateClassNamesOfActiveRoute("/dashboard")}>
+            <SheetClose
+              className={generateClassNamesOfActiveRoute("/dashboard")}
+            >
               <Home className="h-4 w-4" />
               Dashboard
             </SheetClose>
@@ -51,7 +65,9 @@ export default function NavbarMobile() {
             </SheetClose>
           </Link> */}
           <Link href="/products">
-            <SheetClose className={generateClassNamesOfActiveRoute("/products")}>
+            <SheetClose
+              className={generateClassNamesOfActiveRoute("/products")}
+            >
               <Package className="h-4 w-4" />
               Produtos
             </SheetClose>

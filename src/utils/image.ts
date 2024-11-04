@@ -9,7 +9,7 @@ export const convertImageToBase64 = (file: File): Promise<string> => {
       const base64 = reader.result?.toString() || "";
       const base64WithType = base64.replace(
         "application/octet-stream",
-        fileType
+        fileType,
       );
       resolve(base64WithType);
     };

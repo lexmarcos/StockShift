@@ -4,7 +4,7 @@ import { getUserByCookie } from "./app/api/utils/cookies";
 
 async function handleTokenValidation(
   token: string,
-  req: NextRequest
+  req: NextRequest,
 ): Promise<void | NextResponse> {
   try {
     await verify(token, process.env.JWT_SECRET as string);

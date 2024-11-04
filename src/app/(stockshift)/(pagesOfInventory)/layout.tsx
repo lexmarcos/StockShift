@@ -1,10 +1,13 @@
 "use client";
-import { Search } from "lucide-react";
+import { BoxIcon, ChevronRight, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/navbar/navbar";
 import NavbarMobile from "@/components/navbar/navbarMobile";
 import AvatarDropdown from "@/components/avatarDropdown/avatarDropdown";
+import { Button } from "@/components/ui/button";
+import { ButtonIcon } from "@radix-ui/react-icons";
+import FooterInventory from "@/components/footerInvetory/footerInventory";
 
 export default function RootLayout({
   children,
@@ -33,6 +36,7 @@ export default function RootLayout({
         </header>
         <main className="flex flex-1 flex-col p-4">
           {children}
+          <FooterInventory />
         </main>
       </div>
     </div>

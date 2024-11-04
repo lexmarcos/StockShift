@@ -6,7 +6,7 @@ import { genericError, noUserError } from "../utils/genericError";
 import {
   ProductOptionalDefaults,
   ProductOptionalDefaultsSchema,
-  ProductSchema
+  ProductSchema,
 } from "../../../../prisma/generated/zod";
 import { IUserCookie, getUserByCookie } from "../utils/cookies";
 
@@ -33,15 +33,17 @@ export const GET = async () => {
   }
 };
 
-export const createProduct = async (product: ProductOptionalDefaults, user: IUserCookie) => {
+export const createProduct = async (
+  product: ProductOptionalDefaults,
+  user: IUserCookie,
+) => {
   const imageToUpload = product.imageUrl;
-  
 
   let imageUrl = "";
   if (imageToUpload) {
     imageUrl = await uploadToBucket(
       imageToUpload as string,
-      product.name as string
+      product.name as string,
     );
   }
 

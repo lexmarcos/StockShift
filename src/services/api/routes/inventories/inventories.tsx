@@ -12,7 +12,7 @@ export const inventoriesApi = {
   select: async (inventoryId: string) => {
     return apiInstance.update<Inventory>(
       `inventories/${inventoryId}/select`,
-      {}
+      {},
     );
   },
 };

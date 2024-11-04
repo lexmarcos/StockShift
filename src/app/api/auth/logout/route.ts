@@ -14,6 +14,6 @@ export const POST = async (request: NextRequest) => {
 
   return NextResponse.json(
     { message: "Logout efetuado com sucesso" },
-    { status: 200 }
+    { status: 200 },
   );
 };

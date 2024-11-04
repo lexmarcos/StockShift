@@ -13,7 +13,7 @@ export const PUT = async (request: NextRequest, { params }: IParamsWithId) => {
         { message: "Inventory ID is required" },
         {
           status: 400,
-        }
+        },
       );
     }
 
@@ -24,7 +24,7 @@ export const PUT = async (request: NextRequest, { params }: IParamsWithId) => {
         { message: "User or inventory not found" },
         {
           status: 404,
-        }
+        },
       );
     }
 
@@ -44,13 +44,13 @@ export const PUT = async (request: NextRequest, { params }: IParamsWithId) => {
         { message: "User or inventory not found" },
         {
           status: 404,
-        }
+        },
       );
     }
 
     cookies().set(
       "user",
-      JSON.stringify({ ...user, inventoryId: idOfInventory })
+      JSON.stringify({ ...user, inventoryId: idOfInventory }),
     );
 
     return NextResponse.json(inventory);

@@ -4,6 +4,7 @@ import { Bell, Package2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import NavLinks from "./navlinks";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   return (

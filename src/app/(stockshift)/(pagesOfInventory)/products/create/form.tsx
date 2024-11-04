@@ -67,7 +67,12 @@ export default function ProductForm({
 
   const renderSelectedImageOrCaptions = () => {
     if (acceptedFiles.length === 0) {
-      return <p>Arraste e solte a imagem do produto aqui ou clique para selecionar a imagem</p>;
+      return (
+        <p>
+          Arraste e solte a imagem do produto aqui ou clique para selecionar a
+          imagem
+        </p>
+      );
     }
     return (
       <Image
@@ -89,10 +94,16 @@ export default function ProductForm({
           isFileDialogActive ? "border-white border-2" : null,
         ])}
       >
-        {isDragActive ? <p>Solte a imagem aqui...</p> : renderSelectedImageOrCaptions()}
+        {isDragActive ? (
+          <p>Solte a imagem aqui...</p>
+        ) : (
+          renderSelectedImageOrCaptions()
+        )}
         {fileRejections.length > 0 && (
           <div className="mt-3">
-            <span className="text-red-600">Somente 1 imagem por produto. tente novamente</span>
+            <span className="text-red-600">
+              Somente 1 imagem por produto. tente novamente
+            </span>
           </div>
         )}
       </Card>
@@ -119,7 +130,11 @@ export default function ProductForm({
           <FormItem>
             <FormLabel>Descrição</FormLabel>
             <FormControl>
-              <Input placeholder="Descrição do produto" value={value as string} {...rest} />
+              <Input
+                placeholder="Descrição do produto"
+                value={value as string}
+                {...rest}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -252,7 +267,12 @@ export default function ProductForm({
             )}
           />
           {getInputByName("description")}
-          <div className={cn(["grid gap-4", hasPriceAndQuantityInputs && "grid-cols-2"])}>
+          <div
+            className={cn([
+              "grid gap-4",
+              hasPriceAndQuantityInputs && "grid-cols-2",
+            ])}
+          >
             {getInputByName("price")}
             {getInputByName("quantity")}
           </div>

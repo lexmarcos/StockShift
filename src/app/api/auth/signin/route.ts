@@ -24,22 +24,22 @@ export const POST = async (request: NextRequest) => {
     if (!user) {
       return NextResponse.json(
         { message: "User not found or password wrong" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
-    if (!passwordMatch) { 
+    if (!passwordMatch) {
       return NextResponse.json(
         { message: "User not found or password wrong" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const token = await sign(
       { userId: user.id },
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     );
 
     const { password: _, ...userWithoutPassword } = user;

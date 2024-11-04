@@ -32,7 +32,8 @@ export default function InputForm() {
   });
 
   const createProductMutation = useMutation({
-    mutationFn: (data: ProductOptionalDefaults) => api.products.createProduct(data),
+    mutationFn: (data: ProductOptionalDefaults) =>
+      api.products.createProduct(data),
     onSuccess: () => {
       toast({
         color: "green",

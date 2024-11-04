@@ -7,7 +7,14 @@ import {
 } from "@/components/ui/drawer";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api/api";
-import { Barcode, Boxes, CalendarClock, DollarSign, Minus, Plus } from "lucide-react";
+import {
+  Barcode,
+  Boxes,
+  CalendarClock,
+  DollarSign,
+  Minus,
+  Plus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -18,7 +25,11 @@ interface IDrawerCategoriesProps {
   sku: string;
 }
 
-export function DrawerOfProduct({ isOpen, onClose, sku }: IDrawerCategoriesProps) {
+export function DrawerOfProduct({
+  isOpen,
+  onClose,
+  sku,
+}: IDrawerCategoriesProps) {
   const [quantity, setQuantity] = useState(1);
 
   const createCategoryMutation = useMutation({
@@ -41,7 +52,10 @@ export function DrawerOfProduct({ isOpen, onClose, sku }: IDrawerCategoriesProps
   };
 
   function onSubmit() {
-    createCategoryMutation.mutate({ ...product, quantity: getNewQuantityOfProduct() });
+    createCategoryMutation.mutate({
+      ...product,
+      quantity: getNewQuantityOfProduct(),
+    });
   }
 
   const decreaseQuantity = () => {
@@ -77,14 +91,20 @@ export function DrawerOfProduct({ isOpen, onClose, sku }: IDrawerCategoriesProps
               </div>
               <div className="flex gap-2">
                 <CalendarClock />{" "}
-                <span>{product && new Date(product?.createdAt).toLocaleDateString()}</span>
+                <span>
+                  {product && new Date(product?.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
         </div>
         <DrawerFooter className="flex items-center w-full">
           <div className="flex justify-center gap-1">
-            <Button variant="ghost" disabled={quantity === 1} onClick={() => decreaseQuantity()}>
+            <Button
+              variant="ghost"
+              disabled={quantity === 1}
+              onClick={() => decreaseQuantity()}
+            >
               <Minus />
             </Button>
             <Input
@@ -92,12 +112,20 @@ export function DrawerOfProduct({ isOpen, onClose, sku }: IDrawerCategoriesProps
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value))}
             />
-            <Button variant="ghost" onClick={() => setQuantity((prev) => prev + 1)}>
+            <Button
+              variant="ghost"
+              onClick={() => setQuantity((prev) => prev + 1)}
+            >
               <Plus />
             </Button>
           </div>
         </DrawerFooter>
-        <Button className="w-full rounded-none" size="lg" onClick={() => onSubmit()} autoFocus>
+        <Button
+          className="w-full rounded-none"
+          size="lg"
+          onClick={() => onSubmit()}
+          autoFocus
+        >
           Adicionar ao estoque
         </Button>
       </DrawerContent>

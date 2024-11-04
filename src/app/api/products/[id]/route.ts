@@ -10,7 +10,7 @@ export const GET = async (req: NextRequest, { params }: IParamsWithId) => {
       {
         message: "id is required",
       },
-      { status: 400 }
+      { status: 400 },
     );
 
   const product = await prisma.product.findUnique({ where: { id } });

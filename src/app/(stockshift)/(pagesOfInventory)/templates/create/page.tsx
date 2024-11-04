@@ -1,7 +1,15 @@
 "use client";
 import { useState } from "react";
 import ItemCards from "@/app/(stockshift)/(pagesOfInventory)/templates/create/itemCard";
-import { Barcode, Boxes, DollarSign, ImageIcon, Layers3, List, Notebook } from "lucide-react";
+import {
+  Barcode,
+  Boxes,
+  DollarSign,
+  ImageIcon,
+  Layers3,
+  List,
+  Notebook,
+} from "lucide-react";
 import ProductForm from "../../products/create/form";
 import { useForm } from "react-hook-form";
 import {

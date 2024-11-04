@@ -6,14 +6,14 @@ interface IParamsSKU {
 }
 
 export const GET = async (req: NextRequest, { params }: IParamsSKU) => {
-  const sku= params.sku;
+  const sku = params.sku;
 
   if (!sku)
     return NextResponse.json(
       {
         message: "id is required",
       },
-      { status: 400 }
+      { status: 400 },
     );
 
   const product = await prisma.product.findFirst({ where: { sku } });

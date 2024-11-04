@@ -11,7 +11,7 @@ export const GET = async (_: NextRequest, { params }: IParamsWithId) => {
       {
         message: "id of a category is required",
       },
-      { status: 400 }
+      { status: 400 },
     );
 
   try {
