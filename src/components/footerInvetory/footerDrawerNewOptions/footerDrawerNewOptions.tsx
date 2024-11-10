@@ -36,7 +36,7 @@ export function FooterDrawerNewOptions({ trigger }: IFooterDrawerNewOptions) {
           </DrawerTrigger>
           <DrawerClose>
             <Button className="w-full" variant="outline">
-              Cancel
+              Fechar
             </Button>
           </DrawerClose>
         </DrawerFooter>

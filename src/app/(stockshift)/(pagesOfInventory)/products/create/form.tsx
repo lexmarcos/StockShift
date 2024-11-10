@@ -19,8 +19,11 @@ import { MultipleCombobox } from "@/components/multipleCombobox/multipleCombobox
 import { ProductOptionalDefaults } from "../../../../../../prisma/generated/zod";
 import InputCurrency from "@/components/InputCurrency/InputCurrency";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { InputsNames } from "./types";
+import { ScanBarcodeIcon } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import ScannerBarCode from "../add-by-code/ScannerBarCode";
 
 interface IFormCreateProductPage {
   form: UseFormReturn<ProductOptionalDefaults>;
@@ -149,11 +152,16 @@ export default function ProductForm({
           <FormItem>
             <FormLabel>SKU (código de barras)</FormLabel>
             <FormControl>
-              <Input
-                placeholder="Código de referência do produto"
-                value={value as string}
-                {...rest}
-              />
+              <div className="flex items-center gap-3">
+                <Input
+                  placeholder="Código de referência do produto"
+                  value={value as string}
+                  {...rest}
+                />
+                <Button onClick={() => setIsModalBarCodeOpen(true)}>
+                  <ScanBarcodeIcon />
+                </Button>
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -249,8 +257,18 @@ export default function ProductForm({
 
   const hasPriceAndQuantityInputs = hasInput("price") && hasInput("quantity");
 
+  const [isModalBarCodeOpen, setIsModalBarCodeOpen] = useState(false);
+
+  console.log(isModalBarCodeOpen);
   return (
     <div className={cn([readonly && "cursor-default pointer-events-none"])}>
+      <Dialog open={isModalBarCodeOpen}>
+        <DialogContent>
+          <ScannerBarCode
+            onScan={(result) => form.setValue("sku", result[0].rawValue)}
+          />
+        </DialogContent>
+      </Dialog>
       <Form {...form}>
         <form onSubmit={doSubmit()} className="space-y-3 w-full">
           <FormField

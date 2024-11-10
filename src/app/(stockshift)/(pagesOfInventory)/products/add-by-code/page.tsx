@@ -7,6 +7,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Drawer } from "@/components/ui/drawer";
 import { DrawerOfProduct } from "./drawerOfProduct";
+import ScannerBarCode from "./ScannerBarCode";
 export default function AddByCode() {
   const [text, setText] = useState("");
 
@@ -39,28 +40,15 @@ export default function AddByCode() {
   return (
     <>
       <div className="w-full flex justify-center relative">
-        <Scanner
+        <ScannerBarCode
           key={text}
+          value={text}
           formats={formatsAccepted}
           onScan={(result) => {
             setText(result[0].rawValue);
             setIsFindDrawerOpen(true);
           }}
-          classNames={{ video: styles.video, container: styles.container }}
-          components={{ finder: false }}
         />
-        <div className={styles.value}>
-          {text ? (
-            <h1 className="mb-4 text-xl font-bold">{text}</h1>
-          ) : (
-            <div className="mb-4 text-xs text-zinc-300 flex items-center gap-1">
-              <span>
-                <Info size={12} />
-              </span>
-              <span>aponte a câmera para um código de barras</span>
-            </div>
-          )}
-        </div>
       </div>
       <DrawerOfProduct
         isOpen={isFindDrawerOpen}
