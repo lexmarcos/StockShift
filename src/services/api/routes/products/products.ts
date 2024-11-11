@@ -1,29 +1,25 @@
-import {
-  ProductOptionalDefaultsSchema,
-  ProductSchema,
-} from "../../../../../prisma/generated/zod";
+import { Product } from "@prisma/client";
 import { apiInstance } from "../../instance";
 import { IResponseGetProduct } from "./types";
-import { z } from "zod";
 
 export const productsAPIRoutes = {
   getProducts: async () => {
     return apiInstance.get<IResponseGetProduct[]>("products");
   },
   createProduct: async (
-    data: z.infer<typeof ProductOptionalDefaultsSchema>,
+    data: Product,
   ) => {
-    return apiInstance.post<z.infer<typeof ProductOptionalDefaultsSchema>>(
+    return apiInstance.post<Product>(
       "products",
       data,
     );
   },
   getProductBySKU: async (sku: string) => {
-    return apiInstance.get<z.infer<typeof ProductSchema>>(
+    return apiInstance.get<Product>(
       "products/sku/" + sku,
     );
   },
-  updateProduct: async (data: z.infer<typeof ProductSchema>) => {
-    return apiInstance.update<z.infer<typeof ProductSchema>>("products", data);
+  updateProduct: async (data: Product) => {
+    return apiInstance.update<Product>("products", data);
   },
 };

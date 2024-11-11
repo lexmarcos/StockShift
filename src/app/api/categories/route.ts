@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { genericError } from "@/app/api/utils/genericError";
 import prisma from "@/lib/prisma";
-import {
-  CategoryOptionalDefaultsSchema,
-  CategorySchema,
-} from "../../../../prisma/generated/zod";
 
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const validated = CategoryOptionalDefaultsSchema.parse(bodyJson);
+    //todo adicionar validador zod
+    const validated = bodyJson;
 
     const result = await prisma.category.create({
       data: validated,

@@ -3,12 +3,8 @@ import { uploadToBucket } from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 
 import { genericError, noUserError } from "../utils/genericError";
-import {
-  ProductOptionalDefaults,
-  ProductOptionalDefaultsSchema,
-  ProductSchema,
-} from "../../../../prisma/generated/zod";
 import { IUserCookie, getUserByCookie } from "../utils/cookies";
+import { Product } from "@prisma/client";
 
 export const getAllProducts = async () => {
   return prisma.product.findMany({
@@ -34,7 +30,7 @@ export const GET = async () => {
 };
 
 export const createProduct = async (
-  product: ProductOptionalDefaults,
+  product: Product,
   user: IUserCookie,
 ) => {
   const imageToUpload = product.imageUrl;
@@ -73,7 +69,8 @@ export const POST = async (request: NextRequest) => {
       return noUserError();
     }
 
-    const product = ProductOptionalDefaultsSchema.parse(bodyJson);
+    // todo adicionar validador zod
+    const product = bodyJson
 
     const result = createProduct(product, user);
 
@@ -102,7 +99,8 @@ export const DELETE = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const productValidated = ProductSchema.parse(bodyJson);
+    // todo adicionar validador zod
+    const productValidated = bodyJson;
     const { id, ...rest } = productValidated;
 
     const result = await prisma.product.update({

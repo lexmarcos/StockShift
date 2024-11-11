@@ -16,7 +16,6 @@ import { Card } from "@/components/ui/card";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { MultipleCombobox } from "@/components/multipleCombobox/multipleCombobox";
-import { ProductOptionalDefaults } from "../../../../../../prisma/generated/zod";
 import InputCurrency from "@/components/InputCurrency/InputCurrency";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -24,10 +23,11 @@ import { InputsNames } from "./types";
 import { ScanBarcodeIcon } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ScannerBarCode from "../add-by-code/ScannerBarCode";
+import { Product } from "@prisma/client";
 
 interface IFormCreateProductPage {
-  form: UseFormReturn<ProductOptionalDefaults>;
-  onSubmit?: (data: ProductOptionalDefaults) => Promise<void>;
+  form: UseFormReturn<Product>;
+  onSubmit?: (data: Product) => Promise<void>;
   categoriesItemsCombobox:
     | {
         value: string;

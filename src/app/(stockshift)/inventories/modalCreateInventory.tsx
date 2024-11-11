@@ -9,11 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import {
-  Inventory,
-  InventoryOptionalDefaults,
-  InventoryOptionalDefaultsSchema,
-} from "../../../../prisma/generated/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -31,6 +26,7 @@ import {
 } from "@tanstack/react-query";
 import { api } from "../../../services/api/api";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import { Inventory } from "@prisma/client";
 
 interface IModalCreateInventoryProps {
   isOpen: boolean;
@@ -41,8 +37,8 @@ export default function ModalCreateInventory({
   isOpen,
   onClose,
 }: IModalCreateInventoryProps) {
-  const form = useForm<InventoryOptionalDefaults>({
-    resolver: zodResolver(InventoryOptionalDefaultsSchema),
+  const form = useForm<Inventory>({
+    // todo adicionar zod resolver
     defaultValues: {
       name: "",
     },
@@ -51,8 +47,7 @@ export default function ModalCreateInventory({
   const queryClient = useQueryClient();
 
   const createInventoryMutation = useMutation({
-    mutationFn: (formData: InventoryOptionalDefaults) =>
-      api.inventories.create(formData),
+    mutationFn: (formData: Inventory) => api.inventories.create(formData),
     onSuccess: (data: Inventory) => {
       queryClient.setQueryData(["inventories"], (oldData: any) => {
         console.log(oldData, data);
@@ -62,7 +57,7 @@ export default function ModalCreateInventory({
     },
   });
 
-  function onSubmit(values: InventoryOptionalDefaults) {
+  function onSubmit(values: Inventory) {
     createInventoryMutation.mutate(values);
   }
 

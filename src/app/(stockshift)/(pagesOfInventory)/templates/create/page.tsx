@@ -12,26 +12,22 @@ import {
 } from "lucide-react";
 import ProductForm from "../../products/create/form";
 import { useForm } from "react-hook-form";
-import {
-  ProductOptionalDefaults,
-  ProductOptionalDefaultsSchema,
-} from "../../../../../../prisma/generated/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/services/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { InputsNames } from "../../products/create/types";
+import { Product } from "@prisma/client";
 
 export default function CreateTemplate() {
-  const form = useForm<ProductOptionalDefaults>({
-    resolver: zodResolver(ProductOptionalDefaultsSchema),
+  const form = useForm<Product>({
+    // todo adicionar resolver zod
     defaultValues: {
       name: "",
       description: "" as string,
       price: 0,
       quantity: 0,
       categoryIDs: [],
-      attributes: [],
+      // attributes: [],
       imageUrl: "",
       inventoryId: "",
       sku: "",

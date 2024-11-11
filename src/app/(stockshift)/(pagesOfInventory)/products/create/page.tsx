@@ -1,5 +1,4 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -7,18 +6,15 @@ import { api } from "@/services/api/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { convertImageToBase64 } from "@/utils/image";
-import {
-  ProductOptionalDefaults,
-  ProductOptionalDefaultsSchema,
-} from "../../../../../../prisma/generated/zod";
 import ProductForm from "./form";
 import { useState } from "react";
+import { Product } from "@prisma/client";
 
 export default function InputForm() {
   const { toast } = useToast();
 
-  const form = useForm<ProductOptionalDefaults>({
-    resolver: zodResolver(ProductOptionalDefaultsSchema),
+  const form = useForm<Product>({
+    //todo adicionar resolver zod
     defaultValues: {
       name: "",
       description: "" as string,
@@ -32,7 +28,7 @@ export default function InputForm() {
   });
 
   const createProductMutation = useMutation({
-    mutationFn: (data: ProductOptionalDefaults) =>
+    mutationFn: (data: Product) =>
       api.products.createProduct(data),
     onSuccess: () => {
       toast({
@@ -58,7 +54,7 @@ export default function InputForm() {
     label: item.name,
   }));
 
-  const convertPrice = (data: ProductOptionalDefaults) => {
+  const convertPrice = (data: Product) => {
     return (data.price ?? 0) / 100;
   };
 
@@ -67,7 +63,7 @@ export default function InputForm() {
     return await convertImageToBase64(productImages[0]);
   };
 
-  async function onSubmit(data: ProductOptionalDefaults) {
+  async function onSubmit(data: Product) {
     if (!productImages) return;
     data.price = convertPrice(data);
     data.quantity = Number(data.quantity);

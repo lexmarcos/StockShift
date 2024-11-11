@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { InventoryOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
 import prisma from "@/lib/prisma";
 import { genericError } from "../utils/genericError";
 import { cookies } from "next/headers";
@@ -7,7 +6,8 @@ import { cookies } from "next/headers";
 export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const validatedBody = InventoryOptionalDefaultsSchema.parse(body);
+    // todo adicionar validador zod
+    const validatedBody = body
 
     const user = JSON.parse(cookies().get("user")?.value as string);
 
@@ -68,7 +68,7 @@ export const DELETE = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const validatedBody = InventoryOptionalDefaultsSchema.parse(body);
+    const validatedBody = body;
 
     const inventoryId = body.id as string;
 

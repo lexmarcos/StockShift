@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -18,15 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/services/api/api";
-import {
-  CategoryOptionalDefaults,
-  CategoryOptionalDefaultsSchema,
-} from "../../../../../prisma/generated/zod";
+import { ICategory } from "./types";
 
 interface IDrawerCategoriesProps {
   isOpen: boolean;
@@ -37,21 +32,21 @@ export function DrawerCreateCategories({
   isOpen,
   onClose,
 }: IDrawerCategoriesProps) {
-  const form = useForm<CategoryOptionalDefaults>({
-    resolver: zodResolver(CategoryOptionalDefaultsSchema),
+  const form = useForm<ICategory>({
+    //todo adicionar resolver zod
     defaultValues: {
       name: "",
     },
   });
 
   const createCategoryMutation = useMutation({
-    mutationFn: (data: CategoryOptionalDefaults) => api.categories.create(data),
+    mutationFn: (data: ICategory) => api.categories.create(data),
     onSuccess: () => {
       form.clearErrors();
     },
   });
 
-  function onSubmit(data: CategoryOptionalDefaults) {
+  function onSubmit(data: ICategory) {
     createCategoryMutation.mutate(data);
   }
 

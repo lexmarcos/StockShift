@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { genericError } from "@/app/api/utils/genericError";
-import { UserOptionalDefaultsSchema } from "../../../../../prisma/generated/zod";
 
 const generatePasswordHash = async (password: string) => {
   const saltRounds = 10;
@@ -14,8 +12,8 @@ const generatePasswordHash = async (password: string) => {
 export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
-    const { username, password, email, name } =
-      UserOptionalDefaultsSchema.parse(bodyJson);
+    // todo adicionar validador zod
+    const { username, password, email, name } = bodyJson
     const hashedPassword = await generatePasswordHash(password);
 
     const result = await prisma.user.create({

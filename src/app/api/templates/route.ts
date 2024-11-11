@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { ProductTemplateOptionalDefaultsSchema } from "../../../../prisma/generated/zod";
 import prisma from "@/lib/prisma";
 import { genericError } from "@/app/api/utils/genericError";
 
@@ -15,7 +14,8 @@ declare global {
 export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const validatedBody = ProductTemplateOptionalDefaultsSchema.parse(body);
+    //todo adicionar validador zod
+    const validatedBody = body;
 
     return prisma.productTemplate.create({
       data: {
@@ -38,7 +38,9 @@ export const GET = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const body = await request.json();
-    const validatedBody = ProductTemplateOptionalDefaultsSchema.parse(body);
+    // todo adicionar validador zod
+    const validatedBody = body;
+
     const { id, ...rest } = validatedBody;
 
     return prisma.productTemplate.update({
