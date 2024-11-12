@@ -3,9 +3,14 @@ import { apiInstance } from "../../instance";
 import { IResponseGetProduct } from "./types";
 
 export const productsAPIRoutes = {
+  getProductsByName: async (name: string) => {
+    return apiInstance.get<IResponseGetProduct[]>("products", {name});
+  },
+
   getProducts: async () => {
     return apiInstance.get<IResponseGetProduct[]>("products");
   },
+
   createProduct: async (
     data: Product,
   ) => {

@@ -5,22 +5,48 @@ import prisma from "@/lib/prisma";
 import { genericError, noUserError } from "../utils/genericError";
 import { IUserCookie, getUserByCookie } from "../utils/cookies";
 import { Product } from "@prisma/client";
+import { ProductParams } from "./types";
 
 export const getAllProducts = async () => {
+  console.log(getUserByCookie())
   return prisma.product.findMany({
     include: {
       categories: true,
       Inventory: true,
     },
     where: {
-      userId: getUserByCookie().id,
       inventoryId: getUserByCookie().inventoryId,
     },
   });
 };
 
-export const GET = async () => {
+export const getProductByName = (name: string) => {
+  return prisma.product.findMany({
+    include: {
+      categories: true,
+      Inventory: true,
+    },
+    where: {
+      name: {
+        contains: name,
+        mode: "insensitive"
+      },
+      inventoryId: getUserByCookie().inventoryId,
+    },
+  });
+}
+
+export const GET = async (request: NextRequest) => {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const productName = searchParams.get('name')
+    
+    if(productName){
+      const products = await getProductByName(productName)
+
+      return NextResponse.json(products);
+    }
+
     const products = await getAllProducts();
 
     return NextResponse.json(products);

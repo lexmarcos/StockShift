@@ -21,9 +21,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { InputsNames } from "./types";
 import { ScanBarcodeIcon } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import ScannerBarCode from "../add-by-code/ScannerBarCode";
 import { Product } from "@prisma/client";
+import { IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import ScanSkuDialog from "../scanSkuDialog";
 
 interface IFormCreateProductPage {
   form: UseFormReturn<Product>;
@@ -158,7 +158,10 @@ export default function ProductForm({
                   value={value as string}
                   {...rest}
                 />
-                <Button onClick={() => setIsModalBarCodeOpen(true)}>
+                <Button
+                  type="button"
+                  onClick={() => setIsModalBarCodeOpen(true)}
+                >
                   <ScanBarcodeIcon />
                 </Button>
               </div>
@@ -259,16 +262,18 @@ export default function ProductForm({
 
   const [isModalBarCodeOpen, setIsModalBarCodeOpen] = useState(false);
 
-  console.log(isModalBarCodeOpen);
+  const onScanSku = (result: IDetectedBarcode[]) => {
+    form.setValue("sku", result[0].rawValue);
+    setIsModalBarCodeOpen(false);
+  };
+
   return (
     <div className={cn([readonly && "cursor-default pointer-events-none"])}>
-      <Dialog open={isModalBarCodeOpen}>
-        <DialogContent>
-          <ScannerBarCode
-            onScan={(result) => form.setValue("sku", result[0].rawValue)}
-          />
-        </DialogContent>
-      </Dialog>
+      <ScanSkuDialog
+        onScanSku={(result) => onScanSku(result)}
+        open={isModalBarCodeOpen}
+        onOpenChange={setIsModalBarCodeOpen}
+      />
       <Form {...form}>
         <form onSubmit={doSubmit()} className="space-y-3 w-full">
           <FormField

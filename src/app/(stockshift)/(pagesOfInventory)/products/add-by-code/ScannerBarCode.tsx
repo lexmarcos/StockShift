@@ -1,7 +1,6 @@
 import {
-  IDetectedBarcode,
   IScannerProps,
-  Scanner,
+  Scanner
 } from "@yudiel/react-qr-scanner";
 import styles from "./addByCode.module.css";
 import { Info } from "lucide-react";

@@ -46,7 +46,7 @@ export function DrawerOfProduct({
   });
 
   const getNewQuantityOfProduct = () => {
-    if (product) {
+    if (product && product.quantity) {
       return product.quantity + quantity;
     }
   };
