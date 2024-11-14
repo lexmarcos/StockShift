@@ -3,7 +3,7 @@ import Image from "next/image";
 import AuthForm from "../components/authForm";
 import Link from "next/link";
 
-function Signin() {
+function Signup() {
   return (
     <div className="grid w-full">
       <div className="p-10 flex items-center justify-center h-screen">
@@ -24,9 +24,10 @@ function Signin() {
             height={37}
             priority
           />
-          <AuthForm authType="signin" />
+          <h1 className="text-2xl font-bold">Crie sua conta</h1>
+          <AuthForm authType="signup" />
           <Link href="/auth/signin" className="mt-6 text-sm">
-            Ainda não possui conta?
+            Possui uma conta?
           </Link>
         </Card>
       </div>
@@ -34,4 +35,4 @@ function Signin() {
   );
 }
 
-export default Signin;
+export default Signup;

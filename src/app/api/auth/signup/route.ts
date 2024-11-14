@@ -13,7 +13,7 @@ export const POST = async (request: NextRequest) => {
   try {
     const bodyJson = await request.json();
     // todo adicionar validador zod
-    const { username, password, email, name } = bodyJson
+    const { password, email, name } = bodyJson;
     const hashedPassword = await generatePasswordHash(password);
 
     const result = await prisma.user.create({
@@ -21,11 +21,10 @@ export const POST = async (request: NextRequest) => {
         email,
         name,
         password: hashedPassword,
-        username,
       },
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ message: "Usuário criado com sucesso" }, { status: 201 });
   } catch (error) {
     return genericError(error);
   }
