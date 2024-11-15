@@ -8,7 +8,6 @@ import { Product } from "@prisma/client";
 import { ProductParams } from "./types";
 
 export const getAllProducts = async () => {
-  console.log(getUserByCookie())
   return prisma.product.findMany({
     include: {
       categories: true,

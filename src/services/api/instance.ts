@@ -31,8 +31,6 @@ async function fetchWithRefresh(input: RequestInfo, init: RequestInit = {}): Pro
 
   let response = await fetch(input, fetchOptions);
 
-  console.log("response refrehs: ", response.status);
-
   if (response.ok) {
     return response;
   }
@@ -101,8 +99,6 @@ async function get<T>(endpoint: string, params?: Record<string, any>) {
   const response = await fetchWithRefresh(`${BASE_URL}/${endpoint}${getStringParams(params)}`, {
     method: "GET",
   });
-
-  console.log(response.status);
 
   if (!response.ok) {
     throw new Error("Erro na requisição");

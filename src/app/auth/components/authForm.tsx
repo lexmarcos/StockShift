@@ -99,7 +99,15 @@ export default function AuthForm({ authType }: IAuthFormProps) {
           render={({ field }) => (
             <FormItem>
               <Label htmlFor="email">Email</Label>
-              <Input {...field} id="email" placeholder="nome@exemplo.com" type="email" />
+              <Input
+                {...field}
+                id="email"
+                type="email"
+                autoCapitalize="none"
+                autoComplete="email"
+                autoCorrect="off"
+                placeholder="nome@exemplo.com"
+              />
             </FormItem>
           )}
         />
@@ -109,7 +117,15 @@ export default function AuthForm({ authType }: IAuthFormProps) {
           render={({ field }) => (
             <FormItem>
               <Label htmlFor="password">Senha</Label>
-              <Input {...field} type="password" id="password" placeholder="Senha" />
+              <Input
+                {...field}
+                type="password"
+                id="password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="password"
+                placeholder="Senha"
+              />
             </FormItem>
           )}
         />

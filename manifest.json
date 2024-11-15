@@ -16,7 +16,7 @@
   "lang": "pt-BR",
   "name": "StockShift Gerenciador de estoques",
   "short_name": "StockShift",
-  "start_url": "https://192.168.0.10:3000/auth/signin",
-  "scope": "https://192.168.0.10:3000/",
-  "id": "https://192.168.0.10:3000/"
+  "start_url": "https://192.168.0.15:3000/auth/signin",
+  "scope": "https://192.168.0.15:3000/",
+  "id": "https://192.168.0.15:3000/"
 }

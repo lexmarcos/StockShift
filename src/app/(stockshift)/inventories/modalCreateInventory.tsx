@@ -50,7 +50,6 @@ export default function ModalCreateInventory({
     mutationFn: (formData: Inventory) => api.inventories.create(formData),
     onSuccess: (data: Inventory) => {
       queryClient.setQueryData(["inventories"], (oldData: any) => {
-        console.log(oldData, data);
         return [...oldData, data];
       });
       onClose();
