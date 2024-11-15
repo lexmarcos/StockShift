@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { sign } from "@/services/jwtSignVerify";
+import { sign, verify } from "@/services/jwtSignVerify";
 import { genericError } from "@/app/api/utils/genericError";
 import { cookies } from "next/headers";
 
@@ -23,8 +23,8 @@ export const POST = async (request: NextRequest) => {
 
     if (!user) {
       return NextResponse.json(
-        { message: "User not found or password wrong" },
-        { status: 404 },
+        { message: "Usuário não encontrado ou senha incorreta" },
+        { status: 404 }
       );
     }
 
@@ -32,30 +32,45 @@ export const POST = async (request: NextRequest) => {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { message: "User not found or password wrong" },
-        { status: 404 },
+        { message: "Usuário não encontrado ou senha incorreta" },
+        { status: 404 }
       );
     }
 
-    const token = await sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-    );
+    // Gere o access token com tempo de expiração curto
+    const accessToken = await sign({ userId: user.id }, process.env.JWT_SECRET as string, {
+      expiresIn: "15min",
+    });
+
+    // Gere o refresh token com tempo de expiração mais longo
+    const refreshToken = await sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET as string, {
+      expiresIn: "7d",
+    });
 
     const { password: _, ...userWithoutPassword } = user;
 
-    cookies().set("token", token, {
+    // Armazene o access token em um cookie HttpOnly
+    cookies().set("accessToken", accessToken, {
       path: "/",
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      maxAge: 15 * 60, // 15 minutos em segundos
     });
 
     cookies().set("user", JSON.stringify(userWithoutPassword), {
       path: "/",
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60, // 7 dias em segundos
     });
 
+    // Armazene o refresh token em um cookie HttpOnly
+    cookies().set("refreshToken", refreshToken, {
+      path: "/",
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60, // 7 dias em segundos
+    });
+
+    // Retorne os dados do usuário (sem a senha)
     return NextResponse.json({
-      token,
       user: {
         id: user.id,
         email: user.email,

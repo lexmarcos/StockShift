@@ -4,21 +4,20 @@ import { getUserByCookie } from "./app/api/utils/cookies";
 
 async function handleTokenValidation(
   token: string,
-  req: NextRequest,
+  req: NextRequest
 ): Promise<void | NextResponse> {
   try {
     await verify(token, process.env.JWT_SECRET as string);
   } catch (error) {
     // Retorna um NextResponse com status 401 se o token for inválido
-    return NextResponse.redirect(new URL("/auth/logout", req.url));
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 }
 
 export const middleware = async (req: NextRequest) => {
-  const token = req.cookies.get("token");
+  const token = req.cookies.get("accessToken");
   const user = getUserByCookie();
   const pathname = req.nextUrl.pathname;
-  console.log(pathname);
 
   // Redirecionamentos para usuários não autenticados ou na página de login
   if (!token) {
@@ -26,9 +25,11 @@ export const middleware = async (req: NextRequest) => {
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
 
-  // Valida o token e retorna uma resposta se o token for inválido
-  const tokenValidationResponse = await handleTokenValidation(token.value, req);
-  if (tokenValidationResponse) return tokenValidationResponse;
+  // Valida o token em chamadas da api e retorna uma resposta se o token for inválido
+  if (pathname.includes("api")) {
+    const tokenValidationResponse = await handleTokenValidation(token.value, req);
+    if (tokenValidationResponse) return tokenValidationResponse;
+  }
 
   // Redireciona usuários autenticados que estão na página de login
   if (pathname.includes("signin")) {
@@ -45,5 +46,5 @@ export const middleware = async (req: NextRequest) => {
 };
 
 export const config = {
-  matcher: "/((?!_next|fonts|auth|api/auth|examples|[\\w-]+\\.\\w+).*)",
+  matcher: "/((?!_next|fonts|api/auth|examples|[\\w-]+\\.\\w+).*)",
 };
