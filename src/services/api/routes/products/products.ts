@@ -1,14 +1,13 @@
 import { Product } from "@prisma/client";
 import { apiInstance } from "../../instance";
-import { IResponseGetProduct } from "./types";
 
 export const productsAPIRoutes = {
   getProductsByName: async (name: string) => {
-    return apiInstance.get<IResponseGetProduct[]>("products", {name});
+    return apiInstance.get<Product[]>("products", {name});
   },
 
   getProducts: async () => {
-    return apiInstance.get<IResponseGetProduct[]>("products");
+    return apiInstance.get<Product[]>("products");
   },
 
   createProduct: async (
