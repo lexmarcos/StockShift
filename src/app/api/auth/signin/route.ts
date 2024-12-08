@@ -37,43 +37,39 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Gere o access token com tempo de expiração curto
     const accessToken = await sign({ userId: user.id }, process.env.JWT_SECRET as string, {
       expiresIn: "15min",
     });
 
-    // Gere o refresh token com tempo de expiração mais longo
     const refreshToken = await sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET as string, {
       expiresIn: "7d",
     });
 
     const { password: _, ...userWithoutPassword } = user;
 
-    // Armazene o access token em um cookie HttpOnly
     cookies().set("accessToken", accessToken, {
       path: "/",
       httpOnly: true,
-      maxAge: 15 * 60, // 15 minutos em segundos
+      maxAge: 15 * 60,
     });
 
     cookies().set("user", JSON.stringify(userWithoutPassword), {
       path: "/",
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 dias em segundos
+      maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Armazene o refresh token em um cookie HttpOnly
     cookies().set("refreshToken", refreshToken, {
       path: "/",
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 dias em segundos
+      maxAge: 7 * 24 * 60 * 60,
     });
 
-    // Retorne os dados do usuário (sem a senha)
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
+        accessToken,
       },
     });
   } catch (error) {

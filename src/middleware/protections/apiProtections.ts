@@ -13,11 +13,11 @@ async function handleTokenValidation(token: string): Promise<void | NextResponse
   }
 }
 
-export async function apiProtections(token: RequestCookie | undefined) {
+export async function apiProtections(token: string | undefined) {
   if (!token) {
     return unauthorizedResponse();
   }
-  const tokenValidationResponse = await handleTokenValidation(token.value);
+  const tokenValidationResponse = await handleTokenValidation(token);
   if (tokenValidationResponse) return tokenValidationResponse;
 
   return NextResponse.next();

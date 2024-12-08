@@ -26,7 +26,7 @@ function blockInventoryPagesOfUsersWithoutSelectedInventory(req: NextRequest) {
 
 export async function routesProtections(
   req: NextRequest,
-  token: RequestCookie | undefined,
+  token: string | undefined,
   pathname: string
 ) {
   if (!token) {
