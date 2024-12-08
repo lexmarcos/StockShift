@@ -4,8 +4,7 @@ import prisma from "@/lib/prisma";
 
 import { genericError, noUserError } from "../utils/genericError";
 import { IUserCookie, getUserByCookie } from "../utils/cookies";
-import { Product } from "@prisma/client";
-import { ProductParams } from "./types";
+import { CreateProductInput, BaseProduct } from "./types";
 
 export const getAllProducts = async () => {
   return prisma.product.findMany({
@@ -28,20 +27,20 @@ export const getProductByName = (name: string) => {
     where: {
       name: {
         contains: name,
-        mode: "insensitive"
+        mode: "insensitive",
       },
       inventoryId: getUserByCookie().inventoryId,
     },
   });
-}
+};
 
 export const GET = async (request: NextRequest) => {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const productName = searchParams.get('name')
-    
-    if(productName){
-      const products = await getProductByName(productName)
+    const searchParams = request.nextUrl.searchParams;
+    const productName = searchParams.get("name");
+
+    if (productName) {
+      const products = await getProductByName(productName);
 
       return NextResponse.json(products);
     }
@@ -55,17 +54,15 @@ export const GET = async (request: NextRequest) => {
 };
 
 export const createProduct = async (
-  product: Product,
-  user: IUserCookie,
+  product: BaseProduct,
+  categoryIDs: string[],
+  user: IUserCookie
 ) => {
   const imageToUpload = product.imageUrl;
 
   let imageUrl = "";
   if (imageToUpload) {
-    imageUrl = await uploadToBucket(
-      imageToUpload as string,
-      product.name as string,
-    );
+    imageUrl = await uploadToBucket(imageToUpload as string, product.name as string);
   }
 
   const productToAdd = {
@@ -76,10 +73,10 @@ export const createProduct = async (
   return prisma.product.create({
     data: {
       ...productToAdd,
-      categories: {
-        connect: productToAdd.categoryIDs?.map((id) => ({ id })),
-      },
       userId: user.id,
+      categories: {
+        connect: categoryIDs.map((id) => ({ id })),
+      },
       inventoryId: user.inventoryId,
     },
   });
@@ -87,7 +84,7 @@ export const createProduct = async (
 
 export const POST = async (request: NextRequest) => {
   try {
-    const bodyJson = await request.json();
+    const bodyJson = (await request.json()) as CreateProductInput;
     const user = getUserByCookie();
 
     if (!user) {
@@ -95,9 +92,9 @@ export const POST = async (request: NextRequest) => {
     }
 
     // todo adicionar validador zod
-    const product = bodyJson
+    const { categoryIDs, ...product } = bodyJson;
 
-    const result = createProduct(product, user);
+    const result = createProduct(product, categoryIDs, user);
 
     return NextResponse.json(result);
   } catch (error) {

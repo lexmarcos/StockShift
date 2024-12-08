@@ -5,7 +5,8 @@ import { getUserByCookie } from "@/app/api/utils/cookies";
 
 function blockPagesOfUsersWithoutToken(req: NextRequest, pathname: string) {
   const isSigninPage = pathname.startsWith("/auth/signin");
-  if (isSigninPage) return NextResponse.next();
+  const isSignupPage = pathname.startsWith("/auth/signup");
+  if (isSigninPage || isSignupPage) return NextResponse.next();
   return redirect("/auth/signin", req.url);
 }
 

@@ -3,78 +3,80 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  id           String      @id @default(uuid())
   email        String      @unique
   name         String
   password     String
-  role         String      @default("STOCK_MANAGER") // STOCK_MANAGER | ADMIN
+  role         String       @default("STOCK_MANAGER") // STOCK_MANAGER | ADMIN
   products     Product[]
-  inventoryIDs String[]    @default([]) @db.ObjectId
-  inventories  Inventory[] @relation(fields: [inventoryIDs], references: [id])
+  inventories  Inventory[]
 }
 
 model Inventory {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String      @id @default(uuid())
   name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   products  Product[]
-  userIDs   String[]  @default([]) @db.ObjectId
-  users     User[]    @relation(fields: [userIDs], references: [id])
+  users     User[]
 }
 
 model ProductAttribute {
-  id           String            @id @default(auto()) @map("_id") @db.ObjectId
-  label        String
-  type         String
-  templatesIDs String[]          @db.ObjectId
-  templates    ProductTemplate[] @relation(fields: [templatesIDs], references: [id])
+  id        String      @id @default(uuid())
+  label     String
+  type      String
+
+  templates ProductTemplate[]
 }
 
 model ProductTemplate {
-  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  id                  String      @id @default(uuid())
   name                String
-  commonAttributes    String[]           @default(["description", "price", "quantity", "attributes", "image", "categories"])
-  productAttributeIDs String[]           @db.ObjectId
-  specificAttributes  ProductAttribute[] @relation(fields: [productAttributeIDs], references: [id])
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+
+  commonAttributes    String[]            @default(["description", "price", "quantity", "attributes", "image", "categories"])
+  
+  specificAttributes  ProductAttribute[]
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
   products            Product[]
 }
 
 model Category {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String      @id @default(uuid())
   name        String
-  description String?   @default("")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  productIDs  String[]  @default([]) @db.ObjectId
-  products    Product[] @relation(fields: [productIDs], references: [id])
+  description String?    @default("")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  products    Product[]
 }
 
 model Product {
-  id                String           @id @default(auto()) @map("_id") @db.ObjectId
-  /// @zod.string.min(3, { message: "O nome precisa ter 3 ou mais letras" })
+  id                String      @id @default(uuid())
   name              String
-  description       String?          @default("")
-  price             Float?           @default(0.0)
-  sku               String?          @default("")
-  quantity          Int?             @default(0)
-  categoryIDs       String[]         @default([]) @db.ObjectId
-  categories        Category[]       @relation(fields: [categoryIDs], references: [id])
-  // attributes        Json? 
-  imageUrl          String?          @default("")
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  User              User             @relation(fields: [userId], references: [id])
-  userId            String           @default("") @db.ObjectId
-  Inventory         Inventory        @relation(fields: [inventoryId], references: [id])
-  inventoryId       String           @default("") @db.ObjectId
-  ProductTemplate   ProductTemplate? @relation(fields: [productTemplateId], references: [id])
-  productTemplateId String?          @db.ObjectId
+  description       String?           @default("")
+  price             Float?            @default(0.0)
+  sku               String?           @default("")
+  quantity          Int?              @default(0)
+  
+  categories        Category[]
+  
+  imageUrl          String?           @default("")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  User              User              @relation(fields: [userId], references: [id])
+  userId            String
+
+  Inventory         Inventory         @relation(fields: [inventoryId], references: [id])
+  inventoryId       String
+
+  ProductTemplate   ProductTemplate?  @relation(fields: [productTemplateId], references: [id])
+  productTemplateId String?
 }

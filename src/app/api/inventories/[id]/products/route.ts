@@ -13,7 +13,7 @@ export const GET = async (request: NextRequest, { params }: IParamsWithId) => {
     const inventory = await prisma.inventory.findFirst({
       where: {
         id: idOfInventory,
-        userIDs: { has: user.id },
+        // userIDs: { has: user.id },
       },
     });
 

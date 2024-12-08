@@ -7,7 +7,7 @@ export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json();
     // todo adicionar validador zod
-    const validatedBody = body
+    const validatedBody = body;
 
     const user = JSON.parse(cookies().get("user")?.value as string);
 
@@ -29,8 +29,10 @@ export const GET = async () => {
 
     const inventories = await prisma.inventory.findMany({
       where: {
-        userIDs: {
-          hasSome: [user.id],
+        users: {
+          some: {
+            id: user.id,
+          },
         },
       },
       include: {
