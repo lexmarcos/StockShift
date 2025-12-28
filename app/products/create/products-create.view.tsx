@@ -69,7 +69,7 @@ export const ProductCreateView = ({
     <div className="min-h-screen bg-muted/40 pb-24 md:pb-10">
       {/* Header Sticky */}
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-8">
+        <div className="container flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6 md:px-8">
           <div className="flex items-center gap-4">
             <Link
               href="/products"
@@ -93,7 +93,7 @@ export const ProductCreateView = ({
         </div>
       </header>
 
-      <main className="container max-w-7xl py-8 px-4 sm:px-8">
+      <main className="container max-w-5xl py-8 px-4 sm:px-6 md:px-8 lg:px-12">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             
@@ -411,7 +411,7 @@ export const ProductCreateView = ({
 
             {/* Floating Action Bar - Mobile Fixed / Desktop Inline or Fixed */}
             <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:relative md:border-t-0 md:bg-transparent md:p-0 md:mt-8">
-              <div className="container flex max-w-7xl items-center justify-end gap-4">
+              <div className="container flex max-w-5xl items-center justify-end gap-4 px-4 sm:px-6 md:px-8 lg:px-12">
                 <Button variant="outline" type="button" className="hidden md:flex" asChild>
                     <Link href="/products">Cancelar</Link>
                 </Button>
