@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
 
 export interface CustomAttribute {
+  id: string;
   key: string;
   value: string;
 }
@@ -27,7 +28,7 @@ export const CustomAttributesBuilder = ({
     <div className="space-y-3">
       {attributes.map((attr, index) => (
         <div
-          key={index}
+          key={attr.id}
           className="flex gap-2 items-end animate-in slide-in-from-left duration-300"
         >
           <div className="flex-1 space-y-1.5">
