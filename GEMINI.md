@@ -1,344 +1,192 @@
-# AGENTS.md - Guia para Agentes LLM
-
-## 📋 Visão Geral
-
-Este documento fornece instruções detalhadas para agentes LLM trabalharem neste projeto Next.js 15 + TypeScript.
-
-## 🏗️ Arquitetura do Projeto
-
-### Estrutura MVVM Obrigatória
-
-Todas as páginas seguem a arquitetura MVVM com **5 arquivos**:
-
-```
-nome-da-pasta/
-├── nome-da-pasta.model.ts    # Lógica de negócio
-├── nome-da-pasta.view.tsx    # JSX de visualização
-├── nome-da-pasta.schema.ts   # Validação Zod (NOVO!)
-├── nome-da-pasta.types.ts    # Tipos TypeScript
-└── page.tsx                   # ViewModel (orquestra model e view)
-```
-
-### Responsabilidades de Cada Arquivo
-
-#### 1. `nome-da-pasta.schema.ts` - Validação com Zod
-
-**SEMPRE CRIAR** este arquivo para páginas com formulários.
-
-```typescript
-import { z } from 'zod';
-
-// Schema com validações baseadas na documentação da API
-export const createProductSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Nome do produto é obrigatório')
-    .max(200, 'Nome deve ter no máximo 200 caracteres')
-    .trim(),
-
-  description: z
-    .string()
-    .max(2000, 'Descrição deve ter no máximo 2000 caracteres')
-    .optional()
-    .default(''),
-
-  categoryId: z
-    .string()
-    .optional()
-    .transform((val) => (val === 'none' ? undefined : val)),
-
-  basePrice: z
-    .string()
-    .min(1, 'Preço base é obrigatório')
-    .refine((val) => {
-      const price = parseInt(val);
-      return !isNaN(price) && price >= 1;
-    }, 'Preço base deve ser no mínimo R$ 0,01'),
-
-  quantity: z
-    .string()
-    .min(1, 'Quantidade é obrigatória')
-    .refine((val) => {
-      const qty = parseInt(val);
-      return !isNaN(qty) && qty >= 0;
-    }, 'Quantidade deve ser um número não-negativo'),
-
-  attributes: z
-    .array(
-      z.object({
-        definitionId: z.string().min(1, 'Selecione um atributo'),
-        valueId: z.string().min(1, 'Selecione um valor'),
-      })
-    )
-    .default([]),
-});
-
-// Tipo inferido automaticamente do schema
-export type CreateProductFormData = z.infer<typeof createProductSchema>;
-```
-
-**Onde buscar regras de validação:**
-- Consultar `front-instructions/[nome-da-rota].md` para regras da API
-- Exemplo: `front-instructions/products.md` para produtos
-- Sempre replicar as mesmas validações do backend
-
-#### 2. `page.tsx` - ViewModel com React Hook Form
-
-```typescript
-'use client';
-
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createProductSchema, type CreateProductFormData } from './create-product.schema';
-
-export default function CreateProductPage() {
-  // Hook do model
-  const { createProduct, isLoading } = useCreateProductModel();
-
-  // React Hook Form + Zod
-  const productForm = useForm<CreateProductFormData>({
-    resolver: zodResolver(createProductSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      categoryId: 'none',
-      basePrice: '',
-      quantity: '',
-      attributes: [],
-    },
-  });
-
-  // Submit handler usando form.handleSubmit
-  const handleSubmit = productForm.handleSubmit(async (data) => {
-    // data já está validado e tipado
-    await createProduct(data);
-  });
-
-  // Observar mudanças em campos específicos
-  const watchCategoryId = productForm.watch('categoryId');
-
-  useEffect(() => {
-    // Reagir a mudanças em campos
-    if (watchCategoryId !== 'none') {
-      // Fazer algo...
-    }
-  }, [watchCategoryId]);
-
-  return (
-    <CreateProductView
-      productForm={productForm}
-      onSubmit={handleSubmit}
-      isLoading={isLoading}
-    />
-  );
-}
-```
-
-#### 3. `nome-da-pasta.view.tsx` - View com Formulário
-
-```typescript
-import { UseFormReturn } from 'react-hook-form';
-import { CreateProductFormData } from './create-product.schema';
-
-interface CreateProductViewProps {
-  productForm: UseFormReturn<CreateProductFormData>;
-  onSubmit: () => void;
-  isLoading: boolean;
-}
-
-export function CreateProductView({ productForm, onSubmit, isLoading }: CreateProductViewProps) {
-  // Observar todos os valores do form
-  const formData = productForm.watch();
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
-      {/* Input nativo - usar register */}
-      <Input
-        {...productForm.register('name')}
-        disabled={isLoading}
-      />
-      {productForm.formState.errors.name && (
-        <p className="text-sm text-destructive">
-          {productForm.formState.errors.name.message}
-        </p>
-      )}
-
-      {/* Textarea - usar register */}
-      <Textarea
-        {...productForm.register('description')}
-        disabled={isLoading}
-      />
-
-      {/* Select do shadcn - usar setValue */}
-      <Select
-        value={formData.categoryId}
-        onValueChange={(value) => productForm.setValue('categoryId', value)}
-      />
-
-      {/* CurrencyInput customizado - usar setValue */}
-      <CurrencyInput
-        value={formData.basePrice}
-        onChange={(cents) => productForm.setValue('basePrice', cents?.toString() || '')}
-        disabled={isLoading}
-      />
-
-      <Button type="submit" disabled={isLoading}>
-        Salvar
-      </Button>
-    </form>
-  );
-}
-```
-
-#### 4. `nome-da-pasta.model.ts` - SEM Validações Manuais
-
-```typescript
-// ❌ NÃO FAZER - Validações manuais
-const validateForm = (data: CreateProductFormData): string | null => {
-  if (!data.name) return 'Nome obrigatório';
-  if (data.name.length > 200) return 'Nome muito longo';
-  // ...
-};
-
-// ✅ FAZER - Apenas lógica de negócio
-const createProduct = async (data: CreateProductFormData) => {
-  // data já validado pelo zodResolver
-  setIsLoading(true);
-
-  try {
-    const response = await apiClient.post('/api/v1/products', {
-      name: data.name,
-      basePrice: parseInt(data.basePrice), // Converter para number se necessário
-      // ...
-    });
-
-    if (response.ok) {
-      const product = await response.json();
-      setSuccess(true);
-      return product;
-    }
-  } catch (error) {
-    setError('Erro ao criar produto');
-  } finally {
-    setIsLoading(false);
-  }
-};
-```
-
-## 🎯 Padrões de Uso
-
-### Para Inputs Nativos (Input, Textarea)
-
-```typescript
-<Input {...form.register('fieldName')} />
-```
-
-### Para Componentes Customizados (Select, CurrencyInput, etc)
-
-```typescript
-const formData = form.watch();
-
-<Select
-  value={formData.fieldName}
-  onValueChange={(value) => form.setValue('fieldName', value)}
-/>
-```
-
-### Para Arrays Dinâmicos (Atributos, etc)
-
-```typescript
-const handleAdd = () => {
-  const current = form.getValues('attributes');
-  form.setValue('attributes', [...current, { id: '', value: '' }]);
-};
-
-const handleRemove = (index: number) => {
-  const current = form.getValues('attributes');
-  form.setValue('attributes', current.filter((_, i) => i !== index));
-};
-
-const handleChange = (index: number, field: string, value: string) => {
-  const current = form.getValues('attributes');
-  const updated = [...current];
-  updated[index] = { ...updated[index], [field]: value };
-  form.setValue('attributes', updated);
-};
-```
-
-### Para Exibir Erros
-
-```typescript
-{form.formState.errors.fieldName && (
-  <p className="text-sm text-destructive">
-    {form.formState.errors.fieldName.message}
-  </p>
-)}
-```
-
-## 📚 Consultar Documentação de Rotas
-
-**SEMPRE** consultar `front-instructions/` para:
-1. Regras de validação da API
-2. Campos obrigatórios vs opcionais
-3. Tipos de dados esperados
-4. Limites de caracteres
-5. Formatos especiais
-
-Exemplo de como mapear documentação para Zod:
-
-**Da documentação (products.md):**
-```markdown
-| name        | string | yes      | Max 200 chars.                                 |
-| basePrice   | number | yes      | Minimum `1` (stored as cents).                 |
-```
-
-**Para o schema Zod:**
-```typescript
-const schema = z.object({
-  name: z
-    .string()
-    .min(1, 'Nome é obrigatório')
-    .max(200, 'Nome deve ter no máximo 200 caracteres'),
-
-  basePrice: z
-    .string()
-    .refine((val) => parseInt(val) >= 1, 'Preço mínimo é R$ 0,01'),
-});
-```
-
-## ⚠️ Regras Importantes
-
-1. **NUNCA** criar validações manuais no `.model.ts`
-2. **SEMPRE** usar `zodResolver` para validação
-3. **SEMPRE** consultar `front-instructions/` para regras
-4. **SEMPRE** usar `form.handleSubmit()` para submit
-5. **SEMPRE** exibir mensagens de erro do `form.formState.errors`
-6. **SEMPRE** usar `z.infer<>` para inferir tipos do schema
-7. **NUNCA** duplicar types - use apenas os inferidos do Zod
-
-## 🔄 Fluxo de Trabalho
-
-1. Ler `front-instructions/[rota].md`
-2. Criar `nome-da-pasta.schema.ts` com validações Zod
-3. Criar `page.tsx` com `useForm` + `zodResolver`
-4. Criar `nome-da-pasta.view.tsx` recebendo `UseFormReturn`
-5. Atualizar `nome-da-pasta.model.ts` (remover validações se existir)
-6. Testar formulário
-
-## 💡 Benefícios da Abordagem
-
-1. **Type-safety completo**: Tipos inferidos do schema
-2. **Única fonte de verdade**: Schema Zod define tudo
-3. **Validação em tempo real**: Feedback imediato ao usuário
-4. **Menos código**: Sem validações duplicadas
-5. **Melhor manutenibilidade**: Mudanças centralizadas no schema
-6. **Integração perfeita**: React Hook Form + Zod + TypeScript
-
-## 📝 Exemplo Completo
-
-Ver implementação completa em:
-- `app/main/products/create/` (exemplo de referência)
+# AGENTS.md
+
+## 📋 Visão Geral do Projeto
+
+Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, **Tailwind CSS** e **shadcn/ui**.
+
+## 🛠️ Stack Tecnológica
+
+- **Framework**: Next.js 15
+- **Linguagem**: TypeScript
+- **Estilização**: Tailwind CSS
+- **Componentes**: shadcn/ui
+- **Data Fetching**: SWR
+- **HTTP Client**: ky
+- **Testes**: Vitest
+- **Gerenciador de Pacotes**: pnpm
+- **Biblioteca de Ícones**: lucide
+
+## 📁 Estrutura de Componentes
+
+### Componentes UI
+
+Você pode criar novos componentes APENAS se os componentes da pasta `/components/ui` não servir ao que você quer.
+
+Para ícones utilize a biblioteca **lucide** para manter consistência visual em todos os componentes.
+
+### Criação de Novos Componentes
+
+Ao criar novos componentes, **SEMPRE** verificar se o componente atende ao **modo light/dark**.
+
+## 📱 Design Responsivo
+
+**OBRIGATÓRIO: Mobile First**
+
+A ordem de prioridade de desenvolvimento é:
+
+1. 📱 **Mobile** (primeira prioridade)
+2. 📱 **iPad** (adaptação)
+3. 💻 **Desktop** (adaptação final)
+
+As telas devem ser estruturadas inicialmente para celular e progressivamente adaptadas para telas maiores.
+
+## 🎨 Filosofia do Design: "Dark Premium Tech"
+
+### 1. Estética e Vertente
+
+O design segue a vertente **Modern Dark UI**. Não se trata apenas de "fundo preto", mas de uma construção de camadas sobre tons de carvão e azul profundo. O objetivo é reduzir a fadiga ocular enquanto destaca informações críticas com cores vibrantes.
+
+### 2. Hierarquia e Profundidade
+
+- **Camadas (Layering):** Utilize diferentes tons de cinza muito escuros para separar o fundo das "cartas" (cards). O fundo é o nível mais profundo; os cards são ligeiramente mais claros para dar a sensação de flutuação.
+- **Bordas Arredondadas (Softness):** O design evita ângulos retos. Tudo (botões, cards, inputs) possui bordas arredondadas generosas, transmitindo uma sensação de modernidade e acessibilidade.
+- **Sutileza:** O uso de sombras é extremamente discreto, preferindo o contraste de cores de fundo para definir limites.
+
+## 🧠 Sensações e Comportamento
+
+> **A ideia central é: "Centro de Comando de Alta Precisão".**
+
+- **Foco e Clareza:** O design deve passar a sensação de controle total e organização. O espaço negativo (respiro) é fundamental para que o usuário não se sinta sobrecarregado, mesmo com muitos dados.
+- **Elegância Tecnológica:** A interface deve parecer um software premium ou uma ferramenta elite. É minimalista, mas não simplista.
+- **Dinamismo Discreto:** Elementos como gráficos de barras com gradientes suaves e ícones dentro de círculos coloridos dão vida à página sem distrair do conteúdo principal.
 
 ---
 
-**Última atualização**: Implementação do React Hook Form + Zod
+## 🛠️ Resumo para Implementação
+
+- **Layout:** Grid modular baseado em cards independentes.
+- **Interação:** Botões com estados claros (hover sutil) e tipografia sans-serif limpa.
+- **Visual:** Ícones de linha fina (outline) ou preenchidos com cores sólidas em fundos de baixo contraste.
+- **Gráficos:** Devem usar gradientes verticais (da cor de acento para transparente) para integrar-se ao tema escuro.
+
+## 🏗️ Arquitetura MVVM
+
+Todas as páginas do projeto **DEVEM** seguir a arquitetura MVVM com a seguinte estrutura:
+
+```
+nome-da-pasta/
+├── nome-da-pasta.model.ts    # 🧠 TODA a lógica (states, hooks, http requests) fica aqui
+├── nome-da-pasta.view.tsx    # 👁️  OBRIGATORIAMENTE APENAS o JSX de visualização
+├── nome-da-pasta.types.ts    # 📝 Tipos centralizados
+└── page.tsx                   # 🔄 Atua como ViewModel
+```
+
+### Validação de Formulários
+
+- Utilize **Zod** para cada formulário da página, garantindo validações declarativas.
+- O schema deve ser declarado em um arquivo `nome-da-pasta.schema.ts` dentro da mesma pasta da página e importado pela model ou view quando necessário.
+- Use **react-hook-form** para gerenciar o estado e a submissão de formulários, integrando-o com o schema Zod.
+
+### Responsabilidades
+
+- **`.model.ts`**: Contém toda a lógica de negócio, funções, hooks customizados
+- **`.view.tsx`**: Apenas JSX puro para renderização
+- **`.types.ts`**: Todas as interfaces e types TypeScript
+- **`page.tsx`**: Orquestra model e view (ViewModel)
+
+## 📚 Documentação de Rotas
+
+Ao criar novas telas ou formulários que dependem de endpoints, leia o documento correspondente dentro de `docs/endpoints/` antes de implementar os hooks ou chamadas HTTP.
+
+**Regra**: O agente só deve criar arquivos `.md` **se e somente se** for requisitado pelo usuário.
+
+## 🌐 Requisições HTTP
+
+### ky
+
+Use o cliente `ky` para centralizar configuração e facilitar retries/timeouts.
+
+```typescript
+import ky from "ky";
+
+const api = ky.create({
+  prefixUrl: "/api",
+  headers: { "Content-Type": "application/json" },
+});
+
+const response = await api.post("endpoint", { json: data });
+```
+
+### Data Fetching com SWR
+
+Use **SWR** para data fetching e cache.
+
+```typescript
+import useSWR from "swr";
+
+const { data, error, isLoading } = useSWR("/api/endpoint", fetcher);
+```
+
+## 📦 Dependências
+
+**Assuma que todas as bibliotecas já estão instaladas**. Não é necessário verificar ou instalar pacotes.
+
+## 🚀 Comandos
+
+### Executar o projeto
+
+```bash
+pnpm dev
+```
+
+### Executar testes
+
+```bash
+pnpm test
+```
+
+## 🧪 Testes Unitários
+
+### Framework
+
+Utilize **Vitest** para testes unitários.
+
+### Workflow
+
+Ao finalizar a criação de uma página, **PERGUNTAR AO USUÁRIO**:
+
+> "Deseja criar testes unitários do model desta página?"
+
+### Escopo dos Testes
+
+Os testes devem cobrir o arquivo **`.model.ts`** da página.
+
+### Exemplo de Estrutura
+
+```
+nome-da-pasta/
+├── nome-da-pasta.model.ts
+├── nome-da-pasta.model.test.ts  # Testes aqui
+├── nome-da-pasta.view.tsx
+├── nome-da-pasta.types.ts
+└── page.tsx
+```
+
+## ✅ Checklist para Criação de Páginas
+
+- [ ] Estrutura MVVM completa (4 arquivos)
+- [ ] Design mobile first
+- [ ] Componentes suportam light/dark mode
+- [ ] Requisições usando ky
+- [ ] Data fetching com SWR quando aplicável
+- [ ] Consultar front-instructions/ se necessário
+- [ ] Perguntar sobre testes unitários ao final
+
+## 🎯 Princípios de Desenvolvimento
+
+1. **Sempre mobile first**
+2. **Sempre MVVM**
+3. **Sempre acessibilidade (light/dark)**
+4. **Sempre TypeScript**
+5. **Sempre consultar documentação antes de criar**
+6. **Sempre oferecer testes ao final**
