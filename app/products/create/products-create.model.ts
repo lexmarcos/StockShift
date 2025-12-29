@@ -28,6 +28,7 @@ export const useProductCreateModel = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch categories for the dropdown
@@ -47,7 +48,6 @@ export const useProductCreateModel = () => {
       continuousMode: loadContinuousMode(),
       categoryId: "",
       barcode: "",
-      sku: "",
       attributes: {
         weight: "",
         dimensions: "",
@@ -88,6 +88,14 @@ export const useProductCreateModel = () => {
     updated[index][field] = value;
     setCustomAttributes(updated);
   };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    form.setValue("barcode", barcode);
+    setIsScannerOpen(false);
+  };
+
+  const openScanner = () => setIsScannerOpen(true);
+  const closeScanner = () => setIsScannerOpen(false);
 
   const validateCustomAttributes = (): boolean => {
     for (let i = 0; i < customAttributes.length; i++) {
@@ -142,7 +150,6 @@ export const useProductCreateModel = () => {
       active: true,
       categoryId: preserveCategory ? currentCategory : "",
       barcode: "",
-      sku: "",
       continuousMode: currentContinuousMode,
       attributes: {
         weight: "",
@@ -170,7 +177,6 @@ export const useProductCreateModel = () => {
         description: data.description || undefined,
         categoryId: data.categoryId || undefined,
         barcode: data.barcode || undefined,
-        sku: data.sku || undefined,
         isKit: data.isKit,
         hasExpiration: data.hasExpiration,
         active: data.active,
@@ -211,5 +217,9 @@ export const useProductCreateModel = () => {
     removeCustomAttribute,
     updateCustomAttribute,
     nameInputRef,
+    isScannerOpen,
+    openScanner,
+    closeScanner,
+    handleBarcodeScanned,
   };
 };

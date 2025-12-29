@@ -15,6 +15,10 @@ export default function ProductCreatePage() {
     removeCustomAttribute,
     updateCustomAttribute,
     nameInputRef,
+    isScannerOpen,
+    openScanner,
+    closeScanner,
+    handleBarcodeScanned,
   } = useProductCreateModel();
 
   return (
@@ -29,6 +33,10 @@ export default function ProductCreatePage() {
       removeCustomAttribute={removeCustomAttribute}
       updateCustomAttribute={updateCustomAttribute}
       nameInputRef={nameInputRef}
+      isScannerOpen={isScannerOpen}
+      openScanner={openScanner}
+      closeScanner={closeScanner}
+      handleBarcodeScanned={handleBarcodeScanned}
     />
   );
 }

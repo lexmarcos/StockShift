@@ -5,7 +5,6 @@ export const productCreateSchema = z.object({
   description: z.string().optional(),
   categoryId: z.string().optional(),
   barcode: z.string().optional(),
-  sku: z.string().optional(),
   isKit: z.boolean(),
   hasExpiration: z.boolean(),
   active: z.boolean(),
