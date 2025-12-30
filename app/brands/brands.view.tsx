@@ -62,7 +62,7 @@ import { BrandFormData } from "./brands.schema";
 import { Brand, SortConfig } from "./brands.types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface BrandsViewProps {
   brands: Brand[];
@@ -113,7 +113,7 @@ export const BrandsView = ({
   const logoUrl = form.watch("logoUrl");
 
   // Update preview when logoUrl changes
-  useState(() => {
+  useEffect(() => {
     if (logoUrl && logoUrl.trim()) {
       setLogoPreview(logoUrl);
       setLogoError(false);
@@ -121,7 +121,7 @@ export const BrandsView = ({
       setLogoPreview("");
       setLogoError(false);
     }
-  });
+  }, [logoUrl]);
 
   const getSortIcon = (key: SortConfig["key"]) => {
     if (sortConfig.key !== key) {
