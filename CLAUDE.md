@@ -1,5 +1,7 @@
 # AGENTS.md
 
+**Qualquer commit feito deve ser em apenas uma linha**
+
 ## 📋 Visão Geral do Projeto
 
 Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, **Tailwind CSS** e **shadcn/ui**.

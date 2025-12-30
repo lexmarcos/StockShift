@@ -24,6 +24,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
   "name": "Product Name",
   "description": "Product description",
   "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+  "brandId": "660e8400-e29b-41d4-a716-446655440002",
   "barcode": "1234567890123",
   "barcodeType": "EAN13",
   "sku": "PROD-001",
@@ -41,6 +42,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 - `name`: Required, product name
 - `description`: Optional, product description
 - `categoryId`: Optional, UUID of the category
+- `brandId`: Optional, UUID of the brand
 - `barcode`: Optional, product barcode
 - `barcodeType`: Optional, enum values: `EAN13`, `EAN8`, `UPC`, `CODE128`, `CODE39`
 - `sku`: Optional, stock keeping unit code
@@ -62,6 +64,13 @@ These endpoints manage products in the StockShift system. All endpoints require 
     "description": "Product description",
     "categoryId": "550e8400-e29b-41d4-a716-446655440000",
     "categoryName": "Category Name",
+    "brand": {
+      "id": "660e8400-e29b-41d4-a716-446655440002",
+      "name": "Brand Name",
+      "logoUrl": "https://example.com/brand-logo.png",
+      "createdAt": "2025-12-28T09:00:00Z",
+      "updatedAt": "2025-12-28T09:00:00Z"
+    },
     "barcode": "1234567890123",
     "barcodeType": "EAN13",
     "sku": "PROD-001",
@@ -81,11 +90,12 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ### Frontend Implementation Guide
 1. **Form Fields**: Create form with all fields, use appropriate input types
 2. **Category Selector**: Implement dropdown/autocomplete for category selection
-3. **Barcode Scanner**: Consider integrating barcode scanner library
-4. **Barcode Type**: Provide dropdown with barcode types
-5. **Attributes Builder**: Allow dynamic key-value pairs for custom attributes
-6. **Validation**: Validate required fields before submission
-7. **Success Feedback**: Show success message and optionally redirect to product list
+3. **Brand Selector**: Implement dropdown/autocomplete for brand selection (optional field)
+4. **Barcode Scanner**: Consider integrating barcode scanner library
+5. **Barcode Type**: Provide dropdown with barcode types
+6. **Attributes Builder**: Allow dynamic key-value pairs for custom attributes
+7. **Validation**: Validate required fields before submission
+8. **Success Feedback**: Show success message and optionally redirect to product list
 
 ---
 
@@ -112,6 +122,13 @@ These endpoints manage products in the StockShift system. All endpoints require 
       "description": "Product description",
       "categoryId": "660e8400-e29b-41d4-a716-446655440001",
       "categoryName": "Category Name",
+      "brand": {
+        "id": "660e8400-e29b-41d4-a716-446655440002",
+        "name": "Brand Name",
+        "logoUrl": "https://example.com/brand-logo.png",
+        "createdAt": "2025-12-28T09:00:00Z",
+        "updatedAt": "2025-12-28T09:00:00Z"
+      },
       "barcode": "1234567890123",
       "barcodeType": "EAN13",
       "sku": "PROD-001",
@@ -160,6 +177,13 @@ These endpoints manage products in the StockShift system. All endpoints require 
     "description": "Product description",
     "categoryId": "660e8400-e29b-41d4-a716-446655440001",
     "categoryName": "Category Name",
+    "brand": {
+      "id": "660e8400-e29b-41d4-a716-446655440002",
+      "name": "Brand Name",
+      "logoUrl": "https://example.com/brand-logo.png",
+      "createdAt": "2025-12-28T09:00:00Z",
+      "updatedAt": "2025-12-28T09:00:00Z"
+    },
     "barcode": "1234567890123",
     "barcodeType": "EAN13",
     "sku": "PROD-001",
