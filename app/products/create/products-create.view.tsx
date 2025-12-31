@@ -55,7 +55,7 @@ import {
 import Link from "next/link";
 import { UseFormReturn } from "react-hook-form";
 import { ProductCreateFormData } from "./products-create.schema";
-import { Category, CustomAttribute } from "./products-create.types";
+import { Brand, Category, CustomAttribute } from "./products-create.types";
 
 interface ProductCreateViewProps {
   form: UseFormReturn<ProductCreateFormData>;
@@ -63,6 +63,8 @@ interface ProductCreateViewProps {
   isSubmitting: boolean;
   categories: Category[];
   isLoadingCategories: boolean;
+  brands: Brand[];
+  isLoadingBrands: boolean;
   customAttributes: CustomAttribute[];
   addCustomAttribute: () => void;
   removeCustomAttribute: (index: number) => void;
@@ -84,6 +86,8 @@ export const ProductCreateView = ({
   isSubmitting,
   categories,
   isLoadingCategories,
+  brands,
+  isLoadingBrands,
   customAttributes,
   addCustomAttribute,
   removeCustomAttribute,
@@ -384,7 +388,7 @@ export const ProductCreateView = ({
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
                       name="categoryId"
@@ -413,6 +417,43 @@ export const ProductCreateView = ({
                                     value={category.id}
                                   >
                                     {category.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="brandId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Marca</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {isLoadingBrands ? (
+                                <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Carregando...
+                                </div>
+                              ) : (
+                                brands.map((brand) => (
+                                  <SelectItem
+                                    key={brand.id}
+                                    value={brand.id}
+                                  >
+                                    {brand.name}
                                   </SelectItem>
                                 ))
                               )}

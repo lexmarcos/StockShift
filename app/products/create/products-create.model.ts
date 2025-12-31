@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import {
   CategoriesResponse,
+  BrandsResponse,
   CreateProductResponse,
   CustomAttribute,
 } from "./products-create.types";
@@ -37,6 +38,12 @@ export const useProductCreateModel = () => {
       return await api.get("categories").json<CategoriesResponse>();
     });
 
+  // Fetch brands for the dropdown
+  const { data: brandsData, isLoading: isLoadingBrands } =
+    useSWR<BrandsResponse>("brands", async () => {
+      return await api.get("brands").json<BrandsResponse>();
+    });
+
   const form = useForm({
     resolver: zodResolver(productCreateSchema),
     defaultValues: {
@@ -47,6 +54,7 @@ export const useProductCreateModel = () => {
       active: true,
       continuousMode: loadContinuousMode(),
       categoryId: "",
+      brandId: "",
       barcode: "",
       attributes: {
         weight: "",
@@ -140,6 +148,7 @@ export const useProductCreateModel = () => {
 
   const resetForm = (preserveCategory: boolean = false) => {
     const currentCategory = form.getValues("categoryId");
+    const currentBrand = form.getValues("brandId");
     const currentContinuousMode = form.getValues("continuousMode");
 
     form.reset({
@@ -149,6 +158,7 @@ export const useProductCreateModel = () => {
       hasExpiration: false,
       active: true,
       categoryId: preserveCategory ? currentCategory : "",
+      brandId: preserveCategory ? currentBrand : "",
       barcode: "",
       continuousMode: currentContinuousMode,
       attributes: {
@@ -176,6 +186,7 @@ export const useProductCreateModel = () => {
         name: data.name,
         description: data.description || undefined,
         categoryId: data.categoryId || undefined,
+        brandId: data.brandId || undefined,
         barcode: data.barcode || undefined,
         isKit: data.isKit,
         hasExpiration: data.hasExpiration,
@@ -212,6 +223,8 @@ export const useProductCreateModel = () => {
     isSubmitting,
     categories: categoriesData?.data || [],
     isLoadingCategories,
+    brands: brandsData?.data || [],
+    isLoadingBrands,
     customAttributes,
     addCustomAttribute,
     removeCustomAttribute,

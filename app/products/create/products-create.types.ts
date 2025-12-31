@@ -8,6 +8,12 @@ export interface Category {
   name: string;
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+  logoUrl?: string;
+}
+
 export interface CreateProductResponse {
   success: boolean;
   message: string;
@@ -21,4 +27,9 @@ export interface CreateProductResponse {
 export interface CategoriesResponse {
   success: boolean;
   data: Category[];
+}
+
+export interface BrandsResponse {
+  success: boolean;
+  data: Brand[];
 }

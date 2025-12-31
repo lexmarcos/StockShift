@@ -10,6 +10,8 @@ export default function ProductCreatePage() {
     isSubmitting,
     categories,
     isLoadingCategories,
+    brands,
+    isLoadingBrands,
     customAttributes,
     addCustomAttribute,
     removeCustomAttribute,
@@ -28,6 +30,8 @@ export default function ProductCreatePage() {
       isSubmitting={isSubmitting}
       categories={categories}
       isLoadingCategories={isLoadingCategories}
+      brands={brands}
+      isLoadingBrands={isLoadingBrands}
       customAttributes={customAttributes}
       addCustomAttribute={addCustomAttribute}
       removeCustomAttribute={removeCustomAttribute}

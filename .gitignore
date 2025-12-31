@@ -42,3 +42,5 @@ next-env.d.ts
 
 # worktrees
 .worktrees/
+.github
+.vscode
