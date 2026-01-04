@@ -123,7 +123,7 @@ Each endpoint documentation file follows this structure:
 ## API Base URL
 
 ```
-Development: http://localhost:8080
+Development: ${NEXT_PUBLIC_API_URL}
 Production: [To be configured]
 ```
 
@@ -264,7 +264,7 @@ import axios from 'axios';
 import { authService } from './auth.service';
 
 export const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json'
   }

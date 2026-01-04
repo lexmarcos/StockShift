@@ -10,13 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -25,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -34,15 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import {
   ArrowLeft,
-  Barcode,
-  Camera,
+  Calendar,
   CheckCircle2,
+  DollarSign,
   Layers,
   Loader2,
   Package,
@@ -74,10 +64,8 @@ interface ProductCreateViewProps {
     value: string
   ) => void;
   nameInputRef: React.RefObject<HTMLInputElement | null>;
-  isScannerOpen: boolean;
   openScanner: () => void;
-  closeScanner: () => void;
-  handleBarcodeScanned: (barcode: string) => void;
+  warehouseId: string | null;
 }
 
 export const ProductCreateView = ({
@@ -93,16 +81,11 @@ export const ProductCreateView = ({
   removeCustomAttribute,
   updateCustomAttribute,
   nameInputRef,
-  isScannerOpen,
   openScanner,
-  closeScanner,
-  handleBarcodeScanned,
+  warehouseId,
 }: ProductCreateViewProps) => {
-  const onScan = (detectedCodes: IDetectedBarcode[]) => {
-    if (detectedCodes.length > 0) {
-      handleBarcodeScanned(detectedCodes[0].rawValue);
-    }
-  };
+  const hasExpiration = form.watch("hasExpiration");
+
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
       {/* Header Sticky - Corporate Solid */}
@@ -121,7 +104,7 @@ export const ProductCreateView = ({
                 NOVO PRODUTO
               </h1>
               <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
-                Cadastro de item no catálogo
+                Cadastro de item no catálogo com estoque
               </p>
             </div>
           </div>
@@ -129,12 +112,20 @@ export const ProductCreateView = ({
       </header>
 
       <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
+        {!warehouseId && (
+          <div className="mb-6 rounded-sm border border-amber-900/20 bg-amber-950/10 p-4">
+            <p className="text-xs text-amber-200">
+              ⚠️ Selecione um warehouse para criar um produto com estoque.
+            </p>
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* COLUNA ESQUERDA - Conteúdo Principal (2/3) */}
               <div className="space-y-6 lg:col-span-2">
-                {/* Informações Básicas - Corporate Solid */}
+                {/* Informações Básicas do Produto - Corporate Solid */}
                 <Card className="border border-border/50 bg-card/80 rounded-sm">
                   <CardHeader className="border-b border-border/30 pb-3">
                     <div className="flex items-center gap-3">
@@ -146,7 +137,7 @@ export const ProductCreateView = ({
                           Detalhes do Produto
                         </CardTitle>
                         <CardDescription className="text-xs mt-0.5">
-                          Informações essenciais de exibição
+                          Informações essenciais do produto
                         </CardDescription>
                       </div>
                     </div>
@@ -276,10 +267,221 @@ export const ProductCreateView = ({
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Lote Inicial - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Package className="h-4 w-4 text-foreground/70" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                          Lote Inicial
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          Primeira entrada de estoque
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-5 pt-5">
+                    {/* Código e Quantidade */}
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="batchCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              Código do Lote{" "}
+                              <span className="text-foreground/40">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex: BATCH-2026-001"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              Quantidade{" "}
+                              <span className="text-foreground/40">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="0"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(parseFloat(e.target.value) || 0)
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Datas */}
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="manufacturedDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <Calendar className="h-3 w-3" /> Data de Fabricação
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="expirationDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <Calendar className="h-3 w-3" /> Data de Validade
+                              {hasExpiration && (
+                                <span className="text-foreground/40">*</span>
+                              )}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                disabled={!hasExpiration}
+                                {...field}
+                              />
+                            </FormControl>
+                            {hasExpiration && (
+                              <FormDescription className="text-[11px] text-muted-foreground/70">
+                                Obrigatório quando controle de validade ativo
+                              </FormDescription>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Preços */}
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="costPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <DollarSign className="h-3 w-3" /> Preço de Custo
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="0.00"
+                                step="0.01"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value ? parseFloat(e.target.value) : undefined
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sellingPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <DollarSign className="h-3 w-3" /> Preço de Venda
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="0.00"
+                                step="0.01"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value ? parseFloat(e.target.value) : undefined
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* COLUNA DIREITA - Lateral (1/3) */}
               <div className="space-y-6">
+                {/* Warehouse Info - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Package className="h-4 w-4 text-foreground/70" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                          Warehouse
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          Destino do estoque
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between rounded-sm border border-border/40 p-3 bg-background/30">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          {warehouseId ? "Selecionado" : "Não selecionado"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                          Selecione via menu superior
+                        </p>
+                      </div>
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          warehouseId ? "bg-green-600" : "bg-red-600"
+                        }`}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Status e Configurações - Corporate Solid */}
                 <Card className="border border-border/50 bg-card/80 rounded-sm">
                   <CardHeader className="border-b border-border/30 pb-3">
@@ -475,58 +677,6 @@ export const ProductCreateView = ({
                     />
                   </CardContent>
                 </Card>
-
-                {/* Inventário - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Barcode className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                        Inventário
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <FormField
-                      control={form.control}
-                      name="barcode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                            Código de Barras
-                          </FormLabel>
-                          <FormControl>
-                            <div className="flex gap-2">
-                              <Input
-                                placeholder="EAN / GTIN"
-                                className="font-mono h-10 flex-1 rounded-sm border-border/40 bg-background/50 text-xs"
-                                {...field}
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                className="h-10 w-10 shrink-0 rounded-sm border-border/40"
-                                onClick={openScanner}
-                              >
-                                <Camera className="h-3.5 w-3.5" />
-                                <span className="sr-only">
-                                  Escanear código de barras
-                                </span>
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormDescription className="text-[11px] text-muted-foreground/70">
-                            Opcional - deixe vazio se não houver
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
               </div>
             </div>
 
@@ -545,8 +695,8 @@ export const ProductCreateView = ({
                 <Button
                   type="submit"
                   size="default"
-                  className="w-full md:w-auto md:min-w-[160px] rounded-sm bg-foreground text-background hover:bg-foreground/90"
-                  disabled={isSubmitting}
+                  className="w-full md:w-auto md:min-w-[160px] rounded-sm bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  disabled={isSubmitting || !warehouseId}
                 >
                   {isSubmitting ? (
                     <>
@@ -565,55 +715,6 @@ export const ProductCreateView = ({
           </form>
         </Form>
       </main>
-
-      {/* Scanner Dialog - Corporate Solid */}
-      <Dialog open={isScannerOpen} onOpenChange={closeScanner}>
-        <DialogContent className="sm:max-w-md rounded-sm border-border/50">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-              <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                <Camera className="h-3.5 w-3.5" />
-              </div>
-              Escanear Código de Barras
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground/70">
-              Aponte a câmera para o código de barras do produto
-            </DialogDescription>
-          </DialogHeader>
-          <div className="aspect-square w-full overflow-hidden rounded-sm border border-border/30">
-            {isScannerOpen && (
-              <Scanner
-                onScan={onScan}
-                formats={[
-                  "ean_13",
-                  "ean_8",
-                  "code_128",
-                  "code_39",
-                  "code_93",
-                  "upc_a",
-                  "upc_e",
-                  "itf",
-                  "codabar",
-                ]}
-                components={{
-                  finder: true,
-                }}
-                styles={{
-                  container: {
-                    width: "100%",
-                    height: "100%",
-                  },
-                  video: {
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  },
-                }}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

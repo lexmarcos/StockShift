@@ -62,8 +62,7 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { WarehouseStockInfo } from "./warehouse-stock-info";
 
 interface WarehousesViewProps {
   warehouses: Warehouse[];
@@ -335,7 +334,7 @@ export const WarehousesView = ({
                     )}
 
                     {/* Details */}
-                    <div className="space-y-2 text-xs">
+                    <div className="space-y-2 text-xs mb-4 pb-4 border-b border-border/20">
                       <div className="flex items-start gap-2">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground/70 leading-relaxed">
@@ -361,6 +360,9 @@ export const WarehousesView = ({
                         </div>
                       )}
                     </div>
+
+                    {/* Stock Info */}
+                    <WarehouseStockInfo warehouseId={warehouse.id} />
 
                     {/* Selected indicator */}
                     {selectedWarehouseId === warehouse.id && (

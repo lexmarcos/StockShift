@@ -1,5 +1,11 @@
 import ky, { HTTPError } from "ky";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+
+if (!API_BASE_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
+
 // Estado para controlar refresh em andamento
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -20,7 +26,7 @@ const processQueue = (error: Error | null = null) => {
 };
 
 export const api = ky.create({
-  prefixUrl: "http://localhost:8080/api",
+  prefixUrl: `${API_BASE_URL}/api`,
   credentials: "include", // ← OBRIGATÓRIO: Habilita envio de cookies
   timeout: 30000,
   retry: 0, // Desabilita retry automático (vamos controlar manualmente)
@@ -44,7 +50,7 @@ export const api = ky.create({
 
           try {
             // Tenta fazer refresh do token
-            await ky.post("http://localhost:8080/api/auth/refresh", {
+            await ky.post(`${API_BASE_URL}/api/auth/refresh`, {
               credentials: "include",
             });
 
@@ -87,7 +93,7 @@ export const api = ky.create({
             isRefreshing = true;
 
             try {
-              await ky.post("http://localhost:8080/api/auth/refresh", {
+              await ky.post(`${API_BASE_URL}/api/auth/refresh`, {
                 credentials: "include",
               });
 

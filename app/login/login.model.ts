@@ -39,7 +39,7 @@ export const useLoginModel = () => {
         );
 
         toast.success("Login realizado com sucesso!");
-        router.push("/dashboard");
+        router.push("/warehouses");
       }
     } catch (error) {
       console.error("Login error:", error);

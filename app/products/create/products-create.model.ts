@@ -9,10 +9,11 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   CategoriesResponse,
   BrandsResponse,
-  CreateProductResponse,
+  CreateProductWithBatchResponse,
   CustomAttribute,
 } from "./products-create.types";
 
@@ -27,9 +28,9 @@ const loadContinuousMode = (): boolean => {
 
 export const useProductCreateModel = () => {
   const router = useRouter();
+  const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch categories for the dropdown
@@ -55,11 +56,16 @@ export const useProductCreateModel = () => {
       continuousMode: loadContinuousMode(),
       categoryId: "",
       brandId: "",
-      barcode: "",
       attributes: {
         weight: "",
         dimensions: "",
       },
+      batchCode: "",
+      quantity: 0,
+      manufacturedDate: "",
+      expirationDate: "",
+      costPrice: undefined,
+      sellingPrice: undefined,
     },
   });
 
@@ -97,13 +103,9 @@ export const useProductCreateModel = () => {
     setCustomAttributes(updated);
   };
 
-  const handleBarcodeScanned = (barcode: string) => {
-    form.setValue("barcode", barcode);
-    setIsScannerOpen(false);
+  const openScanner = () => {
+    toast.info("Scanner de código de barras não está mais disponível para este formulário");
   };
-
-  const openScanner = () => setIsScannerOpen(true);
-  const closeScanner = () => setIsScannerOpen(false);
 
   const validateCustomAttributes = (): boolean => {
     for (let i = 0; i < customAttributes.length; i++) {
@@ -159,12 +161,17 @@ export const useProductCreateModel = () => {
       active: true,
       categoryId: preserveCategory ? currentCategory : "",
       brandId: preserveCategory ? currentBrand : "",
-      barcode: "",
       continuousMode: currentContinuousMode,
       attributes: {
         weight: "",
         dimensions: "",
       },
+      batchCode: "",
+      quantity: 0,
+      manufacturedDate: "",
+      expirationDate: "",
+      costPrice: undefined,
+      sellingPrice: undefined,
     });
 
     setCustomAttributes([]);
@@ -180,6 +187,11 @@ export const useProductCreateModel = () => {
       return;
     }
 
+    if (!warehouseId) {
+      toast.error("Selecione um warehouse para criar o produto");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -187,16 +199,21 @@ export const useProductCreateModel = () => {
         description: data.description || undefined,
         categoryId: data.categoryId || undefined,
         brandId: data.brandId || undefined,
-        barcode: data.barcode || undefined,
         isKit: data.isKit,
         hasExpiration: data.hasExpiration,
-        active: data.active,
         attributes: mergeAttributes(data),
+        warehouseId,
+        batchCode: data.batchCode,
+        quantity: data.quantity,
+        manufacturedDate: data.manufacturedDate || undefined,
+        expirationDate: data.expirationDate || undefined,
+        costPrice: data.costPrice,
+        sellingPrice: data.sellingPrice,
       };
 
       const response = await api
-        .post("products", { json: payload })
-        .json<CreateProductResponse>();
+        .post("batches/with-product", { json: payload })
+        .json<CreateProductWithBatchResponse>();
 
       if (response.success) {
         const isContinuousMode = data.continuousMode;
@@ -205,7 +222,7 @@ export const useProductCreateModel = () => {
           toast.success(`${data.name} criado! Pronto para o próximo produto.`);
           resetForm(true); // Preserve category
         } else {
-          toast.success("Produto criado com sucesso!");
+          toast.success("Produto e lote criados com sucesso!");
           router.push("/products");
         }
       }
@@ -230,9 +247,7 @@ export const useProductCreateModel = () => {
     removeCustomAttribute,
     updateCustomAttribute,
     nameInputRef,
-    isScannerOpen,
     openScanner,
-    closeScanner,
-    handleBarcodeScanned,
+    warehouseId,
   };
 };

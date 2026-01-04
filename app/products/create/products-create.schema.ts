@@ -5,7 +5,6 @@ export const productCreateSchema = z.object({
   description: z.string().optional(),
   categoryId: z.string().optional(),
   brandId: z.string().optional(),
-  barcode: z.string().optional(),
   isKit: z.boolean(),
   hasExpiration: z.boolean(),
   active: z.boolean(),
@@ -14,14 +13,21 @@ export const productCreateSchema = z.object({
     weight: z.string().optional(),
     dimensions: z.string().optional(),
   }).optional(),
+  // Batch fields
+  batchCode: z.string().min(1, "Código do lote é obrigatório"),
+  quantity: z.number().min(0, "Quantidade deve ser zero ou positiva"),
+  manufacturedDate: z.string().optional(),
+  expirationDate: z.string().optional(),
+  costPrice: z.number().optional(),
+  sellingPrice: z.number().optional(),
 }).refine((data) => {
-  if (data.barcode !== undefined && data.barcode.trim() === "") {
+  if (data.hasExpiration && !data.expirationDate) {
     return false;
   }
   return true;
 }, {
-  message: "Código de barras não pode estar vazio",
-  path: ["barcode"],
+  message: "Data de validade é obrigatória para produtos com controle de validade",
+  path: ["expirationDate"],
 });
 
 export type ProductCreateFormData = z.infer<typeof productCreateSchema>;

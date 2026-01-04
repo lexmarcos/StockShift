@@ -78,6 +78,223 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 
 ---
 
+## POST /api/batches/with-product
+**Summary**: Create a new product with initial stock in warehouse
+
+### Authorization
+**Required Permissions**: `BATCH_CREATE` and `PRODUCT_CREATE` or `ROLE_ADMIN`
+
+### Description
+This endpoint atomically creates a new product and its first batch in a single transaction. Use this when receiving a new product that needs to be registered and stocked immediately. If the product already exists, use `POST /api/batches` instead.
+
+### Request
+**Method**: `POST`  
+**Content-Type**: `application/json`
+
+#### Request Body
+```json
+{
+  "name": "New Product Name",
+  "description": "Product description",
+  "categoryId": "440e8400-e29b-41d4-a716-446655440000",
+  "brandId": "550e8400-e29b-41d4-a716-446655440000",
+  "barcode": "1234567890123",
+  "barcodeType": "EAN13",
+  "sku": "PROD-NEW-001",
+  "isKit": false,
+  "hasExpiration": true,
+  "attributes": {
+    "color": "blue",
+    "size": "medium"
+  },
+  "warehouseId": "660e8400-e29b-41d4-a716-446655440001",
+  "batchCode": "BATCH-2026-001",
+  "quantity": 100,
+  "manufacturedDate": "2026-01-01",
+  "expirationDate": "2026-12-31",
+  "costPrice": 10.50,
+  "sellingPrice": 20.00
+}
+```
+
+**Product Fields**:
+- `name`: Required, product name
+- `description`: Optional, detailed product description
+- `categoryId`: Optional, UUID of the category
+- `brandId`: Optional, UUID of the brand
+- `barcode`: Optional, unique product barcode
+- `barcodeType`: Optional, type of barcode (EAN13, UPC, CODE128, etc.)
+- `sku`: Optional, unique stock keeping unit code
+- `isKit`: Optional, whether product is a kit (default: false)
+- `hasExpiration`: Optional, whether product has expiration tracking (default: false)
+- `attributes`: Optional, custom product attributes as key-value pairs
+
+**Batch Fields**:
+- `warehouseId`: Required, UUID of the warehouse
+- `batchCode`: Required, unique batch identifier
+- `quantity`: Required, positive integer or zero
+- `manufacturedDate`: Optional, ISO date string
+- `expirationDate`: Optional, ISO date string (required if `hasExpiration: true`)
+- `costPrice`: Optional, cost per unit
+- `sellingPrice`: Optional, selling price per unit
+
+### Response
+**Status Code**: `201 CREATED`
+
+```json
+{
+  "success": true,
+  "message": "Product and batch created successfully",
+  "data": {
+    "product": {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "name": "New Product Name",
+      "description": "Product description",
+      "categoryId": "440e8400-e29b-41d4-a716-446655440000",
+      "categoryName": "Category Name",
+      "brand": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Brand Name",
+        "logoUrl": null
+      },
+      "barcode": "1234567890123",
+      "barcodeType": "EAN13",
+      "sku": "PROD-NEW-001",
+      "isKit": false,
+      "hasExpiration": true,
+      "active": true,
+      "attributes": {
+        "color": "blue",
+        "size": "medium"
+      },
+      "createdAt": "2026-01-04T10:00:00Z",
+      "updatedAt": "2026-01-04T10:00:00Z"
+    },
+    "batch": {
+      "id": "880e8400-e29b-41d4-a716-446655440003",
+      "productId": "770e8400-e29b-41d4-a716-446655440002",
+      "productName": "New Product Name",
+      "warehouseId": "660e8400-e29b-41d4-a716-446655440001",
+      "warehouseName": "Main Warehouse",
+      "batchCode": "BATCH-2026-001",
+      "quantity": 100,
+      "manufacturedDate": "2026-01-01",
+      "expirationDate": "2026-12-31",
+      "costPrice": 10.50,
+      "sellingPrice": 20.00,
+      "createdAt": "2026-01-04T10:00:00Z",
+      "updatedAt": "2026-01-04T10:00:00Z"
+    }
+  }
+}
+```
+
+### Error Responses
+
+#### 400 Bad Request - SKU Already Exists
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Product with SKU 'PROD-NEW-001' already exists. Use POST /api/batches instead",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 400 Bad Request - Barcode Already Exists
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Product with barcode '1234567890123' already exists. Use POST /api/batches instead",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 400 Bad Request - Warehouse Inactive
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Warehouse is not active",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 400 Bad Request - Batch Code Already Exists
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Batch with code 'BATCH-2026-001' already exists",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 400 Bad Request - Missing Expiration Date
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Expiration date is required for products with expiration",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 400 Bad Request - Invalid Date Range
+```json
+{
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Expiration date must be after manufactured date",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 404 Not Found - Warehouse Not Found
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Warehouse not found with id: 660e8400-e29b-41d4-a716-446655440001",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+#### 404 Not Found - Category Not Found
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Category not found with id: 440e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2026-01-04T10:00:00Z"
+}
+```
+
+### Frontend Implementation Guide
+1. **Use Case**: Product registration + stock entry workflow
+2. **Product Fields**: Name (required), SKU, barcode, category, brand
+3. **Batch Fields**: Warehouse selector, batch code, quantity, dates, prices
+4. **Validation**:
+   - Check if product exists before using this endpoint
+   - Validate quantity is zero or positive
+   - Show expiration date field only if `hasExpiration: true`
+   - Validate dates: expiration must be after manufactured date
+5. **Success Flow**: Show both product and batch created, redirect to product detail
+6. **Error Handling**:
+   - If SKU/barcode exists, suggest using regular batch creation
+   - Show clear messages for each validation error
+7. **UX Tip**: Combine product and batch forms in a single wizard or tabbed interface
+
+### When to Use This Endpoint
+- ✅ Registering a brand new product with initial stock
+- ✅ Receiving new products from suppliers
+- ✅ Quick product + stock entry workflow
+- ❌ Adding stock to existing products (use `POST /api/batches`)
+- ❌ Bulk product imports (consider batch import endpoint)
+
+---
+
 ## GET /api/batches
 **Summary**: Get all batches
 

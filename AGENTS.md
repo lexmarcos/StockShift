@@ -1,6 +1,7 @@
 # AGENTS.md
 
-Use a skill frontend-design para criação de telas
+Use a skill brainstorming para criação de features
+
 ## 📋 Visão Geral do Projeto
 
 Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, **Tailwind CSS** e **shadcn/ui**.

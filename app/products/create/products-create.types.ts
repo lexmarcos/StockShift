@@ -14,13 +14,20 @@ export interface Brand {
   logoUrl?: string;
 }
 
-export interface CreateProductResponse {
+export interface CreateProductWithBatchResponse {
   success: boolean;
   message: string;
   data: {
-    id: string;
-    name: string;
-    // ... outros campos retornados
+    product: {
+      id: string;
+      name: string;
+      // ... outros campos do produto
+    };
+    batch: {
+      id: string;
+      productId: string;
+      // ... outros campos do batch
+    };
   };
 }
 
