@@ -1,5 +1,6 @@
 # AGENTS.md
 
+Use a skill frontend-design para criação de telas
 ## 📋 Visão Geral do Projeto
 
 Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, **Tailwind CSS** e **shadcn/ui**.
@@ -44,12 +45,12 @@ As telas devem ser estruturadas inicialmente para celular e progressivamente ada
 
 ### 1. Estética e Vertente
 
-O design segue a vertente **Modern Dark UI**. Não se trata apenas de "fundo preto", mas de uma construção de camadas sobre tons de carvão e azul profundo. O objetivo é reduzir a fadiga ocular enquanto destaca informações críticas com cores vibrantes.
+O design segue a vertente **Modern Dark UI**. Não se trata apenas de "fundo preto", mas de uma construção de camadas sobre tons de carvão e azul profundo. O objetivo é reduzir a fadiga ocular enquanto destaca informações, as cores predominantes devem ser na escala de cinza.
 
 ### 2. Hierarquia e Profundidade
 
 - **Camadas (Layering):** Utilize diferentes tons de cinza muito escuros para separar o fundo das "cartas" (cards). O fundo é o nível mais profundo; os cards são ligeiramente mais claros para dar a sensação de flutuação.
-- **Bordas Arredondadas (Softness):** O design evita ângulos retos. Tudo (botões, cards, inputs) possui bordas arredondadas generosas, transmitindo uma sensação de modernidade e acessibilidade.
+- **Bordas Arredondadas (Softness):** O design evita ângulos retos. Tudo (botões, cards, inputs) possui bordas arredondadas, transmitindo uma sensação de modernidade e acessibilidade.
 - **Sutileza:** O uso de sombras é extremamente discreto, preferindo o contraste de cores de fundo para definir limites.
 
 ## 🧠 Sensações e Comportamento
