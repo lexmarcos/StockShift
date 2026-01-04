@@ -104,71 +104,67 @@ export const ProductCreateView = ({
     }
   };
   return (
-    <div className="min-h-screen bg-muted/40 pb-24 md:pb-10">
-      {/* Header Sticky */}
-      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-10">
+      {/* Header Sticky - Corporate Solid */}
+      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
             <Link
               href="/products"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3.5 w-3.5" />
               <span className="sr-only">Voltar</span>
             </Link>
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight">
-                Novo Produto
+            <div className="border-l border-border/40 pl-3">
+              <h1 className="text-base font-semibold tracking-tight">
+                NOVO PRODUTO
               </h1>
-              <p className="text-sm text-muted-foreground hidden md:block">
-                Preencha os detalhes para cadastrar um item no catálogo.
+              <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
+                Cadastro de item no catálogo
               </p>
             </div>
-          </div>
-
-          {/* Desktop Save Button (Optional placement) */}
-          <div className="hidden md:block">
-            {/* Pode colocar ações extras aqui se desejar */}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl py-8 px-4 md:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* COLUNA ESQUERDA - Conteúdo Principal (2/3) */}
-              <div className="space-y-8 lg:col-span-2">
-                {/* Informações Básicas */}
-                <Card className="border-border shadow-sm hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 bg-gradient-to-br from-card via-card to-card/95 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <IconBox icon={Package} colorScheme="blue" />
+              <div className="space-y-6 lg:col-span-2">
+                {/* Informações Básicas - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Package className="h-4 w-4 text-foreground/70" />
+                      </div>
                       <div>
-                        <CardTitle className="text-base font-semibold">
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
                           Detalhes do Produto
                         </CardTitle>
-                        <CardDescription>
-                          Informações essenciais de exibição.
+                        <CardDescription className="text-xs mt-0.5">
+                          Informações essenciais de exibição
                         </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
-                  <Separator className="w-auto" />
-                  <CardContent className="grid gap-6">
+                  <CardContent className="grid gap-5 pt-5">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
                             Nome do Produto{" "}
-                            <span className="text-red-500">*</span>
+                            <span className="text-foreground/40">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Ex: Malbec"
-                              className="h-11"
+                              className="h-10 rounded-sm border-border/40 bg-background/50"
                               {...field}
                               ref={nameInputRef}
                             />
@@ -182,16 +178,18 @@ export const ProductCreateView = ({
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descrição</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            Descrição
+                          </FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Descreva as principais características do produto..."
-                              className="min-h-[120px] resize-y"
+                              className="min-h-[100px] resize-y rounded-sm border-border/40 bg-background/50"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription className="text-xs">
-                            Uma boa descrição ajuda na identificação e SEO.
+                          <FormDescription className="text-[11px] text-muted-foreground/70">
+                            Informações adicionais para identificação
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -200,34 +198,39 @@ export const ProductCreateView = ({
                   </CardContent>
                 </Card>
 
-                {/* Atributos do Produto */}
-                <Card className="border-border shadow-sm hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-75">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <IconBox icon={Layers} colorScheme="purple" />
+                {/* Atributos do Produto - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Layers className="h-4 w-4 text-foreground/70" />
+                      </div>
                       <div>
-                        <CardTitle className="text-base font-semibold">
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
                           Atributos do Produto
                         </CardTitle>
-                        <CardDescription>
-                          Dimensões, peso e características customizadas.
+                        <CardDescription className="text-xs mt-0.5">
+                          Dimensões, peso e características
                         </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
-                  <Separator className="w-auto" />
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
+                  <CardContent className="space-y-5 pt-5">
+                    <div className="grid gap-5 md:grid-cols-2">
                       <FormField
                         control={form.control}
                         name="attributes.weight"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Scale className="h-3.5 w-3.5" /> Peso
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <Scale className="h-3 w-3" /> Peso
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: 1.5kg" {...field} />
+                              <Input
+                                placeholder="Ex: 1.5kg"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -238,11 +241,15 @@ export const ProductCreateView = ({
                         name="attributes.dimensions"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              <Ruler className="h-3.5 w-3.5" /> Dimensões
+                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                              <Ruler className="h-3 w-3" /> Dimensões
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: 10x20x5cm" {...field} />
+                              <Input
+                                placeholder="Ex: 10x20x5cm"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -251,15 +258,13 @@ export const ProductCreateView = ({
                     </div>
 
                     {/* Atributos Adicionais */}
-                    <div className="space-y-4">
-                      <Separator />
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">
+                    <div className="space-y-3 pt-2">
+                      <div className="border-t border-border/30 pt-4">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-foreground/80 mb-1">
                           Atributos Adicionais
                         </h4>
-                        <p className="text-xs text-muted-foreground">
-                          Adicione características específicas (cor, tamanho,
-                          material, etc.)
+                        <p className="text-[11px] text-muted-foreground/70">
+                          Características específicas (cor, tamanho, material)
                         </p>
                       </div>
                       <CustomAttributesBuilder
@@ -274,40 +279,37 @@ export const ProductCreateView = ({
               </div>
 
               {/* COLUNA DIREITA - Lateral (1/3) */}
-              <div className="space-y-8">
-                {/* Status e Configurações */}
-                <Card className="border-border shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <IconBox icon={Settings2} colorScheme="lime" />
-                      <div>
-                        <CardTitle className="text-base font-semibold">
-                          Estado e configuração
-                        </CardTitle>
+              <div className="space-y-6">
+                {/* Status e Configurações - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Settings2 className="h-4 w-4 text-foreground/70" />
                       </div>
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                        Configuração
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="grid gap-4">
+                  <CardContent className="grid gap-3 pt-4">
                     <FormField
                       control={form.control}
                       name="active"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-card">
+                        <FormItem className="flex flex-row items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm font-medium">
-                              {field.value
-                                ? "Produto Ativo"
-                                : "Produto Inativo"}
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                              {field.value ? "Ativo" : "Inativo"}
                             </FormLabel>
-                            <FormDescription className="text-xs">
-                              Visibilidade no sistema.
+                            <FormDescription className="text-[11px] text-muted-foreground/70">
+                              Visibilidade no sistema
                             </FormDescription>
                           </div>
                           <FormControl>
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              className="data-[state=checked]:bg-green-600"
                             />
                           </FormControl>
                         </FormItem>
@@ -318,14 +320,14 @@ export const ProductCreateView = ({
                       control={form.control}
                       name="continuousMode"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-card">
+                        <FormItem className="flex flex-row items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm font-medium flex items-center gap-2">
-                              <Zap className="h-3.5 w-3.5 text-amber-500" />
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
+                              <Zap className="h-3 w-3 text-foreground/60" />
                               Cadastro Contínuo
                             </FormLabel>
-                            <FormDescription className="text-xs">
-                              Adicionar vários produtos seguidos
+                            <FormDescription className="text-[11px] text-muted-foreground/70">
+                              Vários produtos seguidos
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -338,13 +340,13 @@ export const ProductCreateView = ({
                       )}
                     />
 
-                    <div className="rounded-lg border p-3 shadow-sm bg-muted/20 space-y-3">
+                    <div className="rounded-sm border border-border/30 p-3 bg-background/30 space-y-3">
                       <FormField
                         control={form.control}
                         name="hasExpiration"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between">
-                            <FormLabel className="text-sm font-normal cursor-pointer flex-1">
+                            <FormLabel className="text-xs font-medium cursor-pointer flex-1">
                               Controlar Validade
                             </FormLabel>
                             <FormControl>
@@ -356,13 +358,13 @@ export const ProductCreateView = ({
                           </FormItem>
                         )}
                       />
-                      <Separator />
+                      <div className="h-px bg-border/30" />
                       <FormField
                         control={form.control}
                         name="isKit"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between">
-                            <FormLabel className="text-sm font-normal cursor-pointer flex-1">
+                            <FormLabel className="text-xs font-medium cursor-pointer flex-1">
                               É um Kit (Combo)
                             </FormLabel>
                             <FormControl>
@@ -378,36 +380,40 @@ export const ProductCreateView = ({
                   </CardContent>
                 </Card>
 
-                {/* Organização */}
-                <Card className="border-border shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <IconBox icon={Tag} colorScheme="orange" />
-                      <CardTitle className="text-base font-semibold">
+                {/* Organização - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Tag className="h-4 w-4 text-foreground/70" />
+                      </div>
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
                         Organização
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-4">
                     <FormField
                       control={form.control}
                       name="categoryId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Categoria</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            Categoria
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-11">
+                              <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="rounded-sm">
                               {isLoadingCategories ? (
-                                <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                                   Carregando...
                                 </div>
                               ) : (
@@ -415,6 +421,7 @@ export const ProductCreateView = ({
                                   <SelectItem
                                     key={category.id}
                                     value={category.id}
+                                    className="text-xs"
                                   >
                                     {category.name}
                                   </SelectItem>
@@ -431,20 +438,22 @@ export const ProductCreateView = ({
                       name="brandId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Marca</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            Marca
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-11">
+                              <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="rounded-sm">
                               {isLoadingBrands ? (
-                                <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                                   Carregando...
                                 </div>
                               ) : (
@@ -452,6 +461,7 @@ export const ProductCreateView = ({
                                   <SelectItem
                                     key={brand.id}
                                     value={brand.id}
+                                    className="text-xs"
                                   >
                                     {brand.name}
                                   </SelectItem>
@@ -466,46 +476,50 @@ export const ProductCreateView = ({
                   </CardContent>
                 </Card>
 
-                {/* Inventário */}
-                <Card className="border-border shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <IconBox icon={Barcode} colorScheme="slate" />
-                      <CardTitle className="text-base font-semibold">
+                {/* Inventário - Corporate Solid */}
+                <Card className="border border-border/50 bg-card/80 rounded-sm">
+                  <CardHeader className="border-b border-border/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                        <Barcode className="h-4 w-4 text-foreground/70" />
+                      </div>
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
                         Inventário
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <FormField
                       control={form.control}
                       name="barcode"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Código de Barras</FormLabel>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            Código de Barras
+                          </FormLabel>
                           <FormControl>
                             <div className="flex gap-2">
                               <Input
                                 placeholder="EAN / GTIN"
-                                className="font-mono h-10 flex-1"
+                                className="font-mono h-10 flex-1 rounded-sm border-border/40 bg-background/50 text-xs"
                                 {...field}
                               />
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                className="h-10 w-10 shrink-0"
+                                className="h-10 w-10 shrink-0 rounded-sm border-border/40"
                                 onClick={openScanner}
                               >
-                                <Camera className="h-4 w-4" />
+                                <Camera className="h-3.5 w-3.5" />
                                 <span className="sr-only">
                                   Escanear código de barras
                                 </span>
                               </Button>
                             </div>
                           </FormControl>
-                          <FormDescription className="text-xs">
-                            Deixe vazio se não houver código de barras
+                          <FormDescription className="text-[11px] text-muted-foreground/70">
+                            Opcional - deixe vazio se não houver
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -516,32 +530,32 @@ export const ProductCreateView = ({
               </div>
             </div>
 
-            {/* Floating Action Bar - Mobile Fixed / Desktop Inline or Fixed */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:relative md:border-t-0 md:bg-transparent md:p-0 md:mt-8">
-              <div className="mx-auto flex w-full max-w-5xl items-center justify-end gap-4 px-4 md:px-6 lg:px-8">
+            {/* Floating Action Bar - Corporate Solid */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-card p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 md:mt-6">
+              <div className="mx-auto flex w-full max-w-7xl items-center justify-end gap-3 px-4 md:px-6 lg:px-8">
                 <Button
                   variant="outline"
                   type="button"
-                  size="lg"
-                  className="hidden md:flex"
+                  size="default"
+                  className="hidden md:flex rounded-sm border-border/40"
                   asChild
                 >
                   <Link href="/products">Cancelar</Link>
                 </Button>
                 <Button
                   type="submit"
-                  size="lg"
-                  className="w-full md:w-auto md:min-w-[150px] shadow-lg shadow-primary/20"
+                  size="default"
+                  className="w-full md:w-auto md:min-w-[160px] rounded-sm bg-foreground text-background hover:bg-foreground/90"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                       Salvando...
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
                       Salvar Produto
                     </>
                   )}
@@ -552,19 +566,21 @@ export const ProductCreateView = ({
         </Form>
       </main>
 
-      {/* Scanner Dialog */}
+      {/* Scanner Dialog - Corporate Solid */}
       <Dialog open={isScannerOpen} onOpenChange={closeScanner}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-sm border-border/50">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+              <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                <Camera className="h-3.5 w-3.5" />
+              </div>
               Escanear Código de Barras
             </DialogTitle>
-            <DialogDescription>
-              Aponte a câmera para o código de barras do produto.
+            <DialogDescription className="text-xs text-muted-foreground/70">
+              Aponte a câmera para o código de barras do produto
             </DialogDescription>
           </DialogHeader>
-          <div className="aspect-square w-full overflow-hidden rounded-lg">
+          <div className="aspect-square w-full overflow-hidden rounded-sm border border-border/30">
             {isScannerOpen && (
               <Scanner
                 onScan={onScan}

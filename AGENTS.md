@@ -21,7 +21,7 @@ Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, 
 
 ### Componentes UI
 
-Você pode criar novos componentes APENAS se os componentes da pasta `/components/ui` não servir ao que você quer.
+Você pode criar novos componentes APENAS se os componentes da pasta `/components/ui` não servirem ao que você quer.
 
 Para ícones utilize a biblioteca **lucide** para manter consistência visual em todos os componentes.
 
@@ -41,34 +41,54 @@ A ordem de prioridade de desenvolvimento é:
 
 As telas devem ser estruturadas inicialmente para celular e progressivamente adaptadas para telas maiores.
 
-## 🎨 Filosofia do Design: "Dark Premium Tech"
+## 🎨 Filosofia do Design: "Corporate Solid Dark"
+
+## Tamanho do container main
+Todos os containers main de todas as páginas devem ter max-w-7xl
 
 ### 1. Estética e Vertente
 
-O design segue a vertente **Modern Dark UI**. Não se trata apenas de "fundo preto", mas de uma construção de camadas sobre tons de carvão e azul profundo. O objetivo é reduzir a fadiga ocular enquanto destaca informações, as cores predominantes devem ser na escala de cinza.
+O design segue a vertente **Professional Dark Interface** voltada para ambientes corporativos sérios. Trata-se de uma interface monocromática em escala de cinza sobre fundo escuro, sem uso de cores vibrantes. O objetivo é transmitir seriedade, profissionalismo e foco absoluto nas operações de estoque.
 
-### 2. Hierarquia e Profundidade
+**Paleta de Cores:**
+- Base totalmente em escala de cinza (preto, cinza escuro, cinza médio, cinza claro, branco)
+- Botões e elementos interativos destacados através de contraste de tons de cinza
+- Formulários com fundos em tons de cinza diferenciados do background principal
+- Ausência de cores saturadas ou gradientes coloridos
 
-- **Camadas (Layering):** Utilize diferentes tons de cinza muito escuros para separar o fundo das "cartas" (cards). O fundo é o nível mais profundo; os cards são ligeiramente mais claros para dar a sensação de flutuação.
-- **Bordas Arredondadas (Softness):** O design evita ângulos retos. Tudo (botões, cards, inputs) possui bordas arredondadas, transmitindo uma sensação de modernidade e acessibilidade.
-- **Sutileza:** O uso de sombras é extremamente discreto, preferindo o contraste de cores de fundo para definir limites.
+### 2. Hierarquia e Solidez
+
+- **Camadas (Layering):** Utilize diferentes tons de cinza para separar o fundo dos componentes. O fundo principal é o tom mais escuro; cards e formulários usam cinzas ligeiramente mais claros para definir áreas de conteúdo.
+- **Bordas Controladas:** Arredondamento máximo de **4px** em todos os elementos (botões, cards, inputs). Isso mantém a interface profissional sem excessos de suavização.
+- **Contraste Direto:** O design evita sombras exageradas. A hierarquia visual é criada através de diferenças de tons de cinza entre background e elementos, não através de efeitos de profundidade.
+
+### 3. Solidez e Estabilidade
+
+- **Sem Animações:** A interface é estática e sólida. Não utilize transições, animações ou efeitos de movimento que possam distrair do trabalho operacional.
+- **Sombras Mínimas:** Quando absolutamente necessário, utilize sombras sutis e discretas apenas para separação de camadas, sempre em tons de preto com baixa opacidade (máximo 10-15%).
+- **Tipografia Firme:** Fontes sans-serif com peso adequado para garantir legibilidade e transmitir solidez.
 
 ## 🧠 Sensações e Comportamento
 
-> **A ideia central é: "Centro de Comando de Alta Precisão".**
+> **A ideia central é: "Sistema de Gestão Corporativo Profissional".**
 
-- **Foco e Clareza:** O design deve passar a sensação de controle total e organização. O espaço negativo (respiro) é fundamental para que o usuário não se sinta sobrecarregado, mesmo com muitos dados.
-- **Elegância Tecnológica:** A interface deve parecer um software premium ou uma ferramenta elite. É minimalista, mas não simplista.
-- **Dinamismo Discreto:** Elementos como gráficos de barras com gradientes suaves e ícones dentro de círculos coloridos dão vida à página sem distrair do conteúdo principal.
+- **Seriedade Operacional:** O design deve transmitir que é uma ferramenta de trabalho séria para gestão empresarial. Nada de elementos lúdicos ou decorativos.
+- **Clareza Funcional:** Cada elemento tem uma função clara. O espaço é organizado de forma lógica e previsível, priorizando eficiência sobre estética elaborada.
+- **Consistência Absoluta:** Todos os componentes seguem o mesmo padrão visual monocromático. A repetição de padrões cria familiaridade e acelera o aprendizado do sistema.
 
 ---
 
 ## 🛠️ Resumo para Implementação
 
-- **Layout:** Grid modular baseado em cards independentes.
-- **Interação:** Botões com estados claros (hover sutil) e tipografia sans-serif limpa.
-- **Visual:** Ícones de linha fina (outline) ou preenchidos com cores sólidas em fundos de baixo contraste.
-- **Gráficos:** Devem usar gradientes verticais (da cor de acento para transparente) para integrar-se ao tema escuro.
+- **Paleta:** Escala de cinza completa - do preto (#000000) ao branco (#FFFFFF), sem cores
+- **Layout:** Grid modular baseado em cards com fundo em tons de cinza diferenciados
+- **Bordas:** Arredondamento máximo de 4px em todos os elementos
+- **Interação:** Botões com estados claros usando variação de tons de cinza (hover através de clareamento/escurecimento)
+- **Sombras:** Mínimas e discretas, apenas quando essencial para separação de camadas
+- **Animações:** Nenhuma - interface estática e sólida
+- **Ícones:** Lucide com estilo outline em tons de cinza ou branco para contraste
+- **Formulários:** Fundos em cinza médio sobre background cinza escuro, bordas sutis em cinza claro
+- **Tipografia:** Sans-serif limpa e legível, hierarquia através de peso e tamanho
 
 ## 🏗️ Arquitetura MVVM
 

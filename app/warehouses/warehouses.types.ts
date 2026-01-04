@@ -1,11 +1,12 @@
 export interface Warehouse {
   id: string;
   name: string;
-  code: string;
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
+  description: string | null;
+  address: string | null;
+  city: string;
+  state: string;
+  phone: string | null;
+  email: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -35,7 +36,7 @@ export interface DeleteWarehouseResponse {
   data: null;
 }
 
-export type SortKey = 'name' | 'code' | 'createdAt';
+export type SortKey = 'name' | 'createdAt';
 
 export interface SortConfig {
   key: SortKey;

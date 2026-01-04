@@ -5,6 +5,7 @@ import { warehouseSchema, WarehouseFormData } from "./warehouses.schema";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   Warehouse,
   WarehousesResponse,
@@ -16,6 +17,9 @@ import {
 } from "./warehouses.types";
 
 export const useWarehousesModel = () => {
+  // Warehouse selection hook
+  const { warehouseId: selectedWarehouseId, setWarehouseId } = useSelectedWarehouse();
+
   // State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
@@ -44,9 +48,10 @@ export const useWarehousesModel = () => {
     resolver: zodResolver(warehouseSchema),
     defaultValues: {
       name: "",
-      code: "",
       description: "",
       address: "",
+      city: "",
+      state: "",
       phone: "",
       email: "",
       isActive: true,
@@ -69,8 +74,7 @@ export const useWarehousesModel = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (w) =>
-          w.name.toLowerCase().includes(query) ||
-          w.code.toLowerCase().includes(query)
+          w.name.toLowerCase().includes(query)
       );
     }
 
@@ -98,9 +102,10 @@ export const useWarehousesModel = () => {
     setSelectedWarehouse(null);
     form.reset({
       name: "",
-      code: "",
       description: "",
       address: "",
+      city: "",
+      state: "",
       phone: "",
       email: "",
       isActive: true,
@@ -112,11 +117,12 @@ export const useWarehousesModel = () => {
     setSelectedWarehouse(warehouse);
     form.reset({
       name: warehouse.name,
-      code: warehouse.code,
-      description: warehouse.description,
-      address: warehouse.address,
-      phone: warehouse.phone,
-      email: warehouse.email,
+      description: warehouse.description || "",
+      address: warehouse.address || "",
+      city: warehouse.city,
+      state: warehouse.state,
+      phone: warehouse.phone || "",
+      email: warehouse.email || "",
       isActive: warehouse.isActive,
     });
     setIsModalOpen(true);
@@ -127,9 +133,10 @@ export const useWarehousesModel = () => {
     setSelectedWarehouse(null);
     form.reset({
       name: "",
-      code: "",
       description: "",
       address: "",
+      city: "",
+      state: "",
       phone: "",
       email: "",
       isActive: true,
@@ -144,32 +151,15 @@ export const useWarehousesModel = () => {
     }));
   };
 
-  // Check if code is unique
-  const checkCodeUniqueness = async (code: string) => {
-    // If editing, don't check (code is the same)
-    if (selectedWarehouse && selectedWarehouse.code === code) {
-      return true;
-    }
-
-    // Check if code exists in current warehouses
-    const codeExists = warehouses.some(
-      (w) => w.code.toUpperCase() === code.toUpperCase()
-    );
-
-    return !codeExists;
+  // Warehouse selection handler
+  const handleSelectWarehouse = (id: string) => {
+    setWarehouseId(id);
+    toast.success("Armazém selecionado");
   };
 
   // Submit handler
   const onSubmit = async (data: WarehouseFormData) => {
     try {
-      // Check code uniqueness
-      const isCodeUnique = await checkCodeUniqueness(data.code);
-      if (!isCodeUnique) {
-        form.setError("code", {
-          message: "Este código já está em uso",
-        });
-        return;
-      }
 
       if (selectedWarehouse) {
         // Update
@@ -199,12 +189,7 @@ export const useWarehousesModel = () => {
         err.response?.data?.message ||
         "Erro ao salvar armazém. Tente novamente.";
       
-      // Handle specific error cases
-      if (err.response?.status === 400 && errorMessage.includes("código")) {
-        form.setError("code", { message: errorMessage });
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     }
   };
 
@@ -281,5 +266,9 @@ export const useWarehousesModel = () => {
     closeDeleteDialog,
     confirmDelete,
     isDeleting,
+
+    // Warehouse selection
+    onSelectWarehouse: handleSelectWarehouse,
+    selectedWarehouseId,
   };
 };

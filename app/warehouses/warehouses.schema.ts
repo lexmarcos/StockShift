@@ -9,28 +9,34 @@ export const warehouseSchema = z.object({
     .min(1, "Nome é obrigatório")
     .min(2, "Nome deve ter no mínimo 2 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
-  code: z
-    .string()
-    .min(1, "Código é obrigatório")
-    .min(2, "Código deve ter no mínimo 2 caracteres")
-    .max(20, "Código deve ter no máximo 20 caracteres")
-    .regex(/^[A-Z0-9\-]+$/, "Código deve conter apenas letras maiúsculas, números e hífen")
-    .transform((val) => val.toUpperCase()),
   description: z
     .string()
     .max(500, "Descrição deve ter no máximo 500 caracteres"),
   address: z
     .string()
     .max(255, "Endereço deve ter no máximo 255 caracteres"),
+  city: z
+    .string()
+    .min(1, "Cidade é obrigatória")
+    .min(2, "Cidade deve ter no mínimo 2 caracteres")
+    .max(100, "Cidade deve ter no máximo 100 caracteres"),
+  state: z
+    .string()
+    .min(1, "Estado é obrigatório")
+    .min(2, "Estado deve ter no mínimo 2 caracteres")
+    .max(100, "Estado deve ter no máximo 100 caracteres"),
   phone: z
     .string()
-    .regex(phoneRegex, "Formato de telefone inválido")
-    .or(z.literal("")),
+    .refine(
+      (val) => !val || phoneRegex.test(val),
+      "Formato de telefone inválido"
+    ),
   email: z
-    .union([
-      z.string().email("Email inválido"),
-      z.literal("")
-    ]),
+    .string()
+    .refine(
+      (val) => !val || z.string().email().safeParse(val).success,
+      "Email inválido"
+    ),
   isActive: z.boolean(),
 });
 

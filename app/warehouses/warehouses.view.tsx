@@ -40,24 +40,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { IconBox } from "@/components/ui/icon-box";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Plus,
   Search,
   Edit,
   Trash2,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Building2,
   Loader2,
+  MoreVertical,
+  MapPin,
+  Phone,
+  Mail,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
@@ -87,6 +87,8 @@ interface WarehousesViewProps {
   closeDeleteDialog: () => void;
   confirmDelete: () => void;
   isDeleting: boolean;
+  onSelectWarehouse: (id: string) => void;
+  selectedWarehouseId: string | null;
 }
 
 export const WarehousesView = ({
@@ -111,53 +113,48 @@ export const WarehousesView = ({
   closeDeleteDialog,
   confirmDelete,
   isDeleting,
+  onSelectWarehouse,
+  selectedWarehouseId,
 }: WarehousesViewProps) => {
   const isSubmitting = form.formState.isSubmitting;
 
-  const getSortIcon = (key: SortConfig["key"]) => {
-    if (sortConfig.key !== key) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    }
-    return sortConfig.direction === "asc" ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-muted/40 pb-10">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-background pb-10">
+      {/* Sticky Header - Corporate Solid */}
+      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">Armazéns</h1>
-            <p className="text-sm text-muted-foreground hidden md:block">
-              Gerencie os armazéns e locais de estoque
+            <h1 className="text-base font-semibold tracking-tight uppercase">
+              Armazéns
+            </h1>
+            <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
+              Gerenciamento de armazéns e locais de estoque
             </p>
           </div>
 
           <Button
             onClick={openCreateModal}
-            className="hidden md:flex shadow-lg shadow-primary/20"
+            className="hidden md:flex rounded-sm bg-foreground text-background hover:bg-foreground/90"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-3.5 w-3.5" />
             Novo Armazém
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
-        <Card className="border-border shadow-sm">
-          <CardHeader>
+      <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
+        <Card className="border border-border/50 bg-card/80 rounded-sm">
+          <CardHeader className="border-b border-border/30 pb-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <IconBox icon={Building2} colorScheme="blue" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+                  <Building2 className="h-4 w-4 text-foreground/70" />
+                </div>
                 <div>
-                  <CardTitle className="text-base font-semibold">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wide">
                     Lista de Armazéns
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs mt-0.5">
                     {warehouses.length}{" "}
                     {warehouses.length === 1 ? "armazém" : "armazéns"}
                   </CardDescription>
@@ -166,16 +163,16 @@ export const WarehousesView = ({
             </div>
           </CardHeader>
 
-          <CardContent>
-            {/* Search Bar and Filters */}
-            <div className="mb-6 space-y-4">
+          <CardContent className="pt-5">
+            {/* Search Bar and Filters - Corporate Solid */}
+            <div className="mb-5 space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nome ou código..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-10 rounded-sm border-border/40 bg-background/50 text-sm"
                 />
               </div>
 
@@ -187,6 +184,11 @@ export const WarehousesView = ({
                     variant={statusFilter === status ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter(status)}
+                    className={
+                      statusFilter === status
+                        ? "rounded-sm bg-foreground text-background hover:bg-foreground/90 text-xs"
+                        : "rounded-sm border-border/40 text-xs"
+                    }
                   >
                     {status === "all"
                       ? "Todos"
@@ -212,147 +214,184 @@ export const WarehousesView = ({
               </div>
             )}
 
-            {/* Empty State */}
+            {/* Empty State - Corporate Solid */}
             {!isLoading && !error && warehouses.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
+                <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-muted/20 border border-border/30 mb-4">
+                  <Building2 className="h-8 w-8 text-foreground/40" />
+                </div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-2">
                   {searchQuery || statusFilter !== "all"
                     ? "Nenhum resultado encontrado"
                     : "Nenhum armazém cadastrado"}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm">
                   {searchQuery || statusFilter !== "all"
                     ? "Tente buscar com outros termos ou filtros"
                     : "Adicione seu primeiro armazém para gerenciar estoque"}
                 </p>
                 {!searchQuery && statusFilter === "all" && (
-                  <Button onClick={openCreateModal}>
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button
+                    onClick={openCreateModal}
+                    className="rounded-sm bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    <Plus className="mr-2 h-3.5 w-3.5" />
                     Criar Armazém
                   </Button>
                 )}
               </div>
             )}
 
-            {/* Table */}
+            {/* Cards Grid */}
             {!isLoading && !error && warehouses.length > 0 && (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <button
-                          onClick={() => handleSort("name")}
-                          className="flex items-center font-medium hover:text-foreground"
-                        >
-                          Nome
-                          {getSortIcon("name")}
-                        </button>
-                      </TableHead>
-                      <TableHead>
-                        <button
-                          onClick={() => handleSort("code")}
-                          className="flex items-center font-medium hover:text-foreground"
-                        >
-                          Código
-                          {getSortIcon("code")}
-                        </button>
-                      </TableHead>
-                      <TableHead className="hidden lg:table-cell">
-                        Endereço
-                      </TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        Status
-                      </TableHead>
-                      <TableHead className="hidden xl:table-cell">
-                        <button
-                          onClick={() => handleSort("createdAt")}
-                          className="flex items-center font-medium hover:text-foreground"
-                        >
-                          Criado em
-                          {getSortIcon("createdAt")}
-                        </button>
-                      </TableHead>
-                      <TableHead className="w-24 text-right">
-                        Ações
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {warehouses.map((warehouse) => (
-                      <TableRow key={warehouse.id}>
-                        <TableCell className="font-medium">
-                          {warehouse.name}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono">
-                            {warehouse.code}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell text-muted-foreground max-w-xs truncate">
-                          {warehouse.address || "—"}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {warehouses.map((warehouse) => (
+                  <div
+                    key={warehouse.id}
+                    onClick={() => onSelectWarehouse(warehouse.id)}
+                    className={`
+                      group relative cursor-pointer rounded-sm border bg-card p-5 transition-all
+                      ${
+                        selectedWarehouseId === warehouse.id
+                          ? "border-foreground/60 bg-foreground/5 shadow-md"
+                          : "border-border/40 hover:border-border/60 hover:bg-card/60"
+                      }
+                    `}
+                  >
+                    {/* Header with icon and menu */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-foreground/10 border border-border/30">
+                          <Building2 className="h-5 w-5 text-foreground/70" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold tracking-tight">
+                            {warehouse.name}
+                          </h3>
                           <Badge
                             variant={warehouse.isActive ? "default" : "secondary"}
+                            className={`
+                              mt-1 rounded-sm text-[10px] uppercase tracking-wide
+                              ${
+                                warehouse.isActive
+                                  ? "bg-foreground text-background"
+                                  : "bg-muted text-muted-foreground"
+                              }
+                            `}
                           >
+                            {warehouse.isActive ? (
+                              <CheckCircle2 className="mr-1 h-2.5 w-2.5" />
+                            ) : (
+                              <XCircle className="mr-1 h-2.5 w-2.5" />
+                            )}
                             {warehouse.isActive ? "Ativo" : "Inativo"}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell text-muted-foreground">
-                          {format(new Date(warehouse.createdAt), "dd/MM/yyyy", {
-                            locale: ptBR,
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditModal(warehouse)}
-                            >
-                              <Edit className="h-4 w-4" />
-                              <span className="sr-only">Editar</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openDeleteDialog(warehouse)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                              <span className="sr-only">Deletar</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </div>
+                      </div>
+
+                      {/* Dropdown Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="rounded-sm border-border/50">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditModal(warehouse);
+                            }}
+                            className="rounded-sm cursor-pointer"
+                          >
+                            <Edit className="mr-2 h-3.5 w-3.5" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog(warehouse);
+                            }}
+                            className="rounded-sm cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Description */}
+                    {warehouse.description && (
+                      <p className="text-xs text-muted-foreground/70 mb-4 line-clamp-2">
+                        {warehouse.description}
+                      </p>
+                    )}
+
+                    {/* Details */}
+                    <div className="space-y-2 text-xs">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground/70 leading-relaxed">
+                          {warehouse.address
+                            ? `${warehouse.address}, ${warehouse.city} - ${warehouse.state}`
+                            : `${warehouse.city} - ${warehouse.state}`}
+                        </span>
+                      </div>
+                      {warehouse.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
+                          <span className="text-muted-foreground/70">
+                            {warehouse.phone}
+                          </span>
+                        </div>
+                      )}
+                      {warehouse.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
+                          <span className="text-muted-foreground/70 truncate">
+                            {warehouse.email}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Selected indicator */}
+                    {selectedWarehouseId === warehouse.id && (
+                      <div className="absolute top-3 left-3 h-2 w-2 rounded-full bg-foreground animate-pulse" />
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       </main>
 
-      {/* Floating Action Button - Mobile */}
+      {/* Floating Action Button - Mobile - Corporate Solid */}
       <Button
         onClick={openCreateModal}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg md:hidden"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-sm bg-foreground text-background hover:bg-foreground/90 md:hidden"
         size="icon"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-5 w-5" />
         <span className="sr-only">Novo Armazém</span>
       </Button>
 
-      {/* Create/Edit Modal */}
+      {/* Create/Edit Modal - Corporate Solid */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] rounded-sm border-border/50">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-sm font-semibold uppercase tracking-wide">
               {selectedWarehouse ? "Editar Armazém" : "Novo Armazém"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs text-muted-foreground/70">
               {selectedWarehouse
                 ? "Atualize as informações do armazém"
                 : "Adicione um novo armazém ao sistema"}
@@ -360,7 +399,7 @@ export const WarehousesView = ({
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               {/* Seção 1: Informações Básicas */}
               <div className="space-y-4">
                 <FormField
@@ -368,37 +407,16 @@ export const WarehousesView = ({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Nome <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Armazém Central" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Código <span className="text-destructive">*</span>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                        Nome <span className="text-foreground/40">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Ex: WH-001"
-                          disabled={!!selectedWarehouse}
+                          placeholder="Ex: Armazém Central"
+                          className="h-10 rounded-sm border-border/40 bg-background/50"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription className="text-xs">
-                        {selectedWarehouse
-                          ? "Código não pode ser alterado"
-                          : "Apenas letras maiúsculas, números e hífen"}
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -411,16 +429,18 @@ export const WarehousesView = ({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição</FormLabel>
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                      Descrição
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Descreva o armazém..."
-                        className="resize-none"
+                        className="resize-none rounded-sm border-border/40 bg-background/50 text-sm"
                         rows={3}
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="text-xs">
+                    <FormDescription className="text-[11px] text-muted-foreground/70">
                       {field.value?.length || 0} / 500 caracteres
                     </FormDescription>
                     <FormMessage />
@@ -435,11 +455,13 @@ export const WarehousesView = ({
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Endereço</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                        Endereço
+                      </FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Rua, número, bairro, cidade..."
-                          className="resize-none"
+                          placeholder="Rua, número, bairro..."
+                          className="resize-none rounded-sm border-border/40 bg-background/50 text-sm"
                           rows={2}
                           {...field}
                         />
@@ -452,12 +474,60 @@ export const WarehousesView = ({
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          Cidade <span className="text-foreground/40">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: São Paulo"
+                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          Estado <span className="text-foreground/40">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: SP"
+                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          Telefone
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="(XX) XXXXX-XXXX" {...field} />
+                          <Input
+                            placeholder="(XX) XXXXX-XXXX"
+                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -469,11 +539,14 @@ export const WarehousesView = ({
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          Email
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
                             placeholder="warehouse@company.com"
+                            className="h-10 rounded-sm border-border/40 bg-background/50"
                             {...field}
                           />
                         </FormControl>
@@ -489,10 +562,12 @@ export const WarehousesView = ({
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
                     <div className="space-y-0.5">
-                      <FormLabel>Armazém Ativo</FormLabel>
-                      <FormDescription className="text-xs">
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Armazém Ativo
+                      </FormLabel>
+                      <FormDescription className="text-[11px] text-muted-foreground/70">
                         Controle se o armazém está operacional
                       </FormDescription>
                     </div>
@@ -506,14 +581,23 @@ export const WarehousesView = ({
                 )}
               />
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={closeModal}>
+              <DialogFooter className="gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeModal}
+                  className="rounded-sm border-border/40"
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded-sm bg-foreground text-background hover:bg-foreground/90"
+                >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                       Salvando...
                     </>
                   ) : (
@@ -526,29 +610,34 @@ export const WarehousesView = ({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - Corporate Solid */}
       <AlertDialog open={!!warehouseToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-sm border-border/50">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
+              Confirmar exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground/70">
               Tem certeza que deseja excluir o armazém{" "}
-              <strong>{warehouseToDelete?.name}</strong>? Esta ação não pode ser
-              desfeita.
+              <strong className="text-foreground">{warehouseToDelete?.name}</strong>
+              ? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={closeDeleteDialog}>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              onClick={closeDeleteDialog}
+              className="rounded-sm border-border/40"
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                   Deletando...
                 </>
               ) : (

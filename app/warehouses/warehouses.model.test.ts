@@ -12,9 +12,10 @@ vi.mock("swr", () => ({
         {
           id: "1",
           name: "Main Warehouse",
-          code: "WH-001",
           description: "Primary storage",
           address: "123 Main St",
+          city: "São Paulo",
+          state: "SP",
           phone: "(11) 98765-4321",
           email: "main@warehouse.com",
           isActive: true,
@@ -24,9 +25,10 @@ vi.mock("swr", () => ({
         {
           id: "2",
           name: "Secondary Warehouse",
-          code: "WH-002",
           description: "Secondary storage",
           address: "456 Secondary St",
+          city: "Rio de Janeiro",
+          state: "RJ",
           phone: "(11) 99876-5432",
           email: "secondary@warehouse.com",
           isActive: false,
@@ -121,15 +123,15 @@ describe("useWarehousesModel", () => {
     expect(result.current.warehouses[0].name).toBe("Main Warehouse");
   });
 
-  it("should search by code", () => {
+  it("should search by name", () => {
     const { result } = renderHook(() => useWarehousesModel());
 
     act(() => {
-      result.current.setSearchQuery("WH-002");
+      result.current.setSearchQuery("Secondary");
     });
 
     expect(result.current.warehouses).toHaveLength(1);
-    expect(result.current.warehouses[0].code).toBe("WH-002");
+    expect(result.current.warehouses[0].name).toBe("Secondary Warehouse");
   });
 
   it("should open create modal", () => {
