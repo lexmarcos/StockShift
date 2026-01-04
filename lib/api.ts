@@ -30,7 +30,7 @@ export const api = ky.create({
         const { response } = error;
 
         // Se for 401, tenta refresh de token
-        if (response?.status === 401) {
+        if (response?.status === 403) {
           // Se já está fazendo refresh, adiciona à fila
           if (isRefreshing) {
             await new Promise((resolve, reject) => {
@@ -82,7 +82,7 @@ export const api = ky.create({
     afterResponse: [
       async (request, _options, response) => {
         // Se receber 401, tenta refresh automaticamente
-        if (response.status === 401) {
+        if (response.status === 403) {
           if (!isRefreshing) {
             isRefreshing = true;
 
