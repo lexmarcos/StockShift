@@ -110,46 +110,6 @@ export const LoginView = ({ form, onSubmit, isLoading, debugMessages }: LoginVie
           </Form>
         </CardContent>
       </Card>
-
-      {debugMessages.length > 0 && (
-        <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              Debug (Safari Mobile)
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Mensagens de debug para diagnóstico em celular
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px] w-full rounded-md border p-3">
-              <div className="space-y-2">
-                {debugMessages.map((msg, index) => (
-                  <Alert key={index} className={`${getColorClasses(msg.type)} border`}>
-                    <div className="flex items-start gap-2">
-                      {getIcon(msg.type)}
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold">{msg.message}</p>
-                          <span className="text-[10px] opacity-70">{msg.timestamp}</span>
-                        </div>
-                        {msg.details && (
-                          <AlertDescription className="text-[10px] font-mono mt-1 opacity-80 overflow-x-auto">
-                            <pre className="whitespace-pre-wrap break-all">
-                              {JSON.stringify(msg.details, null, 2)}
-                            </pre>
-                          </AlertDescription>
-                        )}
-                      </div>
-                    </div>
-                  </Alert>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

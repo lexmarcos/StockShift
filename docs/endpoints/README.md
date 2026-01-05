@@ -259,54 +259,73 @@ export const productsService = {
 ### Authentication Setup Example
 
 ```typescript
-// services/api/client.ts
-import axios from 'axios';
-import { authService } from './auth.service';
+// lib/api.ts
+import ky from 'ky';
 
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 
-// Request interceptor: Add auth token
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Estado para controlar refresh em andamento
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
 
-// Response interceptor: Handle token refresh
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await authService.refresh(refreshToken);
-        
-        localStorage.setItem('accessToken', response.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
-        
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        localStorage.clear();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+const processQueue = (error: Error | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
     }
-    
-    return Promise.reject(error);
-  }
-);
+  });
+  failedQueue = [];
+};
+
+export const api = ky.create({
+  prefixUrl: `${API_BASE_URL}/api`,
+  credentials: "include", // OBRIGATÓRIO: Habilita envio de cookies httpOnly
+  timeout: 30000,
+  retry: 0,
+  hooks: {
+    afterResponse: [
+      async (request, _options, response) => {
+        // Se receber 403, tenta refresh automaticamente
+        if (response.status === 403) {
+          if (!isRefreshing) {
+            isRefreshing = true;
+            
+            try {
+              await ky.post(`${API_BASE_URL}/api/auth/refresh`, {
+                credentials: "include",
+              });
+              
+              processQueue();
+              isRefreshing = false;
+              
+              // Retry da requisição original
+              return ky(request.clone(), {
+                credentials: "include",
+              });
+            } catch (refreshError) {
+              processQueue(refreshError as Error);
+              isRefreshing = false;
+              
+              // Refresh falhou - redirecionar para login
+              if (typeof window !== "undefined") {
+                localStorage.removeItem("user");
+                window.location.href = "/login";
+              }
+              return response;
+            }
+          }
+        }
+        
+        return response;
+      },
+    ],
+  },
+});
 ```
 
 ## Testing Recommendations
