@@ -18,6 +18,9 @@ export default function ProductCreatePage() {
     updateCustomAttribute,
     nameInputRef,
     openScanner,
+    closeScanner,
+    isScannerOpen,
+    handleBarcodeScan,
     warehouseId,
   } = useProductCreateModel();
 
@@ -36,6 +39,9 @@ export default function ProductCreatePage() {
       updateCustomAttribute={updateCustomAttribute}
       nameInputRef={nameInputRef}
       openScanner={openScanner}
+      closeScanner={closeScanner}
+      isScannerOpen={isScannerOpen}
+      handleBarcodeScan={handleBarcodeScan}
       warehouseId={warehouseId}
     />
   );

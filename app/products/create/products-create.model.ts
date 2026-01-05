@@ -45,11 +45,14 @@ export const useProductCreateModel = () => {
       return await api.get("brands").json<BrandsResponse>();
     });
 
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(productCreateSchema),
     defaultValues: {
       name: "",
       description: "",
+      barcode: "",
       isKit: false,
       hasExpiration: false,
       active: true,
@@ -104,7 +107,16 @@ export const useProductCreateModel = () => {
   };
 
   const openScanner = () => {
-    toast.info("Scanner de código de barras não está mais disponível para este formulário");
+    setIsScannerOpen(true);
+  };
+
+  const closeScanner = () => {
+    setIsScannerOpen(false);
+  };
+
+  const handleBarcodeScan = (barcode: string) => {
+    form.setValue("barcode", barcode);
+    toast.success(`Código ${barcode} detectado!`);
   };
 
   const validateCustomAttributes = (): boolean => {
@@ -156,6 +168,7 @@ export const useProductCreateModel = () => {
     form.reset({
       name: "",
       description: "",
+      barcode: "",
       isKit: false,
       hasExpiration: false,
       active: true,
@@ -166,7 +179,6 @@ export const useProductCreateModel = () => {
         weight: "",
         dimensions: "",
       },
-      batchCode: "",
       quantity: 0,
       manufacturedDate: "",
       expirationDate: "",
@@ -197,13 +209,13 @@ export const useProductCreateModel = () => {
       const payload = {
         name: data.name,
         description: data.description || undefined,
+        barcode: data.barcode || undefined,
         categoryId: data.categoryId || undefined,
         brandId: data.brandId || undefined,
         isKit: data.isKit,
         hasExpiration: data.hasExpiration,
         attributes: mergeAttributes(data),
         warehouseId,
-        batchCode: data.batchCode,
         quantity: data.quantity,
         manufacturedDate: data.manufacturedDate || undefined,
         expirationDate: data.expirationDate || undefined,
@@ -248,6 +260,9 @@ export const useProductCreateModel = () => {
     updateCustomAttribute,
     nameInputRef,
     openScanner,
+    closeScanner,
+    isScannerOpen,
+    handleBarcodeScan,
     warehouseId,
   };
 };

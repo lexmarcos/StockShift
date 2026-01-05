@@ -1,6 +1,7 @@
 "use client";
 
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
+import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,6 +42,7 @@ import {
   Settings2,
   Tag,
   Zap,
+  Scan,
 } from "lucide-react";
 import Link from "next/link";
 import { UseFormReturn } from "react-hook-form";
@@ -65,6 +67,9 @@ interface ProductCreateViewProps {
   ) => void;
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   openScanner: () => void;
+  closeScanner: () => void;
+  isScannerOpen: boolean;
+  handleBarcodeScan: (barcode: string) => void;
   warehouseId: string | null;
 }
 
@@ -82,12 +87,21 @@ export const ProductCreateView = ({
   updateCustomAttribute,
   nameInputRef,
   openScanner,
+  closeScanner,
+  isScannerOpen,
+  handleBarcodeScan,
   warehouseId,
 }: ProductCreateViewProps) => {
   const hasExpiration = form.watch("hasExpiration");
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        open={isScannerOpen}
+        onClose={closeScanner}
+        onScan={handleBarcodeScan}
+      />
       {/* Header Sticky - Corporate Solid */}
       <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
@@ -186,6 +200,41 @@ export const ProductCreateView = ({
                         </FormItem>
                       )}
                     />
+
+                    {/* Barcode Field with Scanner Button */}
+                    <FormField
+                      control={form.control}
+                      name="barcode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            Código de Barras
+                          </FormLabel>
+                          <div className="flex gap-2">
+                            <FormControl>
+                              <Input
+                                placeholder="Ex: 7891234567890"
+                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                {...field}
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={openScanner}
+                              className="h-10 w-10 flex-shrink-0 rounded-sm border-border/40 hover:bg-muted"
+                            >
+                              <Scan className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <FormDescription className="text-[11px] text-muted-foreground/70">
+                            Clique no ícone para escanear com a câmera
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
 
@@ -268,7 +317,7 @@ export const ProductCreateView = ({
                   </CardContent>
                 </Card>
 
-                {/* Lote Inicial - Corporate Solid */}
+                {/* Estoque Inicial - Corporate Solid */}
                 <Card className="border border-border/50 bg-card/80 rounded-sm">
                   <CardHeader className="border-b border-border/30 pb-3">
                     <div className="flex items-center gap-3">
@@ -277,7 +326,7 @@ export const ProductCreateView = ({
                       </div>
                       <div>
                         <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                          Lote Inicial
+                          Estoque Inicial
                         </CardTitle>
                         <CardDescription className="text-xs mt-0.5">
                           Primeira entrada de estoque
@@ -286,28 +335,8 @@ export const ProductCreateView = ({
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 pt-5">
-                    {/* Código e Quantidade */}
+                    {/* Quantidade */}
                     <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="batchCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              Código do Lote{" "}
-                              <span className="text-foreground/40">*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Ex: BATCH-2026-001"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={form.control}
                         name="quantity"

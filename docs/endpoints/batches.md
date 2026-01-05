@@ -24,7 +24,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
   "productId": "550e8400-e29b-41d4-a716-446655440000",
   "warehouseId": "660e8400-e29b-41d4-a716-446655440001",
   "quantity": 100,
-  "batchNumber": "BATCH-2025-001",
+  "batchCode": "BATCH-2025-001",
   "expirationDate": "2026-12-31",
   "costPrice": 10.50,
   "notes": "Initial stock from supplier"
@@ -35,7 +35,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 - `productId`: Required, UUID of the product
 - `warehouseId`: Required, UUID of the warehouse
 - `quantity`: Required, positive integer
-- `batchNumber`: Required, unique batch identifier
+- `batchCode`: Optional, unique batch identifier. If not provided, will be auto-generated in format `BATCH-YYYYMMDD-XXX`
 - `expirationDate`: Optional, ISO date string (required if product has expiration)
 - `costPrice`: Optional, cost per unit
 - `notes`: Optional, additional notes
@@ -131,7 +131,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 **Batch Fields**:
 - `warehouseId`: Required, UUID of the warehouse
-- `batchCode`: Required, unique batch identifier
+- `batchCode`: Optional, unique batch identifier. If not provided, will be auto-generated in format `BATCH-YYYYMMDD-XXX`
 - `quantity`: Required, positive integer or zero
 - `manufacturedDate`: Optional, ISO date string
 - `expirationDate`: Optional, ISO date string (required if `hasExpiration: true`)

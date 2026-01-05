@@ -118,6 +118,156 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
 
 ---
 
+## GET /api/warehouses/{id}/products
+**Summary**: Get all products with aggregated stock for a specific warehouse
+
+### Authorization
+**Required Permissions**: `WAREHOUSE_READ` or `ROLE_ADMIN`
+
+### Request
+**Method**: `GET`  
+**URL Parameters**: `id` (UUID) - Warehouse identifier
+
+**Query Parameters** (optional):
+- `page`: Page number (default: 0)
+- `size`: Page size (default: 20)
+- `sort`: Sort field and direction (e.g., "name,asc")
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "Product A",
+        "sku": "SKU-001",
+        "barcode": "1234567890",
+        "barcodeType": "EAN13",
+        "description": "Product description",
+        "categoryId": "550e8400-e29b-41d4-a716-446655440010",
+        "categoryName": "Electronics",
+        "brand": {
+          "id": "550e8400-e29b-41d4-a716-446655440020",
+          "name": "Brand Name",
+          "logoUrl": "https://example.com/logo.png",
+          "createdAt": "2025-12-28T10:00:00Z",
+          "updatedAt": "2025-12-28T10:00:00Z"
+        },
+        "isKit": false,
+        "attributes": {},
+        "hasExpiration": false,
+        "active": true,
+        "totalQuantity": 125.00,
+        "createdAt": "2025-12-28T10:00:00Z",
+        "updatedAt": "2025-12-28T10:00:00Z"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 20,
+      "sort": [],
+      "offset": 0,
+      "unpaged": false,
+      "paged": true
+    },
+    "totalElements": 150,
+    "totalPages": 8,
+    "number": 0,
+    "size": 20,
+    "empty": false
+  }
+}
+```
+
+### Error Responses
+
+#### 404 Not Found
+```json
+{
+  "success": false,
+  "message": "Warehouse not found",
+  "data": null
+}
+```
+
+#### 400 Bad Request - Invalid Pagination
+```json
+{
+  "success": false,
+  "message": "Invalid page size",
+  "data": null
+}
+```
+
+### Features
+- **Aggregated Stock**: Sums quantity across all batches per product
+- **Multi-tenant Aware**: Filters by both batch and product tenant IDs
+- **Soft Delete Aware**: Excludes soft-deleted products
+- **Optional Relationships**: Supports products without category or brand (LEFT JOIN)
+- **Pagination**: Supports configurable page size (default 20)
+- **Sorting**: Supports sorting by product entity fields only
+- **Zero Stock**: Includes products with zero current inventory
+
+### Valid Sort Fields
+The following fields can be used for sorting:
+- `name` - Product name
+- `sku` - Stock keeping unit
+- `barcode` - Barcode code
+- `active` - Active status
+- `createdAt` - Creation timestamp
+- `updatedAt` - Last update timestamp
+
+**Note**: Sorting by aggregated fields like `totalQuantity` is not supported due to SQL GROUP BY limitations.
+
+### Frontend Implementation Guide
+1. **Inventory Grid**: Display products in paginated table view
+2. **Stock Display**: Show total quantity with visual indicators (low, normal, high)
+3. **Product Info**: Display name, SKU, barcode, category (if available), brand (if available)
+4. **Missing Relationships**: Handle null category and brand gracefully
+5. **Actions**: Add stock movement, view batch history, edit product details
+6. **Pagination**: Implement page selector (5, 10, 20, 50 items per page)
+7. **Filtering**: Option to hide zero-stock products
+8. **Sort Validation**: Only allow sorting by valid fields listed above
+9. **Export**: Export product list with quantities to CSV/PDF
+10. **Real-time**: Refresh button to reload current page data
+11. **Search**: Filter products by name or SKU (frontend side or add API param)
+12. **Batch History**: Click product to view batch-level details with dates/expiration
+
+### Usage Examples
+```bash
+# Get first page of products (default size)
+curl -H "Authorization: Bearer {token}" \
+  https://api.example.com/api/warehouses/550e8400-e29b-41d4-a716-446655440000/products
+
+# Get with custom pagination
+curl -H "Authorization: Bearer {token}" \
+  https://api.example.com/api/warehouses/550e8400-e29b-41d4-a716-446655440000/products?page=0&size=50
+
+# Sort by product name ascending
+curl -H "Authorization: Bearer {token}" \
+  https://api.example.com/api/warehouses/550e8400-e29b-41d4-a716-446655440000/products?page=0&size=20&sort=name,asc
+
+# Sort by creation date descending
+curl -H "Authorization: Bearer {token}" \
+  https://api.example.com/api/warehouses/550e8400-e29b-41d4-a716-446655440000/products?page=0&size=20&sort=createdAt,desc
+
+# Multiple sort fields
+curl -H "Authorization: Bearer {token}" \
+  https://api.example.com/api/warehouses/550e8400-e29b-41d4-a716-446655440000/products?sort=active,desc&sort=name,asc
+```
+
+### Implementation Notes
+- **Query Aggregation**: Uses SQL GROUP BY with SUM for quantity aggregation
+- **Performance**: Optimized with COUNT DISTINCT for pagination
+- **Null Handling**: Category and Brand are optional fields; NULL values are preserved
+- **Tenant Isolation**: Enforces strict multi-tenant isolation on both batch and product level
+
+---
+
 ## GET /api/warehouses/{id}
 **Summary**: Get warehouse by ID
 

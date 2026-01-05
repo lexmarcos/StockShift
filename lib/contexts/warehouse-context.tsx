@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 interface WarehouseContextValue {
   selectedWarehouseId: string | null;
@@ -14,6 +15,7 @@ const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const [selectedWarehouseId, setSelectedWarehouseIdState] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -27,6 +29,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setSelectedWarehouseIdState(id);
     if (typeof window !== "undefined") {
       localStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
+      // Redirecionar para /products após selecionar warehouse
+      router.push("/products");
     }
   };
 

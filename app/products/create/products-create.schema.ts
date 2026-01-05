@@ -3,6 +3,7 @@ import { z } from "zod";
 export const productCreateSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().optional(),
+  barcode: z.string().optional(),
   categoryId: z.string().optional(),
   brandId: z.string().optional(),
   isKit: z.boolean(),
@@ -14,7 +15,6 @@ export const productCreateSchema = z.object({
     dimensions: z.string().optional(),
   }).optional(),
   // Batch fields
-  batchCode: z.string().min(1, "Código do lote é obrigatório"),
   quantity: z.number().min(0, "Quantidade deve ser zero ou positiva"),
   manufacturedDate: z.string().optional(),
   expirationDate: z.string().optional(),
