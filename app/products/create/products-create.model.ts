@@ -31,6 +31,7 @@ export const useProductCreateModel = () => {
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
+  const [productImage, setProductImage] = useState<File | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch categories for the dropdown
@@ -119,6 +120,10 @@ export const useProductCreateModel = () => {
     toast.success(`Código ${barcode} detectado!`);
   };
 
+  const handleImageSelect = (file: File | null) => {
+    setProductImage(file);
+  };
+
   const validateCustomAttributes = (): boolean => {
     for (let i = 0; i < customAttributes.length; i++) {
       const attr = customAttributes[i];
@@ -187,6 +192,7 @@ export const useProductCreateModel = () => {
     });
 
     setCustomAttributes([]);
+    setProductImage(null);
 
     // Focus on name input after reset
     setTimeout(() => {
@@ -264,5 +270,9 @@ export const useProductCreateModel = () => {
     isScannerOpen,
     handleBarcodeScan,
     warehouseId,
+    productImage,
+    handleImageSelect,
+    currentImageUrl: undefined, // Create mode has no existing image
+    handleImageRemove: undefined, // Create mode doesn't need remove handler
   };
 };
