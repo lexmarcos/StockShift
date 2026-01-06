@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { ProductForm } from "./product-form.view";
 
@@ -57,6 +57,7 @@ const baseProps = {
         batchCode: "BATCH-001",
         expirationDate: "2026-12-31",
         costPrice: 12.5,
+        sellingPrice: 19.9,
         notes: "note",
       },
     ],
@@ -124,5 +125,16 @@ describe("ProductForm batches drawer", () => {
     render(<Wrapper {...baseProps} mode="create" batchesDrawer={undefined} />);
     expect(screen.getByText(/novo produto/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /ver batches/i })).toBeNull();
+  });
+
+  it("shows selling price field in the batches drawer", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+      />
+    );
+    fireEvent.click(screen.getByText(/batch-001/i));
+    expect(screen.getByText(/preco de venda/i)).toBeTruthy();
   });
 });

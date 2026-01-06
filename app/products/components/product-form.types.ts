@@ -25,6 +25,7 @@ export interface BatchDrawerFormItem {
   quantity: number;
   expirationDate?: string;
   costPrice?: number;
+  sellingPrice?: number;
   notes?: string;
 }
 
