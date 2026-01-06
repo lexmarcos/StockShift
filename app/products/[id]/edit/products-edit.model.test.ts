@@ -78,7 +78,7 @@ const batchesResponse = {
       warehouseName: "Main",
       warehouseCode: "WH-01",
       quantity: 10,
-      batchNumber: "BATCH-001",
+      batchCode: "BATCH-001",
       expirationDate: "2026-12-31",
       costPrice: 12.5,
       notes: "note",
@@ -191,7 +191,7 @@ describe("useProductEditModel batches drawer", () => {
     });
 
     await act(async () => {
-      result.current.batchesDrawer.form.setValue("batches.0.batchNumber", "");
+      result.current.batchesDrawer.form.setValue("batches.0.batchCode", "");
     });
 
     await act(async () => {

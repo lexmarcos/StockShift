@@ -21,7 +21,7 @@ export interface BatchDrawerFormItem {
   warehouseId: string;
   warehouseName: string;
   warehouseCode?: string | null;
-  batchNumber: string;
+  batchCode: string;
   quantity: number;
   expirationDate?: string;
   costPrice?: number;

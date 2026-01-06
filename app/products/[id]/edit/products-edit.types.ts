@@ -7,7 +7,6 @@ export interface Batch {
   warehouseName: string;
   warehouseCode?: string | null;
   quantity: number;
-  batchNumber: string;
   batchCode?: string | null;
   expirationDate?: string | null;
   costPrice?: number | null;

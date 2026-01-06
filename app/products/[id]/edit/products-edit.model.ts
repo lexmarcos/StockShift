@@ -227,7 +227,7 @@ export const useProductEditModel = (productId: string) => {
       warehouseId: batch.warehouseId,
       warehouseName: batch.warehouseName,
       warehouseCode: batch.warehouseCode || undefined,
-      batchNumber: batch.batchNumber || batch.batchCode || "",
+      batchCode: batch.batchCode || "",
       quantity: batch.quantity ?? 0,
       expirationDate: batch.expirationDate || "",
       costPrice: batch.costPrice ?? undefined,
@@ -420,7 +420,7 @@ export const useProductEditModel = (productId: string) => {
 
   const onSaveBatch = async (index: number) => {
     const fieldNames = [
-      `batches.${index}.batchNumber`,
+      `batches.${index}.batchCode`,
       `batches.${index}.quantity`,
       `batches.${index}.expirationDate`,
       `batches.${index}.costPrice`,
@@ -443,7 +443,7 @@ export const useProductEditModel = (productId: string) => {
         productId: batch.productId,
         warehouseId: batch.warehouseId,
         quantity: batch.quantity ?? 0,
-        batchCode: batch.batchNumber?.trim() || undefined,
+        batchCode: batch.batchCode?.trim() || undefined,
         expirationDate: batch.expirationDate || undefined,
         costPrice: batch.costPrice ?? undefined,
         notes: batch.notes?.trim() || undefined,

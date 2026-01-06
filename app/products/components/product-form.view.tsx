@@ -855,7 +855,7 @@ export const ProductForm = ({
                             <div className="flex flex-1 flex-col gap-1 text-left">
                               <div className="flex items-center justify-between gap-3">
                                 <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                  {batch.batchNumber}
+                                  {batch.batchCode}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground">
                                   Qtd {batch.quantity}
@@ -900,7 +900,7 @@ export const ProductForm = ({
                                     Codigo do Batch
                                   </p>
                                   <p className="text-xs text-foreground/90">
-                                    {batch.batchNumber?.trim() || "Sem codigo"}
+                                    {batch.batchCode?.trim() || "Sem codigo"}
                                   </p>
                                 </div>
 
