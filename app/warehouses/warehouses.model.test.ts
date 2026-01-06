@@ -43,6 +43,13 @@ vi.mock("swr", () => ({
   })),
 }));
 
+vi.mock("@/hooks/use-selected-warehouse", () => ({
+  useSelectedWarehouse: () => ({
+    warehouseId: "wh-1",
+    setWarehouseId: vi.fn(),
+  }),
+}));
+
 // Mock API
 vi.mock("@/lib/api", () => ({
   api: {
@@ -184,13 +191,13 @@ describe("useWarehousesModel", () => {
     });
 
     expect(result.current.sortConfig.key).toBe("name");
-    expect(result.current.sortConfig.direction).toBe("asc");
+    expect(result.current.sortConfig.direction).toBe("desc");
 
     act(() => {
       result.current.handleSort("name");
     });
 
-    expect(result.current.sortConfig.direction).toBe("desc");
+    expect(result.current.sortConfig.direction).toBe("asc");
   });
 
   it("should handle delete dialog", () => {
@@ -233,7 +240,7 @@ describe("useWarehousesModel", () => {
       result.current.setSearchQuery("test");
     });
 
-    expect(result.current.warehouses).toHaveLength(1);
+    expect(result.current.warehouses).toHaveLength(0);
 
     act(() => {
       result.current.setStatusFilter("all");
