@@ -81,6 +81,7 @@ const batchesResponse = {
       batchCode: "BATCH-001",
       expirationDate: "2026-12-31",
       costPrice: 12.5,
+      sellingPrice: 19.9,
       notes: "note",
       createdAt: "2026-01-02T00:00:00Z",
       updatedAt: "2026-01-03T00:00:00Z",
@@ -173,6 +174,7 @@ describe("useProductEditModel batches drawer", () => {
         batchCode: "BATCH-001",
         expirationDate: "2026-12-31",
         costPrice: 12.5,
+        sellingPrice: 19.9,
         notes: "note",
       },
     });
@@ -207,6 +209,7 @@ describe("useProductEditModel batches drawer", () => {
         batchCode: undefined,
         expirationDate: "2026-12-31",
         costPrice: 12.5,
+        sellingPrice: 19.9,
         notes: "note",
       },
     });
