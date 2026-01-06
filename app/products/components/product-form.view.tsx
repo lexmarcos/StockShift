@@ -299,7 +299,8 @@ export const ProductForm = ({
                   </CardContent>
                 </Card>
 
-                {/* Estoque Inicial - Corporate Solid */}
+                {/* Estoque Inicial - Corporate Solid (apenas modo create) */}
+                {mode === 'create' && (
                 <Card className="border border-border/50 bg-card/80 rounded-sm">
                   <CardHeader className="border-b border-border/30 pb-3">
                     <div className="flex items-center gap-3">
@@ -453,6 +454,7 @@ export const ProductForm = ({
                     </div>
                   </CardContent>
                 </Card>
+                )}
               </div>
 
               {/* COLUNA DIREITA - Lateral (1/3) */}
