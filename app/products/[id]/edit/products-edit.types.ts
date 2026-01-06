@@ -10,6 +10,7 @@ export interface Batch {
   batchCode?: string | null;
   expirationDate?: string | null;
   costPrice?: number | null;
+  sellingPrice?: number | null;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;

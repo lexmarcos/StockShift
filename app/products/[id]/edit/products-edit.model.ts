@@ -231,6 +231,7 @@ export const useProductEditModel = (productId: string) => {
       quantity: batch.quantity ?? 0,
       expirationDate: batch.expirationDate || "",
       costPrice: batch.costPrice ?? undefined,
+      sellingPrice: batch.sellingPrice ?? undefined,
       notes: batch.notes || "",
     }));
 
@@ -424,6 +425,7 @@ export const useProductEditModel = (productId: string) => {
       `batches.${index}.quantity`,
       `batches.${index}.expirationDate`,
       `batches.${index}.costPrice`,
+      `batches.${index}.sellingPrice`,
       `batches.${index}.notes`,
     ] as const;
 
@@ -446,6 +448,7 @@ export const useProductEditModel = (productId: string) => {
         batchCode: batch.batchCode?.trim() || undefined,
         expirationDate: batch.expirationDate || undefined,
         costPrice: batch.costPrice ?? undefined,
+        sellingPrice: batch.sellingPrice ?? undefined,
         notes: batch.notes?.trim() || undefined,
       };
 
