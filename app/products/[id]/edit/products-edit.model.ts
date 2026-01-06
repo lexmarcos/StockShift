@@ -7,7 +7,7 @@ import {
 } from "../../create/products-create.schema";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
@@ -17,13 +17,29 @@ import {
   CustomAttribute,
 } from "../../create/products-create.types";
 
+interface ProductBrand {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ProductCategory {
+  id: string;
+  name: string;
+}
+
 interface Product {
   id: string;
   name: string;
   description: string | null;
   imageUrl: string | null;
   categoryId: string | null;
+  categoryName?: string | null;
+  category?: ProductCategory | null;
   brandId: string | null;
+  brand?: ProductBrand | null;
   barcode: string | null;
   barcodeType: string | null;
   sku: string | null;
@@ -49,6 +65,8 @@ export const useProductEditModel = (productId: string) => {
   const [productImage, setProductImage] = useState<File | null>(null);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const loadedProductIdRef = useRef<string | null>(null);
+  const [isFormReady, setIsFormReady] = useState(false);
 
   // Fetch product data
   const { data: productData, isLoading: isLoadingProduct } = useSWR<ProductResponse>(
@@ -82,8 +100,8 @@ export const useProductEditModel = (productId: string) => {
       hasExpiration: false,
       active: true,
       continuousMode: false,
-      categoryId: "",
-      brandId: "",
+      categoryId: undefined,
+      brandId: undefined,
       attributes: {
         weight: "",
         dimensions: "",
@@ -98,43 +116,103 @@ export const useProductEditModel = (productId: string) => {
 
   // Populate form when product loads
   useEffect(() => {
-    if (productData?.data) {
-      const product = productData.data;
+    if (!productData?.data) {
+      return;
+    }
 
-      form.reset({
-        name: product.name,
-        description: product.description || "",
-        barcode: product.barcode || "",
-        isKit: product.isKit,
-        hasExpiration: product.hasExpiration,
-        active: product.active,
-        continuousMode: false,
-        categoryId: product.categoryId || "",
-        brandId: product.brandId || "",
-        attributes: {
-          weight: product.attributes?.weight || "",
-          dimensions: product.attributes?.dimensions || "",
-        },
-        quantity: 0,
-        manufacturedDate: "",
-        expirationDate: "",
-        costPrice: undefined,
-        sellingPrice: undefined,
-      });
+    const product = productData.data;
+    if (loadedProductIdRef.current === product.id) {
+      return;
+    }
 
-      // Extract custom attributes (excluding weight and dimensions)
-      if (product.attributes) {
-        const attrs = Object.entries(product.attributes)
-          .filter(([key]) => key !== "weight" && key !== "dimensions")
-          .map(([key, value]) => ({
-            id: crypto.randomUUID(),
-            key,
-            value,
-          }));
-        setCustomAttributes(attrs);
-      }
+    form.reset({
+      name: product.name,
+      description: product.description || "",
+      barcode: product.barcode || "",
+      isKit: product.isKit,
+      hasExpiration: product.hasExpiration,
+      active: product.active,
+      continuousMode: false,
+      categoryId: product.category?.id || product.categoryId || "",
+      brandId: product.brand?.id || product.brandId || "",
+      attributes: {
+        weight: product.attributes?.weight || "",
+        dimensions: product.attributes?.dimensions || "",
+      },
+      quantity: 0,
+      manufacturedDate: "",
+      expirationDate: "",
+      costPrice: undefined,
+      sellingPrice: undefined,
+    });
+
+    loadedProductIdRef.current = product.id;
+    setIsFormReady(true);
+
+    // Extract custom attributes (excluding weight and dimensions)
+    if (product.attributes) {
+      const attrs = Object.entries(product.attributes)
+        .filter(([key]) => key !== "weight" && key !== "dimensions")
+        .map(([key, value]) => ({
+          id: crypto.randomUUID(),
+          key,
+          value,
+        }));
+      setCustomAttributes(attrs);
+    } else {
+      setCustomAttributes([]);
     }
   }, [productData, form]);
+
+  const product = productData?.data || null;
+
+  const selectedCategory = useMemo(() => {
+    if (!product) return null;
+    if (product.category?.id && product.category.name) {
+      return { id: product.category.id, name: product.category.name };
+    }
+    if (product.categoryId) {
+      return {
+        id: product.categoryId,
+        name: product.categoryName || "Categoria atual",
+      };
+    }
+    return null;
+  }, [product]);
+
+  const selectedBrand = useMemo(() => {
+    if (!product) return null;
+    if (product.brand?.id && product.brand.name) {
+      return {
+        id: product.brand.id,
+        name: product.brand.name,
+        logoUrl: product.brand.logoUrl || undefined,
+      };
+    }
+    if (product.brandId) {
+      return { id: product.brandId, name: "Marca atual" };
+    }
+    return null;
+  }, [product]);
+
+
+  const categories = useMemo(() => {
+    const list = categoriesData?.data || [];
+    if (!selectedCategory) return list;
+    if (list.some((category) => category.id === selectedCategory.id)) {
+      return list;
+    }
+    return [selectedCategory, ...list];
+  }, [categoriesData, selectedCategory]);
+
+  const brands = useMemo(() => {
+    const list = brandsData?.data || [];
+    if (!selectedBrand) return list;
+    if (list.some((brand) => brand.id === selectedBrand.id)) {
+      return list;
+    }
+    return [selectedBrand, ...list];
+  }, [brandsData, selectedBrand]);
 
   const addCustomAttribute = () => {
     setCustomAttributes([
@@ -271,9 +349,9 @@ export const useProductEditModel = (productId: string) => {
     form,
     onSubmit,
     isSubmitting,
-    categories: categoriesData?.data || [],
+    categories,
     isLoadingCategories,
-    brands: brandsData?.data || [],
+    brands,
     isLoadingBrands,
     customAttributes,
     addCustomAttribute,
@@ -289,7 +367,8 @@ export const useProductEditModel = (productId: string) => {
     currentImageUrl: productData?.data?.imageUrl || undefined,
     handleImageSelect,
     handleImageRemove,
-    product: productData?.data || null,
+    product,
     isLoadingProduct,
+    isFormReady,
   };
 };

@@ -628,8 +628,9 @@ export const ProductForm = ({
                             Categoria
                           </FormLabel>
                           <Select
+                            key={field.value || 'empty'}
                             onValueChange={field.onChange}
-                            value={field.value}
+                            value={field.value || undefined}
                           >
                             <FormControl>
                               <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
@@ -638,10 +639,17 @@ export const ProductForm = ({
                             </FormControl>
                             <SelectContent className="rounded-sm">
                               {isLoadingCategories ? (
-                                <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                  Carregando...
-                                </div>
+                                <>
+                                  {field.value && (
+                                    <SelectItem value={field.value} className="text-xs">
+                                      Carregando...
+                                    </SelectItem>
+                                  )}
+                                  <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                    Carregando...
+                                  </div>
+                                </>
                               ) : (
                                 categories.map((category) => (
                                   <SelectItem
@@ -668,8 +676,9 @@ export const ProductForm = ({
                             Marca
                           </FormLabel>
                           <Select
+                            key={field.value || 'empty'}
                             onValueChange={field.onChange}
-                            value={field.value}
+                            value={field.value || undefined}
                           >
                             <FormControl>
                               <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
@@ -678,10 +687,17 @@ export const ProductForm = ({
                             </FormControl>
                             <SelectContent className="rounded-sm">
                               {isLoadingBrands ? (
-                                <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                  Carregando...
-                                </div>
+                                <>
+                                  {field.value && (
+                                    <SelectItem value={field.value} className="text-xs">
+                                      Carregando...
+                                    </SelectItem>
+                                  )}
+                                  <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                    Carregando...
+                                  </div>
+                                </>
                               ) : (
                                 brands.map((brand) => (
                                   <SelectItem

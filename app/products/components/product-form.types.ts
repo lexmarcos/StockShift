@@ -64,6 +64,7 @@ export interface ProductFormProps {
   // Outros
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   warehouseId: string | null;
+  isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
 }
 
 export type { ProductCreateFormData, CustomAttribute };
