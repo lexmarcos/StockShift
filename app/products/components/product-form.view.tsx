@@ -627,7 +627,7 @@ export const ProductForm = ({
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
@@ -667,7 +667,7 @@ export const ProductForm = ({
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
