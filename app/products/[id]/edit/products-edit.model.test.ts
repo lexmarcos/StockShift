@@ -107,6 +107,7 @@ const setupSWR = () => {
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
   useSWRMock.mockReset();
   setupSWR();
 });
@@ -170,6 +171,40 @@ describe("useProductEditModel batches drawer", () => {
         warehouseId: "wh-1",
         quantity: 10,
         batchCode: "BATCH-001",
+        expirationDate: "2026-12-31",
+        costPrice: 12.5,
+        notes: "note",
+      },
+    });
+  });
+
+  it("omits batch code when empty", async () => {
+    mockMatchMedia(false);
+    const { result } = renderHook(() => useProductEditModel("prod-1"));
+
+    await act(async () => {
+      result.current.batchesDrawer.onOpenChange(true);
+    });
+
+    await waitFor(() => {
+      expect(result.current.batchesDrawer.fields.length).toBe(1);
+    });
+
+    await act(async () => {
+      result.current.batchesDrawer.form.setValue("batches.0.batchNumber", "");
+    });
+
+    await act(async () => {
+      await result.current.batchesDrawer.onSave(0);
+    });
+
+    const { api } = await import("@/lib/api");
+    expect(api.put).toHaveBeenCalledWith("batches/batch-1", {
+      json: {
+        productId: "prod-1",
+        warehouseId: "wh-1",
+        quantity: 10,
+        batchCode: undefined,
         expirationDate: "2026-12-31",
         costPrice: 12.5,
         notes: "note",

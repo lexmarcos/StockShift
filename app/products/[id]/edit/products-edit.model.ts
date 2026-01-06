@@ -443,7 +443,7 @@ export const useProductEditModel = (productId: string) => {
         productId: batch.productId,
         warehouseId: batch.warehouseId,
         quantity: batch.quantity ?? 0,
-        batchCode: batch.batchNumber,
+        batchCode: batch.batchNumber?.trim() || undefined,
         expirationDate: batch.expirationDate || undefined,
         costPrice: batch.costPrice ?? undefined,
         notes: batch.notes?.trim() || undefined,

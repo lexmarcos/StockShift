@@ -6,7 +6,7 @@ export const batchEditItemSchema = z.object({
   warehouseId: z.string().min(1),
   warehouseName: z.string().min(1),
   warehouseCode: z.string().optional().nullable(),
-  batchNumber: z.string().min(1, "Codigo do batch obrigatorio").max(50),
+  batchNumber: z.string().max(50),
   quantity: z.number().min(0, "Quantidade deve ser positiva"),
   expirationDate: z.string().optional(),
   costPrice: z.number().optional(),
