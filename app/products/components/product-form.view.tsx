@@ -895,24 +895,14 @@ export const ProductForm = ({
                               </div>
 
                               <div className="grid gap-4">
-                                <FormField
-                                  control={batchesDrawerState.form.control}
-                                  name={`batches.${index}.batchNumber`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                        Codigo do Batch
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <div className="rounded-sm border border-border/40 bg-background/40 px-3 py-2">
+                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
+                                    Codigo do Batch
+                                  </p>
+                                  <p className="text-xs text-foreground/90">
+                                    {batch.batchNumber?.trim() || "Sem codigo"}
+                                  </p>
+                                </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">
                                   <FormField
