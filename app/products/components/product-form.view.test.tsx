@@ -137,4 +137,17 @@ describe("ProductForm batches drawer", () => {
     fireEvent.click(screen.getByText(/batch-001/i));
     expect(screen.getByText(/preco de venda/i)).toBeTruthy();
   });
+
+  it("adds a scroll container to the batch accordion content", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+      />
+    );
+    fireEvent.click(screen.getByText(/batch-001/i));
+    const scrollContainer = screen.getByTestId("batch-accordion-scroll");
+    expect(scrollContainer.className).toContain("max-h-[70vh]");
+    expect(scrollContainer.className).toContain("overflow-y-auto");
+  });
 });

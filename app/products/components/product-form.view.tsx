@@ -878,7 +878,11 @@ export const ProductForm = ({
                             </div>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="space-y-4 pb-2">
+                            <div
+                              className="max-h-[70vh] overflow-y-auto pr-1"
+                              data-testid="batch-accordion-scroll"
+                            >
+                              <div className="space-y-4 pb-2">
                               <div className="grid gap-3 rounded-sm border border-border/40 bg-muted/10 p-3 text-[11px] uppercase tracking-wide text-foreground/70">
                                 <div className="flex items-center justify-between gap-3">
                                   <span>Produto</span>
@@ -1060,6 +1064,7 @@ export const ProductForm = ({
                                   "Salvar alteracoes"
                                 )}
                               </Button>
+                              </div>
                             </div>
                           </AccordionContent>
                         </AccordionItem>
