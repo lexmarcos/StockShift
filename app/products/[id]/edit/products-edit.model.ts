@@ -227,7 +227,7 @@ export const useProductEditModel = (productId: string) => {
       warehouseId: batch.warehouseId,
       warehouseName: batch.warehouseName,
       warehouseCode: batch.warehouseCode || undefined,
-      batchNumber: batch.batchNumber,
+      batchNumber: batch.batchNumber || batch.batchCode || "",
       quantity: batch.quantity ?? 0,
       expirationDate: batch.expirationDate || "",
       costPrice: batch.costPrice ?? undefined,
