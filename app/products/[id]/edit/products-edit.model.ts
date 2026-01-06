@@ -1,10 +1,15 @@
 // app/products/[id]/edit/products-edit.model.ts
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   productCreateSchema,
   ProductCreateFormData,
 } from "../../create/products-create.schema";
+import {
+  batchEditFormSchema,
+  BatchEditFormValues,
+} from "./products-edit.schema";
+import { BatchesResponse } from "./products-edit.types";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -64,6 +69,11 @@ export const useProductEditModel = (productId: string) => {
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
   const [productImage, setProductImage] = useState<File | null>(null);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
+  const [isBatchesDrawerOpen, setBatchesDrawerOpen] = useState(false);
+  const [batchesDrawerDirection, setBatchesDrawerDirection] = useState<
+    "right" | "bottom"
+  >("bottom");
+  const [updatingBatchId, setUpdatingBatchId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const loadedProductIdRef = useRef<string | null>(null);
   const [isFormReady, setIsFormReady] = useState(false);
@@ -114,6 +124,38 @@ export const useProductEditModel = (productId: string) => {
     },
   });
 
+  const batchForm = useForm<BatchEditFormValues>({
+    resolver: zodResolver(batchEditFormSchema),
+    defaultValues: {
+      batches: [],
+    },
+  });
+
+  const {
+    fields: batchFields,
+    replace: replaceBatchFields,
+  } = useFieldArray({
+    control: batchForm.control,
+    name: "batches",
+    keyName: "fieldId",
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    const updateDirection = () => {
+      setBatchesDrawerDirection(mediaQuery.matches ? "right" : "bottom");
+    };
+
+    updateDirection();
+    mediaQuery.addEventListener("change", updateDirection);
+    return () => mediaQuery.removeEventListener("change", updateDirection);
+  }, []);
+
   // Populate form when product loads
   useEffect(() => {
     if (!productData?.data) {
@@ -163,6 +205,37 @@ export const useProductEditModel = (productId: string) => {
       setCustomAttributes([]);
     }
   }, [productData, form]);
+
+  const shouldLoadBatches = Boolean(productId && isBatchesDrawerOpen);
+
+  const { data: batchesData, isLoading: isLoadingBatches } =
+    useSWR<BatchesResponse>(
+      shouldLoadBatches ? `batches/product/${productId}` : null,
+      async (url: string) => {
+        return await api.get(url).json<BatchesResponse>();
+      }
+    );
+
+  useEffect(() => {
+    if (!batchesData?.data) {
+      return;
+    }
+
+    const mappedBatches = batchesData.data.map((batch) => ({
+      id: batch.id,
+      productId: batch.productId,
+      warehouseId: batch.warehouseId,
+      warehouseName: batch.warehouseName,
+      warehouseCode: batch.warehouseCode || undefined,
+      batchNumber: batch.batchNumber,
+      quantity: batch.quantity ?? 0,
+      expirationDate: batch.expirationDate || "",
+      costPrice: batch.costPrice ?? undefined,
+      notes: batch.notes || "",
+    }));
+
+    replaceBatchFields(mappedBatches);
+  }, [batchesData, replaceBatchFields]);
 
   const product = productData?.data || null;
 
@@ -345,6 +418,53 @@ export const useProductEditModel = (productId: string) => {
     }
   };
 
+  const onSaveBatch = async (index: number) => {
+    const fieldNames = [
+      `batches.${index}.batchNumber`,
+      `batches.${index}.quantity`,
+      `batches.${index}.expirationDate`,
+      `batches.${index}.costPrice`,
+      `batches.${index}.notes`,
+    ] as const;
+
+    const isValid = await batchForm.trigger(fieldNames);
+    if (!isValid) {
+      return;
+    }
+
+    const batch = batchForm.getValues(`batches.${index}`);
+    if (!batch) {
+      return;
+    }
+
+    setUpdatingBatchId(batch.id);
+    try {
+      const payload = {
+        productId: batch.productId,
+        warehouseId: batch.warehouseId,
+        quantity: batch.quantity ?? 0,
+        batchCode: batch.batchNumber,
+        expirationDate: batch.expirationDate || undefined,
+        costPrice: batch.costPrice ?? undefined,
+        notes: batch.notes?.trim() || undefined,
+      };
+
+      await api.put(`batches/${batch.id}`, { json: payload }).json();
+
+      mutate(`batches/product/${productId}`);
+      toast.success("Batch atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar batch:", error);
+      if (error instanceof Error) {
+        toast.error(error.message || "Erro ao atualizar batch");
+      } else {
+        toast.error("Erro ao atualizar batch");
+      }
+    } finally {
+      setUpdatingBatchId(null);
+    }
+  };
+
   return {
     form,
     onSubmit,
@@ -370,5 +490,15 @@ export const useProductEditModel = (productId: string) => {
     product,
     isLoadingProduct,
     isFormReady,
+    batchesDrawer: {
+      isOpen: isBatchesDrawerOpen,
+      onOpenChange: setBatchesDrawerOpen,
+      direction: batchesDrawerDirection,
+      isLoading: isLoadingBatches,
+      fields: batchFields,
+      onSave: onSaveBatch,
+      updatingBatchId,
+      form: batchForm,
+    },
   };
 };

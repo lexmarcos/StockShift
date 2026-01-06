@@ -12,6 +12,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -42,6 +55,7 @@ import {
   Scale,
   Settings2,
   Tag,
+  X,
   Zap,
   Scan,
 } from "lucide-react";
@@ -71,8 +85,10 @@ export const ProductForm = ({
   currentImageUrl,
   handleImageSelect,
   handleImageRemove,
+  batchesDrawer,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
+  const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
@@ -103,6 +119,20 @@ export const ProductForm = ({
                   : 'Atualização de dados do produto'}
               </p>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {batchesDrawerState && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => batchesDrawerState.onOpenChange(true)}
+                className="rounded-sm border-border/40"
+              >
+                <Layers className="mr-2 h-3.5 w-3.5" />
+                Ver Batches
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -755,6 +785,272 @@ export const ProductForm = ({
           </form>
         </Form>
       </main>
+
+      {batchesDrawerState && (
+        <Drawer
+          open={batchesDrawerState.isOpen}
+          onOpenChange={batchesDrawerState.onOpenChange}
+          direction={batchesDrawerState.direction}
+        >
+          <DrawerContent className="border-border/40 bg-card data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-xl">
+            <div className="flex h-full flex-col">
+              <DrawerHeader className="border-b border-border/40 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-border/40 bg-muted/30">
+                      <Layers className="h-4 w-4 text-foreground/70" />
+                    </div>
+                    <div>
+                      <DrawerTitle className="text-sm font-semibold uppercase tracking-wide">
+                        Batches do Produto
+                      </DrawerTitle>
+                      <p className="text-[11px] text-muted-foreground">
+                        Edite lotes vinculados a este item
+                      </p>
+                    </div>
+                  </div>
+                  <DrawerClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-sm"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerHeader>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {batchesDrawerState.isLoading && (
+                  <div className="flex items-center justify-center rounded-sm border border-border/40 bg-muted/30 p-6">
+                    <Loader2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Carregando batches...
+                    </span>
+                  </div>
+                )}
+
+                {!batchesDrawerState.isLoading &&
+                  batchesDrawerState.fields.length === 0 && (
+                  <div className="rounded-sm border border-border/40 bg-muted/20 p-6 text-center">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Nenhum batch encontrado
+                    </p>
+                  </div>
+                )}
+
+                {!batchesDrawerState.isLoading &&
+                  batchesDrawerState.fields.length > 0 && (
+                  <Form {...batchesDrawerState.form}>
+                    <Accordion type="multiple" className="space-y-3">
+                      {batchesDrawerState.fields.map((batch, index) => (
+                        <AccordionItem
+                          key={batch.fieldId || batch.id}
+                          value={batch.fieldId || batch.id}
+                          className="rounded-sm border border-border/40 bg-background/40 px-3"
+                        >
+                          <AccordionTrigger className="py-3 hover:no-underline">
+                            <div className="flex flex-1 flex-col gap-1 text-left">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                  {batch.batchNumber}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  Qtd {batch.quantity}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                <span>
+                                  {batch.warehouseName}
+                                  {batch.warehouseCode
+                                    ? ` (${batch.warehouseCode})`
+                                    : ""}
+                                </span>
+                                <span className="text-foreground/30">•</span>
+                                <span>
+                                  {batch.expirationDate
+                                    ? `Val ${batch.expirationDate}`
+                                    : "Sem validade"}
+                                </span>
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-4 pb-2">
+                              <div className="grid gap-3 rounded-sm border border-border/40 bg-muted/10 p-3 text-[11px] uppercase tracking-wide text-foreground/70">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span>Produto</span>
+                                  <span className="text-foreground/90">
+                                    {batch.productId}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                  <span>Armazem</span>
+                                  <span className="text-foreground/90">
+                                    {batch.warehouseId}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="grid gap-4">
+                                <FormField
+                                  control={batchesDrawerState.form.control}
+                                  name={`batches.${index}.batchNumber`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                        Codigo do Batch
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <FormField
+                                    control={batchesDrawerState.form.control}
+                                    name={`batches.${index}.quantity`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                          Quantidade
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="number"
+                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            {...field}
+                                            value={field.value ?? 0}
+                                            onChange={(event) => {
+                                              const value = event.target.value;
+                                              field.onChange(
+                                                value === "" ? 0 : Number(value)
+                                              );
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={batchesDrawerState.form.control}
+                                    name={`batches.${index}.expirationDate`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                          Validade
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="date"
+                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            {...field}
+                                            value={field.value || ""}
+                                            onChange={(event) =>
+                                              field.onChange(
+                                                event.target.value || ""
+                                              )
+                                            }
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+
+                                <FormField
+                                  control={batchesDrawerState.form.control}
+                                  name={`batches.${index}.costPrice`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                        Custo Unitario
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          step="0.01"
+                                          className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                          {...field}
+                                          value={field.value ?? ""}
+                                          onChange={(event) => {
+                                            const value = event.target.value;
+                                            field.onChange(
+                                              value === ""
+                                                ? undefined
+                                                : Number(value)
+                                            );
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={batchesDrawerState.form.control}
+                                  name={`batches.${index}.notes`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                        Observacoes
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Textarea
+                                          className="min-h-[80px] resize-none rounded-sm border-border/40 bg-background/50 text-xs"
+                                          {...field}
+                                          value={field.value || ""}
+                                          onChange={(event) =>
+                                            field.onChange(event.target.value)
+                                          }
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <Button
+                                type="button"
+                                onClick={() => batchesDrawerState.onSave(index)}
+                                disabled={
+                                  batchesDrawerState.updatingBatchId === batch.id
+                                }
+                                className="w-full rounded-sm bg-foreground text-background hover:bg-foreground/90 disabled:opacity-60"
+                              >
+                                {batchesDrawerState.updatingBatchId === batch.id ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-3.5 w-3.5" />
+                                    Salvando...
+                                  </>
+                                ) : (
+                                  "Salvar alteracoes"
+                                )}
+                              </Button>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </Form>
+                )}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 };

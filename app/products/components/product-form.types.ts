@@ -14,6 +14,31 @@ export interface Brand {
   logoUrl?: string;
 }
 
+export interface BatchDrawerFormItem {
+  id: string;
+  fieldId?: string;
+  productId: string;
+  warehouseId: string;
+  warehouseName: string;
+  warehouseCode?: string | null;
+  batchNumber: string;
+  quantity: number;
+  expirationDate?: string;
+  costPrice?: number;
+  notes?: string;
+}
+
+export interface BatchesDrawerProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  direction: "right" | "bottom";
+  isLoading: boolean;
+  fields: BatchDrawerFormItem[];
+  onSave: (index: number) => void;
+  updatingBatchId: string | null;
+  form: UseFormReturn<{ batches: BatchDrawerFormItem[] }>;
+}
+
 /**
  * Props for the shared ProductForm component used in both create and edit modes.
  *
@@ -65,6 +90,7 @@ export interface ProductFormProps {
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   warehouseId: string | null;
   isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
+  batchesDrawer?: BatchesDrawerProps;
 }
 
 export type { ProductCreateFormData, CustomAttribute };
