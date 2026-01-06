@@ -958,35 +958,66 @@ export const ProductForm = ({
                                   />
                                 </div>
 
-                                <FormField
-                                  control={batchesDrawerState.form.control}
-                                  name={`batches.${index}.costPrice`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                        Custo Unitario
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          type="number"
-                                          step="0.01"
-                                          className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
-                                          {...field}
-                                          value={field.value ?? ""}
-                                          onChange={(event) => {
-                                            const value = event.target.value;
-                                            field.onChange(
-                                              value === ""
-                                                ? undefined
-                                                : Number(value)
-                                            );
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <FormField
+                                    control={batchesDrawerState.form.control}
+                                    name={`batches.${index}.costPrice`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                          Custo Unitario
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="number"
+                                            step="0.01"
+                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(event) => {
+                                              const value = event.target.value;
+                                              field.onChange(
+                                                value === ""
+                                                  ? undefined
+                                                  : Number(value)
+                                              );
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={batchesDrawerState.form.control}
+                                    name={`batches.${index}.sellingPrice`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                          Preco de Venda
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="number"
+                                            step="0.01"
+                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(event) => {
+                                              const value = event.target.value;
+                                              field.onChange(
+                                                value === ""
+                                                  ? undefined
+                                                  : Number(value)
+                                              );
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
 
                                 <FormField
                                   control={batchesDrawerState.form.control}
