@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Batch } from "../batches.types";
@@ -171,6 +171,20 @@ export const BatchesDetailView = ({
                 <span className="text-muted-foreground">SKU</span>
                 <span>{batch.productSku || "-"}</span>
               </div>
+              {batch.productId && (
+                <div className="flex justify-end pt-2">
+                  <Link href={`/products/${batch.productId}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-sm border-border/40 text-xs"
+                    >
+                      Ver produto
+                      <ArrowUpRight className="ml-2 h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
 

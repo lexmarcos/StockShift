@@ -38,5 +38,7 @@ describe("BatchesDetailView", () => {
       />
     );
     expect(screen.getByText(/BATCH-001/i)).toBeTruthy();
+    const productLink = screen.getByRole("link", { name: /ver produto/i });
+    expect(productLink.getAttribute("href")).toBe("/products/p1");
   });
 });
