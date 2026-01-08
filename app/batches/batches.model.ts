@@ -1,5 +1,8 @@
 import { differenceInCalendarDays, isValid, parseISO } from "date-fns";
-import type { Batch, BatchFilters, BatchStatus, SortConfig } from "./batches.types";
+import { useMemo, useState } from "react";
+import useSWR from "swr";
+import type { Batch, BatchFilters, BatchStatus, SortConfig, BatchesResponse } from "./batches.types";
+import type { Warehouse } from "../warehouses/warehouses.types";
 
 export type { Batch, BatchFilters, BatchStatus, SortConfig };
 
@@ -92,4 +95,86 @@ export const sortBatches = (batches: Batch[], sort: SortConfig) => {
     }
   });
   return sorted;
+};
+
+export const useBatchesModel = () => {
+  const [filters, setFilters] = useState<BatchFilters>({
+    searchQuery: "",
+    warehouseId: "",
+    status: "all",
+    lowStockThreshold: 10,
+  });
+
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "createdAt",
+    direction: "desc",
+  });
+
+  const { data, error, isLoading, mutate } = useSWR<BatchesResponse>(
+    "batches",
+    async () => {
+      const { api } = await import("@/lib/api");
+      return await api.get("batches").json<BatchesResponse>();
+    }
+  );
+
+  const { data: warehousesData } = useSWR<{ success: boolean; data: Warehouse[] }>(
+    "warehouses",
+    async () => {
+      const { api } = await import("@/lib/api");
+      return await api.get("warehouses").json();
+    }
+  );
+
+  const rawBatches = data?.data || [];
+
+  const filtered = useMemo(
+    () => filterBatches(rawBatches, filters),
+    [rawBatches, filters]
+  );
+
+  const sorted = useMemo(
+    () => sortBatches(filtered, sortConfig),
+    [filtered, sortConfig]
+  );
+
+  const statusCounts = useMemo(() => {
+    return rawBatches.reduce(
+      (acc, batch) => {
+        const status = deriveBatchStatus(batch, {
+          lowStockThreshold: filters.lowStockThreshold,
+        });
+        if (status.kind === "expired") acc.expired += 1;
+        if (status.kind === "expiring") acc.expiring += 1;
+        if (status.kind === "low") acc.low += 1;
+        return acc;
+      },
+      { expired: 0, expiring: 0, low: 0 }
+    );
+  }, [rawBatches, filters.lowStockThreshold]);
+
+  return {
+    batches: sorted,
+    isLoading,
+    error,
+    filters,
+    sortConfig,
+    warehouses: warehousesData?.data || [],
+    statusCounts,
+    setSearchQuery: (searchQuery: string) =>
+      setFilters((prev) => ({ ...prev, searchQuery })),
+    setWarehouseId: (warehouseId: string) =>
+      setFilters((prev) => ({ ...prev, warehouseId })),
+    setStatus: (status: BatchFilters["status"]) =>
+      setFilters((prev) => ({ ...prev, status })),
+    setSortConfig,
+    onClearFilters: () =>
+      setFilters((prev) => ({
+        ...prev,
+        searchQuery: "",
+        warehouseId: "",
+        status: "all",
+      })),
+    refresh: mutate,
+  };
 };
