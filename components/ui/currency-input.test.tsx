@@ -27,4 +27,15 @@ describe("CurrencyInput", () => {
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall).toBe(134050);
   });
+
+  it("returns undefined when input is cleared", () => {
+    const onValueChange = vi.fn();
+    const { getByRole } = render(
+      <CurrencyInput value={12300} onValueChange={onValueChange} aria-label="Preco" />
+    );
+    const input = getByRole("textbox");
+    fireEvent.change(input, { target: { value: "" } });
+    const lastCall = onValueChange.mock.calls.at(-1)?.[0];
+    expect(lastCall).toBeUndefined();
+  });
 });
