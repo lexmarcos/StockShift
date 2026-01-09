@@ -46,7 +46,11 @@ const formatDate = (value?: string | null) => {
 
 const formatCurrency = (value?: number | null) => {
   if (value === null || value === undefined) return "-";
-  return `R$ ${value.toFixed(2)}`;
+  const formatter = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+  return formatter.format(value / 100);
 };
 
 export const BatchesDetailView = ({

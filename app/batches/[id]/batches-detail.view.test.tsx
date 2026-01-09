@@ -41,4 +41,21 @@ describe("BatchesDetailView", () => {
     const productLink = screen.getByRole("link", { name: /ver produto/i });
     expect(productLink.getAttribute("href")).toBe("/products/p1");
   });
+
+  it("formats prices as BRL from cents", () => {
+    const batch = { ...baseBatch, costPrice: 12345, sellingPrice: 67890 };
+    render(
+      <BatchesDetailView
+        batch={batch as any}
+        isLoading={false}
+        error={null}
+        isDeleting={false}
+        isDeleteOpen={false}
+        onDeleteOpenChange={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+    expect(screen.getByText(/R\$\s?123,45/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s?678,90/)).toBeTruthy();
+  });
 });
