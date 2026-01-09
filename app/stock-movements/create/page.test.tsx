@@ -13,6 +13,10 @@ const modelReturn = {
   warehouses: [],
   products: [],
   batches: [],
+  currentStep: 1,
+  totalSteps: 3,
+  onNextStep: vi.fn(),
+  onPrevStep: vi.fn(),
 };
 
 vi.mock("./stock-movements-create.model", () => ({

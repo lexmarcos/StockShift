@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { stockMovementCreateSchema, StockMovementCreateFormData } from "./stock-movements-create.schema";
-import type { StockMovementCreateResponse } from "./stock-movements-create.types";
+import type {
+  BatchSummary,
+  StockMovementCreateResponse,
+} from "./stock-movements-create.types";
 
 interface WarehousesResponse {
   success: boolean;
@@ -18,8 +22,16 @@ interface ProductsResponse {
 
 interface BatchesResponse {
   success: boolean;
-  data: Array<{ id: string; batchNumber?: string | null; quantity: number }>;
+  data: BatchSummary[];
 }
+
+export const filterBatchesByProduct = (
+  batches: BatchSummary[],
+  productId: string
+) => {
+  if (!productId) return [];
+  return batches.filter((batch) => batch.productId === productId);
+};
 
 export const buildMovementPayload = (data: StockMovementCreateFormData) => ({
   movementType: data.movementType,
@@ -36,6 +48,8 @@ export const buildMovementPayload = (data: StockMovementCreateFormData) => ({
 
 export const useStockMovementCreateModel = () => {
   const router = useRouter();
+  const totalSteps = 3;
+  const [currentStep, setCurrentStep] = useState(1);
 
   const form = useForm<StockMovementCreateFormData>({
     resolver: zodResolver(stockMovementCreateSchema),
@@ -108,5 +122,9 @@ export const useStockMovementCreateModel = () => {
     warehouses: warehousesData?.data || [],
     products: productsData?.data || [],
     batches: batchesData?.data || [],
+    currentStep,
+    totalSteps,
+    onNextStep: () => setCurrentStep((prev) => Math.min(prev + 1, totalSteps)),
+    onPrevStep: () => setCurrentStep((prev) => Math.max(prev - 1, 1)),
   };
 };

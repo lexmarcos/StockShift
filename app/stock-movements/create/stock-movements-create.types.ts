@@ -21,3 +21,11 @@ export interface StockMovementCreateResponse {
   message?: string | null;
   data: { id: string };
 }
+
+export interface BatchSummary {
+  id: string;
+  productId?: string | null;
+  batchCode?: string | null;
+  batchNumber?: string | null;
+  quantity: number;
+}
