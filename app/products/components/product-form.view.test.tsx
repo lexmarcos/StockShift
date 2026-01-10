@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { ProductForm } from "./product-form.view";
 
@@ -56,8 +56,8 @@ const baseProps = {
         quantity: 10,
         batchCode: "BATCH-001",
         expirationDate: "2026-12-31",
-        costPrice: 12.5,
-        sellingPrice: 19.9,
+        costPrice: 1250,
+        sellingPrice: 1990,
         notes: "note",
       },
     ],
@@ -68,7 +68,11 @@ const baseProps = {
 };
 
 const Wrapper = (props: any) => {
-  const { batchesDrawer: batchesDrawerOverride, ...rest } = props;
+  const {
+    batchesDrawer: batchesDrawerOverride,
+    defaultValues,
+    ...rest
+  } = props;
   const useOverride = Object.prototype.hasOwnProperty.call(
     props,
     "batchesDrawer"
@@ -90,6 +94,7 @@ const Wrapper = (props: any) => {
       expirationDate: "",
       costPrice: undefined,
       sellingPrice: undefined,
+      ...defaultValues,
     },
   });
 
@@ -149,5 +154,53 @@ describe("ProductForm batches drawer", () => {
     const scrollContainer = screen.getByTestId("batch-accordion-scroll");
     expect(scrollContainer.className).toContain("max-h-[70vh]");
     expect(scrollContainer.className).toContain("overflow-y-auto");
+  });
+});
+
+describe("ProductForm price formatting", () => {
+  it("renders main prices as BRL", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="create"
+        batchesDrawer={undefined}
+        defaultValues={{ costPrice: 1250, sellingPrice: 1990 }}
+      />
+    );
+    const costLabel = screen.getAllByText((_, element) =>
+      element?.tagName === "LABEL" && element.textContent?.includes("Custo")
+    )[0];
+    const sellingLabel = screen.getAllByText((_, element) =>
+      element?.tagName === "LABEL" && element.textContent?.includes("Venda")
+    )[0];
+    const costItem = costLabel.closest("[data-slot='form-item']");
+    const sellingItem = sellingLabel.closest("[data-slot='form-item']");
+    const costInput = costItem?.querySelector("input") as HTMLInputElement;
+    const sellingInput = sellingItem?.querySelector("input") as HTMLInputElement;
+    expect(costInput?.value).toBe("R$ 12,50");
+    expect(sellingInput?.value).toBe("R$ 19,90");
+  });
+
+  it("renders batch drawer prices as BRL", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+      />
+    );
+    fireEvent.click(screen.getByText(/batch-001/i));
+    const drawer = screen.getByTestId("batch-accordion-scroll");
+    const costLabel = within(drawer).getAllByText((_, element) =>
+      element?.tagName === "LABEL" && element.textContent?.includes("Custo")
+    )[0];
+    const sellingLabel = within(drawer).getAllByText((_, element) =>
+      element?.tagName === "LABEL" && element.textContent?.includes("Venda")
+    )[0];
+    const costItem = costLabel.closest("[data-slot='form-item']");
+    const sellingItem = sellingLabel.closest("[data-slot='form-item']");
+    const costInput = costItem?.querySelector("input") as HTMLInputElement;
+    const sellingInput = sellingItem?.querySelector("input") as HTMLInputElement;
+    expect(costInput?.value).toBe("R$ 12,50");
+    expect(sellingInput?.value).toBe("R$ 19,90");
   });
 });
