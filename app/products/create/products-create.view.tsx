@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -419,54 +420,50 @@ export const ProductCreateView = ({
                       <FormField
                         control={form.control}
                         name="costPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              <DollarSign className="h-3 w-3" /> Preço de Custo
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="0.00"
-                                step="0.01"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.value ? parseFloat(e.target.value) : undefined
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        render={({ field }) => {
+                          const { onChange, value, ...rest } = field;
+                          return (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                <DollarSign className="h-3 w-3" /> Preço de Custo
+                              </FormLabel>
+                              <FormControl>
+                                <CurrencyInput
+                                  {...rest}
+                                  value={value}
+                                  onValueChange={onChange}
+                                  placeholder="0,00"
+                                  className="h-10 rounded-sm border-border/40 bg-background/50"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                       <FormField
                         control={form.control}
                         name="sellingPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              <DollarSign className="h-3 w-3" /> Preço de Venda
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="0.00"
-                                step="0.01"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.value ? parseFloat(e.target.value) : undefined
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        render={({ field }) => {
+                          const { onChange, value, ...rest } = field;
+                          return (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                <DollarSign className="h-3 w-3" /> Preço de Venda
+                              </FormLabel>
+                              <FormControl>
+                                <CurrencyInput
+                                  {...rest}
+                                  value={value}
+                                  onValueChange={onChange}
+                                  placeholder="0,00"
+                                  className="h-10 rounded-sm border-border/40 bg-background/50"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </div>
                   </CardContent>
