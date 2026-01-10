@@ -25,6 +25,16 @@ export interface Product {
   updatedAt: string;
 }
 
+export interface Batch {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  quantity: number;
+  batchNumber: string;
+  expirationDate: string | null;
+}
+
 export interface ProductsPageable {
   pageNumber: number;
   pageSize: number;
@@ -75,4 +85,15 @@ export interface ProductsViewProps {
   onPageSizeChange: (pageSize: number) => void;
   onSearchChange: (search: string) => void;
   onSortChange: (sortBy: SortField, sortOrder: SortOrder) => void;
+  onOpenDeleteDialog: (product: Product) => void;
+  onConfirmDelete: () => void;
+  onSecondConfirmDelete: () => void;
+  onCloseDeleteDialog: () => void;
+  onCloseSecondConfirm: () => void;
+  deleteDialogOpen: boolean;
+  secondConfirmOpen: boolean;
+  deleteProduct: Product | null;
+  deleteBatches: Batch[];
+  isCheckingDeleteBatches: boolean;
+  isDeletingProduct: boolean;
 }
