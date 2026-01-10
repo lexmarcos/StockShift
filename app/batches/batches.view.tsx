@@ -29,6 +29,7 @@ import {
 import {
   AlertTriangle,
   Calendar,
+  Eye,
   Package,
   Plus,
   Search,
@@ -55,10 +56,16 @@ interface BatchesViewProps {
 }
 
 const statusStyles: Record<string, string> = {
-  expired: "border-border/60 bg-muted/30 text-foreground",
-  expiring: "border-border/50 bg-muted/20 text-foreground",
-  low: "border-border/50 bg-muted/10 text-foreground",
-  ok: "border-border/30 bg-transparent text-foreground/80",
+  expired: "border-red-500 text-red-300 bg-black",
+  expiring: "border-yellow-400 text-yellow-300 bg-black",
+  low: "border-cyan-400 text-cyan-300 bg-black",
+  ok: "border-emerald-400 text-emerald-300 bg-black",
+};
+
+const summaryBadgeStyles = {
+  expired: "border-red-500 text-red-300 bg-black",
+  expiring: "border-yellow-400 text-yellow-300 bg-black",
+  low: "border-cyan-400 text-cyan-300 bg-black",
 };
 
 const formatDate = (value?: string | null) => {
@@ -192,15 +199,24 @@ export const BatchesView = ({
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="rounded-sm border-border/40 text-xs">
+              <Badge
+                variant="outline"
+                className={`rounded-sm border text-xs ${summaryBadgeStyles.expired}`}
+              >
                 <Calendar className="mr-1 h-3 w-3" />
                 Expirados: {statusCounts.expired}
               </Badge>
-              <Badge variant="outline" className="rounded-sm border-border/40 text-xs">
+              <Badge
+                variant="outline"
+                className={`rounded-sm border text-xs ${summaryBadgeStyles.expiring}`}
+              >
                 <AlertTriangle className="mr-1 h-3 w-3" />
                 Expirando (30d): {statusCounts.expiring}
               </Badge>
-              <Badge variant="outline" className="rounded-sm border-border/40 text-xs">
+              <Badge
+                variant="outline"
+                className={`rounded-sm border text-xs ${summaryBadgeStyles.low}`}
+              >
                 <Package className="mr-1 h-3 w-3" />
                 Baixo estoque: {statusCounts.low}
               </Badge>
@@ -278,9 +294,13 @@ export const BatchesView = ({
                           <TableCell className="text-xs text-right">
                             <Link
                               href={`/batches/${batch.id}`}
-                              className="text-foreground/80 hover:text-foreground"
+                              className="inline-flex items-center gap-1 text-foreground/80 hover:text-foreground"
                             >
-                              Ver
+                              <Eye
+                                data-testid="batch-action-view-icon"
+                                className="h-3.5 w-3.5"
+                              />
+                              <span className="hidden sm:inline">Ver</span>
                             </Link>
                           </TableCell>
                         </TableRow>

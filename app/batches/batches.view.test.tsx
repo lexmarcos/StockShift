@@ -27,9 +27,32 @@ const baseProps = {
   onClearFilters: vi.fn(),
 };
 
+const batchItem = {
+  id: "b1",
+  productId: "p1",
+  productName: "Produto A",
+  productSku: "SKU-A",
+  warehouseId: "w1",
+  warehouseName: "Central",
+  warehouseCode: "WH-1",
+  quantity: 12,
+  batchNumber: "BATCH-001",
+  expirationDate: "2026-01-20",
+  costPrice: 10,
+  sellingPrice: 18,
+  notes: "",
+  createdAt: "2026-01-01T10:00:00Z",
+  updatedAt: "2026-01-01T10:00:00Z",
+};
+
 describe("BatchesView", () => {
   it("shows empty state when no batches", () => {
     render(<BatchesView {...baseProps} />);
     expect(screen.getByText(/nenhum batch encontrado/i)).toBeTruthy();
+  });
+
+  it("renders action icon in table actions", () => {
+    render(<BatchesView {...baseProps} batches={[batchItem]} />);
+    expect(screen.getByTestId("batch-action-view-icon")).toBeTruthy();
   });
 });
