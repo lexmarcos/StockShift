@@ -3,7 +3,25 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
-import { ProductsResponse, ProductFilters, SortField, SortOrder } from "./products.types";
+import {
+  Batch,
+  Product,
+  ProductsResponse,
+  ProductFilters,
+  SortField,
+  SortOrder,
+} from "./products.types";
+
+interface BatchesResponse {
+  success: boolean;
+  data: Batch[];
+}
+
+interface DeleteProductResponse {
+  success: boolean;
+  message: string | null;
+  data: null;
+}
 
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
@@ -15,6 +33,12 @@ export const useProductsModel = () => {
     page: 0,
     pageSize: 20,
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
+  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [deleteBatches, setDeleteBatches] = useState<Batch[]>([]);
+  const [isCheckingDeleteBatches, setIsCheckingDeleteBatches] = useState(false);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
   // Build URL with query params
   const url = useMemo(() => {
@@ -29,7 +53,7 @@ export const useProductsModel = () => {
   }, [warehouseId, filters.page, filters.pageSize, filters.sortBy, filters.sortOrder]);
 
   // Fetch products from warehouse
-  const { data, error, isLoading } = useSWR<ProductsResponse>(
+  const { data, error, isLoading, mutate } = useSWR<ProductsResponse>(
     url,
     async (url: string) => {
       try {
@@ -86,6 +110,85 @@ export const useProductsModel = () => {
     setFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
   };
 
+  const onOpenDeleteDialog = async (product: Product) => {
+    setDeleteProduct(product);
+    setDeleteDialogOpen(true);
+    setDeleteBatches([]);
+
+    if (!warehouseId) return;
+
+    setIsCheckingDeleteBatches(true);
+    try {
+      const response = await api
+        .get(`batches/product/${product.id}`)
+        .json<BatchesResponse>();
+
+      if (response.success) {
+        const filtered = response.data.filter(
+          (batch) => batch.warehouseId === warehouseId && batch.quantity > 0
+        );
+        setDeleteBatches(filtered);
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message || "Erro ao verificar estoque do produto";
+      toast.error(errorMessage);
+    } finally {
+      setIsCheckingDeleteBatches(false);
+    }
+  };
+
+  const onCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setSecondConfirmOpen(false);
+    setDeleteProduct(null);
+    setDeleteBatches([]);
+    setIsCheckingDeleteBatches(false);
+  };
+
+  const onCloseSecondConfirm = () => {
+    onCloseDeleteDialog();
+  };
+
+  const executeDelete = async () => {
+    if (!deleteProduct) return;
+
+    setIsDeletingProduct(true);
+    try {
+      const response = await api
+        .delete(`products/${deleteProduct.id}`)
+        .json<DeleteProductResponse>();
+
+      if (response.success) {
+        toast.success(response.message || "Produto deletado com sucesso");
+        mutate();
+        onCloseDeleteDialog();
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message || "Erro ao deletar produto";
+      toast.error(errorMessage);
+    } finally {
+      setIsDeletingProduct(false);
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleteProduct) return;
+
+    if (deleteBatches.length > 0) {
+      setDeleteDialogOpen(false);
+      setSecondConfirmOpen(true);
+      return;
+    }
+
+    await executeDelete();
+  };
+
+  const onSecondConfirmDelete = async () => {
+    await executeDelete();
+  };
+
   return {
     products: filteredProducts,
     isLoading,
@@ -98,5 +201,16 @@ export const useProductsModel = () => {
     onPageSizeChange,
     onSearchChange,
     onSortChange,
+    onOpenDeleteDialog,
+    onConfirmDelete,
+    onSecondConfirmDelete,
+    onCloseDeleteDialog,
+    onCloseSecondConfirm,
+    deleteDialogOpen,
+    secondConfirmOpen,
+    deleteProduct,
+    deleteBatches,
+    isCheckingDeleteBatches,
+    isDeletingProduct,
   };
 };
