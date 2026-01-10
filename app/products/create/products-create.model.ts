@@ -229,8 +229,18 @@ export const useProductCreateModel = () => {
         sellingPrice: data.sellingPrice,
       };
 
+      const formData = new FormData();
+      const productBlob = new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      });
+      formData.append("product", productBlob);
+
+      if (productImage) {
+        formData.append("image", productImage);
+      }
+
       const response = await api
-        .post("batches/with-product", { json: payload })
+        .post("batches/with-product", { body: formData })
         .json<CreateProductWithBatchResponse>();
 
       if (response.success) {
