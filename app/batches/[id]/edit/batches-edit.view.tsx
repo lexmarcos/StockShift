@@ -1,15 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ArrowLeft, Save } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
+import type { BatchEditFormData } from "./batches-edit.schema";
+import { cn } from "@/lib/utils";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
-import type { BatchEditFormData } from "./batches-edit.schema";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface BatchEditViewProps {
   form: UseFormReturn<BatchEditFormData>;
@@ -136,6 +149,12 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="sellingPrice"
                   render={({ field }) => {
                     const { onChange, value, ...rest } = field;
+                    const costPrice = form.watch("costPrice") || 0;
+                    const sellingPrice = value || 0;
+                    const profit = sellingPrice - costPrice;
+                    const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
+                    const isProfitable = profit > 0;
+
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-semibold uppercase tracking-wide">Venda</FormLabel>
@@ -148,6 +167,12 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                             className="h-9 rounded-sm border-border/40 text-xs"
                           />
                         </FormControl>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">Lucro:</span>
+                          <span className={cn("font-bold font-mono", isProfitable ? "text-emerald-500" : "text-rose-500")}>
+                            {profit.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} ({margin.toFixed(1)}%)
+                          </span>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     );

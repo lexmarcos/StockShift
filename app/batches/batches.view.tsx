@@ -158,21 +158,22 @@ export const BatchesView = ({
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/batches/create">
-              <Button className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Lote
-              </Button>
-            </Link>
-          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-5">
+            {/* Actions Bar */}
+            <div className="flex items-center justify-end">
+              <Link href="/batches/create">
+                <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Lote
+                </Button>
+              </Link>
+            </div>
+
             {/* Row 1: Insight Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Batches */}

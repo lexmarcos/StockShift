@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LoginResponse } from "./login.types";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/contexts/auth-context";
 
 export const useLoginModel = () => {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -27,16 +29,11 @@ export const useLoginModel = () => {
         .json<LoginResponse>();
 
       if (response.success) {
-        localStorage.setItem("accessToken", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            userId: response.data.userId,
-            email: response.data.email,
-            fullName: response.data.fullName,
-          })
-        );
+        setUser({
+          userId: response.data.userId,
+          email: response.data.email,
+          fullName: response.data.fullName,
+        });
 
         toast.success("Login realizado com sucesso!");
         router.push("/warehouses");

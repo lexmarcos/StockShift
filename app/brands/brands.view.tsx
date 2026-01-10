@@ -153,21 +153,22 @@ export const BrandsView = ({
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={openCreateModal}
-              className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Marca
-            </Button>
-          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
+          {/* Actions Bar */}
+          <div className="flex items-center justify-end">
+            <Button
+              onClick={openCreateModal}
+              className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Marca
+            </Button>
+          </div>
+
           {/* Search & Filters */}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
             <div className="relative h-12 flex-1 min-w-[200px]">

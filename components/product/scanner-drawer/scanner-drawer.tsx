@@ -97,6 +97,10 @@ export const ScannerDrawer = ({ open, onOpenChange }: ScannerDrawerProps) => {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/60 z-50" />
         <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border/40 flex flex-col rounded-t-sm max-h-[95vh]">
+          {/* Accessibility requirements */}
+          <Drawer.Title className="sr-only">Adicionar via Scanner</Drawer.Title>
+          <Drawer.Description className="sr-only">Escanear código de barras para adicionar itens ao estoque</Drawer.Description>
+
           {/* Header */}
           <div className="flex items-center justify-between px-4 h-14 border-b border-border/40 shrink-0">
             <div className="flex items-center gap-2">

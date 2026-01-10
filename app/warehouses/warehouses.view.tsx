@@ -2,13 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -58,11 +51,14 @@ import {
   Mail,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
+  Building
 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
 import { WarehouseStockInfo } from "./warehouse-stock-info";
+import { cn } from "@/lib/utils";
 
 interface WarehousesViewProps {
   warehouses: Warehouse[];
@@ -118,124 +114,113 @@ export const WarehousesView = ({
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <div className="min-h-screen bg-background pb-10">
-      {/* Sticky Header - Corporate Solid */}
-      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div>
-            <h1 className="text-base font-semibold tracking-tight uppercase">
-              Armazéns
-            </h1>
-            <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
-              Gerenciamento de armazéns e locais de estoque
-            </p>
+    <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
+      {/* Sticky Header - Corporate Solid Dark */}
+      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight uppercase text-white">
+                Armazéns
+              </h1>
+              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Sistema Operacional
+              </div>
+            </div>
           </div>
 
           <Button
             onClick={openCreateModal}
-            className="hidden md:flex rounded-sm bg-foreground text-background hover:bg-foreground/90"
+            className="hidden md:flex h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
           >
-            <Plus className="mr-2 h-3.5 w-3.5" />
+            <Plus className="mr-2 h-4 w-4" />
             Novo Armazém
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
-        <Card className="border border-border/50 bg-card/80 rounded-sm">
-          <CardHeader className="border-b border-border/30 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                  <Building2 className="h-4 w-4 text-foreground/70" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                    Lista de Armazéns
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-0.5">
-                    {warehouses.length}{" "}
-                    {warehouses.length === 1 ? "armazém" : "armazéns"}
-                  </CardDescription>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="pt-5">
-            {/* Search Bar and Filters - Corporate Solid */}
-            <div className="mb-5 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou código..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10 rounded-sm border-border/40 bg-background/50 text-sm"
-                />
-              </div>
-
-              {/* Status Filter */}
-              <div className="flex gap-2">
-                {(["all", "active", "inactive"] as const).map((status) => (
-                  <Button
-                    key={status}
-                    variant={statusFilter === status ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setStatusFilter(status)}
-                    className={
-                      statusFilter === status
-                        ? "rounded-sm bg-foreground text-background hover:bg-foreground/90 text-xs"
-                        : "rounded-sm border-border/40 text-xs"
-                    }
-                  >
-                    {status === "all"
-                      ? "Todos"
-                      : status === "active"
-                      ? "Ativos"
-                      : "Inativos"}
-                  </Button>
-                ))}
-              </div>
+      <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col gap-6">
+          {/* Toolbar */}
+          <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div className="relative flex-1 w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+              <Input
+                placeholder="Buscar por nome, código ou cidade..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+              />
             </div>
 
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+              {(["all", "active", "inactive"] as const).map((status) => (
+                <Button
+                  key={status}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStatusFilter(status)}
+                  className={cn(
+                    "h-8 rounded-[4px] px-3 text-xs font-bold uppercase tracking-wide border transition-all",
+                    statusFilter === status
+                      ? "bg-blue-600 border-blue-600 text-white shadow-sm hover:bg-blue-700"
+                      : "border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:border-neutral-600"
+                  )}
+                >
+                  {status === "all" ? "Todos" : status === "active" ? "Ativos" : "Inativos"}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="min-h-[400px]">
             {/* Loading State */}
             {isLoading && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="text-xs uppercase tracking-wide text-neutral-500">Carregando armazéns...</span>
               </div>
             )}
 
             {/* Error State */}
             {error && (
-              <div className="flex items-center justify-center py-12 text-destructive">
-                Erro ao carregar armazéns
+              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
+                <AlertTriangle className="h-8 w-8 text-rose-500" />
+                <div className="text-center">
+                  <h3 className="text-sm font-bold uppercase text-rose-500">Erro de Carregamento</h3>
+                  <p className="text-xs text-rose-500/70">Não foi possível acessar a lista de armazéns</p>
+                </div>
               </div>
             )}
 
-            {/* Empty State - Corporate Solid */}
+            {/* Empty State */}
             {!isLoading && !error && warehouses.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-muted/20 border border-border/30 mb-4">
-                  <Building2 className="h-8 w-8 text-foreground/40" />
+              <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+                  <Building className="h-8 w-8 text-neutral-600" />
                 </div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide mb-2">
-                  {searchQuery || statusFilter !== "all"
-                    ? "Nenhum resultado encontrado"
-                    : "Nenhum armazém cadastrado"}
-                </h3>
-                <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm">
-                  {searchQuery || statusFilter !== "all"
-                    ? "Tente buscar com outros termos ou filtros"
-                    : "Adicione seu primeiro armazém para gerenciar estoque"}
-                </p>
+                <div className="text-center">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                    {searchQuery || statusFilter !== "all" ? "Nenhum resultado" : "Nenhum armazém"}
+                  </h3>
+                  <p className="mt-1 max-w-xs text-xs text-neutral-500">
+                    {searchQuery || statusFilter !== "all" 
+                      ? "Tente ajustar seus termos de busca."
+                      : "Comece cadastrando seu primeiro armazém."}
+                  </p>
+                </div>
                 {!searchQuery && statusFilter === "all" && (
                   <Button
                     onClick={openCreateModal}
-                    className="rounded-sm bg-foreground text-background hover:bg-foreground/90"
+                    className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                   >
                     <Plus className="mr-2 h-3.5 w-3.5" />
-                    Criar Armazém
+                    Criar Primeiro Armazém
                   </Button>
                 )}
               </div>
@@ -248,66 +233,62 @@ export const WarehousesView = ({
                   <div
                     key={warehouse.id}
                     onClick={() => onSelectWarehouse(warehouse.id)}
-                    className={`
-                      group relative cursor-pointer rounded-sm border bg-card p-5 transition-all
-                      ${
-                        selectedWarehouseId === warehouse.id
-                          ? "border-foreground/60 bg-foreground/5 shadow-md"
-                          : "border-border/40 hover:border-border/60 hover:bg-card/60"
-                      }
-                    `}
+                    className={cn(
+                      "group relative flex flex-col gap-4 rounded-[4px] border bg-[#171717] p-5 transition-all cursor-pointer",
+                      selectedWarehouseId === warehouse.id
+                        ? "border-blue-600 shadow-[0_0_0_1px_rgba(37,99,235,1)]"
+                        : "border-neutral-800 hover:border-neutral-600"
+                    )}
                   >
-                    {/* Header with icon and menu */}
-                    <div className="flex items-start justify-between mb-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-foreground/10 border border-border/30">
-                          <Building2 className="h-5 w-5 text-foreground/70" />
+                        <div className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-[4px] border",
+                          warehouse.isActive 
+                            ? "bg-blue-900/20 border-blue-900/30 text-blue-500" 
+                            : "bg-neutral-800 border-neutral-700 text-neutral-500"
+                        )}>
+                          <Building2 className="h-5 w-5" />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-sm font-semibold tracking-tight">
+                        <div>
+                          <h3 className="text-sm font-bold text-white leading-tight">
                             {warehouse.name}
                           </h3>
-                          <Badge
-                            variant={warehouse.isActive ? "default" : "secondary"}
-                            className={`
-                              mt-1 rounded-sm text-[10px] uppercase tracking-wide
-                              ${
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "rounded-[2px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider",
                                 warehouse.isActive
-                                  ? "bg-foreground text-background"
-                                  : "bg-muted text-muted-foreground"
-                              }
-                            `}
-                          >
-                            {warehouse.isActive ? (
-                              <CheckCircle2 className="mr-1 h-2.5 w-2.5" />
-                            ) : (
-                              <XCircle className="mr-1 h-2.5 w-2.5" />
-                            )}
-                            {warehouse.isActive ? "Ativo" : "Inativo"}
-                          </Badge>
+                                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                                  : "border-neutral-700 bg-neutral-800 text-neutral-500"
+                              )}
+                            >
+                              {warehouse.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Dropdown Menu */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white -mr-2 -mt-2"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Menu</span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-sm border-border/50">
+                        <DropdownMenuContent align="end" className="w-40 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               openEditModal(warehouse);
                             }}
-                            className="rounded-sm cursor-pointer"
+                            className="text-xs focus:bg-neutral-800 focus:text-white cursor-pointer"
                           >
                             <Edit className="mr-2 h-3.5 w-3.5" />
                             Editar
@@ -317,7 +298,7 @@ export const WarehousesView = ({
                               e.stopPropagation();
                               openDeleteDialog(warehouse);
                             }}
-                            className="rounded-sm cursor-pointer text-destructive focus:text-destructive"
+                            className="text-xs text-rose-500 focus:bg-rose-950/20 focus:text-rose-400 cursor-pointer"
                           >
                             <Trash2 className="mr-2 h-3.5 w-3.5" />
                             Excluir
@@ -327,148 +308,136 @@ export const WarehousesView = ({
                     </div>
 
                     {/* Description */}
-                    {warehouse.description && (
-                      <p className="text-xs text-muted-foreground/70 mb-4 line-clamp-2">
-                        {warehouse.description}
-                      </p>
-                    )}
+                    <p className="text-xs text-neutral-500 line-clamp-2 min-h-[2.5em]">
+                      {warehouse.description || "Sem descrição disponível."}
+                    </p>
 
                     {/* Details */}
-                    <div className="space-y-2 text-xs mb-4 pb-4 border-b border-border/20">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground/70 leading-relaxed">
+                    <div className="space-y-2 pt-4 border-t border-neutral-800">
+                      <div className="flex items-start gap-2 text-xs text-neutral-400">
+                        <MapPin className="h-3.5 w-3.5 mt-0.5 text-neutral-600 shrink-0" />
+                        <span className="break-words">
                           {warehouse.address
                             ? `${warehouse.address}, ${warehouse.city} - ${warehouse.state}`
                             : `${warehouse.city} - ${warehouse.state}`}
                         </span>
                       </div>
-                      {warehouse.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
-                          <span className="text-muted-foreground/70">
-                            {warehouse.phone}
-                          </span>
-                        </div>
-                      )}
-                      {warehouse.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
-                          <span className="text-muted-foreground/70 truncate">
-                            {warehouse.email}
-                          </span>
+                      
+                      {(warehouse.phone || warehouse.email) && (
+                        <div className="flex flex-col gap-1.5 pt-1">
+                          {warehouse.phone && (
+                            <div className="flex items-center gap-2 text-xs text-neutral-400">
+                              <Phone className="h-3.5 w-3.5 text-neutral-600 shrink-0" />
+                              <span>{warehouse.phone}</span>
+                            </div>
+                          )}
+                          {warehouse.email && (
+                            <div className="flex items-center gap-2 text-xs text-neutral-400">
+                              <Mail className="h-3.5 w-3.5 text-neutral-600 shrink-0" />
+                              <span className="truncate">{warehouse.email}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
 
-                    {/* Stock Info */}
-                    <WarehouseStockInfo warehouseId={warehouse.id} />
-
-                    {/* Selected indicator */}
-                    {selectedWarehouseId === warehouse.id && (
-                      <div className="absolute top-3 left-3 h-2 w-2 rounded-full bg-foreground animate-pulse" />
-                    )}
+                    {/* Stock Summary Placeholder */}
+                    <div className="mt-auto pt-2">
+                       <WarehouseStockInfo warehouseId={warehouse.id} />
+                    </div>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
 
-      {/* Floating Action Button - Mobile - Corporate Solid */}
+      {/* Floating Action Button - Mobile */}
       <Button
         onClick={openCreateModal}
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-sm bg-foreground text-background hover:bg-foreground/90 md:hidden"
-        size="icon"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40 flex items-center justify-center"
       >
-        <Plus className="h-5 w-5" />
-        <span className="sr-only">Novo Armazém</span>
+        <Plus className="h-6 w-6" />
       </Button>
 
-      {/* Create/Edit Modal - Corporate Solid */}
+      {/* Create/Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-[600px] rounded-sm border-border/50">
+        <DialogContent className="sm:max-w-[600px] rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold uppercase tracking-wide">
+            <DialogTitle className="text-base font-bold uppercase tracking-wide text-white">
               {selectedWarehouse ? "Editar Armazém" : "Novo Armazém"}
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground/70">
+            <DialogDescription className="text-xs text-neutral-500">
               {selectedWarehouse
                 ? "Atualize as informações do armazém"
-                : "Adicione um novo armazém ao sistema"}
+                : "Preencha os dados para cadastrar um novo local"}
             </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Seção 1: Informações Básicas */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                        Nome <span className="text-foreground/40">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: Armazém Central"
-                          className="h-10 rounded-sm border-border/40 bg-background/50"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+              {/* Basic Info */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Nome do Armazém <span className="text-rose-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="EX: CENTRAL DE DISTRIBUIÇÃO"
+                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs text-rose-500" />
+                  </FormItem>
+                )}
+              />
 
-              {/* Seção 2: Descrição */}
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                       Descrição
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Descreva o armazém..."
-                        className="resize-none rounded-sm border-border/40 bg-background/50 text-sm"
-                        rows={3}
+                        placeholder="Detalhes sobre a operação deste local..."
+                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="text-[11px] text-muted-foreground/70">
-                      {field.value?.length || 0} / 500 caracteres
-                    </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-rose-500" />
                   </FormItem>
                 )}
               />
 
-              {/* Seção 3: Localização e Contato */}
-              <div className="space-y-4">
+              {/* Location */}
+              <div className="space-y-4 pt-2 border-t border-neutral-800">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Localização</h4>
+                
                 <FormField
                   control={form.control}
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                        Endereço
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        Endereço Completo
                       </FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Rua, número, bairro..."
-                          className="resize-none rounded-sm border-border/40 bg-background/50 text-sm"
-                          rows={2}
+                        <Input
+                          placeholder="Rua, Número, Bairro"
+                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs text-rose-500" />
                     </FormItem>
                   )}
                 />
@@ -479,17 +448,17 @@ export const WarehousesView = ({
                     name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                          Cidade <span className="text-foreground/40">*</span>
+                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          Cidade <span className="text-rose-500">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Ex: São Paulo"
-                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs text-rose-500" />
                       </FormItem>
                     )}
                   />
@@ -499,39 +468,44 @@ export const WarehousesView = ({
                     name="state"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                          Estado <span className="text-foreground/40">*</span>
+                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          Estado (UF) <span className="text-rose-500">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Ex: SP"
-                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            maxLength={2}
+                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 uppercase"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs text-rose-500" />
                       </FormItem>
                     )}
                   />
                 </div>
+              </div>
 
+              {/* Contact */}
+              <div className="space-y-4 pt-2 border-t border-neutral-800">
+                <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Contato</h4>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                           Telefone
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="(XX) XXXXX-XXXX"
-                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            placeholder="(00) 00000-0000"
+                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs text-rose-500" />
                       </FormItem>
                     )}
                   />
@@ -541,61 +515,64 @@ export const WarehousesView = ({
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                           Email
                         </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="warehouse@company.com"
-                            className="h-10 rounded-sm border-border/40 bg-background/50"
+                            placeholder="email@empresa.com"
+                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-xs text-rose-500" />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
 
-              {/* Seção 4: Status */}
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                        Armazém Ativo
-                      </FormLabel>
-                      <FormDescription className="text-[11px] text-muted-foreground/70">
-                        Controle se o armazém está operacional
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {/* Status */}
+              <div className="pt-2 border-t border-neutral-800">
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm font-bold text-white">
+                          Status Operacional
+                        </FormLabel>
+                        <FormDescription className="text-xs text-neutral-500">
+                          Armazéns inativos não permitem movimentações
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-blue-600"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <DialogFooter className="gap-2">
+              <DialogFooter className="gap-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={closeModal}
-                  className="rounded-sm border-border/40"
+                  className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-sm bg-foreground text-background hover:bg-foreground/90"
+                  className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                 >
                   {isSubmitting ? (
                     <>
@@ -603,7 +580,7 @@ export const WarehousesView = ({
                       Salvando...
                     </>
                   ) : (
-                    "Salvar"
+                    "Salvar Dados"
                   )}
                 </Button>
               </DialogFooter>
@@ -612,30 +589,27 @@ export const WarehousesView = ({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog - Corporate Solid */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!warehouseToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent className="rounded-sm border-border/50">
+        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
-              Confirmar exclusão
+            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
+              Confirmar Exclusão
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground/70">
-              Tem certeza que deseja excluir o armazém{" "}
-              <strong className="text-foreground">{warehouseToDelete?.name}</strong>
-              ? Esta ação não pode ser desfeita.
+            <AlertDialogDescription className="text-xs text-neutral-500">
+              Tem certeza que deseja deletar o armazém{" "}
+              <strong className="text-white">{warehouseToDelete?.name}</strong>?
+              Esta ação é irreversível e pode afetar históricos de movimentação.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel
-              onClick={closeDeleteDialog}
-              className="rounded-sm border-border/40"
-            >
+            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
             >
               {isDeleting ? (
                 <>
@@ -643,7 +617,7 @@ export const WarehousesView = ({
                   Deletando...
                 </>
               ) : (
-                "Deletar"
+                "Confirmar Exclusão"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

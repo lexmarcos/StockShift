@@ -59,9 +59,13 @@ import {
   X,
   Zap,
   Scan,
+  Box,
+  Barcode,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 import { ProductFormProps } from "./product-form.types";
+import { cn } from "@/lib/utils";
 
 export const ProductForm = ({
   mode,
@@ -89,38 +93,54 @@ export const ProductForm = ({
   batchesDrawer,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
+  
+  const costPrice = form.watch("costPrice") || 0;
+  const sellingPrice = form.watch("sellingPrice") || 0;
+  const profit = sellingPrice - costPrice;
+  const margin = costPrice > 0 ? (profit / costPrice) * 100 : 0;
+  const isProfitable = profit > 0;
+
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-10">
+    <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
       {/* Barcode Scanner Modal */}
       <BarcodeScannerModal
         open={isScannerOpen}
         onClose={closeScanner}
         onScan={handleBarcodeScan}
       />
-      {/* Header Sticky - Corporate Solid */}
-      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/products"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span className="sr-only">Voltar</span>
+      
+      {/* Sticky Header - Corporate Solid Dark */}
+      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
+            <Link href="/products">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
             </Link>
-            <div className="border-l border-border/40 pl-3">
-              <h1 className="text-base font-semibold tracking-tight">
-                {mode === 'create' ? 'NOVO PRODUTO' : 'EDITAR PRODUTO'}
-              </h1>
-              <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
-                {mode === 'create'
-                  ? 'Cadastro de item no catálogo com estoque'
-                  : 'Atualização de dados do produto'}
-              </p>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold uppercase tracking-wide text-white">
+                  {mode === 'create' ? 'NOVO PRODUTO' : 'EDITAR PRODUTO'}
+                </h1>
+                <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {mode === 'create' ? 'Cadastro de Item' : 'Gerenciamento de Item'}
+                </div>
+              </div>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             {batchesDrawerState && (
               <Button
@@ -128,21 +148,22 @@ export const ProductForm = ({
                 variant="outline"
                 size="sm"
                 onClick={() => batchesDrawerState.onOpenChange(true)}
-                className="rounded-sm border-border/40"
+                className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
               >
                 <Layers className="mr-2 h-3.5 w-3.5" />
-                Ver Batches
+                Gerenciar Lotes
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
         {!warehouseId && (
-          <div className="mb-6 rounded-sm border border-amber-900/20 bg-amber-950/10 p-4">
-            <p className="text-xs text-amber-200">
-              ⚠️ Selecione um warehouse para criar um produto com estoque.
+          <div className="mb-6 rounded-[4px] border border-amber-900/30 bg-amber-950/10 p-4 flex items-center gap-3">
+            <Info className="h-5 w-5 text-amber-500" />
+            <p className="text-xs font-medium text-amber-500 uppercase tracking-wide">
+              Selecione um armazém ativo para habilitar o controle de estoque inicial.
             </p>
           </div>
         )}
@@ -150,142 +171,123 @@ export const ProductForm = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {/* COLUNA ESQUERDA - Conteúdo Principal (2/3) */}
+              {/* Left Column - Main Content */}
               <div className="space-y-6 lg:col-span-2">
-                {/* Informações Básicas do Produto - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Package className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                          Detalhes do Produto
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-0.5">
-                          Informações essenciais do produto
-                        </CardDescription>
-                      </div>
+                
+                {/* Basic Info Card */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Box className="h-4 w-4 text-blue-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Informações Básicas
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="grid gap-5 pt-5">
+                  <CardContent className="pt-6 space-y-5">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                            Nome do Produto{" "}
-                            <span className="text-foreground/40">*</span>
+                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Nome do Produto <span className="text-rose-500">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Ex: Malbec"
-                              className="h-10 rounded-sm border-border/40 bg-background/50"
+                              placeholder="EX: MONITOR ULTRAWIDE 34 POLEGADAS"
+                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                               ref={nameInputRef}
                             />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}
                     />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <FormField
+                        control={form.control}
+                        name="barcode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                              <Barcode className="h-3 w-3" /> Código de Barras
+                            </FormLabel>
+                            <div className="flex gap-2">
+                              <FormControl>
+                                <Input
+                                  placeholder="EAN / UPC / CODE128"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 font-mono"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={openScanner}
+                                className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 hover:bg-neutral-800 hover:text-white"
+                              >
+                                <Scan className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <FormMessage className="text-xs text-rose-500" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                            Descrição
+                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Descrição Detalhada
                           </FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Descreva as principais características do produto..."
-                              className="min-h-[100px] resize-y rounded-sm border-border/40 bg-background/50"
+                              placeholder="Especificações técnicas, detalhes de uso, etc..."
+                              className="min-h-[100px] resize-y rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription className="text-[11px] text-muted-foreground/70">
-                            Informações adicionais para identificação
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Barcode Field with Scanner Button */}
-                    <FormField
-                      control={form.control}
-                      name="barcode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                            Código de Barras
-                          </FormLabel>
-                          <div className="flex gap-2">
-                            <FormControl>
-                              <Input
-                                placeholder="Ex: 7891234567890"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                              />
-                            </FormControl>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={openScanner}
-                              className="h-10 w-10 flex-shrink-0 rounded-sm border-border/40 hover:bg-muted"
-                            >
-                              <Scan className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <FormDescription className="text-[11px] text-muted-foreground/70">
-                            Clique no ícone para escanear com a câmera
-                          </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}
                     />
                   </CardContent>
                 </Card>
 
-                {/* Atributos do Produto - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Layers className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                          Atributos do Produto
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-0.5">
-                          Dimensões, peso e características
-                        </CardDescription>
-                      </div>
+                {/* Attributes & Dimensions Card */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Ruler className="h-4 w-4 text-blue-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Dimensões e Atributos
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5 pt-5">
-                    <div className="grid gap-5 md:grid-cols-2">
+                  <CardContent className="pt-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <FormField
                         control={form.control}
                         name="attributes.weight"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
                               <Scale className="h-3 w-3" /> Peso
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Ex: 1.5kg"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                placeholder="EX: 1.5 KG"
+                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                                 {...field}
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-xs text-rose-500" />
                           </FormItem>
                         )}
                       />
@@ -294,32 +296,24 @@ export const ProductForm = ({
                         name="attributes.dimensions"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              <Ruler className="h-3 w-3" /> Dimensões
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                              <Box className="h-3 w-3" /> Dimensões (C x L x A)
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Ex: 10x20x5cm"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
+                                placeholder="EX: 10 x 20 x 5 CM"
+                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                                 {...field}
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-xs text-rose-500" />
                           </FormItem>
                         )}
                       />
                     </div>
 
-                    {/* Atributos Adicionais */}
-                    <div className="space-y-3 pt-2">
-                      <div className="border-t border-border/30 pt-4">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-foreground/80 mb-1">
-                          Atributos Adicionais
-                        </h4>
-                        <p className="text-[11px] text-muted-foreground/70">
-                          Características específicas (cor, tamanho, material)
-                        </p>
-                      </div>
+                    <div className="pt-4 border-t border-neutral-800">
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-4">Atributos Personalizados</h4>
                       <CustomAttributesBuilder
                         attributes={customAttributes}
                         onAdd={addCustomAttribute}
@@ -330,106 +324,19 @@ export const ProductForm = ({
                   </CardContent>
                 </Card>
 
-                {/* Estoque Inicial - Corporate Solid (apenas modo create) */}
-                {mode === 'create' && (
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Package className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                          Estoque Inicial
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-0.5">
-                          Primeira entrada de estoque
-                        </CardDescription>
-                      </div>
+                {/* Inventory & Pricing Card */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-emerald-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Estoque e Precificação
+                      </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5 pt-5">
-                    {/* Quantidade */}
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              Quantidade{" "}
-                              <span className="text-foreground/40">*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(parseFloat(e.target.value) || 0)
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Datas */}
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="manufacturedDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              <Calendar className="h-3 w-3" /> Data de Fabricação
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="expirationDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                              <Calendar className="h-3 w-3" /> Data de Validade
-                              {hasExpiration && (
-                                <span className="text-foreground/40">*</span>
-                              )}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                className="h-10 rounded-sm border-border/40 bg-background/50"
-                                disabled={!hasExpiration}
-                                {...field}
-                              />
-                            </FormControl>
-                            {hasExpiration && (
-                              <FormDescription className="text-[11px] text-muted-foreground/70">
-                                Obrigatório quando controle de validade ativo
-                              </FormDescription>
-                            )}
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Preços */}
-                    <div className="grid gap-5 md:grid-cols-2">
+                  <CardContent className="pt-6 space-y-6">
+                    {/* Pricing Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <FormField
                         control={form.control}
                         name="costPrice"
@@ -437,8 +344,8 @@ export const ProductForm = ({
                           const { onChange, value, ...rest } = field;
                           return (
                             <FormItem>
-                              <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                <DollarSign className="h-3 w-3" /> Preço de Custo
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Preço de Custo
                               </FormLabel>
                               <FormControl>
                                 <CurrencyInput
@@ -446,10 +353,10 @@ export const ProductForm = ({
                                   value={value}
                                   onValueChange={onChange}
                                   placeholder="0,00"
-                                  className="h-10 rounded-sm border-border/40 bg-background/50"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 text-white"
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs text-rose-500" />
                             </FormItem>
                           );
                         }}
@@ -461,8 +368,8 @@ export const ProductForm = ({
                           const { onChange, value, ...rest } = field;
                           return (
                             <FormItem>
-                              <FormLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                <DollarSign className="h-3 w-3" /> Preço de Venda
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Preço de Venda
                               </FormLabel>
                               <FormControl>
                                 <CurrencyInput
@@ -470,188 +377,180 @@ export const ProductForm = ({
                                   value={value}
                                   onValueChange={onChange}
                                   placeholder="0,00"
-                                  className="h-10 rounded-sm border-border/40 bg-background/50"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs text-rose-500" />
                             </FormItem>
                           );
                         }}
                       />
                     </div>
-                  </CardContent>
-                </Card>
-                )}
-              </div>
 
-              {/* COLUNA DIREITA - Lateral (1/3) */}
-              <div className="space-y-6">
-                {/* Image Upload */}
-                <ImageDropzone
-                  value={productImage}
-                  currentImageUrl={currentImageUrl}
-                  onImageSelect={handleImageSelect}
-                  onRemoveImage={handleImageRemove}
-                  disabled={isSubmitting}
-                />
-
-                {/* Warehouse Info - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Package className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                          Warehouse
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-0.5">
-                          Destino do estoque
-                        </CardDescription>
+                    <div className={cn(
+                      "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                      isProfitable ? "border-emerald-900/30 bg-emerald-950/10" : "border-rose-900/30 bg-rose-950/10"
+                    )}>
+                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                        Lucro Estimado
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-sm font-bold font-mono",
+                          isProfitable ? "text-emerald-500" : "text-rose-500"
+                        )}>
+                          {(profit / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </span>
+                        <div className={cn(
+                          "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
+                          isProfitable ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-rose-500/30 bg-rose-500/10 text-rose-500"
+                        )}>
+                          {margin.toFixed(1)}%
+                        </div>
                       </div>
                     </div>
+
+                    {/* Inventory Row (Only in Create Mode) */}
+                    {mode === 'create' && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Qtd. Inicial <span className="text-rose-500">*</span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage className="text-xs text-rose-500" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="manufacturedDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                                <Calendar className="h-3 w-3" /> Fabricação
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className="text-xs text-rose-500" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="expirationDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                                <Calendar className="h-3 w-3" /> Validade
+                                {hasExpiration && <span className="text-rose-500">*</span>}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 disabled:opacity-50"
+                                  disabled={!hasExpiration}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage className="text-xs text-rose-500" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Column - Sidebar */}
+              <div className="space-y-6">
+                
+                {/* Image Upload */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                      Imagem do Produto
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between rounded-sm border border-border/40 p-3 bg-background/30">
+                  <CardContent className="pt-6">
+                    <ImageDropzone
+                      value={productImage}
+                      currentImageUrl={currentImageUrl}
+                      onImageSelect={handleImageSelect}
+                      onRemoveImage={handleImageRemove}
+                      disabled={isSubmitting}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Warehouse Info - Corporate Solid */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-emerald-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Armazenagem
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                          {warehouseId ? "Selecionado" : "Não selecionado"}
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          Status do Armazém
                         </p>
-                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                          Selecione via menu superior
+                        <p className={cn(
+                          "text-xs font-bold mt-1",
+                          warehouseId ? "text-emerald-500" : "text-rose-500"
+                        )}>
+                          {warehouseId ? "SELECIONADO" : "NÃO SELECIONADO"}
                         </p>
                       </div>
                       <div
-                        className={`h-2 w-2 rounded-full ${
-                          warehouseId ? "bg-green-600" : "bg-red-600"
-                        }`}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Status e Configurações - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Settings2 className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                        Configuração
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="grid gap-3 pt-4">
-                    <FormField
-                      control={form.control}
-                      name="active"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                              {field.value ? "Ativo" : "Inativo"}
-                            </FormLabel>
-                            <FormDescription className="text-[11px] text-muted-foreground/70">
-                              Visibilidade no sistema
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    {mode === 'create' && (
-                      <FormField
-                        control={form.control}
-                        name="continuousMode"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-sm border border-border/40 p-3 bg-muted/10">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
-                                <Zap className="h-3 w-3 text-foreground/60" />
-                                Cadastro Contínuo
-                              </FormLabel>
-                              <FormDescription className="text-[11px] text-muted-foreground/70">
-                                Vários produtos seguidos
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    )}
-
-                    <div className="rounded-sm border border-border/30 p-3 bg-background/30 space-y-3">
-                      <FormField
-                        control={form.control}
-                        name="hasExpiration"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between">
-                            <FormLabel className="text-xs font-medium cursor-pointer flex-1">
-                              Controlar Validade
-                            </FormLabel>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <div className="h-px bg-border/30" />
-                      <FormField
-                        control={form.control}
-                        name="isKit"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between">
-                            <FormLabel className="text-xs font-medium cursor-pointer flex-1">
-                              É um Kit (Combo)
-                            </FormLabel>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
+                        className={cn(
+                          "h-3 w-3 rounded-full animate-pulse",
+                          warehouseId ? "bg-emerald-500" : "bg-rose-500"
                         )}
                       />
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Organização - Corporate Solid */}
-                <Card className="border border-border/50 bg-card/80 rounded-sm">
-                  <CardHeader className="border-b border-border/30 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                        <Tag className="h-4 w-4 text-foreground/70" />
-                      </div>
-                      <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                        Organização
+                {/* Organization Card */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-amber-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Categorização
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-4">
+                  <CardContent className="pt-6 space-y-5">
                     <FormField
                       control={form.control}
                       name="categoryId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Categoria
                           </FormLabel>
                           <Select
@@ -660,11 +559,11 @@ export const ProductForm = ({
                             value={field.value || undefined}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
+                              <SelectTrigger className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-sm">
+                            <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
                               {isLoadingCategories ? (
                                 <>
                                   {field.value && (
@@ -682,7 +581,7 @@ export const ProductForm = ({
                                   <SelectItem
                                     key={category.id}
                                     value={category.id}
-                                    className="text-xs"
+                                    className="text-xs focus:bg-neutral-800 focus:text-white"
                                   >
                                     {category.name}
                                   </SelectItem>
@@ -690,7 +589,7 @@ export const ProductForm = ({
                               )}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}
                     />
@@ -699,7 +598,7 @@ export const ProductForm = ({
                       name="brandId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Marca
                           </FormLabel>
                           <Select
@@ -708,11 +607,11 @@ export const ProductForm = ({
                             value={field.value || undefined}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-10 rounded-sm border-border/40 bg-background/50">
+                              <SelectTrigger className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-sm">
+                            <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
                               {isLoadingBrands ? (
                                 <>
                                   {field.value && (
@@ -730,7 +629,7 @@ export const ProductForm = ({
                                   <SelectItem
                                     key={brand.id}
                                     value={brand.id}
-                                    className="text-xs"
+                                    className="text-xs focus:bg-neutral-800 focus:text-white"
                                   >
                                     {brand.name}
                                   </SelectItem>
@@ -738,31 +637,118 @@ export const ProductForm = ({
                               )}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}
                     />
                   </CardContent>
                 </Card>
+
+                {/* Settings Card */}
+                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                  <CardHeader className="border-b border-neutral-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Settings2 className="h-4 w-4 text-neutral-500" />
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Configurações
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="active"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wide text-white">
+                              {field.value ? "Ativo" : "Inativo"}
+                            </FormLabel>
+                            <FormDescription className="text-[10px] text-neutral-500">
+                              Status do produto no sistema
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {mode === 'create' && (
+                      <FormField
+                        control={form.control}
+                        name="continuousMode"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-xs font-bold uppercase tracking-wide text-white flex items-center gap-2">
+                                <Zap className="h-3 w-3 text-amber-500" />
+                                Modo Contínuo
+                              </FormLabel>
+                              <FormDescription className="text-[10px] text-neutral-500">
+                                Manter na tela após salvar
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-amber-500" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-3 space-y-3">
+                      <FormField
+                        control={form.control}
+                        name="hasExpiration"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between">
+                            <FormLabel className="text-xs font-medium text-neutral-400 cursor-pointer">
+                              Controlar Validade
+                            </FormLabel>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600 scale-90" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <div className="h-px bg-neutral-800" />
+                      <FormField
+                        control={form.control}
+                        name="isKit"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between">
+                            <FormLabel className="text-xs font-medium text-neutral-400 cursor-pointer">
+                              É um Kit (Combo)
+                            </FormLabel>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600 scale-90" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
               </div>
             </div>
 
-            {/* Floating Action Bar - Corporate Solid */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-card p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 md:mt-6">
+            {/* Footer Action Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4">
               <div className="mx-auto flex w-full max-w-7xl items-center justify-end gap-3 px-4 md:px-6 lg:px-8">
                 <Button
                   variant="outline"
                   type="button"
-                  size="default"
-                  className="hidden md:flex rounded-sm border-border/40"
+                  className="h-10 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   asChild
                 >
                   <Link href="/products">Cancelar</Link>
                 </Button>
                 <Button
                   type="submit"
-                  size="default"
-                  className="w-full md:w-auto md:min-w-[160px] rounded-sm bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  className="h-10 min-w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
                   disabled={isSubmitting || !warehouseId}
                 >
                   {isSubmitting ? (
@@ -789,20 +775,20 @@ export const ProductForm = ({
           onOpenChange={batchesDrawerState.onOpenChange}
           direction={batchesDrawerState.direction}
         >
-          <DrawerContent className="border-border/40 bg-card data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-xl">
+          <DrawerContent className="border-neutral-800 bg-[#171717] data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-xl">
             <div className="flex h-full flex-col">
-              <DrawerHeader className="border-b border-border/40 px-4 py-3">
+              <DrawerHeader className="border-b border-neutral-800 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-border/40 bg-muted/30">
-                      <Layers className="h-4 w-4 text-foreground/70" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800">
+                      <Layers className="h-4 w-4 text-blue-500" />
                     </div>
                     <div>
-                      <DrawerTitle className="text-sm font-semibold uppercase tracking-wide">
-                        Batches do Produto
+                      <DrawerTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                        Gerenciar Lotes
                       </DrawerTitle>
-                      <p className="text-[11px] text-muted-foreground">
-                        Edite lotes vinculados a este item
+                      <p className="text-[10px] text-neutral-500">
+                        Edite os lotes vinculados a este produto
                       </p>
                     </div>
                   </div>
@@ -811,7 +797,7 @@ export const ProductForm = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-sm"
+                      className="h-8 w-8 rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -819,21 +805,21 @@ export const ProductForm = ({
                 </div>
               </DrawerHeader>
 
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 {batchesDrawerState.isLoading && (
-                  <div className="flex items-center justify-center rounded-sm border border-border/40 bg-muted/30 p-6">
-                    <Loader2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      Carregando batches...
+                  <div className="flex items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-6">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-600" />
+                    <span className="text-xs text-neutral-400">
+                      Carregando lotes...
                     </span>
                   </div>
                 )}
 
                 {!batchesDrawerState.isLoading &&
                   batchesDrawerState.fields.length === 0 && (
-                  <div className="rounded-sm border border-border/40 bg-muted/20 p-6 text-center">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Nenhum batch encontrado
+                  <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-6 text-center">
+                    <p className="text-xs uppercase tracking-wide text-neutral-500">
+                      Nenhum lote encontrado para este produto
                     </p>
                   </div>
                 )}
@@ -846,30 +832,27 @@ export const ProductForm = ({
                         <AccordionItem
                           key={batch.fieldId || batch.id}
                           value={batch.fieldId || batch.id}
-                          className="rounded-sm border border-border/40 bg-background/40 px-3"
+                          className="rounded-[4px] border border-neutral-800 bg-neutral-900/30 px-3"
                         >
                           <AccordionTrigger className="py-3 hover:no-underline">
                             <div className="flex flex-1 flex-col gap-1 text-left">
                               <div className="flex items-center justify-between gap-3">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                <span className="text-xs font-bold uppercase tracking-wide text-white">
                                   {batch.batchCode}
                                 </span>
-                                <span className="text-[11px] text-muted-foreground">
-                                  Qtd {batch.quantity}
+                                <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded-[2px] border border-neutral-800">
+                                  QTD: {batch.quantity}
                                 </span>
                               </div>
-                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                                <span>
+                              <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-500">
+                                <span className="uppercase">
                                   {batch.warehouseName}
-                                  {batch.warehouseCode
-                                    ? ` (${batch.warehouseCode})`
-                                    : ""}
                                 </span>
-                                <span className="text-foreground/30">•</span>
+                                <span className="text-neutral-700">•</span>
                                 <span>
                                   {batch.expirationDate
-                                    ? `Val ${batch.expirationDate}`
-                                    : "Sem validade"}
+                                    ? `VAL: ${batch.expirationDate}`
+                                    : "SEM VALIDADE"}
                                 </span>
                               </div>
                             </div>
@@ -879,45 +862,22 @@ export const ProductForm = ({
                               className="max-h-[70vh] overflow-y-auto pr-1"
                               data-testid="batch-accordion-scroll"
                             >
-                              <div className="space-y-4 pb-2">
-                              <div className="grid gap-3 rounded-sm border border-border/40 bg-muted/10 p-3 text-[11px] uppercase tracking-wide text-foreground/70">
-                                <div className="flex items-center justify-between gap-3">
-                                  <span>Produto</span>
-                                  <span className="text-foreground/90">
-                                    {batch.productId}
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between gap-3">
-                                  <span>Armazem</span>
-                                  <span className="text-foreground/90">
-                                    {batch.warehouseId}
-                                  </span>
-                                </div>
-                              </div>
-
+                              <div className="space-y-4 pb-2 pt-2">
+                              
                               <div className="grid gap-4">
-                                <div className="rounded-sm border border-border/40 bg-background/40 px-3 py-2">
-                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
-                                    Codigo do Batch
-                                  </p>
-                                  <p className="text-xs text-foreground/90">
-                                    {batch.batchCode?.trim() || "Sem codigo"}
-                                  </p>
-                                </div>
-
                                 <div className="grid gap-4 md:grid-cols-2">
                                   <FormField
                                     control={batchesDrawerState.form.control}
                                     name={`batches.${index}.quantity`}
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                           Quantidade
                                         </FormLabel>
                                         <FormControl>
                                           <Input
                                             type="number"
-                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
                                             {...field}
                                             value={field.value ?? 0}
                                             onChange={(event) => {
@@ -937,13 +897,13 @@ export const ProductForm = ({
                                     name={`batches.${index}.expirationDate`}
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+                                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                           Validade
                                         </FormLabel>
                                         <FormControl>
                                           <Input
                                             type="date"
-                                            className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                            className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
                                             {...field}
                                             value={field.value || ""}
                                             onChange={(event) =>
@@ -967,8 +927,8 @@ export const ProductForm = ({
                                       const { onChange, value, ...rest } = field;
                                       return (
                                         <FormItem>
-                                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                            Custo Unitario
+                                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                            Custo Unitário
                                           </FormLabel>
                                           <FormControl>
                                             <CurrencyInput
@@ -976,7 +936,7 @@ export const ProductForm = ({
                                               value={value}
                                               onValueChange={onChange}
                                               placeholder="0,00"
-                                              className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                              className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
                                             />
                                           </FormControl>
                                           <FormMessage />
@@ -991,8 +951,8 @@ export const ProductForm = ({
                                       const { onChange, value, ...rest } = field;
                                       return (
                                         <FormItem>
-                                          <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                            Preco de Venda
+                                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                            Preço de Venda
                                           </FormLabel>
                                           <FormControl>
                                             <CurrencyInput
@@ -1000,7 +960,7 @@ export const ProductForm = ({
                                               value={value}
                                               onValueChange={onChange}
                                               placeholder="0,00"
-                                              className="h-9 rounded-sm border-border/40 bg-background/50 text-xs"
+                                              className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
                                             />
                                           </FormControl>
                                           <FormMessage />
@@ -1015,12 +975,12 @@ export const ProductForm = ({
                                   name={`batches.${index}.notes`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-                                        Observacoes
+                                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                        Observações
                                       </FormLabel>
                                       <FormControl>
                                         <Textarea
-                                          className="min-h-[80px] resize-none rounded-sm border-border/40 bg-background/50 text-xs"
+                                          className="min-h-[60px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
                                           {...field}
                                           value={field.value || ""}
                                           onChange={(event) =>
@@ -1040,15 +1000,15 @@ export const ProductForm = ({
                                 disabled={
                                   batchesDrawerState.updatingBatchId === batch.id
                                 }
-                                className="w-full rounded-sm bg-foreground text-background hover:bg-foreground/90 disabled:opacity-60"
+                                className="w-full h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
                               >
                                 {batchesDrawerState.updatingBatchId === batch.id ? (
                                   <>
-                                    <Loader2 className="mr-2 h-3.5 w-3.5" />
+                                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                                     Salvando...
                                   </>
                                 ) : (
-                                  "Salvar alteracoes"
+                                  "Salvar Alterações"
                                 )}
                               </Button>
                               </div>

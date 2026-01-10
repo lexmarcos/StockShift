@@ -158,23 +158,6 @@ export const ProductsView = ({
                 </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setScannerOpen(true)}
-                variant="outline"
-                className="hidden h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white md:flex"
-              >
-                <ScanLine className="mr-2 h-3.5 w-3.5" />
-                Scanner
-              </Button>
-              <Link href="/products/create">
-                <Button className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Produto
-                </Button>
-              </Link>
-            </div>
           </div>
         </header>
 
@@ -206,6 +189,24 @@ export const ProductsView = ({
           {!requiresWarehouse && (
             <div className="space-y-6">
               <div className="flex flex-col gap-5">
+                {/* Actions Bar */}
+                <div className="flex items-center justify-end gap-3">
+                  <Button
+                    onClick={() => setScannerOpen(true)}
+                    variant="outline"
+                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  >
+                    <ScanLine className="mr-2 h-3.5 w-3.5" />
+                    Scanner
+                  </Button>
+                  <Link href="/products/create">
+                    <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Novo Produto
+                    </Button>
+                  </Link>
+                </div>
+
                 {/* Row 1: Insight Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Total Items */}
