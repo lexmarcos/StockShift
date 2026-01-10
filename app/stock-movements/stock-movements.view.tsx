@@ -155,26 +155,6 @@ export const StockMovementsView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-      {/* Header - Corporate Solid Dark */}
-      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
-              <ArrowRightLeft className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight uppercase text-white">
-                Movimentações
-              </h1>
-              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Controle de Estoque
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-5">

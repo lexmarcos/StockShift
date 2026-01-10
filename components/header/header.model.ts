@@ -22,8 +22,8 @@ const PAGE_NAMES: Record<string, string> = {
   "/profile": "Perfil",
 };
 
-const fetcher = async (url: string) => {
-  const response = await api.get(url).json<{
+const fetcher = async () => {
+  const response = await api.get("warehouses").json<{
     success: boolean;
     data: Warehouse[];
   }>();
@@ -37,7 +37,7 @@ export const useHeaderModel = (): HeaderViewProps => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { data: warehouses = [], isLoading: isLoadingWarehouses } = useSWR<Warehouse[]>(
-    "warehouses",
+    "header-warehouses",
     fetcher,
     {
       revalidateOnFocus: false,

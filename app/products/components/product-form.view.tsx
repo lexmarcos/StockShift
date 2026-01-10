@@ -111,53 +111,6 @@ export const ProductForm = ({
         onScan={handleBarcodeScan}
       />
       
-      {/* Sticky Header - Corporate Solid Dark */}
-      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Link href="/products">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
-                <Package className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-sm font-bold uppercase tracking-wide text-white">
-                  {mode === 'create' ? 'NOVO PRODUTO' : 'EDITAR PRODUTO'}
-                </h1>
-                <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  {mode === 'create' ? 'Cadastro de Item' : 'Gerenciamento de Item'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {batchesDrawerState && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => batchesDrawerState.onOpenChange(true)}
-                className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
-              >
-                <Layers className="mr-2 h-3.5 w-3.5" />
-                Gerenciar Lotes
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
         {!warehouseId && (
           <div className="mb-6 rounded-[4px] border border-amber-900/30 bg-amber-950/10 p-4 flex items-center gap-3">

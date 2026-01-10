@@ -48,21 +48,6 @@ export const BatchCreateView = ({
 }: BatchCreateViewProps) => {
   return (
     <div className="min-h-screen bg-background pb-10">
-      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 md:px-6 lg:px-8">
-          <Link
-            href="/batches"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-          </Link>
-          <div className="border-l border-border/40 pl-3">
-            <h1 className="text-base font-semibold uppercase tracking-wide">Novo Batch</h1>
-            <p className="text-xs text-muted-foreground hidden md:block">Entrada de estoque</p>
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
