@@ -1,11 +1,13 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { BatchesView } from "./batches.view";
 
 vi.mock("next/link", () => ({
   default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
 }));
+
+afterEach(() => cleanup());
 
 const baseProps = {
   batches: [],
@@ -54,5 +56,19 @@ describe("BatchesView", () => {
   it("renders action icon in table actions", () => {
     render(<BatchesView {...baseProps} batches={[batchItem]} />);
     expect(screen.getByTestId("batch-action-view-icon")).toBeTruthy();
+  });
+
+  it("changes sort when clicking product header", () => {
+    const setSortConfig = vi.fn();
+    render(
+      <BatchesView
+        {...baseProps}
+        batches={[batchItem]}
+        setSortConfig={setSortConfig}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /ordenar por produto/i }));
+    expect(setSortConfig).toHaveBeenCalledWith({ key: "product", direction: "asc" });
   });
 });

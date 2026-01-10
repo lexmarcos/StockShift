@@ -29,6 +29,8 @@ import {
 import {
   AlertTriangle,
   Calendar,
+  ChevronDown,
+  ChevronUp,
   Eye,
   Package,
   Plus,
@@ -91,6 +93,17 @@ export const BatchesView = ({
   setSortConfig,
   onClearFilters,
 }: BatchesViewProps) => {
+  const toggleSort = (key: SortConfig["key"]) => {
+    if (sortConfig.key === key) {
+      setSortConfig({
+        key,
+        direction: sortConfig.direction === "asc" ? "desc" : "asc",
+      });
+      return;
+    }
+    setSortConfig({ key, direction: "asc" });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-10">
       <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
@@ -255,11 +268,59 @@ export const BatchesView = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">Produto</TableHead>
+                      <TableHead className="text-xs">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("product")}
+                          aria-label="Ordenar por produto"
+                          className="inline-flex items-center gap-1"
+                        >
+                          Produto
+                          {sortConfig.key === "product" && (
+                            sortConfig.direction === "asc" ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )
+                          )}
+                        </button>
+                      </TableHead>
                       <TableHead className="text-xs">Batch</TableHead>
                       <TableHead className="text-xs">Warehouse</TableHead>
-                      <TableHead className="text-xs">Quantidade</TableHead>
-                      <TableHead className="text-xs">Validade</TableHead>
+                      <TableHead className="text-xs">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("quantity")}
+                          aria-label="Ordenar por quantidade"
+                          className="inline-flex items-center gap-1"
+                        >
+                          Quantidade
+                          {sortConfig.key === "quantity" && (
+                            sortConfig.direction === "asc" ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )
+                          )}
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-xs">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("expiration")}
+                          aria-label="Ordenar por validade"
+                          className="inline-flex items-center gap-1"
+                        >
+                          Validade
+                          {sortConfig.key === "expiration" && (
+                            sortConfig.direction === "asc" ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )
+                          )}
+                        </button>
+                      </TableHead>
                       <TableHead className="text-xs">Status</TableHead>
                       <TableHead className="text-xs text-right">Ações</TableHead>
                     </TableRow>
