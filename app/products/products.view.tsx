@@ -679,7 +679,8 @@ export const ProductsView = ({
           <AlertDialogCancel className="rounded-sm text-xs">
             Cancelar
           </AlertDialogCancel>
-          <AlertDialogAction
+          <Button
+            type="button"
             onClick={onConfirmDelete}
             disabled={isCheckingDeleteBatches || isDeletingProduct}
             className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
@@ -692,7 +693,7 @@ export const ProductsView = ({
             ) : (
               "Excluir"
             )}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
       </AlertDialog>

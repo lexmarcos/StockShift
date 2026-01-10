@@ -84,6 +84,37 @@ describe("ProductsView - delete action", () => {
     expect(onOpenDeleteDialog).toHaveBeenCalledWith(productItem);
   });
 
+  it("does not close dialog when confirming delete with batches", () => {
+    const onConfirmDelete = vi.fn();
+    const onCloseDeleteDialog = vi.fn();
+
+    render(
+      <ProductsView
+        {...baseProps}
+        products={[productItem]}
+        deleteDialogOpen
+        deleteProduct={productItem}
+        deleteBatches={[
+          {
+            id: "b1",
+            productId: "prod-1",
+            productName: "Produto Teste",
+            warehouseId: "wh-1",
+            quantity: 3,
+            batchNumber: "L1",
+            expirationDate: null,
+          },
+        ]}
+        onConfirmDelete={onConfirmDelete}
+        onCloseDeleteDialog={onCloseDeleteDialog}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /excluir/i }));
+    expect(onConfirmDelete).toHaveBeenCalled();
+    expect(onCloseDeleteDialog).not.toHaveBeenCalled();
+  });
+
   it("shows warning block with batches when delete dialog is open", () => {
     render(
       <ProductsView
