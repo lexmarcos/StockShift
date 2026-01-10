@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -134,28 +135,46 @@ export const BatchCreateView = ({
                 <FormField
                   control={form.control}
                   name="costPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Custo</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} className="h-9 rounded-sm border-border/40 text-xs" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const { onChange, value, ...rest } = field;
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">Custo</FormLabel>
+                        <FormControl>
+                          <CurrencyInput
+                            {...rest}
+                            value={value}
+                            onValueChange={onChange}
+                            placeholder="0,00"
+                            className="h-9 rounded-sm border-border/40 text-xs"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="sellingPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Venda</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} className="h-9 rounded-sm border-border/40 text-xs" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const { onChange, value, ...rest } = field;
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">Venda</FormLabel>
+                        <FormControl>
+                          <CurrencyInput
+                            {...rest}
+                            value={value}
+                            onValueChange={onChange}
+                            placeholder="0,00"
+                            className="h-9 rounded-sm border-border/40 text-xs"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </CardContent>
             </Card>
