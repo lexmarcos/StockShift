@@ -1,8 +1,9 @@
 import { differenceInCalendarDays, isValid, parseISO } from "date-fns";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type { Batch, BatchFilters, BatchStatus, SortConfig, BatchesResponse } from "./batches.types";
 import type { Warehouse } from "../warehouses/warehouses.types";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
 export type { Batch, BatchFilters, BatchStatus, SortConfig };
 
@@ -98,6 +99,8 @@ export const sortBatches = (batches: Batch[], sort: SortConfig) => {
 };
 
 export const useBatchesModel = () => {
+  const { warehouseId: selectedWarehouseId } = useSelectedWarehouse();
+
   const [filters, setFilters] = useState<BatchFilters>({
     searchQuery: "",
     warehouseId: "",
@@ -109,6 +112,12 @@ export const useBatchesModel = () => {
     key: "createdAt",
     direction: "desc",
   });
+
+  useEffect(() => {
+    if (selectedWarehouseId && !filters.warehouseId) {
+      setFilters((prev) => ({ ...prev, warehouseId: selectedWarehouseId }));
+    }
+  }, [filters.warehouseId, selectedWarehouseId]);
 
   const { data, error, isLoading, mutate } = useSWR<BatchesResponse>(
     "batches",
