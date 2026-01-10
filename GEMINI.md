@@ -1,5 +1,7 @@
 # AGENTS.md
 
+**Qualquer commit feito deve ser em apenas uma linha**
+
 ## 📋 Visão Geral do Projeto
 
 Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, **Tailwind CSS** e **shadcn/ui**.
@@ -20,54 +22,52 @@ Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, 
 
 ### Componentes UI
 
-Você pode criar novos componentes APENAS se os componentes da pasta `/components/ui` não servir ao que você quer.
-
-Para ícones utilize a biblioteca **lucide** para manter consistência visual em todos os componentes.
+Utilize prioritariamente a pasta `/components/ui`. Se criar novos componentes, utilize **Tailwind CSS** e a biblioteca **lucide-react** para ícones.
 
 ### Criação de Novos Componentes
-
-Ao criar novos componentes, **SEMPRE** verificar se o componente atende ao **modo light/dark**.
+**OBRIGATÓRIO:** O design é Dark-Only (Fundo #0A0A0A). Não há necessidade de suporte ao modo light.
 
 ## 📱 Design Responsivo
 
 **OBRIGATÓRIO: Mobile First**
+1. 📱 **Mobile** (Padrão inicial)
+2. 📱 **iPad/Tablet** (Ajuste de grids)
+3. 💻 **Desktop** (Ajuste final em `max-w-7xl`)
 
-A ordem de prioridade de desenvolvimento é:
+## 🎨 Filosofia do Design: "Corporate Solid Dark (Vivid)"
 
-1. 📱 **Mobile** (primeira prioridade)
-2. 📱 **iPad** (adaptação)
-3. 💻 **Desktop** (adaptação final)
+### 1. Estética: Brutalismo Corporativo de Alto Contraste
+O design une a seriedade do ambiente corporativo monocromático com o uso estratégico de **cores vivas** (Vivid Accents) para guiar o olhar do usuário e indicar funções críticas.
 
-As telas devem ser estruturadas inicialmente para celular e progressivamente adaptadas para telas maiores.
+**Paleta de Cores:**
+- **Background Principal:** `#0A0A0A` (Preto Sólido)
+- **Superfícies (Cards/Modais):** `#171717` ou `neutral-900`
+- **Bordas:** `#262626` ou `neutral-800`
+- **Cores Vivid (Acentos):** - Primária: Blue-600 (`#2563EB`)
+  - Sucesso: Emerald-600 (`#059669`)
+  - Alerta: Amber-500 (`#F59E0B`)
+  - Erro: Rose-600 (`#E11D48`)
 
-## 🎨 Filosofia do Design: "Dark Premium Tech"
+### 2. Geometria e Solidez
+- **Bordas (Radius):** Absolutamente fixas em **4px** para tudo (botões, inputs, cards). Evite `rounded-full` ou arredondamentos suaves.
+- **Hierarquia Visual:** Use `border-l-4` com cores vivid em cards para indicar status sem precisar de textos explicativos longos.
+- **Inputs:** Devem ter fundos escuros (`neutral-900`), bordas de 2px e foco com a cor primária vivid.
 
-### 1. Estética e Vertente
-
-O design segue a vertente **Modern Dark UI**. Não se trata apenas de "fundo preto", mas de uma construção de camadas sobre tons de carvão e azul profundo. O objetivo é reduzir a fadiga ocular enquanto destaca informações críticas com cores vibrantes.
-
-### 2. Hierarquia e Profundidade
-
-- **Camadas (Layering):** Utilize diferentes tons de cinza muito escuros para separar o fundo das "cartas" (cards). O fundo é o nível mais profundo; os cards são ligeiramente mais claros para dar a sensação de flutuação.
-- **Bordas Arredondadas (Softness):** O design evita ângulos retos. Tudo (botões, cards, inputs) possui bordas arredondadas generosas, transmitindo uma sensação de modernidade e acessibilidade.
-- **Sutileza:** O uso de sombras é extremamente discreto, preferindo o contraste de cores de fundo para definir limites.
-
-## 🧠 Sensações e Comportamento
-
-> **A ideia central é: "Centro de Comando de Alta Precisão".**
-
-- **Foco e Clareza:** O design deve passar a sensação de controle total e organização. O espaço negativo (respiro) é fundamental para que o usuário não se sinta sobrecarregado, mesmo com muitos dados.
-- **Elegância Tecnológica:** A interface deve parecer um software premium ou uma ferramenta elite. É minimalista, mas não simplista.
-- **Dinamismo Discreto:** Elementos como gráficos de barras com gradientes suaves e ícones dentro de círculos coloridos dão vida à página sem distrair do conteúdo principal.
+### 3. Comportamento e Interação
+- **Sem Animações:** A interface deve ser instantânea. Não utilize transições de `hover` suaves ou `fades`. O estado de hover deve ser uma mudança abrupta de cor de fundo ou borda.
+- **Tipografia:** Sans-serif (Inter ou System Sans). Títulos em **Bold**, textos de sistema em **Medium**. Use `tracking-tighter` para números e valores financeiros para passar sensação de precisão técnica.
+- **Sombras:** Praticamente inexistentes. A profundidade é dada pelo contraste de cores de superfície e bordas sutis.
 
 ---
 
 ## 🛠️ Resumo para Implementação
 
-- **Layout:** Grid modular baseado em cards independentes.
-- **Interação:** Botões com estados claros (hover sutil) e tipografia sans-serif limpa.
-- **Visual:** Ícones de linha fina (outline) ou preenchidos com cores sólidas em fundos de baixo contraste.
-- **Gráficos:** Devem usar gradientes verticais (da cor de acento para transparente) para integrar-se ao tema escuro.
+- **Container:** Sempre `max-w-7xl mx-auto` nas páginas principais.
+- **Paleta:** Fundo preto, componentes em cinza ultra-escuro, acentos em cores neon/vibrantes saturadas.
+- **Botões:** Texto em caixa alta (uppercase) com `tracking-wide` para botões de ação principal.
+- **Cards:** Fundo `#171717`, bordas `neutral-800`, 4px de raio.
+- **Ícones:** Lucide, sempre com `stroke-width={2}` ou `2.5`.
+- **Feedback:** Erros e sucessos usam cores de fundo em opacidade 10% com bordas e ícones na cor pura (Ex: `bg-rose-500/10 text-rose-500`).
 
 ## 🏗️ Arquitetura MVVM
 

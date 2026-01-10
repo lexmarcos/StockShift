@@ -22,71 +22,52 @@ Este é um projeto **frontend** construído com **Next.js 15**, **TypeScript**, 
 
 ### Componentes UI
 
-Você pode criar novos componentes APENAS se os componentes da pasta `/components/ui` não servirem ao que você quer.
-
-Para ícones utilize a biblioteca **lucide** para manter consistência visual em todos os componentes.
+Utilize prioritariamente a pasta `/components/ui`. Se criar novos componentes, utilize **Tailwind CSS** e a biblioteca **lucide-react** para ícones.
 
 ### Criação de Novos Componentes
-
-Ao criar novos componentes, **SEMPRE** verificar se o componente atende ao **modo light/dark**.
+**OBRIGATÓRIO:** O design é Dark-Only (Fundo #0A0A0A). Não há necessidade de suporte ao modo light.
 
 ## 📱 Design Responsivo
 
 **OBRIGATÓRIO: Mobile First**
+1. 📱 **Mobile** (Padrão inicial)
+2. 📱 **iPad/Tablet** (Ajuste de grids)
+3. 💻 **Desktop** (Ajuste final em `max-w-7xl`)
 
-A ordem de prioridade de desenvolvimento é:
+## 🎨 Filosofia do Design: "Corporate Solid Dark (Vivid)"
 
-1. 📱 **Mobile** (primeira prioridade)
-2. 📱 **iPad** (adaptação)
-3. 💻 **Desktop** (adaptação final)
-
-As telas devem ser estruturadas inicialmente para celular e progressivamente adaptadas para telas maiores.
-
-## 🎨 Filosofia do Design: "Corporate Solid Dark"
-
-### 1. Estética e Vertente
-
-O design segue a vertente **Professional Dark Interface** voltada para ambientes corporativos sérios. Trata-se de uma interface monocromática em escala de cinza sobre fundo escuro, sem uso de cores vibrantes. O objetivo é transmitir seriedade, profissionalismo e foco absoluto nas operações de estoque.
+### 1. Estética: Brutalismo Corporativo de Alto Contraste
+O design une a seriedade do ambiente corporativo monocromático com o uso estratégico de **cores vivas** (Vivid Accents) para guiar o olhar do usuário e indicar funções críticas.
 
 **Paleta de Cores:**
-- Base totalmente em escala de cinza (preto, cinza escuro, cinza médio, cinza claro, branco)
-- Botões e elementos interativos destacados através de contraste de tons de cinza
-- Formulários com fundos em tons de cinza diferenciados do background principal
-- Ausência de cores saturadas ou gradientes coloridos
+- **Background Principal:** `#0A0A0A` (Preto Sólido)
+- **Superfícies (Cards/Modais):** `#171717` ou `neutral-900`
+- **Bordas:** `#262626` ou `neutral-800`
+- **Cores Vivid (Acentos):** - Primária: Blue-600 (`#2563EB`)
+  - Sucesso: Emerald-600 (`#059669`)
+  - Alerta: Amber-500 (`#F59E0B`)
+  - Erro: Rose-600 (`#E11D48`)
 
-### 2. Hierarquia e Solidez
+### 2. Geometria e Solidez
+- **Bordas (Radius):** Absolutamente fixas em **4px** para tudo (botões, inputs, cards). Evite `rounded-full` ou arredondamentos suaves.
+- **Hierarquia Visual:** Use `border-l-4` com cores vivid em cards para indicar status sem precisar de textos explicativos longos.
+- **Inputs:** Devem ter fundos escuros (`neutral-900`), bordas de 2px e foco com a cor primária vivid.
 
-- **Camadas (Layering):** Utilize diferentes tons de cinza para separar o fundo dos componentes. O fundo principal é o tom mais escuro; cards e formulários usam cinzas ligeiramente mais claros para definir áreas de conteúdo.
-- **Bordas Controladas:** Arredondamento máximo de **4px** em todos os elementos (botões, cards, inputs). Isso mantém a interface profissional sem excessos de suavização.
-- **Contraste Direto:** O design evita sombras exageradas. A hierarquia visual é criada através de diferenças de tons de cinza entre background e elementos, não através de efeitos de profundidade.
-
-### 3. Solidez e Estabilidade
-
-- **Sem Animações:** A interface é estática e sólida. Não utilize transições, animações ou efeitos de movimento que possam distrair do trabalho operacional.
-- **Sombras Mínimas:** Quando absolutamente necessário, utilize sombras sutis e discretas apenas para separação de camadas, sempre em tons de preto com baixa opacidade (máximo 10-15%).
-- **Tipografia Firme:** Fontes sans-serif com peso adequado para garantir legibilidade e transmitir solidez.
-
-## 🧠 Sensações e Comportamento
-
-> **A ideia central é: "Sistema de Gestão Corporativo Profissional".**
-
-- **Seriedade Operacional:** O design deve transmitir que é uma ferramenta de trabalho séria para gestão empresarial. Nada de elementos lúdicos ou decorativos.
-- **Clareza Funcional:** Cada elemento tem uma função clara. O espaço é organizado de forma lógica e previsível, priorizando eficiência sobre estética elaborada.
-- **Consistência Absoluta:** Todos os componentes seguem o mesmo padrão visual monocromático. A repetição de padrões cria familiaridade e acelera o aprendizado do sistema.
+### 3. Comportamento e Interação
+- **Sem Animações:** A interface deve ser instantânea. Não utilize transições de `hover` suaves ou `fades`. O estado de hover deve ser uma mudança abrupta de cor de fundo ou borda.
+- **Tipografia:** Sans-serif (Inter ou System Sans). Títulos em **Bold**, textos de sistema em **Medium**. Use `tracking-tighter` para números e valores financeiros para passar sensação de precisão técnica.
+- **Sombras:** Praticamente inexistentes. A profundidade é dada pelo contraste de cores de superfície e bordas sutis.
 
 ---
 
 ## 🛠️ Resumo para Implementação
 
-- **Paleta:** Escala de cinza completa - do preto (#000000) ao branco (#FFFFFF), sem cores
-- **Layout:** Grid modular baseado em cards com fundo em tons de cinza diferenciados
-- **Bordas:** Arredondamento máximo de 4px em todos os elementos
-- **Interação:** Botões com estados claros usando variação de tons de cinza (hover através de clareamento/escurecimento)
-- **Sombras:** Mínimas e discretas, apenas quando essencial para separação de camadas
-- **Animações:** Nenhuma - interface estática e sólida
-- **Ícones:** Lucide com estilo outline em tons de cinza ou branco para contraste
-- **Formulários:** Fundos em cinza médio sobre background cinza escuro, bordas sutis em cinza claro
-- **Tipografia:** Sans-serif limpa e legível, hierarquia através de peso e tamanho
+- **Container:** Sempre `max-w-7xl mx-auto` nas páginas principais.
+- **Paleta:** Fundo preto, componentes em cinza ultra-escuro, acentos em cores neon/vibrantes saturadas.
+- **Botões:** Texto em caixa alta (uppercase) com `tracking-wide` para botões de ação principal.
+- **Cards:** Fundo `#171717`, bordas `neutral-800`, 4px de raio.
+- **Ícones:** Lucide, sempre com `stroke-width={2}` ou `2.5`.
+- **Feedback:** Erros e sucessos usam cores de fundo em opacidade 10% com bordas e ícones na cor pura (Ex: `bg-rose-500/10 text-rose-500`).
 
 ## 🏗️ Arquitetura MVVM
 
