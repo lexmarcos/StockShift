@@ -38,10 +38,22 @@ import {
   ChevronRight,
   Move,
   ScanLine,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ScannerDrawer } from "@/components/product/scanner-drawer/scanner-drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ProductsViewProps, SortField, SortOrder } from "./products.types";
 
 export const ProductsView = ({
@@ -55,6 +67,17 @@ export const ProductsView = ({
   onPageSizeChange,
   onSearchChange,
   onSortChange,
+  onOpenDeleteDialog,
+  onConfirmDelete,
+  onSecondConfirmDelete,
+  onCloseDeleteDialog,
+  onCloseSecondConfirm,
+  deleteDialogOpen,
+  secondConfirmOpen,
+  deleteProduct,
+  deleteBatches,
+  isCheckingDeleteBatches,
+  isDeletingProduct,
 }: ProductsViewProps) => {
   const [scannerOpen, setScannerOpen] = useState(false);
   
@@ -81,7 +104,8 @@ export const ProductsView = ({
   };
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <>
+      <div className="min-h-screen bg-background pb-10">
       {/* Sticky Header - Corporate Solid */}
       <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
@@ -384,6 +408,17 @@ export const ProductsView = ({
                                     <Move className="h-3.5 w-3.5" />
                                     <span className="sr-only">Movimentar</span>
                                   </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 rounded-sm"
+                                    title="Deletar produto"
+                                    aria-label="Deletar"
+                                    onClick={() => onOpenDeleteDialog(product)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <span className="sr-only">Deletar</span>
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -479,6 +514,16 @@ export const ProductsView = ({
                               >
                                 <Move className="h-3.5 w-3.5" />
                                 <span className="sr-only">Movimentar</span>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-sm border-border/40 text-xs px-2"
+                                aria-label="Deletar"
+                                onClick={() => onOpenDeleteDialog(product)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span className="sr-only">Deletar</span>
                               </Button>
                             </div>
                           </CardContent>
@@ -579,6 +624,117 @@ export const ProductsView = ({
           </Link>
         </>
       )}
-    </div>
+      </div>
+
+      <AlertDialog
+      open={deleteDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) onCloseDeleteDialog();
+      }}
+    >
+      <AlertDialogContent className="rounded-sm border-border/50">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
+            Confirmar exclusão
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs text-muted-foreground/70">
+            Tem certeza que deseja deletar o produto{" "}
+            <strong className="text-foreground">{deleteProduct?.name}</strong>? O produto
+            será desativado e não poderá ser usado em novas operações.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        {isCheckingDeleteBatches && (
+          <div className="flex items-center gap-2 rounded-sm border border-border/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground/70">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Verificando estoque no armazém atual...
+          </div>
+        )}
+
+        {!isCheckingDeleteBatches && deleteBatches.length > 0 && (
+          <div className="rounded-sm border border-yellow-200/70 bg-yellow-100/80 px-3 py-3 text-xs text-yellow-900">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Atenção
+            </div>
+            <p className="mt-1">
+              Ainda existe estoque deste produto no armazém atual. Confira os batches
+              antes de excluir.
+            </p>
+            <div className="mt-2 space-y-1">
+              {deleteBatches.map((batch) => (
+                <div
+                  key={batch.id}
+                  className="flex items-center justify-between border-b border-yellow-200/60 pb-1 text-[11px] last:border-b-0 last:pb-0"
+                >
+                  <span className="font-medium">Lote {batch.batchNumber}</span>
+                  <span>{batch.quantity} un</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel className="rounded-sm text-xs">
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirmDelete}
+            disabled={isCheckingDeleteBatches || isDeletingProduct}
+            className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
+          >
+            {isDeletingProduct ? (
+              <>
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Excluindo...
+              </>
+            ) : (
+              "Excluir"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+      open={secondConfirmOpen}
+      onOpenChange={(open) => {
+        if (!open) onCloseSecondConfirm();
+      }}
+    >
+      <AlertDialogContent className="rounded-sm border-border/50">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
+            Tem certeza?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs text-muted-foreground/70">
+            O produto{" "}
+            <strong className="text-foreground">{deleteProduct?.name}</strong> será
+            desativado. Batches e movimentações permanecerão para auditoria.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel className="rounded-sm text-xs">
+            Não deletar
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onSecondConfirmDelete}
+            disabled={isDeletingProduct}
+            className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
+          >
+            {isDeletingProduct ? (
+              <>
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Deletando...
+              </>
+            ) : (
+              "Deletar"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
