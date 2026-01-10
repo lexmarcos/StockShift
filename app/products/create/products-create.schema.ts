@@ -18,8 +18,8 @@ export const productCreateSchema = z.object({
   quantity: z.number().min(0, "Quantidade deve ser zero ou positiva"),
   manufacturedDate: z.string().optional(),
   expirationDate: z.string().optional(),
-  costPrice: z.number().optional(),
-  sellingPrice: z.number().optional(),
+  costPrice: z.number().int().min(0).optional(),
+  sellingPrice: z.number().int().min(0).optional(),
 }).refine((data) => {
   if (data.hasExpiration && !data.expirationDate) {
     return false;

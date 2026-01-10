@@ -8,8 +8,8 @@ export const batchCreateSchema = z
     batchCode: z.string().optional(),
     manufacturedDate: z.string().optional(),
     expirationDate: z.string().optional(),
-    costPrice: z.coerce.number().optional(),
-    sellingPrice: z.coerce.number().optional(),
+    costPrice: z.coerce.number().int().min(0).optional(),
+    sellingPrice: z.coerce.number().int().min(0).optional(),
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
