@@ -2,13 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Table,
   TableBody,
   TableCell,
@@ -33,13 +26,20 @@ import {
   Warehouse,
   Plus,
   Search,
-  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   Move,
   ScanLine,
   Trash2,
   AlertTriangle,
+  Filter,
+  ArrowUp,
+  ArrowDown,
+  Layers,
+  BarChart3,
+  AlertCircle,
+  XCircle,
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -55,6 +55,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductsViewProps, SortField, SortOrder } from "./products.types";
+import { cn } from "@/lib/utils";
 
 export const ProductsView = ({
   products,
@@ -81,11 +82,45 @@ export const ProductsView = ({
 }: ProductsViewProps) => {
   const [scannerOpen, setScannerOpen] = useState(false);
   
+  // Calculate Client-Side Stats (Demo purposes as backend aggregation is separate)
+  const lowStockCount = products.filter(p => p.totalQuantity > 0 && p.totalQuantity < 10).length;
+  const outOfStockCount = products.filter(p => p.totalQuantity === 0).length;
+  
+  // Simple mode calculation for category
+  const categories = products.map(p => p.categoryName).filter(Boolean) as string[];
+  const topCategory = categories.length > 0 
+    ? categories.sort((a,b) => categories.filter(v => v===a).length - categories.filter(v => v===b).length).pop() 
+    : "N/A";
+
   const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return { label: "Sem Estoque", variant: "destructive" as const };
-    if (quantity < 10) return { label: "Baixo", variant: "secondary" as const };
-    if (quantity < 50) return { label: "Normal", variant: "default" as const };
-    return { label: "Alto", variant: "default" as const };
+    if (quantity === 0) return { 
+      label: "SEM ESTOQUE", 
+      color: "text-rose-500", 
+      bg: "bg-rose-500/10", 
+      border: "border-rose-500/20",
+      indicator: "bg-rose-500"
+    };
+    if (quantity < 10) return { 
+      label: "BAIXO", 
+      color: "text-amber-500", 
+      bg: "bg-amber-500/10", 
+      border: "border-amber-500/20",
+      indicator: "bg-amber-500"
+    };
+    if (quantity < 50) return { 
+      label: "REGULAR", 
+      color: "text-blue-500", 
+      bg: "bg-blue-500/10", 
+      border: "border-blue-500/20",
+      indicator: "bg-blue-500"
+    };
+    return { 
+      label: "ALTO", 
+      color: "text-emerald-500", 
+      bg: "bg-emerald-500/10", 
+      border: "border-emerald-500/20",
+      indicator: "bg-emerald-500"
+    };
   };
 
   const handleSort = (field: SortField) => {
@@ -95,646 +130,588 @@ export const ProductsView = ({
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (filters.sortBy !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/40" />;
+    if (filters.sortBy !== field) return <div className="w-3 h-3 opacity-0" />;
     return filters.sortOrder === "asc" ? (
-      <ArrowUpDown className="ml-1 h-3 w-3 text-foreground" />
+      <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
     ) : (
-      <ArrowUpDown className="ml-1 h-3 w-3 text-foreground rotate-180" />
+      <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
     );
   };
 
   return (
     <>
-      <div className="min-h-screen bg-background pb-10">
-      {/* Sticky Header - Corporate Solid */}
-      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div>
-            <h1 className="text-base font-semibold tracking-tight uppercase">
-              Produtos
-            </h1>
-            <p className="text-xs text-muted-foreground hidden md:block mt-0.5">
-              {pagination.totalElements}{" "}
-              {pagination.totalElements === 1 ? "produto" : "produtos"} no armazém
-            </p>
-          </div>
+      <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
+        {/* Header - Corporate Solid Dark */}
+        <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
+          <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight uppercase text-white">
+                  Gestão de Produtos
+                </h1>
+                <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Sistema Operacional
+                </div>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setScannerOpen(true)}
-              variant="outline"
-              className="hidden md:flex rounded-sm border-border/60 hover:bg-muted/50"
-            >
-              <ScanLine className="mr-2 h-3.5 w-3.5" />
-              Adicionar via Scanner
-            </Button>
-            <Link href="/products/create">
-              <Button className="hidden md:flex rounded-sm bg-foreground text-background hover:bg-foreground/90">
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                Novo Produto
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setScannerOpen(true)}
+                variant="outline"
+                className="hidden h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white md:flex"
+              >
+                <ScanLine className="mr-2 h-3.5 w-3.5" />
+                Scanner
               </Button>
-            </Link>
+              <Link href="/products/create">
+                <Button className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Produto
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Scanner Drawer */}
-      <ScannerDrawer open={scannerOpen} onOpenChange={setScannerOpen} />
+        {/* Scanner Drawer */}
+        <ScannerDrawer open={scannerOpen} onOpenChange={setScannerOpen} />
 
-      <main className="mx-auto w-full max-w-7xl py-6 px-4 md:px-6 lg:px-8">
-        {/* Warehouse Required State */}
-        {requiresWarehouse && (
-          <Card className="border border-border/50 bg-card/80 rounded-sm">
-            <CardContent className="pt-12 pb-12">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-muted/20 border border-border/30 mb-4">
-                  <Warehouse className="h-8 w-8 text-foreground/40" />
-                </div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide mb-2">
-                  Nenhum armazém selecionado
-                </h3>
-                <p className="text-xs text-muted-foreground/70 mb-6 max-w-sm">
-                  Selecione um armazém primeiro para visualizar os produtos
-                </p>
-                <Link href="/warehouses">
-                  <Button className="rounded-sm bg-foreground text-background hover:bg-foreground/90">
-                    <Warehouse className="mr-2 h-3.5 w-3.5" />
-                    Selecionar Armazém
-                  </Button>
-                </Link>
+        <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+          {/* Warehouse Required State - Brutalist Warning */}
+          {requiresWarehouse && (
+            <div className="flex flex-col items-center justify-center rounded-[4px] border border-amber-900/30 bg-amber-950/10 py-20 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[4px] bg-amber-500/10 ring-1 ring-amber-500/20">
+                <Warehouse className="h-10 w-10 text-amber-500" />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <h3 className="text-xl font-bold uppercase tracking-wide text-amber-500">
+                Atenção Necessária
+              </h3>
+              <p className="mt-2 max-w-md text-sm text-amber-500/70">
+                O sistema de gestão de produtos requer que um armazém ativo seja selecionado para operar.
+              </p>
+              <Link href="/warehouses" className="mt-8">
+                <Button className="h-10 rounded-[4px] bg-amber-600 px-8 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
+                  Selecionar Armazém
+                </Button>
+              </Link>
+            </div>
+          )}
 
-        {/* Main Content */}
-        {!requiresWarehouse && (
-          <Card className="border border-border/50 bg-card/80 rounded-sm">
-            <CardHeader className="border-b border-border/30 pb-3">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                    <Package className="h-4 w-4 text-foreground/70" />
+          {/* Main Content */}
+          {!requiresWarehouse && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-5">
+                {/* Row 1: Insight Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Total Items */}
+                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-blue-600/10 border border-blue-600/20">
+                        <BarChart3 className="h-3.5 w-3.5 text-blue-500" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Total Geral</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-bold tracking-tighter text-white">{pagination.totalElements}</span>
+                      <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                      Lista de Produtos
-                    </CardTitle>
-                    <CardDescription className="text-xs mt-0.5">
-                      {pagination.totalElements}{" "}
-                      {pagination.totalElements === 1 ? "produto" : "produtos"}
-                    </CardDescription>
+
+                  {/* Low Stock */}
+                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
+                        <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Baixo Estoque</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-bold tracking-tighter text-white">{lowStockCount}</span>
+                      <span className="text-[10px] font-medium uppercase text-neutral-600">alertas</span>
+                    </div>
+                  </div>
+
+                  {/* Out of Stock */}
+                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
+                        <XCircle className="h-3.5 w-3.5 text-rose-500" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Sem Estoque</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-bold tracking-tighter text-white">{outOfStockCount}</span>
+                      <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
+                    </div>
+                  </div>
+
+                  {/* Top Category */}
+                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-emerald-500/10 border border-emerald-500/20">
+                        <Tag className="h-3.5 w-3.5 text-emerald-500" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Top Categoria</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]" title={topCategory}>{topCategory || "—"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Search & Filters */}
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
+                  <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
+                    <div className="text-neutral-500 absolute left-3">
+                      <Search className="h-3.5 w-3.5" />
+                    </div>
+                    <Input
+                      placeholder="Pesquisar no inventário (nome, SKU, código)..."
+                      value={filters.searchQuery}
+                      onChange={(e) => onSearchChange(e.target.value)}
+                      className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                    />
+                  </div>
+
+                  <div className="flex flex-col md:flex-row items-center gap-2 h-auto md:h-12">
+                    <Select
+                      value={`${filters.sortBy}-${filters.sortOrder}`}
+                      onValueChange={(value) => {
+                        const [field, order] = value.split("-") as [SortField, SortOrder];
+                        onSortChange(field, order);
+                      }}
+                    >
+                      <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                        <SelectItem value="name-asc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Nome (A-Z)</SelectItem>
+                        <SelectItem value="name-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Nome (Z-A)</SelectItem>
+                        <SelectItem value="sku-asc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">SKU (A-Z)</SelectItem>
+                        <SelectItem value="sku-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">SKU (Z-A)</SelectItem>
+                        <SelectItem value="createdAt-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Recentes</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={filters.pageSize.toString()}
+                      onValueChange={(value) => onPageSizeChange(Number(value))}
+                    >
+                      <SelectTrigger className="h-12 w-full md:w-[75px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                        <SelectItem value="10" className="text-[9px] font-bold uppercase focus:bg-neutral-800">10</SelectItem>
+                        <SelectItem value="20" className="text-[9px] font-bold uppercase focus:bg-neutral-800">20</SelectItem>
+                        <SelectItem value="50" className="text-[9px] font-bold uppercase focus:bg-neutral-800">50</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
-              {/* Filters Bar */}
-              <div className="flex flex-col md:flex-row gap-3">
-                {/* Search */}
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
-                  <Input
-                    placeholder="Buscar por nome, SKU ou código de barras..."
-                    value={filters.searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className="pl-9 h-9 rounded-sm border-border/40 text-xs bg-background"
-                  />
-                </div>
-
-                {/* Sort */}
-                <Select
-                  value={`${filters.sortBy}-${filters.sortOrder}`}
-                  onValueChange={(value) => {
-                    const [field, order] = value.split("-") as [SortField, SortOrder];
-                    onSortChange(field, order);
-                  }}
-                >
-                  <SelectTrigger className="w-full md:w-[180px] h-9 rounded-sm border-border/40 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-sm">
-                    <SelectItem value="name-asc" className="text-xs">Nome (A-Z)</SelectItem>
-                    <SelectItem value="name-desc" className="text-xs">Nome (Z-A)</SelectItem>
-                    <SelectItem value="sku-asc" className="text-xs">SKU (A-Z)</SelectItem>
-                    <SelectItem value="sku-desc" className="text-xs">SKU (Z-A)</SelectItem>
-                    <SelectItem value="createdAt-desc" className="text-xs">Mais Recentes</SelectItem>
-                    <SelectItem value="createdAt-asc" className="text-xs">Mais Antigos</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Page Size */}
-                <Select
-                  value={filters.pageSize.toString()}
-                  onValueChange={(value) => onPageSizeChange(Number(value))}
-                >
-                  <SelectTrigger className="w-full md:w-[120px] h-9 rounded-sm border-border/40 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-sm">
-                    <SelectItem value="10" className="text-xs">10 / página</SelectItem>
-                    <SelectItem value="20" className="text-xs">20 / página</SelectItem>
-                    <SelectItem value="50" className="text-xs">50 / página</SelectItem>
-                    <SelectItem value="100" className="text-xs">100 / página</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-
-            <CardContent className="pt-5">
-              {/* Loading State */}
-              {isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              )}
-
-              {/* Error State */}
-              {error && (
-                <div className="flex items-center justify-center py-12 text-destructive">
-                  Erro ao carregar produtos
-                </div>
-              )}
-
-              {/* Empty State */}
-              {!isLoading && !error && products.length === 0 && !filters.searchQuery && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-muted/20 border border-border/30 mb-4">
-                    <Package className="h-8 w-8 text-foreground/40" />
+              {/* Data Display */}
+              <div className="min-h-[400px]">
+                {/* Loading */}
+                {isLoading && (
+                  <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <span className="text-xs uppercase tracking-wide text-neutral-500">Carregando dados...</span>
                   </div>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide mb-2">
-                    Nenhum produto encontrado
-                  </h3>
-                  <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm">
-                    Adicione produtos a este armazém para começar
-                  </p>
-                  <Link href="/products/create">
-                    <Button className="rounded-sm bg-foreground text-background hover:bg-foreground/90">
-                      <Plus className="mr-2 h-3.5 w-3.5" />
-                      Criar Produto
-                    </Button>
-                  </Link>
-                </div>
-              )}
+                )}
 
-              {/* No Results State */}
-              {!isLoading && !error && products.length === 0 && filters.searchQuery && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-muted/20 border border-border/30 mb-4">
-                    <Search className="h-8 w-8 text-foreground/40" />
+                {/* Error */}
+                {error && (
+                  <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
+                    <AlertTriangle className="h-8 w-8 text-rose-500" />
+                    <div className="text-center">
+                      <h3 className="text-sm font-bold uppercase text-rose-500">Falha na conexão</h3>
+                      <p className="text-xs text-rose-500/70">Não foi possível carregar a lista de produtos</p>
+                    </div>
                   </div>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide mb-2">
-                    Nenhum resultado encontrado
-                  </h3>
-                  <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm">
-                    Tente buscar com outros termos
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => onSearchChange("")}
-                    className="rounded-sm border-border/40 text-xs"
-                  >
-                    Limpar Busca
-                  </Button>
-                </div>
-              )}
+                )}
 
-              {/* Desktop Table */}
-              {!isLoading && !error && products.length > 0 && (
-                <>
-                  <div className="hidden md:block rounded-sm border border-border/40">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-b border-border/30">
-                          <TableHead
-                            className="text-xs font-semibold uppercase tracking-wide cursor-pointer hover:text-foreground"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center">
-                              Nome
-                              <SortIcon field="name" />
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="text-xs font-semibold uppercase tracking-wide cursor-pointer hover:text-foreground"
-                            onClick={() => handleSort("sku")}
-                          >
-                            <div className="flex items-center">
-                              SKU
-                              <SortIcon field="sku" />
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-xs font-semibold uppercase tracking-wide">
-                            Categoria
-                          </TableHead>
-                          <TableHead className="text-xs font-semibold uppercase tracking-wide">
-                            Marca
-                          </TableHead>
-                          <TableHead className="text-xs font-semibold uppercase tracking-wide">
-                            Quantidade
-                          </TableHead>
-                          <TableHead className="text-xs font-semibold uppercase tracking-wide">
-                            Status
-                          </TableHead>
-                          <TableHead className="w-32 text-right text-xs font-semibold uppercase tracking-wide">
-                            Ações
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.map((product) => {
-                          const stockStatus = getStockStatus(product.totalQuantity);
-                          return (
-                            <TableRow
-                              key={product.id}
-                              className="border-b border-border/20 hover:bg-muted/30"
+                {/* Empty State */}
+                {!isLoading && !error && products.length === 0 && (
+                  <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+                      <Package className="h-8 w-8 text-neutral-600" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                        {filters.searchQuery ? "Nenhum resultado encontrado" : "Nenhum produto cadastrado"}
+                      </h3>
+                      <p className="mt-1 max-w-xs text-xs text-neutral-500">
+                        {filters.searchQuery 
+                          ? "Tente ajustar seus termos de busca ou filtros." 
+                          : "O inventário deste armazém está vazio. Comece adicionando produtos."}
+                      </p>
+                    </div>
+                    {filters.searchQuery ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => onSearchChange("")}
+                        className="rounded-[4px] border-neutral-700 text-xs uppercase text-neutral-300 hover:bg-neutral-800"
+                      >
+                        Limpar Filtros
+                      </Button>
+                    ) : (
+                      <Link href="/products/create">
+                        <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
+                          <Plus className="mr-2 h-3.5 w-3.5" />
+                          Primeiro Produto
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                {/* Table View (Desktop) */}
+                {!isLoading && !error && products.length > 0 && (
+                  <>
+                    <div className="hidden overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] md:block">
+                      <Table>
+                        <TableHeader className="bg-neutral-900">
+                          <TableRow className="border-b border-neutral-800 hover:bg-neutral-900">
+                            <TableHead
+                              className="h-10 cursor-pointer text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white"
+                              onClick={() => handleSort("name")}
                             >
-                              <TableCell className="font-medium text-sm">
-                                <div className="flex flex-col">
-                                  <span>{product.name}</span>
-                                  {product.barcode && (
-                                    <span className="text-xs text-muted-foreground/60 mt-0.5">
-                                      {product.barcode}
-                                    </span>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground/80">
-                                {product.sku || "—"}
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground/80">
-                                {product.categoryName || "—"}
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground/80">
-                                {product.brand?.name || "—"}
-                              </TableCell>
-                              <TableCell className="text-xs font-medium">
-                                {product.totalQuantity}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={stockStatus.variant} className="rounded-sm text-xs">
-                                  {stockStatus.label}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Link href={`/products/${product.id}`}>
+                              <div className="flex items-center gap-1">Nome <SortIcon field="name" /></div>
+                            </TableHead>
+                            <TableHead
+                              className="h-10 cursor-pointer text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white"
+                              onClick={() => handleSort("sku")}
+                            >
+                              <div className="flex items-center gap-1">SKU <SortIcon field="sku" /></div>
+                            </TableHead>
+                            <TableHead className="h-10 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                              Categoria / Marca
+                            </TableHead>
+                            <TableHead className="h-10 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                              Estoque
+                            </TableHead>
+                            <TableHead className="h-10 text-center text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                              Status
+                            </TableHead>
+                            <TableHead className="h-10 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                              Ações
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {products.map((product) => {
+                            const stockStatus = getStockStatus(product.totalQuantity);
+                            return (
+                              <TableRow
+                                key={product.id}
+                                className="group border-b border-neutral-800/50 hover:bg-neutral-800/50 transition-colors"
+                              >
+                                <TableCell className="py-3">
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-medium text-white">{product.name}</span>
+                                    {product.barcode && (
+                                      <span className="font-mono text-[10px] text-neutral-500">
+                                        {product.barcode}
+                                      </span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3 font-mono text-xs text-neutral-400">
+                                  {product.sku || "—"}
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="flex flex-col text-xs">
+                                    <span className="text-neutral-300">{product.categoryName || "—"}</span>
+                                    <span className="text-[10px] text-neutral-600">{product.brand?.name || "—"}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3 text-right">
+                                  <span className="font-mono text-sm font-bold tracking-tighter text-white">
+                                    {product.totalQuantity}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="py-3 text-center">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                                      stockStatus.bg,
+                                      stockStatus.color,
+                                      stockStatus.border
+                                    )}
+                                  >
+                                    {stockStatus.label}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <Link href={`/products/${product.id}`}>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    </Link>
+                                    <Link href={`/products/${product.id}/edit`}>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-blue-500"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                    </Link>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7 rounded-sm"
-                                      title="Ver detalhes"
+                                      className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-rose-500"
+                                      onClick={() => onOpenDeleteDialog(product)}
                                     >
-                                      <Eye className="h-3.5 w-3.5" />
-                                      <span className="sr-only">Ver detalhes</span>
+                                      <Trash2 className="h-4 w-4" />
                                     </Button>
-                                  </Link>
-                                  <Link href={`/products/${product.id}/edit`}>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 rounded-sm"
-                                      title="Editar produto"
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                      <span className="sr-only">Editar</span>
-                                    </Button>
-                                  </Link>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 rounded-sm"
-                                    title="Movimentar estoque"
-                                  >
-                                    <Move className="h-3.5 w-3.5" />
-                                    <span className="sr-only">Movimentar</span>
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 rounded-sm"
-                                    title="Deletar produto"
-                                    aria-label="Deletar"
-                                    onClick={() => onOpenDeleteDialog(product)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    <span className="sr-only">Deletar</span>
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
 
-                  {/* Mobile List */}
-                  <div className="md:hidden space-y-3">
-                    {products.map((product) => {
-                      const stockStatus = getStockStatus(product.totalQuantity);
-                      return (
-                        <Card
-                          key={product.id}
-                          className="border border-border/40 bg-card rounded-sm"
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h3 className="text-sm font-semibold mb-1">
-                                  {product.name}
-                                </h3>
-                                <div className="flex flex-col gap-1">
-                                  {product.sku && (
-                                    <p className="text-xs text-muted-foreground/70">
-                                      SKU: {product.sku}
-                                    </p>
-                                  )}
-                                  {product.barcode && (
-                                    <p className="text-xs text-muted-foreground/70">
-                                      Código: {product.barcode}
-                                    </p>
-                                  )}
+                    {/* Mobile Grid */}
+                    <div className="grid gap-3 md:hidden">
+                      {products.map((product) => {
+                        const stockStatus = getStockStatus(product.totalQuantity);
+                        return (
+                          <div
+                            key={product.id}
+                            className={cn(
+                              "flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4",
+                              "border-l-4",
+                              stockStatus.indicator.replace("bg-", "border-")
+                            )}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-semibold text-white">{product.name}</h3>
+                                <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
+                                  <span className="font-mono">{product.sku || "SEM SKU"}</span>
+                                  <span>•</span>
+                                  <span>{product.categoryName}</span>
                                 </div>
                               </div>
-                              <Badge variant={stockStatus.variant} className="rounded-sm text-xs">
-                                {stockStatus.label}
+                              <Badge 
+                                variant="outline" 
+                                className={cn(
+                                  "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase",
+                                  stockStatus.bg,
+                                  stockStatus.color,
+                                  stockStatus.border
+                                )}
+                              >
+                                {product.totalQuantity} un
                               </Badge>
                             </div>
 
-                            <div className="space-y-2 text-xs mb-3 pb-3 border-b border-border/20">
-                              {product.categoryName && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground/60">Categoria:</span>
-                                  <span className="text-muted-foreground/80">
-                                    {product.categoryName}
-                                  </span>
-                                </div>
-                              )}
-                              {product.brand && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground/60">Marca:</span>
-                                  <span className="text-muted-foreground/80">
-                                    {product.brand.name}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground/60">Quantidade:</span>
-                                <span className="text-muted-foreground/80 font-medium">
-                                  {product.totalQuantity}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-2 pt-2 border-t border-neutral-800">
                               <Link href={`/products/${product.id}`} className="flex-1">
                                 <Button
                                   variant="outline"
-                                  size="sm"
-                                  className="w-full rounded-sm border-border/40 text-xs"
+                                  className="h-8 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase text-neutral-300 hover:bg-neutral-800 hover:text-white"
                                 >
-                                  <Eye className="mr-2 h-3.5 w-3.5" />
-                                  Ver
+                                  Detalhes
                                 </Button>
                               </Link>
                               <Link href={`/products/${product.id}/edit`} className="flex-1">
                                 <Button
                                   variant="outline"
-                                  size="sm"
-                                  className="w-full rounded-sm border-border/40 text-xs"
+                                  className="h-8 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase text-neutral-300 hover:bg-neutral-800 hover:text-blue-500"
                                 >
-                                  <Pencil className="mr-2 h-3.5 w-3.5" />
                                   Editar
                                 </Button>
                               </Link>
                               <Button
                                 variant="outline"
-                                size="sm"
-                                className="rounded-sm border-border/40 text-xs px-2"
-                              >
-                                <Move className="h-3.5 w-3.5" />
-                                <span className="sr-only">Movimentar</span>
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="rounded-sm border-border/40 text-xs px-2"
-                                aria-label="Deletar"
+                                size="icon"
+                                className="h-8 w-8 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-rose-950 hover:text-rose-500"
                                 onClick={() => onOpenDeleteDialog(product)}
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                <span className="sr-only">Deletar</span>
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-
-                  {/* Pagination */}
-                  {pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-5 pt-5 border-t border-border/30">
-                      <div className="text-xs text-muted-foreground/70">
-                        Página {pagination.page + 1} de {pagination.totalPages} •{" "}
-                        {pagination.totalElements} {pagination.totalElements === 1 ? "item" : "itens"}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onPageChange(pagination.page - 1)}
-                          disabled={pagination.page === 0}
-                          className="rounded-sm border-border/40 text-xs h-8"
-                        >
-                          <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                          Anterior
-                        </Button>
-
-                        <div className="hidden md:flex items-center gap-1">
-                          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                            let pageNum: number;
-                            if (pagination.totalPages <= 5) {
-                              pageNum = i;
-                            } else if (pagination.page < 3) {
-                              pageNum = i;
-                            } else if (pagination.page >= pagination.totalPages - 3) {
-                              pageNum = pagination.totalPages - 5 + i;
-                            } else {
-                              pageNum = pagination.page - 2 + i;
-                            }
-
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={pagination.page === pageNum ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => onPageChange(pageNum)}
-                                className="rounded-sm border-border/40 text-xs h-8 w-8 p-0"
-                              >
-                                {pageNum + 1}
-                              </Button>
-                            );
-                          })}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onPageChange(pagination.page + 1)}
-                          disabled={pagination.page >= pagination.totalPages - 1}
-                          className="rounded-sm border-border/40 text-xs h-8"
-                        >
-                          Próxima
-                          <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                        </Button>
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </main>
 
-      {/* Floating Action Buttons - Mobile */}
-      {!requiresWarehouse && (
-        <>
-          {/* Scanner Button */}
-          <Button
-            onClick={() => setScannerOpen(true)}
-            className="fixed bottom-6 right-20 h-12 w-12 rounded-sm border-border/60 bg-card text-foreground hover:bg-muted/50 md:hidden border"
-            size="icon"
-          >
-            <ScanLine className="h-5 w-5" />
-            <span className="sr-only">Adicionar via Scanner</span>
-          </Button>
-          
-          {/* Create Product Button */}
-          <Link href="/products/create">
+                    {/* Pagination */}
+                    {pagination.totalPages > 1 && (
+                      <div className="flex items-center justify-between border-t border-neutral-800 pt-6">
+                        <div className="text-xs text-neutral-500">
+                          Mostrando {pagination.page * pagination.pageSize + 1} a{" "}
+                          {Math.min(
+                            (pagination.page + 1) * pagination.pageSize,
+                            pagination.totalElements
+                          )}{" "}
+                          de {pagination.totalElements} produtos
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onPageChange(pagination.page - 1)}
+                            disabled={pagination.page === 0}
+                            className="h-8 w-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onPageChange(pagination.page + 1)}
+                            disabled={pagination.page >= pagination.totalPages - 1}
+                            className="h-8 w-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* Floating Action Buttons - Mobile */}
+        {!requiresWarehouse && (
+          <>
             <Button
-              className="fixed bottom-6 right-6 h-12 w-12 rounded-sm bg-foreground text-background hover:bg-foreground/90 md:hidden"
+              onClick={() => setScannerOpen(true)}
+              className="fixed bottom-20 right-4 h-12 w-12 rounded-[4px] border border-neutral-700 bg-[#171717] text-white shadow-lg hover:bg-neutral-800 md:hidden"
               size="icon"
             >
-              <Plus className="h-5 w-5" />
-              <span className="sr-only">Novo Produto</span>
+              <ScanLine className="h-5 w-5" />
             </Button>
-          </Link>
-        </>
-      )}
+            
+            <Link href="/products/create">
+              <Button
+                className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
+                size="icon"
+              >
+                <Plus className="h-6 w-6" />
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
 
       <AlertDialog
-      open={deleteDialogOpen}
-      onOpenChange={(open) => {
-        if (!open) onCloseDeleteDialog();
-      }}
-    >
-      <AlertDialogContent className="rounded-sm border-border/50">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
-            Confirmar exclusão
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-xs text-muted-foreground/70">
-            Tem certeza que deseja deletar o produto{" "}
-            <strong className="text-foreground">{deleteProduct?.name}</strong>? O produto
-            será desativado e não poderá ser usado em novas operações.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) onCloseDeleteDialog();
+        }}
+      >
+        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
+              Confirmar exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-neutral-500">
+              Tem certeza que deseja deletar o produto{" "}
+              <strong className="text-white">{deleteProduct?.name}</strong>? Esta ação é irreversível.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-        {isCheckingDeleteBatches && (
-          <div className="flex items-center gap-2 rounded-sm border border-border/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground/70">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Verificando estoque no armazém atual...
-          </div>
-        )}
-
-        {!isCheckingDeleteBatches && deleteBatches.length > 0 && (
-          <div className="rounded-sm border border-yellow-200/70 bg-yellow-100/80 px-3 py-3 text-xs text-yellow-900">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              Atenção
+          {isCheckingDeleteBatches && (
+            <div className="flex items-center gap-2 rounded-[4px] border border-blue-900/30 bg-blue-950/10 px-3 py-2 text-xs text-blue-500">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Verificando estoque...
             </div>
-            <p className="mt-1">
-              Ainda existe estoque deste produto no armazém atual. Confira os batches
-              antes de excluir.
-            </p>
-            <div className="mt-2 space-y-1">
-              {deleteBatches.map((batch) => (
-                <div
-                  key={batch.id}
-                  className="flex items-center justify-between border-b border-yellow-200/60 pb-1 text-[11px] last:border-b-0 last:pb-0"
-                >
-                  <span className="font-medium">Lote {batch.batchNumber}</span>
-                  <span>{batch.quantity} un</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="rounded-sm text-xs">
-            Cancelar
-          </AlertDialogCancel>
-          <Button
-            type="button"
-            onClick={onConfirmDelete}
-            disabled={isCheckingDeleteBatches || isDeletingProduct}
-            className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
-          >
-            {isDeletingProduct ? (
-              <>
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                Excluindo...
-              </>
-            ) : (
-              "Excluir"
-            )}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+          {!isCheckingDeleteBatches && deleteBatches.length > 0 && (
+            <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-3 py-3 text-xs text-amber-500">
+              <div className="flex items-center gap-2 font-bold uppercase tracking-wide">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Estoque Existente
+              </div>
+              <p className="mt-1 opacity-90">
+                Ainda existe estoque deste produto. Zere o estoque antes de excluir.
+              </p>
+            </div>
+          )}
+
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              onClick={onConfirmDelete}
+              disabled={isCheckingDeleteBatches || isDeletingProduct}
+              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
+            >
+              {isDeletingProduct ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
 
       <AlertDialog
-      open={secondConfirmOpen}
-      onOpenChange={(open) => {
-        if (!open) onCloseSecondConfirm();
-      }}
-    >
-      <AlertDialogContent className="rounded-sm border-border/50">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-sm font-semibold uppercase tracking-wide">
-            Tem certeza?
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-xs text-muted-foreground/70">
-            O produto{" "}
-            <strong className="text-foreground">{deleteProduct?.name}</strong> será
-            desativado. Batches e movimentações permanecerão para auditoria.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="rounded-sm text-xs">
-            Não deletar
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onSecondConfirmDelete}
-            disabled={isDeletingProduct}
-            className="rounded-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
-          >
-            {isDeletingProduct ? (
-              <>
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                Deletando...
-              </>
-            ) : (
-              "Deletar"
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+        open={secondConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) onCloseSecondConfirm();
+        }}
+      >
+        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
+              Confirmação Final
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-neutral-500">
+              O produto <strong className="text-white">{deleteProduct?.name}</strong> será desativado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onSecondConfirmDelete}
+              disabled={isDeletingProduct}
+              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
+            >
+              {isDeletingProduct ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                "Confirmar Exclusão"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );

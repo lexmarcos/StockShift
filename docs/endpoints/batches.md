@@ -26,7 +26,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
   "quantity": 100,
   "batchCode": "BATCH-2025-001",
   "expirationDate": "2026-12-31",
-  "costPrice": 10.50,
+  "costPrice": 1050,
   "notes": "Initial stock from supplier"
 }
 ```
@@ -36,8 +36,9 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 - `warehouseId`: Required, UUID of the warehouse
 - `quantity`: Required, positive integer
 - `batchCode`: Optional, unique batch identifier. If not provided, will be auto-generated in format `BATCH-YYYYMMDD-XXX`
+- `manufacturedDate`: Optional, ISO date string for manufacturing date
 - `expirationDate`: Optional, ISO date string (required if product has expiration)
-- `costPrice`: Optional, cost per unit
+- `costPrice`: Optional, cost per unit in cents (e.g., 1050 = R$10,50)
 - `notes`: Optional, additional notes
 
 ### Response
@@ -56,13 +57,15 @@ Batches represent specific quantities of products stored in warehouses. Each bat
     "warehouseName": "Main Warehouse",
     "warehouseCode": "WH-001",
     "quantity": 100,
-    "batchNumber": "BATCH-2025-001",
+    "batchCode": "BATCH-2025-001",
+    "manufacturedDate": "2026-01-01",
     "expirationDate": "2026-12-31",
-    "costPrice": 10.50,
+    "costPrice": 1050,
     "notes": "Initial stock from supplier",
     "createdAt": "2025-12-28T10:00:00Z",
     "updatedAt": "2025-12-28T10:00:00Z"
   }
+}
 }
 ```
 
@@ -72,7 +75,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 3. **Quantity Input**: Numeric input with validation (positive numbers)
 4. **Batch Number**: Auto-generate or allow manual entry
 5. **Expiration Date**: Date picker, show only if product has expiration
-6. **Cost Price**: Decimal input with currency symbol
+6. **Cost Price**: Decimal input with currency symbol (convert to cents for API)
 7. **Validation**: Check required fields, validate formats
 8. **Success Flow**: Show success message, redirect to batch list or detail
 
@@ -89,9 +92,13 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 ### Request
 **Method**: `POST`  
-**Content-Type**: `application/json`
+**Content-Type**: `multipart/form-data`
 
-#### Request Body
+#### Request Parts
+- `product`: JSON object (see below)
+- `image`: Optional, image file (PNG, JPG, JPEG, WEBP)
+
+#### Product JSON Structure
 ```json
 {
   "name": "New Product Name",
@@ -112,8 +119,8 @@ This endpoint atomically creates a new product and its first batch in a single t
   "quantity": 100,
   "manufacturedDate": "2026-01-01",
   "expirationDate": "2026-12-31",
-  "costPrice": 10.50,
-  "sellingPrice": 20.00
+  "costPrice": 1050,
+  "sellingPrice": 2000
 }
 ```
 
@@ -135,8 +142,8 @@ This endpoint atomically creates a new product and its first batch in a single t
 - `quantity`: Required, positive integer or zero
 - `manufacturedDate`: Optional, ISO date string
 - `expirationDate`: Optional, ISO date string (required if `hasExpiration: true`)
-- `costPrice`: Optional, cost per unit
-- `sellingPrice`: Optional, selling price per unit
+- `costPrice`: Optional, cost per unit in cents (e.g., 1050 = R$10,50)
+- `sellingPrice`: Optional, selling price per unit in cents (e.g., 2000 = R$20,00)
 
 ### Response
 **Status Code**: `201 CREATED`
@@ -150,6 +157,7 @@ This endpoint atomically creates a new product and its first batch in a single t
       "id": "770e8400-e29b-41d4-a716-446655440002",
       "name": "New Product Name",
       "description": "Product description",
+      "imageUrl": "https://example.com/storage/products/uuid.png",
       "categoryId": "440e8400-e29b-41d4-a716-446655440000",
       "categoryName": "Category Name",
       "brand": {
@@ -180,8 +188,8 @@ This endpoint atomically creates a new product and its first batch in a single t
       "quantity": 100,
       "manufacturedDate": "2026-01-01",
       "expirationDate": "2026-12-31",
-      "costPrice": 10.50,
-      "sellingPrice": 20.00,
+      "costPrice": 1050,
+      "sellingPrice": 2000,
       "createdAt": "2026-01-04T10:00:00Z",
       "updatedAt": "2026-01-04T10:00:00Z"
     }
@@ -272,22 +280,25 @@ This endpoint atomically creates a new product and its first batch in a single t
 ```
 
 ### Frontend Implementation Guide
-1. **Use Case**: Product registration + stock entry workflow
-2. **Product Fields**: Name (required), SKU, barcode, category, brand
-3. **Batch Fields**: Warehouse selector, batch code, quantity, dates, prices
-4. **Validation**:
+1. **Form Handling**: Use `FormData` to handle file upload and JSON data (`product` part)
+2. **Image Preview**: Implement client-side image preview before upload
+3. **Use Case**: Product registration + stock entry workflow
+4. **Product Fields**: Name (required), SKU, barcode, category, brand
+5. **Batch Fields**: Warehouse selector, batch code, quantity, dates, prices
+6. **Validation**:
    - Check if product exists before using this endpoint
    - Validate quantity is zero or positive
    - Show expiration date field only if `hasExpiration: true`
    - Validate dates: expiration must be after manufactured date
-5. **Success Flow**: Show both product and batch created, redirect to product detail
-6. **Error Handling**:
+   - Validate image file type/size if provided
+7. **Success Flow**: Show both product and batch created, redirect to product detail
+8. **Error Handling**:
    - If SKU/barcode exists, suggest using regular batch creation
    - Show clear messages for each validation error
-7. **UX Tip**: Combine product and batch forms in a single wizard or tabbed interface
+9. **UX Tip**: Combine product and batch forms in a single wizard or tabbed interface
 
 ### When to Use This Endpoint
-- ✅ Registering a brand new product with initial stock
+- ✅ Registering a brand new product with initial stock and optional image
 - ✅ Receiving new products from suppliers
 - ✅ Quick product + stock entry workflow
 - ❌ Adding stock to existing products (use `POST /api/batches`)
@@ -321,13 +332,16 @@ This endpoint atomically creates a new product and its first batch in a single t
       "warehouseName": "Main Warehouse",
       "warehouseCode": "WH-001",
       "quantity": 100,
-      "batchNumber": "BATCH-2025-001",
+      "batchCode": "BATCH-2025-001",
+      "manufacturedDate": "2026-01-01",
       "expirationDate": "2026-12-31",
-      "costPrice": 10.50,
+      "costPrice": 1050,
       "notes": "Initial stock from supplier",
       "createdAt": "2025-12-28T10:00:00Z",
       "updatedAt": "2025-12-28T10:00:00Z"
     }
+  ]
+}
   ]
 }
 ```
@@ -370,9 +384,10 @@ This endpoint atomically creates a new product and its first batch in a single t
     "warehouseName": "Main Warehouse",
     "warehouseCode": "WH-001",
     "quantity": 100,
-    "batchNumber": "BATCH-2025-001",
+    "batchCode": "BATCH-2025-001",
+    "manufacturedDate": "2026-01-01",
     "expirationDate": "2026-12-31",
-    "costPrice": 10.50,
+    "costPrice": 1050,
     "notes": "Initial stock from supplier",
     "createdAt": "2025-12-28T10:00:00Z",
     "updatedAt": "2025-12-28T10:00:00Z"
@@ -569,12 +584,12 @@ interface BatchTableProps {
 }
 
 // Columns to display:
-// - Batch Number
+// - Batch Code
 // - Product (name + SKU)
 // - Warehouse (name + code)
 // - Quantity (with low stock indicator)
 // - Expiration Date (with expiring indicator)
-// - Cost Price (formatted currency)
+// - Cost Price (formatted currency from cents)
 // - Actions (Edit, Delete)
 
 // Features:

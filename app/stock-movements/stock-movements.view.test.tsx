@@ -17,7 +17,7 @@ const baseProps = {
     movementType: "all" as const,
     warehouseId: "",
   },
-  sortConfig: { key: "createdAt", direction: "desc" as const },
+  sortConfig: { key: "createdAt" as "createdAt", direction: "desc" as const },
   setSearchQuery: vi.fn(),
   setStatus: vi.fn(),
   setMovementType: vi.fn(),

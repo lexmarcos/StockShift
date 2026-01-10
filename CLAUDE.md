@@ -55,7 +55,7 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 
 ### 3. Comportamento e Interação
 - **Sem Animações:** A interface deve ser instantânea. Não utilize transições de `hover` suaves ou `fades`. O estado de hover deve ser uma mudança abrupta de cor de fundo ou borda.
-- **Tipografia:** Sans-serif (Inter ou System Sans). Títulos em **Bold**, textos de sistema em **Medium**. Use `tracking-tighter` para números e valores financeiros para passar sensação de precisão técnica.
+- **Tipografia:** Sans-serif (Inter ou System Sans). Títulos em **Bold**. Use `tracking-tighter` para números e valores financeiros para passar sensação de precisão técnica.
 - **Sombras:** Praticamente inexistentes. A profundidade é dada pelo contraste de cores de superfície e bordas sutis.
 
 ---

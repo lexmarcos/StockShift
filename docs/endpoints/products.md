@@ -16,9 +16,13 @@ These endpoints manage products in the StockShift system. All endpoints require 
 
 ### Request
 **Method**: `POST`  
-**Content-Type**: `application/json`
+**Content-Type**: `multipart/form-data`
 
-#### Request Body
+#### Request Parts
+- `product`: JSON object (see below)
+- `image`: Optional, image file (PNG, JPG, JPEG, WEBP)
+
+#### Product JSON Structure
 ```json
 {
   "name": "Product Name",
@@ -34,7 +38,8 @@ These endpoints manage products in the StockShift system. All endpoints require 
     "dimensions": "10x10x10cm"
   },
   "hasExpiration": true,
-  "active": true
+  "active": true,
+  "imageUrl": "https://example.com/storage/products/uuid.png"
 }
 ```
 
@@ -50,6 +55,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 - `attributes`: Optional, JSON object with custom attributes
 - `hasExpiration`: Optional, default `false`, indicates if product has expiration date
 - `active`: Optional, default `true`, product status
+- `imageUrl`: Optional, URL of the product image
 
 ### Response
 **Status Code**: `201 CREATED`
@@ -62,6 +68,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Product Name",
     "description": "Product description",
+    "imageUrl": "https://example.com/storage/products/uuid.png",
     "categoryId": "550e8400-e29b-41d4-a716-446655440000",
     "categoryName": "Category Name",
     "brand": {
@@ -88,14 +95,16 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```
 
 ### Frontend Implementation Guide
-1. **Form Fields**: Create form with all fields, use appropriate input types
-2. **Category Selector**: Implement dropdown/autocomplete for category selection
-3. **Brand Selector**: Implement dropdown/autocomplete for brand selection (optional field)
-4. **Barcode Scanner**: Consider integrating barcode scanner library
-5. **Barcode Type**: Provide dropdown with barcode types
-6. **Attributes Builder**: Allow dynamic key-value pairs for custom attributes
-7. **Validation**: Validate required fields before submission
-8. **Success Feedback**: Show success message and optionally redirect to product list
+1. **Form Handling**: Use `FormData` to handle file upload and JSON data
+2. **Image Preview**: Implement client-side image preview before upload
+3. **Form Fields**: Create form with all fields, use appropriate input types
+4. **Category Selector**: Implement dropdown/autocomplete for category selection
+5. **Brand Selector**: Implement dropdown/autocomplete for brand selection (optional field)
+6. **Barcode Scanner**: Consider integrating barcode scanner library
+7. **Barcode Type**: Provide dropdown with barcode types
+8. **Attributes Builder**: Allow dynamic key-value pairs for custom attributes
+9. **Validation**: Validate required fields and image file type/size before submission
+10. **Success Feedback**: Show success message and optionally redirect to product list
 
 ---
 
@@ -120,6 +129,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "Product Name",
       "description": "Product description",
+      "imageUrl": "https://example.com/storage/products/uuid.png",
       "categoryId": "660e8400-e29b-41d4-a716-446655440001",
       "categoryName": "Category Name",
       "brand": {
@@ -144,8 +154,8 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```
 
 ### Frontend Implementation Guide
-1. **List View**: Display products in table or card grid
-2. **Columns**: Show key fields (name, SKU, barcode, category, status)
+1. **List View**: Display products in table or card grid, including image thumbnail
+2. **Columns**: Show key fields (image, name, SKU, barcode, category, status)
 3. **Pagination**: Implement client-side pagination for large lists
 4. **Sorting**: Allow sorting by name, SKU, category, date
 5. **Filters**: Add filters for category, active status
@@ -175,6 +185,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Product Name",
     "description": "Product description",
+    "imageUrl": "https://example.com/storage/products/uuid.png",
     "categoryId": "660e8400-e29b-41d4-a716-446655440001",
     "categoryName": "Category Name",
     "brand": {
@@ -198,7 +209,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```
 
 ### Frontend Implementation Guide
-1. **Detail View**: Display all product information
+1. **Detail View**: Display all product information including full-size image
 2. **Sections**: Organize info in sections (Basic, Category, Barcode, Advanced)
 3. **Custom Attributes**: Display attributes as key-value list
 4. **Edit Button**: Include button to switch to edit mode
@@ -218,7 +229,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **URL Parameters**: `categoryId` (UUID) - Category identifier
 
 ### Response
-Same format as GET /api/products (returns array of products)
+Same format as GET /api/products (returns array of products with imageUrl)
 
 ### Frontend Implementation Guide
 1. **Category Filter**: Use this endpoint when filtering by category
@@ -238,7 +249,7 @@ Same format as GET /api/products (returns array of products)
 **URL Parameters**: `active` (Boolean) - `true` for active, `false` for inactive
 
 ### Response
-Same format as GET /api/products (returns array of products)
+Same format as GET /api/products (returns array of products with imageUrl)
 
 ### Frontend Implementation Guide
 1. **Status Filter**: Use toggle or tabs to filter active/inactive
@@ -260,7 +271,7 @@ Same format as GET /api/products (returns array of products)
 **Example**: `/api/products/search?q=laptop`
 
 ### Response
-Same format as GET /api/products (returns array of matching products)
+Same format as GET /api/products (returns array of matching products with imageUrl)
 
 ### Frontend Implementation Guide
 1. **Search Bar**: Implement debounced search input
@@ -284,7 +295,7 @@ Same format as GET /api/products (returns array of matching products)
 **URL Parameters**: `barcode` (String) - Product barcode
 
 ### Response
-Same format as GET /api/products/{id} (returns single product)
+Same format as GET /api/products/{id} (returns single product with imageUrl)
 
 ### Frontend Implementation Guide
 1. **Barcode Scanner**: Use camera or barcode scanner device
@@ -304,7 +315,7 @@ Same format as GET /api/products/{id} (returns single product)
 **URL Parameters**: `sku` (String) - Product SKU
 
 ### Response
-Same format as GET /api/products/{id} (returns single product)
+Same format as GET /api/products/{id} (returns single product with imageUrl)
 
 ### Frontend Implementation Guide
 1. **SKU Lookup**: Use for product lookup by SKU
@@ -322,10 +333,11 @@ Same format as GET /api/products/{id} (returns single product)
 ### Request
 **Method**: `PUT`  
 **URL Parameters**: `id` (UUID) - Product identifier  
-**Content-Type**: `application/json`
+**Content-Type**: `multipart/form-data`
 
-#### Request Body
-Same structure as POST /api/products
+#### Request Parts
+- `product`: JSON object (same structure as POST /api/products)
+- `image`: Optional, new image file to replace current one
 
 ### Response
 **Status Code**: `200 OK`
@@ -335,16 +347,19 @@ Same structure as POST /api/products
   "success": true,
   "message": "Product updated successfully",
   "data": {
-    // Updated product object
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Updated Product Name",
+    "imageUrl": "https://example.com/storage/products/new-uuid.png",
+    // ... rest of product object
   }
 }
 ```
 
 ### Frontend Implementation Guide
 1. **Edit Form**: Pre-populate form with current product data
-2. **Validation**: Same validation as create form
-3. **Optimistic Update**: Update UI immediately, rollback on error
-4. **Change Tracking**: Only send changed fields (if API supports partial updates)
+2. **Current Image**: Display current image and allow replacing it
+3. **Validation**: Same validation as create form
+4. **Optimistic Update**: Update UI immediately, rollback on error
 5. **Confirmation**: Show success message after update
 6. **Concurrent Edits**: Handle conflicts if data changed by another user
 

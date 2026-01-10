@@ -39,7 +39,7 @@ describe("stock movements list helpers", () => {
   it("filters by status and type", () => {
     const movements = [
       baseMovement,
-      { ...baseMovement, id: "m2", status: "COMPLETED" },
+      { ...baseMovement, id: "m2", status: "COMPLETED" as const },
     ];
     const filtered = filterMovements(movements, {
       searchQuery: "",
