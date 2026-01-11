@@ -19,6 +19,20 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Package,
   Loader2,
   Eye,
@@ -39,21 +53,13 @@ import {
   BarChart3,
   AlertCircle,
   XCircle,
-  Tag
+  Tag,
+  MoreHorizontal
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ScannerDrawer } from "@/components/product/scanner-drawer/scanner-drawer";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { ProductsViewProps, SortField, SortOrder } from "./products.types";
 import { cn } from "@/lib/utils";
 
@@ -138,6 +144,92 @@ export const ProductsView = ({
     );
   };
 
+  const ProductActions = ({ product }: { product: any }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl">
+        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Ações do Produto</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-neutral-800" />
+        <DropdownMenuItem asChild>
+          <Link href={`/products/${product.id}`} className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full">
+            <Eye className="mr-2 h-3.5 w-3.5" /> Detalhes
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/products/${product.id}/edit`} className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full">
+            <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onOpenDeleteDialog(product)} className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400">
+          <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const InsightCards = () => (
+    <>
+      {/* Total Items */}
+      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-blue-600/10 border border-blue-600/20">
+            <BarChart3 className="h-3.5 w-3.5 text-blue-500" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Total Geral</span>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold tracking-tighter text-white">{pagination.totalElements}</span>
+          <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
+        </div>
+      </div>
+
+      {/* Low Stock */}
+      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
+            <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Baixo Estoque</span>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold tracking-tighter text-white">{lowStockCount}</span>
+          <span className="text-[10px] font-medium uppercase text-neutral-600">alertas</span>
+        </div>
+      </div>
+
+      {/* Out of Stock */}
+      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
+            <XCircle className="h-3.5 w-3.5 text-rose-500" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Sem Estoque</span>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold tracking-tighter text-white">{outOfStockCount}</span>
+          <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
+        </div>
+      </div>
+
+      {/* Top Category */}
+      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-emerald-500/10 border border-emerald-500/20">
+            <Tag className="h-3.5 w-3.5 text-emerald-500" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Top Categoria</span>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]" title={topCategory}>{topCategory || "—"}</span>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <>
       <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
@@ -188,61 +280,24 @@ export const ProductsView = ({
                 </div>
 
                 {/* Row 1: Insight Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Total Items */}
-                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-blue-600/10 border border-blue-600/20">
-                        <BarChart3 className="h-3.5 w-3.5 text-blue-500" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Total Geral</span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl font-bold tracking-tighter text-white">{pagination.totalElements}</span>
-                      <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
-                    </div>
-                  </div>
-
-                  {/* Low Stock */}
-                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
-                        <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Baixo Estoque</span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl font-bold tracking-tighter text-white">{lowStockCount}</span>
-                      <span className="text-[10px] font-medium uppercase text-neutral-600">alertas</span>
-                    </div>
-                  </div>
-
-                  {/* Out of Stock */}
-                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
-                        <XCircle className="h-3.5 w-3.5 text-rose-500" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Sem Estoque</span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl font-bold tracking-tighter text-white">{outOfStockCount}</span>
-                      <span className="text-[10px] font-medium uppercase text-neutral-600">itens</span>
-                    </div>
-                  </div>
-
-                  {/* Top Category */}
-                  <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-emerald-500/10 border border-emerald-500/20">
-                        <Tag className="h-3.5 w-3.5 text-emerald-500" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Top Categoria</span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]" title={topCategory}>{topCategory || "—"}</span>
-                    </div>
-                  </div>
+                <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <InsightCards />
+                </div>
+                
+                {/* Mobile Accordion Insights */}
+                <div className="md:hidden">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="insights" className="border border-neutral-800 rounded-[4px] bg-[#171717] px-4">
+                      <AccordionTrigger className="text-sm font-bold uppercase text-neutral-400 hover:text-white hover:no-underline py-4">
+                        Resumo do Inventário
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="grid grid-cols-1 gap-4 pt-2 pb-2">
+                          <InsightCards />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
 
                 {/* Row 2: Search & Filters */}
@@ -267,18 +322,18 @@ export const ProductsView = ({
                         onSortChange(field, order);
                       }}
                     >
-                      <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                      <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                         <div className="flex items-center gap-2">
                           <Filter className="h-3.5 w-3.5 text-neutral-500" />
                           <SelectValue />
                         </div>
                       </SelectTrigger>
                       <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                        <SelectItem value="name-asc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Nome (A-Z)</SelectItem>
-                        <SelectItem value="name-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Nome (Z-A)</SelectItem>
-                        <SelectItem value="sku-asc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">SKU (A-Z)</SelectItem>
-                        <SelectItem value="sku-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">SKU (Z-A)</SelectItem>
-                        <SelectItem value="createdAt-desc" className="text-[9px] font-bold uppercase focus:bg-neutral-800">Recentes</SelectItem>
+                        <SelectItem value="name-asc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Nome (A-Z)</SelectItem>
+                        <SelectItem value="name-desc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Nome (Z-A)</SelectItem>
+                        <SelectItem value="sku-asc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">SKU (A-Z)</SelectItem>
+                        <SelectItem value="sku-desc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">SKU (Z-A)</SelectItem>
+                        <SelectItem value="createdAt-desc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Recentes</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -286,13 +341,13 @@ export const ProductsView = ({
                       value={filters.pageSize.toString()}
                       onValueChange={(value) => onPageSizeChange(Number(value))}
                     >
-                      <SelectTrigger className="h-12 w-full md:w-[75px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                      <SelectTrigger className="h-12 w-full md:w-[75px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                        <SelectItem value="10" className="text-[9px] font-bold uppercase focus:bg-neutral-800">10</SelectItem>
-                        <SelectItem value="20" className="text-[9px] font-bold uppercase focus:bg-neutral-800">20</SelectItem>
-                        <SelectItem value="50" className="text-[9px] font-bold uppercase focus:bg-neutral-800">50</SelectItem>
+                        <SelectItem value="10" className="text-[12px] font-bold uppercase focus:bg-neutral-800">10</SelectItem>
+                        <SelectItem value="20" className="text-[12px] font-bold uppercase focus:bg-neutral-800">20</SelectItem>
+                        <SelectItem value="50" className="text-[12px] font-bold uppercase focus:bg-neutral-800">50</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -435,33 +490,7 @@ export const ProductsView = ({
                                 </TableCell>
                                 <TableCell className="py-3">
                                   <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                    <Link href={`/products/${product.id}`}>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-white"
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                    </Link>
-                                    <Link href={`/products/${product.id}/edit`}>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-blue-500"
-                                      >
-                                        <Pencil className="h-4 w-4" />
-                                      </Button>
-                                    </Link>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-rose-500"
-                                      onClick={() => onOpenDeleteDialog(product)}
-                                      aria-label="Deletar"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <ProductActions product={product} />
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -478,14 +507,10 @@ export const ProductsView = ({
                         return (
                           <div
                             key={product.id}
-                            className={cn(
-                              "flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4",
-                              "border-l-4",
-                              stockStatus.indicator.replace("bg-", "border-")
-                            )}
+                            className="relative flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:border-neutral-700"
                           >
                             <div className="flex items-start justify-between">
-                              <div>
+                              <div className="flex-1 pr-2">
                                 <h3 className="font-semibold text-white">{product.name}</h3>
                                 <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
                                   <span className="font-mono">{product.sku || "SEM SKU"}</span>
@@ -493,45 +518,20 @@ export const ProductsView = ({
                                   <span>{product.categoryName}</span>
                                 </div>
                               </div>
-                              <Badge 
-                                variant="outline" 
-                                className={cn(
-                                  "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase",
-                                  stockStatus.bg,
-                                  stockStatus.color,
-                                  stockStatus.border
-                                )}
-                              >
-                                {product.totalQuantity} un
-                              </Badge>
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-2 border-t border-neutral-800">
-                              <Link href={`/products/${product.id}`} className="flex-1">
-                                <Button
-                                  variant="outline"
-                                  className="h-8 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                              <div className="flex items-start gap-3">
+                                <Badge 
+                                  variant="outline" 
+                                  className={cn(
+                                    "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase",
+                                    stockStatus.bg,
+                                    stockStatus.color,
+                                    stockStatus.border
+                                  )}
                                 >
-                                  Detalhes
-                                </Button>
-                              </Link>
-                              <Link href={`/products/${product.id}/edit`} className="flex-1">
-                                <Button
-                                  variant="outline"
-                                  className="h-8 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase text-neutral-300 hover:bg-neutral-800 hover:text-blue-500"
-                                >
-                                  Editar
-                                </Button>
-                              </Link>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-rose-950 hover:text-rose-500"
-                                onClick={() => onOpenDeleteDialog(product)}
-                                aria-label="Deletar"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                                  {product.totalQuantity} un
+                                </Badge>
+                                <ProductActions product={product} />
+                              </div>
                             </div>
                           </div>
                         );
@@ -601,23 +601,42 @@ export const ProductsView = ({
         )}
       </div>
 
-      <AlertDialog
+      <ResponsiveModal
         open={deleteDialogOpen}
         onOpenChange={(open) => {
           if (!open) onCloseDeleteDialog();
         }}
+        title="Confirmar exclusão"
+        description={`Tem certeza que deseja deletar o produto ${deleteProduct?.name}? Esta ação é irreversível.`}
+        maxWidth="sm:max-w-[450px]"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={onCloseDeleteDialog}
+              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={onConfirmDelete}
+              disabled={isCheckingDeleteBatches || isDeletingProduct}
+              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
+            >
+              {isDeletingProduct ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </Button>
+          </>
+        }
       >
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
-              Confirmar exclusão
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500">
-              Tem certeza que deseja deletar o produto{" "}
-              <strong className="text-white">{deleteProduct?.name}</strong>? Esta ação é irreversível.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
+        <div className="space-y-4">
           {isCheckingDeleteBatches && (
             <div className="flex items-center gap-2 rounded-[4px] border border-blue-900/30 bg-blue-950/10 px-3 py-2 text-xs text-blue-500">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -644,51 +663,27 @@ export const ProductsView = ({
               </div>
             </div>
           )}
+        </div>
+      </ResponsiveModal>
 
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
-              Cancelar
-            </AlertDialogCancel>
-            <Button
-              type="button"
-              onClick={onConfirmDelete}
-              disabled={isCheckingDeleteBatches || isDeletingProduct}
-              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
-            >
-              {isDeletingProduct ? (
-                <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Excluindo...
-                </>
-              ) : (
-                "Excluir"
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
+      <ResponsiveModal
         open={secondConfirmOpen}
         onOpenChange={(open) => {
           if (!open) onCloseSecondConfirm();
         }}
-      >
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
-              Confirmação Final
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500">
-              Tem certeza que deseja deletar? O produto{" "}
-              <strong className="text-white">{deleteProduct?.name}</strong> será desativado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
+        title="Confirmação Final"
+        description={`Tem certeza que deseja deletar? O produto ${deleteProduct?.name} será desativado.`}
+        maxWidth="sm:max-w-[400px]"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={onCloseSecondConfirm}
+              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+            >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={onSecondConfirmDelete}
               disabled={isDeletingProduct}
               className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
@@ -701,10 +696,16 @@ export const ProductsView = ({
               ) : (
                 "Confirmar Exclusão"
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      >
+        <div className="py-2">
+          <p className="text-xs text-neutral-500">
+            Esta é a última confirmação antes da remoção definitiva dos registros associados a este produto.
+          </p>
+        </div>
+      </ResponsiveModal>
     </>
   );
 };
