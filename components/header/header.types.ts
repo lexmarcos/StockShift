@@ -19,7 +19,6 @@ export interface HeaderViewProps {
   onWarehouseChange: (id: string) => void;
   user: User | null;
   onLogout: () => void;
-  isMobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
   showWarehouseSelect: boolean;
 }
