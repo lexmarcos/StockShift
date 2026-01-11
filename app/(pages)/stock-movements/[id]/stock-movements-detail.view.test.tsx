@@ -52,6 +52,6 @@ describe("StockMovementDetailView", () => {
         onCancelOpenChange={vi.fn()}
       />
     );
-    expect(screen.getByText(/ENTRY/i)).toBeTruthy();
+    expect(screen.getAllByText(/ENTRADA/i).length).toBeGreaterThan(0);
   });
 });

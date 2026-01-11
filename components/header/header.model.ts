@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useWarehouse } from "@/lib/contexts/warehouse-context";
 import { api } from "@/lib/api";
+import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Warehouse, HeaderViewProps } from "./header.types";
 
 const PAGE_NAMES: Record<string, string> = {
@@ -34,7 +34,7 @@ export const useHeaderModel = (): HeaderViewProps => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { selectedWarehouseId, setSelectedWarehouseId } = useWarehouse();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toggleMenu } = useMobileMenu();
 
   const { data: warehouses = [], isLoading: isLoadingWarehouses } = useSWR<Warehouse[]>(
     "header-warehouses",
@@ -77,10 +77,6 @@ export const useHeaderModel = (): HeaderViewProps => {
     await logout();
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
-  };
-
   return {
     pageName: getPageName(),
     warehouses: activeWarehouses,
@@ -89,8 +85,7 @@ export const useHeaderModel = (): HeaderViewProps => {
     onWarehouseChange: handleWarehouseChange,
     user,
     onLogout: handleLogout,
-    isMobileMenuOpen,
-    onToggleMobileMenu: toggleMobileMenu,
+    onToggleMobileMenu: toggleMenu,
     showWarehouseSelect: !isWarehousesPage,
   };
 };

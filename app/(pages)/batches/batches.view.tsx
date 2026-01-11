@@ -437,6 +437,7 @@ export const BatchesView = ({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                                    aria-label="Ver detalhes"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>

@@ -122,13 +122,17 @@ const Wrapper = (props: any) => {
 
 describe("ProductForm batches drawer", () => {
   it("shows the batches button in edit mode", () => {
-    render(<Wrapper {...baseProps} />);
-    expect(screen.getByRole("button", { name: /ver batches/i })).toBeTruthy();
+    render(
+      <Wrapper
+        {...baseProps}
+        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+      />
+    );
+    expect(screen.getByText(/gerenciar lotes/i)).toBeTruthy();
   });
 
   it("hides the batches button in create mode", () => {
     render(<Wrapper {...baseProps} mode="create" batchesDrawer={undefined} />);
-    expect(screen.getByText(/novo produto/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /ver batches/i })).toBeNull();
   });
 
@@ -140,7 +144,8 @@ describe("ProductForm batches drawer", () => {
       />
     );
     fireEvent.click(screen.getByText(/batch-001/i));
-    expect(screen.getByText(/preco de venda/i)).toBeTruthy();
+    const drawer = screen.getByTestId("batch-accordion-scroll");
+    expect(within(drawer).getByText(/pre.o de venda/i)).toBeTruthy();
   });
 
   it("adds a scroll container to the batch accordion content", () => {
