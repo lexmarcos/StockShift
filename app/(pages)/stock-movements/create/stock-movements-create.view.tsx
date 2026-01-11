@@ -614,7 +614,7 @@ export const StockMovementCreateView = ({
             </div>
 
             {/* Navigation Footer */}
-            <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 z-50">
+            <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 z-50 md:ml-[var(--sidebar-width)]">
               <div className="mx-auto w-full max-w-4xl flex items-center justify-between">
                 <Button
                   type="button"

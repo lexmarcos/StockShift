@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
+import { Header } from "@/components/header/header";
 
 export default function PagesLayout({
   children,
@@ -14,14 +15,14 @@ export default function PagesLayout({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex min-h-screen">
-        <aside className="hidden w-60 flex-col border-r border-border/40 bg-card/80 p-4 md:flex">
+        <aside className="hidden w-60 flex-col border-r border-border/40 bg-card/80 p-4 md:flex fixed">
           <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
             Navegação
           </div>
           <AppSidebar />
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col md:ml-[var(--sidebar-width)]"><Header />{children}</div>
       </div>
 
       {isOpen && (

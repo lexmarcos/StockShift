@@ -34,6 +34,24 @@ Utilize prioritariamente a pasta `/components/ui`. Se criar novos componentes, u
 2. 📱 **iPad/Tablet** (Ajuste de grids)
 3. 💻 **Desktop** (Ajuste final em `max-w-7xl`)
 
+### ⚠️ Regra para Divs Fixed Full-Width
+
+**OBRIGATÓRIO:** Toda div com `fixed` e `full-width` (left-0 right-0) **DEVE** incluir `md:ml-[240px]` para compensar o sidebar menu.
+
+O sidebar tem largura fixa de **240px** em desktop (variável CSS: `--sidebar-width: 240px`).
+
+```tsx
+// ✅ CORRETO
+<div className="fixed bottom-0 left-0 right-0 md:ml-[240px]">
+  {/* conteúdo */}
+</div>
+
+// ❌ ERRADO - Vai sobrepor o sidebar
+<div className="fixed bottom-0 left-0 right-0">
+  {/* conteúdo */}
+</div>
+```
+
 ## 🎨 Filosofia do Design: "Corporate Solid Dark (Vivid)"
 
 ### 1. Estética: Brutalismo Corporativo de Alto Contraste
