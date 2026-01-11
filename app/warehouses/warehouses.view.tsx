@@ -2,14 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ResponsiveModal } from "./components/responsive-modal";
 import {
   Form,
   FormControl,
@@ -334,33 +327,101 @@ export const WarehousesView = ({
       </Button>
 
       {/* Create/Edit Modal */}
-      <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-[600px] rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold uppercase tracking-wide text-white">
-              {selectedWarehouse ? "Editar Armazém" : "Novo Armazém"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-500">
-              {selectedWarehouse
-                ? "Atualize as informações do armazém"
-                : "Preencha os dados para cadastrar um novo local"}
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveModal
+        open={isModalOpen}
+        onOpenChange={closeModal}
+        title={selectedWarehouse ? "Editar Armazém" : "Novo Armazém"}
+        description={
+          selectedWarehouse
+            ? "Atualize as informações do armazém"
+            : "Preencha os dados para cadastrar um novo local"
+        }
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
+              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="warehouse-form"
+              disabled={isSubmitting}
+              className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar Dados"
+              )}
+            </Button>
+          </>
+        }
+      >
+        <Form {...form}>
+          <form id="warehouse-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+            {/* Basic Info */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Nome do Armazém <span className="text-rose-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EX: CENTRAL DE DISTRIBUIÇÃO"
+                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs text-rose-500" />
+                </FormItem>
+              )}
+            />
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
-              {/* Basic Info */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Descrição
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Detalhes sobre a operação deste local..."
+                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs text-rose-500" />
+                </FormItem>
+              )}
+            />
+
+            {/* Location */}
+            <div className="space-y-4 pt-2 border-t border-neutral-800">
+              <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Localização</h4>
+              
               <FormField
                 control={form.control}
-                name="name"
+                name="address"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Nome do Armazém <span className="text-rose-500">*</span>
+                      Endereço Completo
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="EX: CENTRAL DE DISTRIBUIÇÃO"
+                        placeholder="Rua, Número, Bairro"
                         className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                         {...field}
                       />
@@ -370,41 +431,18 @@ export const WarehousesView = ({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Descrição
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Detalhes sobre a operação deste local..."
-                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs text-rose-500" />
-                  </FormItem>
-                )}
-              />
-
-              {/* Location */}
-              <div className="space-y-4 pt-2 border-t border-neutral-800">
-                <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Localização</h4>
-                
+              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                        Endereço Completo
+                        Cidade <span className="text-rose-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Rua, Número, Bairro"
+                          placeholder="Ex: São Paulo"
                           className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                           {...field}
                         />
@@ -414,152 +452,105 @@ export const WarehousesView = ({
                   )}
                 />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          Cidade <span className="text-rose-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ex: São Paulo"
-                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs text-rose-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          Estado (UF) <span className="text-rose-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ex: SP"
-                            maxLength={2}
-                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 uppercase"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs text-rose-500" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Contact */}
-              <div className="space-y-4 pt-2 border-t border-neutral-800">
-                <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Contato</h4>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          Telefone
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="(00) 00000-0000"
-                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs text-rose-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="email@empresa.com"
-                            className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs text-rose-500" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="pt-2 border-t border-neutral-800">
                 <FormField
                   control={form.control}
-                  name="isActive"
+                  name="state"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-sm font-bold text-white">
-                          Status Operacional
-                        </FormLabel>
-                        <FormDescription className="text-xs text-neutral-500">
-                          Armazéns inativos não permitem movimentações
-                        </FormDescription>
-                      </div>
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        Estado (UF) <span className="text-rose-500">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="data-[state=checked]:bg-blue-600"
+                        <Input
+                          placeholder="Ex: SP"
+                          maxLength={2}
+                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 uppercase"
+                          {...field}
                         />
                       </FormControl>
+                      <FormMessage className="text-xs text-rose-500" />
                     </FormItem>
                   )}
                 />
               </div>
+            </div>
 
-              <DialogFooter className="gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeModal}
-                  className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    "Salvar Dados"
+            {/* Contact */}
+            <div className="space-y-4 pt-2 border-t border-neutral-800">
+              <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Contato</h4>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        Telefone
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="(00) 00000-0000"
+                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs text-rose-500" />
+                    </FormItem>
                   )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="email@empresa.com"
+                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs text-rose-500" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="pt-2 border-t border-neutral-800">
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-bold text-white">
+                        Status Operacional
+                      </FormLabel>
+                      <FormDescription className="text-xs text-neutral-500">
+                        Armazéns inativos não permitem movimentações
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-blue-600"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </form>
+        </Form>
+      </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!warehouseToDelete} onOpenChange={closeDeleteDialog}>
