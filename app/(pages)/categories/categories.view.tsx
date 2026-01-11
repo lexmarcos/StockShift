@@ -200,39 +200,70 @@ export const CategoriesView = ({
             </div>
           </div>
 
-          {/* Mobile-First Actions (Always visible via Menu) */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-1 transition-opacity">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEditModal(node);
+                }}
+                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
               >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Ações</span>
+                <Edit className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-              <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                Opções
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-neutral-800" />
-              <DropdownMenuItem 
-                onClick={() => openEditModal(node)}
-                className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDeleteDialog(node);
+                }}
+                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
               >
-                <Edit className="mr-2 h-3.5 w-3.5" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => openDeleteDialog(node)}
-                className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
-              >
-                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Mobile Actions Menu */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Ações</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+                  <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                    Opções
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-neutral-800" />
+                  <DropdownMenuItem 
+                    onClick={() => openEditModal(node)}
+                    className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+                  >
+                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => openDeleteDialog(node)}
+                    className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
 
         {/* Children Render */}
@@ -295,38 +326,63 @@ export const CategoriesView = ({
         )}
 
         {/* Actions Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <div className="flex items-center gap-1">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-1 transition-opacity">
             <Button 
               variant="ghost" 
               size="icon" 
+              onClick={() => openEditModal(node)}
               className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
             >
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Ações</span>
+              <Edit className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-            <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-              Opções
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-neutral-800" />
-            <DropdownMenuItem 
-              onClick={() => openEditModal(node)}
-              className="cursor-pointer focus:bg-neutral-800 focus:text-white"
-            >
-              <Edit className="mr-2 h-3.5 w-3.5" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem 
+            <Button 
+              variant="ghost" 
+              size="icon" 
               onClick={() => openDeleteDialog(node)}
-              className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
             >
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Mobile Actions Menu */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Ações</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                  Opções
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-neutral-800" />
+                <DropdownMenuItem 
+                  onClick={() => openEditModal(node)}
+                  className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+                >
+                  <Edit className="mr-2 h-3.5 w-3.5" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => openDeleteDialog(node)}
+                  className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+                >
+                  <Trash2 className="mr-2 h-3.5 w-3.5" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
     );
   };

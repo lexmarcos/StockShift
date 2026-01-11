@@ -290,23 +290,24 @@ export const BrandsView = ({
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl">
-                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Gerenciamento</DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-neutral-800" />
-                            <DropdownMenuItem onClick={() => openEditModal(brand)} className="cursor-pointer focus:bg-neutral-800 focus:text-white">
-                              <Pencil className="mr-2 h-3.5 w-3.5" /> Editar Marca
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openDeleteDialog(brand)} className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400">
-                              <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir Registro
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex justify-end gap-1 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => openEditModal(brand)} 
+                            className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => openDeleteDialog(brand)} 
+                            className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

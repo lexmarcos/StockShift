@@ -467,9 +467,36 @@ export const ProductsView = ({
                                     {stockStatus.label}
                                   </Badge>
                                 </TableCell>
-                                <TableCell className="py-3">
-                                  <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                    <ProductActions product={product} />
+                                <TableCell className="py-3 text-right">
+                                  <div className="flex justify-end gap-1 transition-opacity">
+                                    <Button
+                                      asChild
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                    >
+                                      <Link href={`/products/${product.id}`}>
+                                        <Eye className="h-4 w-4" />
+                                      </Link>
+                                    </Button>
+                                    <Button
+                                      asChild
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                    >
+                                      <Link href={`/products/${product.id}/edit`}>
+                                        <Pencil className="h-4 w-4" />
+                                      </Link>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => onOpenDeleteDialog(product)}
+                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
