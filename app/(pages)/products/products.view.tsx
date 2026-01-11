@@ -237,29 +237,8 @@ export const ProductsView = ({
         <ScannerDrawer open={scannerOpen} onOpenChange={setScannerOpen} />
 
         <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-          {/* Warehouse Required State - Brutalist Warning */}
-          {requiresWarehouse && (
-            <div className="flex flex-col items-center justify-center rounded-[4px] border border-amber-900/30 bg-amber-950/10 py-20 text-center">
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[4px] bg-amber-500/10 ring-1 ring-amber-500/20">
-                <Warehouse className="h-10 w-10 text-amber-500" />
-              </div>
-              <h3 className="text-xl font-bold uppercase tracking-wide text-amber-500">
-                Atenção Necessária
-              </h3>
-              <p className="mt-2 max-w-md text-sm text-amber-500/70">
-                O sistema de gestão de produtos requer que um armazém ativo seja selecionado para operar.
-              </p>
-              <Link href="/warehouses" className="mt-8">
-                <Button className="h-10 rounded-[4px] bg-amber-600 px-8 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
-                  Selecionar Armazém
-                </Button>
-              </Link>
-            </div>
-          )}
-
           {/* Main Content */}
-          {!requiresWarehouse && (
-            <div className="space-y-6">
+          <div className="space-y-6">
               <div className="flex flex-col gap-5">
                 {/* Actions Bar */}
                 <div className="flex items-center justify-end gap-3">
@@ -575,30 +554,25 @@ export const ProductsView = ({
                 )}
               </div>
             </div>
-          )}
         </main>
 
         {/* Floating Action Buttons - Mobile */}
-        {!requiresWarehouse && (
-          <>
-            <Button
-              onClick={() => setScannerOpen(true)}
-              className="fixed bottom-20 right-4 h-12 w-12 rounded-[4px] border border-neutral-700 bg-[#171717] text-white shadow-lg hover:bg-neutral-800 md:hidden"
-              size="icon"
-            >
-              <ScanLine className="h-5 w-5" />
-            </Button>
-            
-            <Link href="/products/create">
-              <Button
-                className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-                size="icon"
-              >
-                <Plus className="h-6 w-6" />
-              </Button>
-            </Link>
-          </>
-        )}
+        <Button
+          onClick={() => setScannerOpen(true)}
+          className="fixed bottom-20 right-4 h-12 w-12 rounded-[4px] border border-neutral-700 bg-[#171717] text-white shadow-lg hover:bg-neutral-800 md:hidden"
+          size="icon"
+        >
+          <ScanLine className="h-5 w-5" />
+        </Button>
+        
+        <Link href="/products/create">
+          <Button
+            className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
+            size="icon"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </Link>
       </div>
 
       <ResponsiveModal

@@ -112,15 +112,6 @@ export const ProductForm = ({
       />
       
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
-        {!warehouseId && (
-          <div className="mb-6 rounded-[4px] border border-amber-900/30 bg-amber-950/10 p-4 flex items-center gap-3">
-            <Info className="h-5 w-5 text-amber-500" />
-            <p className="text-xs font-medium text-amber-500 uppercase tracking-wide">
-              Selecione um armazém ativo para habilitar o controle de estoque inicial.
-            </p>
-          </div>
-        )}
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -454,39 +445,6 @@ export const ProductForm = ({
                   </CardContent>
                 </Card>
 
-                {/* Warehouse Info - Corporate Solid */}
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-emerald-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Armazenagem
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          Status do Armazém
-                        </p>
-                        <p className={cn(
-                          "text-xs font-bold mt-1",
-                          warehouseId ? "text-emerald-500" : "text-rose-500"
-                        )}>
-                          {warehouseId ? "SELECIONADO" : "NÃO SELECIONADO"}
-                        </p>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-3 w-3 rounded-full animate-pulse",
-                          warehouseId ? "bg-emerald-500" : "bg-rose-500"
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Organization Card */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
@@ -690,18 +648,18 @@ export const ProductForm = ({
 
             {/* Footer Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4">
-              <div className="mx-auto flex w-full max-w-7xl items-center justify-end gap-3 px-4 md:px-6 lg:px-8">
+              <div className="mx-auto flex w-full max-w-7xl flex-col md:flex-row items-center md:justify-end gap-3 px-4 md:px-6 lg:px-8">
                 <Button
                   variant="outline"
                   type="button"
-                  className="h-10 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  className="h-10 w-full md:w-auto rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   asChild
                 >
                   <Link href="/products">Cancelar</Link>
                 </Button>
                 <Button
                   type="submit"
-                  className="h-10 min-w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+                  className="h-10 w-full md:w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
                   disabled={isSubmitting || !warehouseId}
                 >
                   {isSubmitting ? (

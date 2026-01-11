@@ -1,14 +1,8 @@
 "use client";
 
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { X, Camera, AlertCircle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Camera, AlertCircle } from "lucide-react";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 
 interface BarcodeScannerModalProps {
@@ -35,37 +29,25 @@ export const BarcodeScannerModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg rounded-sm border border-border/50 bg-card p-0 overflow-hidden">
-        {/* Header - Corporate Solid */}
-        <DialogHeader className="border-b border-border/30 px-6 py-4 bg-muted/10">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-                <Camera className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <DialogTitle className="text-base font-semibold uppercase tracking-wide">
-                  Scanner de Código
-                </DialogTitle>
-                <DialogDescription className="text-xs mt-1">
-                  Posicione o código dentro da área marcada
-                </DialogDescription>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 rounded-sm hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
-
+    <ResponsiveModal
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+      title="Scanner de Código"
+      description="Posicione o código dentro da área marcada"
+      footer={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onClose}
+          className="w-full rounded-[4px] border-neutral-800 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-400 hover:bg-neutral-800 hover:text-white"
+        >
+          Cancelar
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-4">
         {/* Scanner Area */}
-        <div className="relative bg-black">
+        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
           <Scanner
             onScan={handleScan}
             onError={handleError}
@@ -81,7 +63,7 @@ export const BarcodeScannerModal = ({
             styles={{
               container: {
                 width: "100%",
-                height: "400px",
+                height: "300px",
               },
               video: {
                 objectFit: "cover",
@@ -96,33 +78,21 @@ export const BarcodeScannerModal = ({
           />
 
           {/* Overlay Instructions - Corporate Solid */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-            <div className="flex items-center gap-3 rounded-sm border border-border/30 bg-card/90 backdrop-blur-sm p-4">
-              <AlertCircle className="h-5 w-5 text-foreground/60 flex-shrink-0" />
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+            <div className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717]/90 backdrop-blur-sm p-3">
+              <AlertCircle className="h-4 w-4 text-neutral-500 flex-shrink-0" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                  Mantenha o código centralizado
+                <p className="text-[10px] font-bold uppercase tracking-wide text-white">
+                  Leitura Automática
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  A leitura é automática quando detectado
+                <p className="text-[10px] text-neutral-500 mt-0.5">
+                  Mantenha o código centralizado
                 </p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-border/30 px-6 py-4 bg-muted/5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="w-full rounded-sm border-border/40"
-          >
-            Cancelar
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ResponsiveModal>
   );
 };
