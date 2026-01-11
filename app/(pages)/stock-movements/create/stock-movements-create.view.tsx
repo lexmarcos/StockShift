@@ -9,6 +9,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,19 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Check, 
+  ChevronDown, 
+  Plus, 
+  Trash2, 
+  Truck, 
+  Package, 
+  Layers, 
+  ArrowRight,
+  Settings,
+  Warehouse
+} from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { filterBatchesByProduct } from "./stock-movements-create.model";
 import type { StockMovementCreateFormData } from "./stock-movements-create.schema";
@@ -90,27 +103,27 @@ const SearchSelect = ({
           disabled={disabled}
           role="combobox"
           aria-expanded={open}
-          className="h-9 w-full justify-between rounded-sm border-border/40 bg-background/50 text-left text-xs"
+          className="h-10 w-full justify-between rounded-[4px] border-neutral-800 bg-neutral-900 text-left text-sm hover:bg-neutral-800"
         >
           <span
             className={cn(
               "truncate",
-              !selected && "text-muted-foreground"
+              !selected && "text-neutral-500"
             )}
           >
             {selected ? selected.label : placeholder}
           </span>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 text-neutral-500" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[--radix-popover-trigger-width] rounded-sm border-border/50 p-0"
+        className="w-[--radix-popover-trigger-width] rounded-[4px] border-neutral-800 bg-[#171717] p-0 text-neutral-200"
       >
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} className="text-xs" />
-          <CommandList>
-            <CommandEmpty className="text-xs">{emptyText}</CommandEmpty>
+        <Command className="bg-transparent">
+          <CommandInput placeholder={searchPlaceholder} className="text-xs text-neutral-200" />
+          <CommandList className="max-h-[200px]">
+            <CommandEmpty className="py-2 text-center text-xs text-neutral-500">{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -120,18 +133,18 @@ const SearchSelect = ({
                     onChange(option.value);
                     setOpen(false);
                   }}
-                  className="text-xs"
+                  className="text-xs data-[selected=true]:bg-neutral-800 data-[selected=true]:text-white"
                 >
                   <Check
                     className={cn(
-                      "h-3.5 w-3.5",
-                      option.value === value ? "opacity-100" : "opacity-0"
+                      "mr-2 h-3.5 w-3.5",
+                      option.value === value ? "opacity-100 text-blue-500" : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium">{option.label}</span>
+                    <span className="font-medium">{option.label}</span>
                     {option.description ? (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-[10px] text-neutral-500">
                         {option.description}
                       </span>
                     ) : null}
@@ -181,399 +194,459 @@ export const StockMovementCreateView = ({
     {
       step: 1,
       title: "Configuração",
-      description: "Tipo e execução",
+      description: "Tipo e Parâmetros",
+      icon: Settings
     },
     {
       step: 2,
-      title: "Warehouses",
-      description: "Origem e destino",
+      title: "Logística",
+      description: "Origem e Destino",
+      icon: Warehouse
     },
     {
       step: 3,
       title: "Itens",
-      description: "Produtos, batch e quantidade",
+      description: "Produtos e Lotes",
+      icon: Package
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-10">
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
+      
+      {/* Header */}
+      <div className="border-b border-neutral-800 bg-[#0A0A0A] py-4">
+        <div className="mx-auto w-full max-w-4xl px-4 md:px-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              asChild
+            >
+              <Link href="/stock-movements">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-lg font-bold uppercase tracking-tight text-white">Nova Movimentação</h1>
+              <p className="text-xs text-neutral-500">Fluxo de controle de estoque</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-4xl px-4 py-8 md:px-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <section className="rounded-sm border border-border/50 bg-card/80 px-4 py-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                {steps.map((item) => {
-                  const isActive = item.step === currentStep;
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            
+            {/* Steps Indicator */}
+            <div className="relative flex justify-between">
+              {/* Connector Line */}
+              <div className="absolute top-5 left-0 right-0 h-[2px] bg-neutral-800 -z-10" />
+              
+              {steps.map((item) => {
+                const isActive = item.step === currentStep;
+                const isCompleted = item.step < currentStep;
+                const Icon = item.icon;
 
-                  return (
-                    <div key={item.step} className="flex items-start gap-3 md:flex-1">
-                      <div
-                        className={cn(
-                          "flex h-9 w-9 items-center justify-center rounded-sm border text-xs font-semibold",
-                          isActive
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border/60 bg-background/60 text-muted-foreground"
-                        )}
-                      >
-                        {item.step}
-                      </div>
-                      <div className="space-y-1">
-                        <p
-                          className={cn(
-                            "text-[11px] font-semibold uppercase tracking-[0.2em]",
-                            isActive ? "text-foreground" : "text-muted-foreground"
-                          )}
-                        >
-                          Etapa {item.step}
-                        </p>
-                        <p className="text-sm font-semibold uppercase tracking-wide">
-                          {item.title}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
+                return (
+                  <div key={item.step} className="flex flex-col items-center gap-2 bg-[#0A0A0A] px-2">
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-[4px] border transition-all duration-300",
+                        isActive
+                          ? "border-blue-500 bg-blue-500/10 text-blue-500 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+                          : isCompleted
+                          ? "border-emerald-500 bg-emerald-500 text-black"
+                          : "border-neutral-800 bg-[#171717] text-neutral-600"
+                      )}
+                    >
+                      {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                     </div>
-                  );
-                })}
-              </div>
-            </section>
+                    <div className="hidden md:flex flex-col items-center text-center space-y-0.5">
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase tracking-widest",
+                        isActive ? "text-blue-500" : isCompleted ? "text-emerald-500" : "text-neutral-600"
+                      )}>
+                        {item.title}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-            {currentStep === 1 && (
-              <Card className="rounded-sm border border-border/50 bg-card/80">
-                <CardHeader>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      Etapa 1 de {totalSteps}
-                    </p>
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                      Configuração
-                    </CardTitle>
+            {/* Content Area */}
+            <div className="min-h-[400px]">
+              
+              {currentStep === 1 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
+                  <div className="text-center md:text-left">
+                    <h2 className="text-xl font-bold uppercase text-white">Configuração Inicial</h2>
+                    <p className="text-sm text-neutral-500">Defina o tipo de operação e o modo de execução.</p>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex w-full flex-col gap-4 md:flex-row">
-                    <FormField
-                      control={form.control}
-                      name="movementType"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                            Tipo *
-                          </FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="h-9 w-full rounded-sm border-border/40 text-xs">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-sm">
-                              <SelectItem value="ENTRY" className="text-xs">
-                                Entrada
-                              </SelectItem>
-                              <SelectItem value="EXIT" className="text-xs">
-                                Saída
-                              </SelectItem>
-                              <SelectItem value="TRANSFER" className="text-xs">
-                                Transferência
-                              </SelectItem>
-                              <SelectItem value="ADJUSTMENT" className="text-xs">
-                                Ajuste
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
-                    <FormField
-                      control={form.control}
-                      name="executeNow"
-                      render={({ field }) => (
-                        <FormItem className="flex w-full items-center justify-between rounded-sm border border-border/40 bg-background/50 px-3 py-2">
-                          <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                            Executar agora
-                          </FormLabel>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button type="button" className="rounded-sm" onClick={onNextStep}>
-                      Próximo
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {currentStep === 2 && (
-              <Card className="rounded-sm border border-border/50 bg-card/80">
-                <CardHeader>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      Etapa 2 de {totalSteps}
-                    </p>
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                      Warehouses
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex w-full flex-col gap-4 md:flex-row">
-                    {requiresSource && (
+                  <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                    <CardContent className="pt-6 space-y-6">
                       <FormField
                         control={form.control}
-                        name="sourceWarehouseId"
+                        name="movementType"
                         render={({ field }) => (
-                          <FormItem className="w-full">
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                              Origem *
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                              Tipo de Movimentação <span className="text-rose-500">*</span>
                             </FormLabel>
-                            <Select value={field.value || ""} onValueChange={field.onChange}>
-                              <SelectTrigger className="h-9 w-full rounded-sm border-border/40 text-xs">
-                                <SelectValue placeholder="Selecione" />
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                                <SelectValue placeholder="Selecione o tipo..." />
                               </SelectTrigger>
-                              <SelectContent className="rounded-sm">
-                                {warehouses.map((warehouse) => (
-                                  <SelectItem
-                                    key={warehouse.id}
-                                    value={warehouse.id}
-                                    className="text-xs"
-                                  >
-                                    {warehouse.name}
-                                  </SelectItem>
-                                ))}
+                              <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+                                <SelectItem value="ENTRY" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    Entrada (Compra/Retorno)
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="EXIT" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-rose-500" />
+                                    Saída (Venda/Perda)
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="TRANSFER" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                    Transferência Interna
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="ADJUSTMENT" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                    Ajuste de Estoque
+                                  </div>
+                                </SelectItem>
                               </SelectContent>
                             </Select>
-                            <FormMessage />
+                            <FormMessage className="text-xs text-rose-500" />
                           </FormItem>
                         )}
                       />
-                    )}
-                    {requiresDestination && (
+
                       <FormField
                         control={form.control}
-                        name="destinationWarehouseId"
+                        name="executeNow"
                         render={({ field }) => (
-                          <FormItem className="w-full">
-                            <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                              Destino *
-                            </FormLabel>
-                            <Select value={field.value || ""} onValueChange={field.onChange}>
-                              <SelectTrigger className="h-9 w-full rounded-sm border-border/40 text-xs">
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-sm">
-                                {warehouses.map((warehouse) => (
-                                  <SelectItem
-                                    key={warehouse.id}
-                                    value={warehouse.id}
-                                    className="text-xs"
-                                  >
-                                    {warehouse.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
+                          <FormItem className="flex flex-row items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-xs font-bold uppercase text-white">
+                                Executar Imediatamente
+                              </FormLabel>
+                              <FormDescription className="text-[10px] text-neutral-500">
+                                Se ativo, o estoque será atualizado ao salvar.
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-blue-600"
+                              />
+                            </FormControl>
                           </FormItem>
                         )}
                       />
-                    )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
+                  <div className="text-center md:text-left">
+                    <h2 className="text-xl font-bold uppercase text-white">Definição Logística</h2>
+                    <p className="text-sm text-neutral-500">Selecione os armazéns envolvidos na operação.</p>
                   </div>
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-sm"
-                      onClick={onPrevStep}
-                    >
-                      Voltar
-                    </Button>
-                    <Button type="button" className="rounded-sm" onClick={onNextStep}>
-                      Próximo
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
-            {currentStep === 3 && (
-              <Card className="rounded-sm border border-border/50 bg-card/80">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      Etapa 3 de {totalSteps}
-                    </p>
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-                      Itens
-                    </CardTitle>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="rounded-sm border-border/40 text-xs"
-                    onClick={addItem}
-                  >
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    Adicionar item
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {items.map((item, index) => {
-                    const itemProductId = watchedItems?.[index]?.productId ?? "";
-                    const filteredBatches = filterBatchesByProduct(
-                      batches,
-                      itemProductId
-                    );
-                    const itemBatchOptions: SearchOption[] = filteredBatches.map(
-                      (batch) => {
-                        const code = batch.batchCode || batch.batchNumber || batch.id;
-                        return {
-                          value: batch.id,
-                          label: code,
-                          description: `Qtd ${batch.quantity}`,
-                          searchValue: `${code} ${batch.batchNumber ?? ""}`.trim(),
-                        };
-                      }
-                    );
-                    const batchEmptyText = itemProductId
-                      ? "Nenhum batch encontrado"
-                      : "Selecione um produto";
-                    const batchDisabled = !requiresBatch || !itemProductId;
+                  <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                    <CardContent className="pt-6 space-y-6">
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {requiresSource && (
+                          <FormField
+                            control={form.control}
+                            name="sourceWarehouseId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Armazém de Origem <span className="text-rose-500">*</span>
+                                </FormLabel>
+                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                  <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                                    <SelectValue placeholder="Selecione a origem..." />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+                                    {warehouses.map((warehouse) => (
+                                      <SelectItem
+                                        key={warehouse.id}
+                                        value={warehouse.id}
+                                        className="text-xs focus:bg-neutral-800"
+                                      >
+                                        {warehouse.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            )}
+                          />
+                        )}
 
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex flex-col gap-3 rounded-sm border border-border/40 bg-background/40 p-3 md:flex-row md:items-end"
-                      >
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.productId` as const}
-                          render={({ field }) => (
-                            <FormItem className="w-full md:flex-1">
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                                Produto *
-                              </FormLabel>
-                              <FormControl>
-                                <SearchSelect
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  placeholder="Buscar produto"
-                                  searchPlaceholder="Buscar produto"
-                                  emptyText="Nenhum produto encontrado"
-                                  options={productOptions}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.batchId` as const}
-                          render={({ field }) => (
-                            <FormItem className="w-full md:flex-1">
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                                Batch{requiresBatch ? " *" : ""}
-                              </FormLabel>
-                              <FormControl>
-                                <SearchSelect
-                                  value={field.value || ""}
-                                  onChange={field.onChange}
-                                  placeholder="Buscar batch"
-                                  searchPlaceholder="Buscar batch"
-                                  emptyText={batchEmptyText}
-                                  options={itemBatchOptions}
-                                  disabled={batchDisabled}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.quantity` as const}
-                          render={({ field }) => (
-                            <FormItem className="w-full md:flex-1">
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                                Quantidade *
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  className="h-9 w-full rounded-sm border-border/40 text-xs"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.reason` as const}
-                          render={({ field }) => (
-                            <FormItem className="w-full md:flex-1">
-                              <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                                Motivo
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  className="h-9 w-full rounded-sm border-border/40 text-xs"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {items.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-9 w-full rounded-sm border-border/40 md:w-auto"
-                            onClick={() => removeItem(index)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                        {requiresDestination && (
+                          <FormField
+                            control={form.control}
+                            name="destinationWarehouseId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Armazém de Destino <span className="text-rose-500">*</span>
+                                </FormLabel>
+                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                  <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                                    <SelectValue placeholder="Selecione o destino..." />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+                                    {warehouses.map((warehouse) => (
+                                      <SelectItem
+                                        key={warehouse.id}
+                                        value={warehouse.id}
+                                        className="text-xs focus:bg-neutral-800"
+                                      >
+                                        {warehouse.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            )}
+                          />
                         )}
                       </div>
-                    );
-                  })}
 
-                  <div className="flex justify-between">
+                      {/* Visual Path Indicator */}
+                      {requiresSource && requiresDestination && (
+                        <div className="flex items-center justify-center gap-4 py-4 opacity-50">
+                          <div className="h-2 w-2 rounded-full bg-neutral-600" />
+                          <div className="h-[2px] flex-1 bg-neutral-800 bg-dashed" />
+                          <Truck className="h-5 w-5 text-neutral-500" />
+                          <div className="h-[2px] flex-1 bg-neutral-800 bg-dashed" />
+                          <div className="h-2 w-2 rounded-full bg-neutral-600" />
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold uppercase text-white">Detalhamento dos Itens</h2>
+                      <p className="text-sm text-neutral-500">Adicione os produtos e quantidades.</p>
+                    </div>
                     <Button
                       type="button"
-                      variant="outline"
-                      className="rounded-sm"
-                      onClick={onPrevStep}
+                      onClick={addItem}
+                      className="h-9 rounded-[4px] bg-neutral-800 text-xs font-bold uppercase tracking-wide text-white hover:bg-neutral-700"
                     >
-                      Voltar
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="rounded-sm bg-foreground text-background"
-                    >
-                      Salvar
+                      <Plus className="mr-2 h-3.5 w-3.5" />
+                      Adicionar Item
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+
+                  <div className="space-y-4">
+                    {items.map((item, index) => {
+                      const itemProductId = watchedItems?.[index]?.productId ?? "";
+                      const filteredBatches = filterBatchesByProduct(
+                        batches,
+                        itemProductId
+                      );
+                      const itemBatchOptions: SearchOption[] = filteredBatches.map(
+                        (batch) => {
+                          const code = batch.batchCode || batch.batchNumber || batch.id;
+                          return {
+                            value: batch.id,
+                            label: code,
+                            description: `Disp: ${batch.quantity}`,
+                            searchValue: `${code} ${batch.batchNumber ?? ""}`.trim(),
+                          };
+                        }
+                      );
+                      const batchEmptyText = itemProductId
+                        ? "Nenhum lote disponível"
+                        : "Selecione o produto primeiro";
+                      const batchDisabled = !requiresBatch || !itemProductId;
+
+                      return (
+                        <Card key={item.id} className="relative rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
+                          {/* Item Number Stripe */}
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
+                          
+                          <CardContent className="pt-6 pl-6">
+                            <div className="grid gap-4 md:grid-cols-12 items-start">
+                              
+                              <div className="md:col-span-5">
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.productId` as const}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                        Produto <span className="text-rose-500">*</span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <SearchSelect
+                                          value={field.value}
+                                          onChange={field.onChange}
+                                          placeholder="Buscar produto..."
+                                          searchPlaceholder="Filtrar produtos..."
+                                          emptyText="Nenhum produto encontrado"
+                                          options={productOptions}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs text-rose-500" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="md:col-span-3">
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.batchId` as const}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1">
+                                        Lote {requiresBatch && <span className="text-rose-500">*</span>}
+                                      </FormLabel>
+                                      <FormControl>
+                                        <SearchSelect
+                                          value={field.value || ""}
+                                          onChange={field.onChange}
+                                          placeholder="Selecione o lote..."
+                                          searchPlaceholder="Filtrar lotes..."
+                                          emptyText={batchEmptyText}
+                                          options={itemBatchOptions}
+                                          disabled={batchDisabled}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs text-rose-500" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.quantity` as const}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                        Qtd <span className="text-rose-500">*</span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          {...field}
+                                          className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs text-rose-500" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="md:col-span-2 flex justify-end pt-6 md:pt-0">
+                                {items.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-10 w-10 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500 self-end"
+                                    onClick={() => removeItem(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+
+                              <div className="md:col-span-12">
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.reason` as const}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          placeholder="Motivo ou observação (opcional)"
+                                          className="h-9 w-full rounded-[4px] border-neutral-800 bg-transparent text-xs focus:border-neutral-700 focus:ring-0 placeholder:text-neutral-600"
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs text-rose-500" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation Footer */}
+            <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 z-50">
+              <div className="mx-auto w-full max-w-4xl flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onPrevStep}
+                  disabled={currentStep === 1}
+                  className="h-10 w-[120px] rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
+                >
+                  <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                  Voltar
+                </Button>
+
+                {currentStep < totalSteps ? (
+                  <Button 
+                    type="button" 
+                    onClick={onNextStep}
+                    className="h-10 w-[120px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+                  >
+                    Próximo
+                    <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit"
+                    className="h-10 w-[140px] rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(5,150,105,0.3)]"
+                  >
+                    Finalizar
+                    <Check className="ml-2 h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </form>
         </Form>
       </main>
