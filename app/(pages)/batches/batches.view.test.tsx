@@ -50,12 +50,12 @@ const batchItem = {
 describe("BatchesView", () => {
   it("shows empty state when no batches", () => {
     render(<BatchesView {...baseProps} />);
-    expect(screen.getByText(/nenhum batch encontrado/i)).toBeTruthy();
+    expect(screen.getByText(/nenhum lote cadastrado/i)).toBeTruthy();
   });
 
   it("renders action icon in table actions", () => {
     render(<BatchesView {...baseProps} batches={[batchItem]} />);
-    expect(screen.getByTestId("batch-action-view-icon")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /ver detalhes/i })).toBeTruthy();
   });
 
   it("changes sort when clicking product header", () => {
@@ -68,7 +68,7 @@ describe("BatchesView", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /ordenar por produto/i }));
+    fireEvent.click(screen.getByRole("columnheader", { name: /produto/i }));
     expect(setSortConfig).toHaveBeenCalledWith({ key: "product", direction: "asc" });
   });
 });

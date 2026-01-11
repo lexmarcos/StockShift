@@ -458,6 +458,7 @@ export const ProductsView = ({
                                       size="icon"
                                       className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-rose-500"
                                       onClick={() => onOpenDeleteDialog(product)}
+                                      aria-label="Deletar"
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -527,6 +528,7 @@ export const ProductsView = ({
                                 size="icon"
                                 className="h-8 w-8 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-rose-950 hover:text-rose-500"
                                 onClick={() => onOpenDeleteDialog(product)}
+                                aria-label="Deletar"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -632,6 +634,14 @@ export const ProductsView = ({
               <p className="mt-1 opacity-90">
                 Ainda existe estoque deste produto. Zere o estoque antes de excluir.
               </p>
+              <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
+                {deleteBatches.map((batch) => (
+                  <div key={batch.id} className="flex items-center justify-between">
+                    <span>Lote {batch.batchNumber}</span>
+                    <span>{batch.quantity} un</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -670,7 +680,8 @@ export const ProductsView = ({
               Confirmação Final
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-neutral-500">
-              O produto <strong className="text-white">{deleteProduct?.name}</strong> será desativado.
+              Tem certeza que deseja deletar? O produto{" "}
+              <strong className="text-white">{deleteProduct?.name}</strong> será desativado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
