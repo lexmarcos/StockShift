@@ -28,6 +28,7 @@ export const HeaderView = ({
   user,
   onLogout,
   onToggleMobileMenu,
+  showWarehouseSelect,
 }: HeaderViewProps) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
@@ -58,34 +59,35 @@ export const HeaderView = ({
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-3">
           {/* Warehouse Selector */}
-          <Select
-            value={selectedWarehouseId || ""}
-            onValueChange={onWarehouseChange}
-            disabled={isLoadingWarehouses || warehouses.length === 0}
-          >
-            <SelectTrigger className="h-10 w-[140px] rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 md:w-[180px]">
-              <div className="flex items-center gap-2">
-                <Warehouse className="h-4 w-4 text-neutral-500" />
-                <SelectValue placeholder="Armazém" />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-              {warehouses.map((warehouse) => (
-                <SelectItem
-                  key={warehouse.id}
-                  value={warehouse.id}
-                  className="text-xs uppercase focus:bg-neutral-800"
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium text-white">{warehouse.name}</span>
-                    <span className="text-[10px] text-neutral-500">{warehouse.code}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {showWarehouseSelect && (
+            <Select
+              value={selectedWarehouseId || ""}
+              onValueChange={onWarehouseChange}
+              disabled={isLoadingWarehouses || warehouses.length === 0}
+            >
+              <SelectTrigger className="!h-10 w-[140px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 md:w-[180px]">
+                <div className="flex items-center gap-2">
+                  <Warehouse className="h-4 w-4 text-neutral-500" />
+                  <SelectValue placeholder="Armazém" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                {warehouses.map((warehouse) => (
+                  <SelectItem
+                    key={warehouse.id}
+                    value={warehouse.id}
+                    className="text-xs uppercase focus:bg-neutral-800"
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium text-white">{warehouse.name}</span>
+                      <span className="text-[10px] text-neutral-500">{warehouse.code}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          {/* User Dropdown Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

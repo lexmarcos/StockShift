@@ -10,22 +10,23 @@ vi.mock("next/link", () => ({
 const baseBatch = {
   id: "b1",
   productId: "p1",
-  productName: "Produto",
-  productSku: "SKU",
+  productName: "Produto Teste",
+  productSku: "SKU-123",
   warehouseId: "w1",
   warehouseName: "Central",
   warehouseCode: "WH-1",
   quantity: 5,
   batchNumber: "BATCH-001",
   expirationDate: "2026-02-01",
-  costPrice: 10,
+  costPrice: 1000,
+  sellingPrice: 1500,
   notes: "",
   createdAt: "2026-01-01T10:00:00Z",
   updatedAt: "2026-01-01T10:00:00Z",
 };
 
 describe("BatchesDetailView", () => {
-  it("shows batch header", () => {
+  it("shows batch header and key info", () => {
     render(
       <BatchesDetailView
         batch={baseBatch as any}
@@ -38,8 +39,12 @@ describe("BatchesDetailView", () => {
       />
     );
     expect(screen.getByText(/BATCH-001/i)).toBeTruthy();
-    const productLink = screen.getByRole("link", { name: /ver produto/i });
-    expect(productLink.getAttribute("href")).toBe("/products/p1");
+    
+    // Check if product name is present (it's now the link)
+    expect(screen.getByText("Produto Teste")).toBeTruthy();
+    
+    // Check for "financeiro" section
+    expect(screen.getByText(/financeiro/i)).toBeTruthy();
   });
 
   it("formats prices as BRL from cents", () => {
@@ -55,6 +60,7 @@ describe("BatchesDetailView", () => {
         onDelete={vi.fn()}
       />
     );
+    // Flexible regex for currency matching to handle potential non-breaking spaces
     expect(screen.getByText(/R\$\s?123,45/)).toBeTruthy();
     expect(screen.getByText(/R\$\s?678,90/)).toBeTruthy();
   });

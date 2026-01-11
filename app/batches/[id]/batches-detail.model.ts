@@ -11,7 +11,7 @@ export const useBatchDetailModel = (batchId: string) => {
 
   const { data, error, isLoading, mutate } = useSWR<BatchDetailResponse>(
     batchId ? `batches/${batchId}` : null,
-    async (url) => {
+    async (url: string) => {
       const { api } = await import("@/lib/api");
       return await api.get(url).json<BatchDetailResponse>();
     }

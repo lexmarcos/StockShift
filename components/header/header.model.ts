@@ -67,6 +67,8 @@ export const useHeaderModel = (): HeaderViewProps => {
     return PAGE_NAMES[pathname] || "StockShift";
   };
 
+  const isWarehousesPage = pathname.startsWith("/warehouses");
+
   const handleWarehouseChange = (id: string) => {
     setSelectedWarehouseId(id);
   };
@@ -89,5 +91,6 @@ export const useHeaderModel = (): HeaderViewProps => {
     onLogout: handleLogout,
     isMobileMenuOpen,
     onToggleMobileMenu: toggleMobileMenu,
+    showWarehouseSelect: !isWarehousesPage,
   };
 };
