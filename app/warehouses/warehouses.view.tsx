@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ResponsiveModal } from "./components/responsive-modal";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Form,
   FormControl,

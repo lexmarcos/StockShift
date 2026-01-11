@@ -2,14 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Form,
   FormControl,
@@ -449,128 +442,127 @@ export const CategoriesView = ({
       </main>
 
       {/* Create/Edit Modal */}
-      <Dialog open={isModalOpen} onOpenChange={closeModal}>
-        <DialogContent className="sm:max-w-[500px] rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold uppercase tracking-wide text-white">
-              {selectedCategory ? "Editar Categoria" : "Nova Categoria"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-500">
-              {selectedCategory
-                ? "Atualize as informações estruturais da categoria"
-                : "Defina os parâmetros para a nova categoria"}
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveModal
+        open={isModalOpen}
+        onOpenChange={closeModal}
+        title={selectedCategory ? "Editar Categoria" : "Nova Categoria"}
+        description={
+          selectedCategory
+            ? "Atualize as informações estruturais da categoria"
+            : "Defina os parâmetros para a nova categoria"
+        }
+        maxWidth="sm:max-w-[500px]"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
+              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="category-form"
+              disabled={form.formState.isSubmitting}
+              className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+            >
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Salvando...
+                </>
+              ) : selectedCategory ? (
+                "Salvar Alterações"
+              ) : (
+                "Criar Categoria"
+              )}
+            </Button>
+          </>
+        }
+      >
+        <Form {...form}>
+          <form id="category-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Nome da Categoria
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EX: ELETRÔNICOS"
+                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs text-rose-500" />
+                </FormItem>
+              )}
+            />
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="parentCategoryId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Nome da Categoria
+                      Categoria Pai
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="EX: ELETRÔNICOS"
-                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === "root" ? null : value)}
+                      value={field.value || "root"}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                        <SelectItem value="root" className="text-sm font-medium focus:bg-neutral-800 focus:text-white">
+                          <span className="text-blue-500 font-bold mr-2">●</span> RAIZ (Sem Pai)
+                        </SelectItem>
+                        {allCategories
+                          .filter((cat) => cat.id !== selectedCategory?.id)
+                          .map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id} className="text-sm focus:bg-neutral-800 focus:text-white">
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage className="text-xs text-rose-500" />
                   </FormItem>
                 )}
               />
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="parentCategoryId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                        Categoria Pai
-                      </FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(value === "root" ? null : value)}
-                        value={field.value || "root"}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                          <SelectItem value="root" className="text-sm font-medium focus:bg-neutral-800 focus:text-white">
-                            <span className="text-blue-500 font-bold mr-2">●</span> RAIZ (Sem Pai)
-                          </SelectItem>
-                          {allCategories
-                            .filter((cat) => cat.id !== selectedCategory?.id)
-                            .map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id} className="text-sm focus:bg-neutral-800 focus:text-white">
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="text-xs text-rose-500" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Descrição
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Detalhes opcionais..."
-                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs text-rose-500" />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter className="gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeModal}
-                  className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={form.formState.isSubmitting}
-                  className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                >
-                  {form.formState.isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : selectedCategory ? (
-                    "Salvar Alterações"
-                  ) : (
-                    "Criar Categoria"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Descrição
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Detalhes opcionais..."
+                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs text-rose-500" />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!categoryToDelete} onOpenChange={closeDeleteDialog}>

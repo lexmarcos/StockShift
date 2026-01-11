@@ -26,6 +26,7 @@ interface ResponsiveModalProps {
   description: string;
   children: ReactNode;
   footer?: ReactNode;
+  maxWidth?: string;
 }
 
 export function ResponsiveModal({
@@ -35,13 +36,14 @@ export function ResponsiveModal({
   description,
   children,
   footer,
+  maxWidth = "sm:max-w-[600px]",
 }: ResponsiveModalProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+        <DialogContent className={`${maxWidth} rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200`}>
           <DialogHeader>
             <DialogTitle className="text-base font-bold uppercase tracking-wide text-white">
               {title}
