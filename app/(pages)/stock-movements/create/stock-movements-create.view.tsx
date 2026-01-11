@@ -216,7 +216,7 @@ export const StockMovementCreateView = ({
       
       {/* Header */}
       <div className="border-b border-neutral-800 bg-[#0A0A0A] py-4">
-        <div className="mx-auto w-full max-w-4xl px-4 md:px-6">
+        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -236,7 +236,7 @@ export const StockMovementCreateView = ({
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-4xl px-4 py-8 md:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             
@@ -615,7 +615,7 @@ export const StockMovementCreateView = ({
 
             {/* Navigation Footer */}
             <div className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 z-50 md:ml-[var(--sidebar-width)]">
-              <div className="mx-auto w-full max-w-4xl flex items-center justify-between">
+              <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 md:px-6 lg:px-8">
                 <Button
                   type="button"
                   variant="outline"
