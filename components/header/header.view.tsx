@@ -37,12 +37,12 @@ export const HeaderView = ({
         <div className="flex items-center gap-3 md:gap-4">
           {/* Mobile Menu Button (Placeholder) */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={onToggleMobileMenu}
-            className="block h-10 w-10 rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white md:hidden"
+            className="flex md:hidden h-10 w-10 items-center justify-center rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-10 w-10 text" strokeWidth={2.5}/>
           </Button>
 
           {/* Logo */}

@@ -19,7 +19,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +30,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Plus,
   Search,
@@ -47,13 +54,14 @@ import {
   Minimize2,
   AlertTriangle,
   Layers,
-  Tag
+  Tag,
+  MoreHorizontal,
+  Box
 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { CategoryFormData } from "./categories.schema";
 import { Category, CategoryTree, SortConfig, ViewMode } from "./categories.types";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 interface CategoriesViewProps {
   categories: CategoryTree[] | CategoryTree[];
@@ -87,7 +95,6 @@ interface CategoriesViewProps {
 }
 
 export const CategoriesView = ({
-  categories,
   categoryTree,
   flatCategories,
   isLoading,
@@ -96,8 +103,6 @@ export const CategoriesView = ({
   setSearchQuery,
   viewMode,
   setViewMode,
-  sortConfig,
-  handleSort,
   isModalOpen,
   selectedCategory,
   openCreateModal,
@@ -116,349 +121,406 @@ export const CategoriesView = ({
   collapseAll,
   allCategories,
 }: CategoriesViewProps) => {
-  // Render tree node recursively
+
+  // Recursively render tree nodes
   const renderTreeNode = (node: CategoryTree) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedNodes.has(node.id);
     const Icon = isExpanded ? FolderOpen : Folder;
+    
+    // Depth-based border colors for visual hierarchy
+    const depthColors = [
+      "border-blue-500", 
+      "border-emerald-500", 
+      "border-amber-500", 
+      "border-purple-500"
+    ];
+    const activeBorder = depthColors[node.depth % depthColors.length];
 
     return (
       <div key={node.id} className="select-none">
         {/* Node Row */}
         <div
-          className="group flex items-center gap-2 py-2.5 px-3 hover:bg-neutral-800/50 border-l border-neutral-800 hover:border-blue-600/50 transition-colors bg-[#171717] mb-[1px]"
-          style={{ marginLeft: `${node.depth * 24}px` }}
+          className={cn(
+            "group relative flex items-center gap-3 py-3 px-3 md:px-4 bg-[#171717] mb-[1px] transition-all",
+            "border-l-[4px] border-neutral-800 hover:bg-[#1f1f1f]",
+             isExpanded ? activeBorder : "hover:border-neutral-600"
+          )}
+          style={{ paddingLeft: `${(node.depth * 16) + 12}px` }}
         >
-          {/* Expand/Collapse Button */}
+          {/* Visual Thread Line for nested items */}
+          {node.depth > 0 && (
+             <div 
+               className="absolute left-0 top-0 bottom-0 w-[1px] bg-neutral-800"
+               style={{ left: `${node.depth * 16}px` }} 
+             />
+          )}
+
+          {/* Expand/Collapse Trigger */}
           <button
-            onClick={() => hasChildren && toggleNode(node.id)}
-            className={`flex h-6 w-6 items-center justify-center rounded-[2px] transition-all border border-transparent ${
+            onClick={(e) => {
+              e.stopPropagation();
+              hasChildren && toggleNode(node.id);
+            }}
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
               hasChildren
-                ? "hover:bg-neutral-800 hover:border-neutral-700 cursor-pointer text-neutral-500 hover:text-white"
-                : "cursor-default opacity-0"
-            }`}
+                ? "cursor-pointer bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-600 hover:text-white"
+                : "invisible"
+            )}
             disabled={!hasChildren}
+            aria-label={isExpanded ? "Recolher" : "Expandir"}
           >
             {hasChildren && (
-              <>
-                {isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
-                )}
-              </>
+              isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
             )}
           </button>
 
           {/* Icon */}
-          <Icon className={cn("h-4 w-4", isExpanded ? "text-blue-500" : "text-neutral-500 group-hover:text-blue-400 transition-colors")} />
+          <Icon className={cn(
+            "h-5 w-5 shrink-0 transition-colors", 
+            isExpanded ? "text-blue-500" : "text-neutral-500 group-hover:text-neutral-300"
+          )} />
 
-          {/* Name */}
-          <span className="flex-1 text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
-            {node.name}
-          </span>
-
-          {/* Children Count */}
-          {hasChildren && (
-            <Badge variant="outline" className="rounded-[2px] border-neutral-700 bg-neutral-800 text-[9px] font-bold text-neutral-400">
-              {node.children.length} SUB
-            </Badge>
-          )}
-
-          {/* Actions */}
-          <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-blue-500"
-              onClick={() => openEditModal(node)}
-            >
-              <Edit className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-[4px] hover:bg-rose-950/30 text-neutral-400 hover:text-rose-500"
-              onClick={() => openDeleteDialog(node)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+          {/* Content Info */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center cursor-pointer" onClick={() => hasChildren && toggleNode(node.id)}>
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "text-sm font-medium transition-colors truncate",
+                isExpanded ? "text-white" : "text-neutral-300 group-hover:text-white"
+              )}>
+                {node.name}
+              </span>
+              
+              {hasChildren && (
+                 <Badge variant="outline" className="hidden sm:flex h-5 rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 text-[9px] font-bold text-neutral-400">
+                   {node.children.length}
+                 </Badge>
+              )}
+            </div>
           </div>
+
+          {/* Mobile-First Actions (Always visible via Menu) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Ações</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+              <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                Opções
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-neutral-800" />
+              <DropdownMenuItem 
+                onClick={() => openEditModal(node)}
+                className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+              >
+                <Edit className="mr-2 h-3.5 w-3.5" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => openDeleteDialog(node)}
+                className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+              >
+                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Children */}
+        {/* Children Render */}
         {hasChildren && isExpanded && (
-          <div>{node.children.map((child) => renderTreeNode(child))}</div>
+          <div className="relative">
+             {/* Vertical Guide Line */}
+             <div 
+               className="absolute top-0 bottom-0 w-px bg-neutral-800/50"
+               style={{ left: `${(node.depth * 16) + 15}px` }}
+             />
+             {node.children.map((child) => renderTreeNode(child))}
+          </div>
         )}
       </div>
     );
   };
 
-  // Render flat list item
+  // Render Flat List Item
   const renderFlatItem = (node: CategoryTree) => {
     return (
       <div
         key={node.id}
-        className="group flex items-center gap-3 py-3 px-4 border border-neutral-800 bg-[#171717] hover:border-blue-900/50 hover:bg-neutral-800/30 transition-all rounded-[4px] mb-2"
+        className="group relative flex items-center gap-4 border border-neutral-800 bg-[#171717] p-4 rounded-[4px] mb-2 hover:border-neutral-700 transition-all"
       >
-        {/* Icon with depth indicator */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-neutral-900 border border-neutral-800 group-hover:border-blue-900/30 group-hover:bg-blue-950/10 transition-colors">
+        {/* Left Color Accent */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-800 group-hover:bg-blue-600 transition-colors rounded-l-[4px]" />
+
+        {/* Icon Box */}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800 group-hover:border-neutral-700 transition-colors">
           <Tag className="h-4 w-4 text-neutral-500 group-hover:text-blue-500" />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="text-sm font-bold text-neutral-200 group-hover:text-white">
               {node.name}
             </span>
             {node.parentCategoryName && (
-              <Badge variant="outline" className="rounded-[2px] border-neutral-800 bg-neutral-900 text-[9px] font-mono text-neutral-500">
-                em {node.parentCategoryName}
+              <Badge variant="outline" className="rounded-[2px] border-neutral-800 bg-neutral-900/50 text-[9px] font-mono text-neutral-500">
+                <span className="text-neutral-600 mr-1">↳</span> {node.parentCategoryName}
               </Badge>
             )}
           </div>
           {node.description && (
-            <p className="text-xs text-neutral-500 truncate mt-0.5 max-w-md">
+            <p className="text-xs text-neutral-500 truncate mt-1">
               {node.description}
             </p>
           )}
         </div>
 
-        {/* Children Badge */}
+        {/* Stats (Hidden on small mobile) */}
         {node.children.length > 0 && (
-          <Badge variant="outline" className="rounded-[2px] border-neutral-700 bg-neutral-800 text-[9px] font-bold text-neutral-400 uppercase tracking-wider">
-            {node.children.length} subcategorias
-          </Badge>
+           <div className="hidden sm:flex flex-col items-end gap-1">
+             <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">Subcategorias</span>
+             <Badge className="bg-neutral-800 text-neutral-300 hover:bg-neutral-700 border-neutral-700 rounded-[2px] px-2">
+                {node.children.length}
+             </Badge>
+           </div>
         )}
 
-        {/* Actions */}
-        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-blue-500"
-            onClick={() => openEditModal(node)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-[4px] hover:bg-rose-950/30 text-neutral-400 hover:text-rose-500"
-            onClick={() => openDeleteDialog(node)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Actions Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Ações</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+            <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+              Opções
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-neutral-800" />
+            <DropdownMenuItem 
+              onClick={() => openEditModal(node)}
+              className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+            >
+              <Edit className="mr-2 h-3.5 w-3.5" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => openDeleteDialog(node)}
+              className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+            >
+              <Trash2 className="mr-2 h-3.5 w-3.5" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     );
   };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-      <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col gap-6">
-          {/* Actions Bar */}
-          <div className="flex items-center justify-end">
-            <Button
-              onClick={openCreateModal}
-              className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Categoria
-            </Button>
-          </div>
-
-          {/* Toolbar */}
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
-              <Input
-                placeholder="Buscar categorias..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
-              />
+      
+      {/* Header & Controls */}
+      <div className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
+        <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+          
+          <div className="flex flex-col gap-4">
+            {/* Title & Main Action */}
+            <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
+                   <Layers className="h-4 w-4 text-blue-500" />
+                 </div>
+                 <h1 className="text-lg font-bold tracking-tight text-white uppercase">Categorias</h1>
+               </div>
+               
+               <Button
+                onClick={openCreateModal}
+                className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Nova Categoria</span>
+                <span className="sm:hidden">Nova</span>
+              </Button>
             </div>
 
-            <div className="flex gap-2 w-full md:w-auto">
-              {/* View Mode Toggle */}
-              <div className="bg-[#171717] p-1 rounded-[4px] border border-neutral-800 flex items-center">
+            {/* Filters Toolbar */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                />
+              </div>
+
+              {/* View Toggle Group */}
+              <div className="flex bg-[#171717] p-0.5 rounded-[4px] border border-neutral-800 shrink-0">
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setViewMode("tree")}
+                  title="Visualização em Árvore"
                   className={cn(
-                    "h-8 rounded-[2px] px-3 text-xs font-bold uppercase tracking-wide",
+                    "h-8 w-8 rounded-[2px]",
                     viewMode === "tree" 
                       ? "bg-neutral-800 text-white shadow-sm" 
-                      : "text-neutral-500 hover:text-neutral-300 hover:bg-transparent"
+                      : "text-neutral-500 hover:text-neutral-300"
                   )}
                 >
-                  <FolderTree className="mr-2 h-3.5 w-3.5" />
-                  Árvore
+                  <FolderTree className="h-4 w-4" />
                 </Button>
-                <div className="w-px h-4 bg-neutral-800 mx-1"></div>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setViewMode("flat")}
+                  title="Visualização em Lista"
                   className={cn(
-                    "h-8 rounded-[2px] px-3 text-xs font-bold uppercase tracking-wide",
+                    "h-8 w-8 rounded-[2px]",
                     viewMode === "flat" 
                       ? "bg-neutral-800 text-white shadow-sm" 
-                      : "text-neutral-500 hover:text-neutral-300 hover:bg-transparent"
+                      : "text-neutral-500 hover:text-neutral-300"
                   )}
                 >
-                  <List className="mr-2 h-3.5 w-3.5" />
-                  Lista
+                  <List className="h-4 w-4" />
                 </Button>
               </div>
-
-              {/* Expand/Collapse Controls (Tree View Only) */}
-              {viewMode === "tree" && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={expandAll}
-                    title="Expandir Tudo"
-                    className="h-10 w-10 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={collapseAll}
-                    title="Recolher Tudo"
-                    className="h-10 w-10 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  >
-                    <Minimize2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Content Area */}
-          <div className="min-h-[400px]">
-            {/* Loading State */}
-            {isLoading && (
-              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="text-xs uppercase tracking-wide text-neutral-500">Carregando categorias...</span>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-                <AlertTriangle className="h-8 w-8 text-rose-500" />
-                <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase text-rose-500">Erro de Carregamento</h3>
-                  <p className="text-xs text-rose-500/70">Não foi possível acessar a lista de categorias</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && !error && flatCategories.length === 0 && !searchQuery && (
-              <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
-                  <Layers className="h-8 w-8 text-neutral-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
-                    Nenhuma categoria criada
-                  </h3>
-                  <p className="mt-1 max-w-xs text-xs text-neutral-500">
-                    Comece organizando seus produtos criando a primeira categoria.
-                  </p>
-                </div>
-                <Button
-                  onClick={openCreateModal}
-                  className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+          {/* Tree specific controls (Expand/Collapse) */}
+          {viewMode === "tree" && flatCategories.length > 0 && (
+             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-neutral-800/50">
+                <button 
+                  onClick={expandAll}
+                  className="text-[10px] uppercase font-bold text-neutral-500 hover:text-blue-500 transition-colors flex items-center gap-1"
                 >
-                  <Plus className="mr-2 h-3.5 w-3.5" />
-                  Criar Primeira Categoria
-                </Button>
-              </div>
-            )}
-
-            {/* No Results State */}
-            {!isLoading && !error && flatCategories.length === 0 && searchQuery && (
-              <div className="flex h-64 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-neutral-900 ring-1 ring-neutral-800">
-                  <Search className="h-6 w-6 text-neutral-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
-                    Nenhum resultado
-                  </h3>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    Não encontramos categorias para "{searchQuery}"
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setSearchQuery("")}
-                  className="rounded-[4px] border-neutral-700 text-xs uppercase text-neutral-300 hover:bg-neutral-800"
+                  <Maximize2 className="h-3 w-3" /> Expandir Tudo
+                </button>
+                <span className="text-neutral-800">|</span>
+                <button 
+                  onClick={collapseAll}
+                  className="text-[10px] uppercase font-bold text-neutral-500 hover:text-neutral-300 transition-colors flex items-center gap-1"
                 >
-                  Limpar Busca
-                </Button>
-              </div>
-            )}
-
-            {/* Tree View */}
-            {!isLoading &&
-              !error &&
-              flatCategories.length > 0 &&
-              viewMode === "tree" && (
-                <div className="rounded-[4px] border border-neutral-800 bg-[#0A0A0A] overflow-hidden">
-                  <div className="bg-neutral-900 px-3 py-2 border-b border-neutral-800">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Estrutura Hierárquica</span>
-                  </div>
-                  {(categories as CategoryTree[]).map((node) => renderTreeNode(node))}
-                </div>
-              )}
-
-            {/* Flat List View */}
-            {!isLoading &&
-              !error &&
-              flatCategories.length > 0 &&
-              viewMode === "flat" && (
-                <div className="space-y-1">
-                   <div className="flex justify-between items-center mb-2 px-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Lista Completa</span>
-                    <span className="text-[10px] font-mono text-neutral-600">{flatCategories.length} TOTAL</span>
-                  </div>
-                  {flatCategories.map((node) => renderFlatItem(node))}
-                </div>
-              )}
-          </div>
+                  <Minimize2 className="h-3 w-3" /> Recolher Tudo
+                </button>
+             </div>
+          )}
         </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-7xl p-4 md:px-6 lg:px-8 mt-2">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/30 animate-pulse">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <span className="text-xs uppercase tracking-wide text-neutral-500">Sincronizando...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
+            <AlertTriangle className="h-8 w-8 text-rose-500" />
+            <div className="text-center">
+              <h3 className="text-sm font-bold uppercase text-rose-500">Falha na conexão</h3>
+              <p className="text-xs text-rose-500/70">Não foi possível carregar os dados.</p>
+            </div>
+            <Button variant="outline" onClick={() => window.location.reload()} className="border-rose-900/30 text-rose-500 hover:bg-rose-950/20">
+              Tentar Novamente
+            </Button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && flatCategories.length === 0 && !searchQuery && (
+          <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/20">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+              <Box className="h-8 w-8 text-neutral-600" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                Catálogo Vazio
+              </h3>
+              <p className="mt-1 max-w-xs text-xs text-neutral-500">
+                Organize seu estoque criando estruturas de categorias.
+              </p>
+            </div>
+            <Button
+              onClick={openCreateModal}
+              className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+            >
+              <Plus className="mr-2 h-3.5 w-3.5" />
+              Criar Primeira Categoria
+            </Button>
+          </div>
+        )}
+
+        {/* No Results */}
+        {!isLoading && !error && flatCategories.length === 0 && searchQuery && (
+          <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
+             <Search className="h-12 w-12 mb-4 opacity-20" />
+             <p className="text-sm">Nenhum resultado para "{searchQuery}"</p>
+             <Button 
+               variant="link" 
+               onClick={() => setSearchQuery("")}
+               className="text-blue-500 text-xs mt-2"
+             >
+               Limpar filtros
+             </Button>
+          </div>
+        )}
+
+        {/* Views */}
+        {!isLoading && !error && flatCategories.length > 0 && (
+          <div className="animate-in fade-in duration-500 slide-in-from-bottom-2">
+            
+            {viewMode === "tree" && (
+              <div className="rounded-[4px] border border-neutral-800 bg-[#0A0A0A] overflow-hidden shadow-sm">
+                {(categoryTree as CategoryTree[]).map((node) => renderTreeNode(node))}
+              </div>
+            )}
+
+            {viewMode === "flat" && (
+              <div className="space-y-1">
+                {flatCategories.map((node) => renderFlatItem(node))}
+              </div>
+            )}
+            
+          </div>
+        )}
       </main>
 
-      {/* Create/Edit Modal */}
+      {/* Modal - Create/Edit */}
       <ResponsiveModal
         open={isModalOpen}
         onOpenChange={closeModal}
         title={selectedCategory ? "Editar Categoria" : "Nova Categoria"}
-        description={
-          selectedCategory
-            ? "Atualize as informações estruturais da categoria"
-            : "Defina os parâmetros para a nova categoria"
-        }
+        description={selectedCategory ? `ID: ${selectedCategory.id}` : "Defina a estrutura"}
         maxWidth="sm:max-w-[500px]"
         footer={
           <>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={closeModal}
-              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+              className="rounded-[4px] hover:bg-neutral-800 text-neutral-400"
             >
               Cancelar
             </Button>
@@ -468,33 +530,25 @@ export const CategoriesView = ({
               disabled={form.formState.isSubmitting}
               className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
             >
-              {form.formState.isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Salvando...
-                </>
-              ) : selectedCategory ? (
-                "Salvar Alterações"
-              ) : (
-                "Criar Categoria"
-              )}
+              {form.formState.isSubmitting ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-2 h-3.5 w-3.5" />}
+              {selectedCategory ? "Salvar" : "Criar"}
             </Button>
           </>
         }
       >
         <Form {...form}>
-          <form id="category-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+          <form id="category-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    Nome da Categoria
+                    Nome <span className="text-rose-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="EX: ELETRÔNICOS"
+                      placeholder="Ex: Eletrônicos"
                       className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                       {...field}
                     />
@@ -504,42 +558,40 @@ export const CategoriesView = ({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="parentCategoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Categoria Pai
-                    </FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(value === "root" ? null : value)}
-                      value={field.value || "root"}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                        <SelectItem value="root" className="text-sm font-medium focus:bg-neutral-800 focus:text-white">
-                          <span className="text-blue-500 font-bold mr-2">●</span> RAIZ (Sem Pai)
-                        </SelectItem>
-                        {allCategories
-                          .filter((cat) => cat.id !== selectedCategory?.id)
-                          .map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id} className="text-sm focus:bg-neutral-800 focus:text-white">
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-xs text-rose-500" />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="parentCategoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Categoria Pai
+                  </FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "root" ? null : value)}
+                    value={field.value || "root"}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                      <SelectItem value="root" className="text-sm font-medium border-b border-neutral-800 mb-1 pb-1">
+                        <span className="text-blue-500 font-bold mr-2">●</span> RAIZ (Sem Pai)
+                      </SelectItem>
+                      {allCategories
+                        .filter((cat) => cat.id !== selectedCategory?.id)
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id} className="text-sm">
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs text-rose-500" />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -551,7 +603,7 @@ export const CategoriesView = ({
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Detalhes opcionais..."
+                      placeholder="Opcional"
                       className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
                       {...field}
                     />
@@ -564,44 +616,36 @@ export const CategoriesView = ({
         </Form>
       </ResponsiveModal>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog open={!!categoryToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 sm:max-w-[400px]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
-              Confirmar Exclusão
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-rose-500" />
+              Excluir Categoria?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500">
-              Tem certeza que deseja deletar a categoria{" "}
-              <strong className="text-white">{categoryToDelete?.name}</strong>?
-              {categoryToDelete && flatCategories.find(c => c.id === categoryToDelete.id)?.children?.length && flatCategories.find(c => c.id === categoryToDelete.id)!.children.length > 0 && (
-                <div className="mt-3 rounded-[2px] border border-rose-900/30 bg-rose-950/20 p-3 text-rose-400">
-                  <div className="flex items-center gap-2 font-bold mb-1">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    ATENÇÃO
-                  </div>
-                  Esta categoria possui subcategorias. A exclusão pode afetar a estrutura hierárquica.
-                </div>
+            <AlertDialogDescription className="text-neutral-500 text-sm">
+              Você está prestes a remover <span className="text-white font-bold">{categoryToDelete?.name}</span>.
+              <br/><br/>
+              {categoryToDelete && flatCategories.find(c => c.id === categoryToDelete.id)?.children?.length && flatCategories.find(c => c.id === categoryToDelete.id)!.children.length > 0 ? (
+                <span className="block p-3 bg-rose-950/20 border border-rose-900/30 rounded-[2px] text-rose-400 text-xs font-bold">
+                  ⚠️ Esta categoria contém subcategorias que também serão afetadas.
+                </span>
+              ) : (
+                "Esta ação não pode ser desfeita."
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
-              Cancelar
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-[4px] border-neutral-800 bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white">
+              Voltar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
+              className="rounded-[4px] bg-rose-600 text-white hover:bg-rose-700 border-none"
             >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Deletando...
-                </>
-              ) : (
-                "Confirmar Exclusão"
-              )}
+              {isDeleting ? "Excluindo..." : "Sim, excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Use a skill using-superpowers e brainstorming para criação de features
+**SEMPRE** sse a skill using-superpowers e brainstorming para criação de features
 
 ## 📋 Visão Geral do Projeto
 

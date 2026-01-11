@@ -8,7 +8,7 @@ export const categorySchema = z.object({
     .trim(),
   description: z.string().trim().optional(),
   parentCategoryId: z.string().uuid().nullable().optional(),
-  attributesSchema: z.record(z.any()).optional(),
+  attributesSchema: z.record(z.string(), z.any()).optional(),
 });
 
 export type CategoryFormData = z.infer<typeof categorySchema>;
