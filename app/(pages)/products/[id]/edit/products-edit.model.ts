@@ -21,6 +21,7 @@ import {
   BrandsResponse,
   CustomAttribute,
 } from "../../create/products-create.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 interface ProductBrand {
   id: string;
@@ -85,6 +86,13 @@ export const useProductEditModel = (productId: string) => {
       return await api.get(url).json<ProductResponse>();
     }
   );
+
+  useBreadcrumb({
+    title: productData?.data?.name || "Carregando...",
+    backUrl: `/products/${productId}`,
+    section: "Inventário",
+    subsection: "Edição",
+  });
 
   // Fetch categories
   const { data: categoriesData, isLoading: isLoadingCategories } =

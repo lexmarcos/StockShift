@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { batchEditSchema, BatchEditFormData } from "./batches-edit.schema";
 import type { BatchEditResponse } from "./batches-edit.types";
 import type { Batch } from "../../batches.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const mapBatchToFormValues = (batch: Batch): BatchEditFormData => ({
   productId: batch.productId,
@@ -46,6 +47,13 @@ export const useBatchEditModel = (batchId: string) => {
   );
 
   const batch = data?.data || null;
+
+  useBreadcrumb({
+    title: batch?.batchNumber || batch?.batchCode || "Carregando...",
+    backUrl: `/batches/${batchId}`,
+    section: "Inventário",
+    subsection: "Edição",
+  });
 
   useEffect(() => {
     if (batch) {
