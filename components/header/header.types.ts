@@ -12,7 +12,6 @@ export interface Warehouse {
 }
 
 export interface HeaderViewProps {
-  pageName: string;
   warehouses: Warehouse[];
   selectedWarehouseId: string | null;
   isLoadingWarehouses: boolean;

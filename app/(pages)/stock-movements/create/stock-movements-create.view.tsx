@@ -30,20 +30,24 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { 
-  ArrowLeft, 
-  Check, 
-  ChevronDown, 
-  Plus, 
-  Trash2, 
-  Truck, 
-  Package, 
-  Layers, 
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  Plus,
+  Trash2,
+  Truck,
+  Package,
+  Layers,
   ArrowRight,
   Settings,
-  Warehouse
+  Warehouse,
 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { filterBatchesByProduct } from "./stock-movements-create.model";
@@ -105,12 +109,7 @@ const SearchSelect = ({
           aria-expanded={open}
           className="h-10 w-full justify-between rounded-[4px] border-neutral-800 bg-neutral-900 text-left text-sm hover:bg-neutral-800"
         >
-          <span
-            className={cn(
-              "truncate",
-              !selected && "text-neutral-500"
-            )}
-          >
+          <span className={cn("truncate", !selected && "text-neutral-500")}>
             {selected ? selected.label : placeholder}
           </span>
           <ChevronDown className="h-3.5 w-3.5 text-neutral-500" />
@@ -121,9 +120,14 @@ const SearchSelect = ({
         className="w-[--radix-popover-trigger-width] rounded-[4px] border-neutral-800 bg-[#171717] p-0 text-neutral-200"
       >
         <Command className="bg-transparent">
-          <CommandInput placeholder={searchPlaceholder} className="text-xs text-neutral-200" />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            className="text-xs text-neutral-200"
+          />
           <CommandList className="max-h-[200px]">
-            <CommandEmpty className="py-2 text-center text-xs text-neutral-500">{emptyText}</CommandEmpty>
+            <CommandEmpty className="py-2 text-center text-xs text-neutral-500">
+              {emptyText}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -138,7 +142,9 @@ const SearchSelect = ({
                   <Check
                     className={cn(
                       "mr-2 h-3.5 w-3.5",
-                      option.value === value ? "opacity-100 text-blue-500" : "opacity-0"
+                      option.value === value
+                        ? "opacity-100 text-blue-500"
+                        : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">
@@ -195,63 +201,42 @@ export const StockMovementCreateView = ({
       step: 1,
       title: "Configuração",
       description: "Tipo e Parâmetros",
-      icon: Settings
+      icon: Settings,
     },
     {
       step: 2,
       title: "Logística",
       description: "Origem e Destino",
-      icon: Warehouse
+      icon: Warehouse,
     },
     {
       step: 3,
       title: "Itens",
       description: "Produtos e Lotes",
-      icon: Package
+      icon: Package,
     },
   ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-      
-      {/* Header */}
-      <div className="border-b border-neutral-800 bg-[#0A0A0A] py-4">
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              asChild
-            >
-              <Link href="/stock-movements">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-lg font-bold uppercase tracking-tight text-white">Nova Movimentação</h1>
-              <p className="text-xs text-neutral-500">Fluxo de controle de estoque</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            
             {/* Steps Indicator */}
             <div className="relative flex justify-between">
               {/* Connector Line */}
               <div className="absolute top-5 left-0 right-0 h-[2px] bg-neutral-800 -z-10" />
-              
+
               {steps.map((item) => {
                 const isActive = item.step === currentStep;
                 const isCompleted = item.step < currentStep;
                 const Icon = item.icon;
 
                 return (
-                  <div key={item.step} className="flex flex-col items-center gap-2 bg-[#0A0A0A] px-2">
+                  <div
+                    key={item.step}
+                    className="flex flex-col items-center gap-2 bg-[#0A0A0A] px-2"
+                  >
                     <div
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-[4px] border transition-all duration-300",
@@ -262,13 +247,23 @@ export const StockMovementCreateView = ({
                           : "border-neutral-800 bg-[#171717] text-neutral-600"
                       )}
                     >
-                      {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                      {isCompleted ? (
+                        <Check className="h-5 w-5" />
+                      ) : (
+                        <Icon className="h-5 w-5" />
+                      )}
                     </div>
                     <div className="hidden md:flex flex-col items-center text-center space-y-0.5">
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest",
-                        isActive ? "text-blue-500" : isCompleted ? "text-emerald-500" : "text-neutral-600"
-                      )}>
+                      <span
+                        className={cn(
+                          "text-[10px] font-bold uppercase tracking-widest",
+                          isActive
+                            ? "text-blue-500"
+                            : isCompleted
+                            ? "text-emerald-500"
+                            : "text-neutral-600"
+                        )}
+                      >
                         {item.title}
                       </span>
                     </div>
@@ -279,12 +274,15 @@ export const StockMovementCreateView = ({
 
             {/* Content Area */}
             <div className="min-h-[400px]">
-              
               {currentStep === 1 && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
                   <div className="text-center md:text-left">
-                    <h2 className="text-xl font-bold uppercase text-white">Configuração Inicial</h2>
-                    <p className="text-sm text-neutral-500">Defina o tipo de operação e o modo de execução.</p>
+                    <h2 className="text-xl font-bold uppercase text-white">
+                      Configuração Inicial
+                    </h2>
+                    <p className="text-sm text-neutral-500">
+                      Defina o tipo de operação e o modo de execução.
+                    </p>
                   </div>
 
                   <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
@@ -295,32 +293,48 @@ export const StockMovementCreateView = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Tipo de Movimentação <span className="text-rose-500">*</span>
+                              Tipo de Movimentação{" "}
+                              <span className="text-rose-500">*</span>
                             </FormLabel>
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
                               <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                 <SelectValue placeholder="Selecione o tipo..." />
                               </SelectTrigger>
                               <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-                                <SelectItem value="ENTRY" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                <SelectItem
+                                  value="ENTRY"
+                                  className="py-3 text-xs uppercase font-medium focus:bg-neutral-800"
+                                >
                                   <div className="flex items-center gap-2">
                                     <div className="h-2 w-2 rounded-full bg-emerald-500" />
                                     Entrada (Compra/Retorno)
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="EXIT" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                <SelectItem
+                                  value="EXIT"
+                                  className="py-3 text-xs uppercase font-medium focus:bg-neutral-800"
+                                >
                                   <div className="flex items-center gap-2">
                                     <div className="h-2 w-2 rounded-full bg-rose-500" />
                                     Saída (Venda/Perda)
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="TRANSFER" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                <SelectItem
+                                  value="TRANSFER"
+                                  className="py-3 text-xs uppercase font-medium focus:bg-neutral-800"
+                                >
                                   <div className="flex items-center gap-2">
                                     <div className="h-2 w-2 rounded-full bg-blue-500" />
                                     Transferência Interna
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="ADJUSTMENT" className="py-3 text-xs uppercase font-medium focus:bg-neutral-800">
+                                <SelectItem
+                                  value="ADJUSTMENT"
+                                  className="py-3 text-xs uppercase font-medium focus:bg-neutral-800"
+                                >
                                   <div className="flex items-center gap-2">
                                     <div className="h-2 w-2 rounded-full bg-amber-500" />
                                     Ajuste de Estoque
@@ -364,8 +378,12 @@ export const StockMovementCreateView = ({
               {currentStep === 2 && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
                   <div className="text-center md:text-left">
-                    <h2 className="text-xl font-bold uppercase text-white">Definição Logística</h2>
-                    <p className="text-sm text-neutral-500">Selecione os armazéns envolvidos na operação.</p>
+                    <h2 className="text-xl font-bold uppercase text-white">
+                      Definição Logística
+                    </h2>
+                    <p className="text-sm text-neutral-500">
+                      Selecione os armazéns envolvidos na operação.
+                    </p>
                   </div>
 
                   <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
@@ -378,9 +396,13 @@ export const StockMovementCreateView = ({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                  Armazém de Origem <span className="text-rose-500">*</span>
+                                  Armazém de Origem{" "}
+                                  <span className="text-rose-500">*</span>
                                 </FormLabel>
-                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                <Select
+                                  value={field.value || ""}
+                                  onValueChange={field.onChange}
+                                >
                                   <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                     <SelectValue placeholder="Selecione a origem..." />
                                   </SelectTrigger>
@@ -409,9 +431,13 @@ export const StockMovementCreateView = ({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                  Armazém de Destino <span className="text-rose-500">*</span>
+                                  Armazém de Destino{" "}
+                                  <span className="text-rose-500">*</span>
                                 </FormLabel>
-                                <Select value={field.value || ""} onValueChange={field.onChange}>
+                                <Select
+                                  value={field.value || ""}
+                                  onValueChange={field.onChange}
+                                >
                                   <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                     <SelectValue placeholder="Selecione o destino..." />
                                   </SelectTrigger>
@@ -453,8 +479,12 @@ export const StockMovementCreateView = ({
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
-                      <h2 className="text-xl font-bold uppercase text-white">Detalhamento dos Itens</h2>
-                      <p className="text-sm text-neutral-500">Adicione os produtos e quantidades.</p>
+                      <h2 className="text-xl font-bold uppercase text-white">
+                        Detalhamento dos Itens
+                      </h2>
+                      <p className="text-sm text-neutral-500">
+                        Adicione os produtos e quantidades.
+                      </p>
                     </div>
                     <Button
                       type="button"
@@ -468,35 +498,40 @@ export const StockMovementCreateView = ({
 
                   <div className="space-y-4">
                     {items.map((item, index) => {
-                      const itemProductId = watchedItems?.[index]?.productId ?? "";
+                      const itemProductId =
+                        watchedItems?.[index]?.productId ?? "";
                       const filteredBatches = filterBatchesByProduct(
                         batches,
                         itemProductId
                       );
-                      const itemBatchOptions: SearchOption[] = filteredBatches.map(
-                        (batch) => {
-                          const code = batch.batchCode || batch.batchNumber || batch.id;
+                      const itemBatchOptions: SearchOption[] =
+                        filteredBatches.map((batch) => {
+                          const code =
+                            batch.batchCode || batch.batchNumber || batch.id;
                           return {
                             value: batch.id,
                             label: code,
                             description: `Disp: ${batch.quantity}`,
-                            searchValue: `${code} ${batch.batchNumber ?? ""}`.trim(),
+                            searchValue: `${code} ${
+                              batch.batchNumber ?? ""
+                            }`.trim(),
                           };
-                        }
-                      );
+                        });
                       const batchEmptyText = itemProductId
                         ? "Nenhum lote disponível"
                         : "Selecione o produto primeiro";
                       const batchDisabled = !requiresBatch || !itemProductId;
 
                       return (
-                        <Card key={item.id} className="relative rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
+                        <Card
+                          key={item.id}
+                          className="relative rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden"
+                        >
                           {/* Item Number Stripe */}
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
-                          
+
                           <CardContent className="pt-6 pl-6">
                             <div className="grid gap-4 md:grid-cols-12 items-start">
-                              
                               <div className="md:col-span-5">
                                 <FormField
                                   control={form.control}
@@ -504,7 +539,8 @@ export const StockMovementCreateView = ({
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                        Produto <span className="text-rose-500">*</span>
+                                        Produto{" "}
+                                        <span className="text-rose-500">*</span>
                                       </FormLabel>
                                       <FormControl>
                                         <SearchSelect
@@ -529,7 +565,12 @@ export const StockMovementCreateView = ({
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1">
-                                        Lote {requiresBatch && <span className="text-rose-500">*</span>}
+                                        Lote{" "}
+                                        {requiresBatch && (
+                                          <span className="text-rose-500">
+                                            *
+                                          </span>
+                                        )}
                                       </FormLabel>
                                       <FormControl>
                                         <SearchSelect
@@ -555,7 +596,8 @@ export const StockMovementCreateView = ({
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                        Qtd <span className="text-rose-500">*</span>
+                                        Qtd{" "}
+                                        <span className="text-rose-500">*</span>
                                       </FormLabel>
                                       <FormControl>
                                         <Input
@@ -602,7 +644,6 @@ export const StockMovementCreateView = ({
                                   )}
                                 />
                               </div>
-
                             </div>
                           </CardContent>
                         </Card>
@@ -628,8 +669,8 @@ export const StockMovementCreateView = ({
                 </Button>
 
                 {currentStep < totalSteps ? (
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     onClick={onNextStep}
                     className="h-10 w-[120px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
                   >
@@ -637,7 +678,7 @@ export const StockMovementCreateView = ({
                     <ArrowRight className="ml-2 h-3.5 w-3.5" />
                   </Button>
                 ) : (
-                  <Button 
+                  <Button
                     type="submit"
                     className="h-10 w-[140px] rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(5,150,105,0.3)]"
                   >

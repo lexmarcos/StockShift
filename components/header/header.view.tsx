@@ -20,7 +20,6 @@ import { Menu, Package2, Warehouse, User, LogOut } from "lucide-react";
 import { HeaderViewProps } from "./header.types";
 
 export const HeaderView = ({
-  pageName,
   warehouses,
   selectedWarehouseId,
   isLoadingWarehouses,
@@ -50,9 +49,9 @@ export const HeaderView = ({
             <Package2 className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
 
-          {/* Page Name */}
+          {/* App Name */}
           <h1 className="hidden text-base font-bold uppercase tracking-tight text-white sm:block md:text-lg">
-            {pageName}
+            Stockshift
           </h1>
         </div>
 
@@ -65,7 +64,7 @@ export const HeaderView = ({
               onValueChange={onWarehouseChange}
               disabled={isLoadingWarehouses || warehouses.length === 0}
             >
-              <SelectTrigger className="!h-10 w-[140px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 md:w-[180px]">
+              <SelectTrigger className="!h-9 w-[140px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 md:w-[180px]">
                 <div className="flex items-center gap-2">
                   <Warehouse className="h-4 w-4 text-neutral-500" />
                   <SelectValue placeholder="Armazém" />

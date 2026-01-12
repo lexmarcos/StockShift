@@ -8,20 +8,6 @@ import { api } from "@/lib/api";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Warehouse, HeaderViewProps } from "./header.types";
 
-const PAGE_NAMES: Record<string, string> = {
-  "/": "Dashboard",
-  "/products": "Produtos",
-  "/products/create": "Novo Produto",
-  "/batches": "Lotes",
-  "/batches/create": "Novo Lote",
-  "/warehouses": "Armazéns",
-  "/categories": "Categorias",
-  "/brands": "Marcas",
-  "/stock-movements": "Movimentações",
-  "/stock-movements/create": "Nova Movimentação",
-  "/profile": "Perfil",
-};
-
 const fetcher = async () => {
   const response = await api.get("warehouses").json<{
     success: boolean;
@@ -47,26 +33,6 @@ export const useHeaderModel = (): HeaderViewProps => {
 
   const activeWarehouses = warehouses.filter((w) => w.isActive);
 
-  const getPageName = (): string => {
-    if (pathname.startsWith("/products/") && pathname.includes("/edit")) {
-      return "Editar Produto";
-    }
-    if (pathname.startsWith("/batches/") && pathname.includes("/edit")) {
-      return "Editar Lote";
-    }
-    if (pathname.startsWith("/stock-movements/") && pathname !== "/stock-movements" && pathname !== "/stock-movements/create") {
-      return "Detalhes da Movimentação";
-    }
-    if (pathname.startsWith("/products/") && pathname !== "/products" && pathname !== "/products/create") {
-      return "Detalhes do Produto";
-    }
-    if (pathname.startsWith("/batches/") && pathname !== "/batches" && pathname !== "/batches/create") {
-      return "Detalhes do Lote";
-    }
-
-    return PAGE_NAMES[pathname] || "StockShift";
-  };
-
   const isWarehousesPage = pathname.startsWith("/warehouses");
 
   const handleWarehouseChange = (id: string) => {
@@ -78,7 +44,6 @@ export const useHeaderModel = (): HeaderViewProps => {
   };
 
   return {
-    pageName: getPageName(),
     warehouses: activeWarehouses,
     selectedWarehouseId,
     isLoadingWarehouses,
