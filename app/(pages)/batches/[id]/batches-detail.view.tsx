@@ -117,39 +117,18 @@ export const BatchesDetailView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-neutral-200 font-sans selection:bg-blue-500/30">
-      
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-[#262626] bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/batches"
-              className="group inline-flex h-9 w-9 items-center justify-center rounded-[4px] border border-[#262626] bg-[#171717] hover:bg-[#262626] hover:border-neutral-700 transition-all"
-            >
-              <ArrowLeft className="h-4 w-4 text-neutral-400 group-hover:text-white transition-colors" />
-            </Link>
-            
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-neutral-500">
-                Batch Detail
-              </span>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-white font-mono">
-                  {batch.batchNumber || batch.batchCode || "SEM CÓDIGO"}
-                </h1>
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    "rounded-[4px] px-1.5 py-0 text-[10px] font-medium border uppercase tracking-wider",
-                    statusBg, statusColor, statusBorder
-                  )}
-                >
-                  {isExpired ? "Expirado" : "Ativo"}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
+      {/* Actions Bar */}
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 md:px-6">
+        <div className="flex items-center justify-between mb-4">
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "rounded-[4px] px-1.5 py-0 text-[10px] font-medium border uppercase tracking-wider",
+              statusBg, statusColor, statusBorder
+            )}
+          >
+            {isExpired ? "Expirado" : "Ativo"}
+          </Badge>
           <div className="flex items-center gap-2">
             <Link href={`/batches/${batch.id}/edit`}>
               <Button 
@@ -194,9 +173,9 @@ export const BatchesDetailView = ({
             </AlertDialog>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           

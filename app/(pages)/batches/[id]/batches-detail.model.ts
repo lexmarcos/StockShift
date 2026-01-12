@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
 import type { BatchDetailResponse } from "./batches-detail.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const useBatchDetailModel = (batchId: string) => {
   const router = useRouter();
@@ -18,6 +19,11 @@ export const useBatchDetailModel = (batchId: string) => {
   );
 
   const batch = data?.data ?? null;
+
+  useBreadcrumb({
+    title: batch?.batchNumber || batch?.batchCode || "Carregando...",
+    backUrl: "/batches",
+  });
 
   const onDelete = async () => {
     if (!batchId) return;
