@@ -67,7 +67,9 @@ export const useProductEditModel = (productId: string) => {
   const router = useRouter();
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
+  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
+    []
+  );
   const [productImage, setProductImage] = useState<File | null>(null);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const [isBatchesDrawerOpen, setBatchesDrawerOpen] = useState(false);
@@ -80,12 +82,13 @@ export const useProductEditModel = (productId: string) => {
   const [isFormReady, setIsFormReady] = useState(false);
 
   // Fetch product data
-  const { data: productData, isLoading: isLoadingProduct } = useSWR<ProductResponse>(
-    productId ? `products/${productId}` : null,
-    async (url: string) => {
-      return await api.get(url).json<ProductResponse>();
-    }
-  );
+  const { data: productData, isLoading: isLoadingProduct } =
+    useSWR<ProductResponse>(
+      productId ? `products/${productId}` : null,
+      async (url: string) => {
+        return await api.get(url).json<ProductResponse>();
+      }
+    );
 
   useBreadcrumb({
     title: productData?.data?.name || "Carregando...",
@@ -139,10 +142,7 @@ export const useProductEditModel = (productId: string) => {
     },
   });
 
-  const {
-    fields: batchFields,
-    replace: replaceBatchFields,
-  } = useFieldArray({
+  const { fields: batchFields, replace: replaceBatchFields } = useFieldArray({
     control: batchForm.control,
     name: "batches",
     keyName: "fieldId",
@@ -276,7 +276,6 @@ export const useProductEditModel = (productId: string) => {
     }
     return null;
   }, [product]);
-
 
   const categories = useMemo(() => {
     const list = categoriesData?.data || [];

@@ -3,7 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { batchCreateSchema, BatchCreateFormData } from "./batches-create.schema";
+import {
+  batchCreateSchema,
+  BatchCreateFormData,
+} from "./batches-create.schema";
 import type { BatchCreateResponse } from "./batches-create.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 
@@ -40,7 +43,7 @@ export const useBatchCreateModel = () => {
   useBreadcrumb({
     title: "Novo Lote",
     backUrl: "/batches",
-    section: "Inventário",
+    section: "Lotes",
     subsection: "Criar",
   });
 

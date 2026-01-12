@@ -31,14 +31,16 @@ export const useProductCreateModel = () => {
   const router = useRouter();
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
+  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
+    []
+  );
   const [productImage, setProductImage] = useState<File | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useBreadcrumb({
     title: "Novo Produto",
     backUrl: "/products",
-    section: "Inventário",
+    section: "Produtos",
     subsection: "Criar",
   });
 
@@ -97,7 +99,7 @@ export const useProductCreateModel = () => {
   const addCustomAttribute = () => {
     setCustomAttributes([
       ...customAttributes,
-      { id: crypto.randomUUID(), key: "", value: "" }
+      { id: crypto.randomUUID(), key: "", value: "" },
     ]);
   };
 

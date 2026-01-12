@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  ArrowLeft, 
-  PackagePlus, 
-  Box, 
-  Warehouse, 
-  Calendar, 
-  FileText, 
-  DollarSign, 
+import {
+  ArrowLeft,
+  PackagePlus,
+  Box,
+  Warehouse,
+  Calendar,
+  FileText,
+  DollarSign,
   AlertCircle,
   CheckCircle2,
   Loader2,
   Barcode,
-  Info
+  Info,
 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchCreateFormData } from "./batches-create.schema";
@@ -31,12 +31,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -48,7 +43,12 @@ import {
 interface BatchCreateViewProps {
   form: UseFormReturn<BatchCreateFormData>;
   onSubmit: (data: BatchCreateFormData) => void;
-  products: Array<{ id: string; name: string; sku?: string | null; hasExpiration: boolean }>;
+  products: Array<{
+    id: string;
+    name: string;
+    sku?: string | null;
+    hasExpiration: boolean;
+  }>;
   warehouses: Array<{ id: string; name: string }>;
   selectedProduct?: { hasExpiration: boolean } | undefined;
 }
@@ -61,7 +61,7 @@ export const BatchCreateView = ({
   selectedProduct,
 }: BatchCreateViewProps) => {
   const { isSubmitting } = form.formState;
-  
+
   // Watch for profit calculations
   const costPrice = form.watch("costPrice") || 0;
   const sellingPrice = form.watch("sellingPrice") || 0;
@@ -72,34 +72,11 @@ export const BatchCreateView = ({
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        <div className="mb-8 flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 rounded-[4px] border-neutral-800 bg-[#171717] hover:bg-neutral-800 text-neutral-400 hover:text-white"
-            asChild
-          >
-            <Link href="/batches">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold uppercase tracking-tight text-white">
-              Novo Lote
-            </h1>
-            <p className="text-xs text-neutral-500">
-              Registre a entrada de um novo lote de produtos no estoque
-            </p>
-          </div>
-        </div>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              
               {/* Left Column - Main Info */}
               <div className="space-y-6 lg:col-span-2">
-                
                 {/* Identification Card */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
@@ -120,7 +97,10 @@ export const BatchCreateView = ({
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                               Produto <span className="text-rose-500">*</span>
                             </FormLabel>
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
                               <FormControl>
                                 <SelectTrigger className="w-full h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                   <SelectValue placeholder="Selecione o produto..." />
@@ -128,12 +108,13 @@ export const BatchCreateView = ({
                               </FormControl>
                               <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
                                 {products.map((product) => (
-                                  <SelectItem 
-                                    key={product.id} 
-                                    value={product.id} 
+                                  <SelectItem
+                                    key={product.id}
+                                    value={product.id}
                                     className="text-xs focus:bg-neutral-800 focus:text-white"
                                   >
-                                    {product.name} {product.sku ? `(${product.sku})` : ""}
+                                    {product.name}{" "}
+                                    {product.sku ? `(${product.sku})` : ""}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -149,9 +130,13 @@ export const BatchCreateView = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Armazém de Destino <span className="text-rose-500">*</span>
+                              Armazém de Destino{" "}
+                              <span className="text-rose-500">*</span>
                             </FormLabel>
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
                               <FormControl>
                                 <SelectTrigger className="w-full h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                                   <SelectValue placeholder="Selecione o armazém..." />
@@ -159,8 +144,8 @@ export const BatchCreateView = ({
                               </FormControl>
                               <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
                                 {warehouses.map((warehouse) => (
-                                  <SelectItem 
-                                    key={warehouse.id} 
+                                  <SelectItem
+                                    key={warehouse.id}
                                     value={warehouse.id}
                                     className="text-xs focus:bg-neutral-800 focus:text-white"
                                   >
@@ -181,13 +166,14 @@ export const BatchCreateView = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                             <Barcode className="h-3 w-3" /> Código do Lote (Batch Code)
+                            <Barcode className="h-3 w-3" /> Código do Lote
+                            (Batch Code)
                           </FormLabel>
                           <FormControl>
-                            <Input 
+                            <Input
                               placeholder="EX: LT-2024-001"
                               className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 font-mono"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormDescription className="text-[10px] text-neutral-500">
@@ -218,13 +204,14 @@ export const BatchCreateView = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Quantidade <span className="text-rose-500">*</span>
+                              Quantidade{" "}
+                              <span className="text-rose-500">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                {...field} 
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage className="text-xs text-rose-500" />
@@ -282,27 +269,44 @@ export const BatchCreateView = ({
                     </div>
 
                     {/* Profitability Indicator */}
-                    <div className={cn(
-                      "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
-                      isProfitable ? "border-emerald-900/30 bg-emerald-950/10" : "border-rose-900/30 bg-rose-950/10"
-                    )}>
+                    <div
+                      className={cn(
+                        "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                        isProfitable
+                          ? "border-emerald-900/30 bg-emerald-950/10"
+                          : "border-rose-900/30 bg-rose-950/10"
+                      )}
+                    >
                       <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
                         Margem Estimada
                       </span>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className={cn(
-                            "text-sm font-bold font-mono",
-                            isProfitable ? "text-emerald-500" : "text-rose-500"
-                          )}>
-                            {(profit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          <p
+                            className={cn(
+                              "text-sm font-bold font-mono",
+                              isProfitable
+                                ? "text-emerald-500"
+                                : "text-rose-500"
+                            )}
+                          >
+                            {profit.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
                           </p>
-                          <p className="text-[10px] text-neutral-500">Lucro por unidade</p>
+                          <p className="text-[10px] text-neutral-500">
+                            Lucro por unidade
+                          </p>
                         </div>
-                        <div className={cn(
-                          "text-xs font-bold px-2 py-1 rounded border",
-                          isProfitable ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-rose-500/30 bg-rose-500/10 text-rose-500"
-                        )}>
+                        <div
+                          className={cn(
+                            "text-xs font-bold px-2 py-1 rounded border",
+                            isProfitable
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                              : "border-rose-500/30 bg-rose-500/10 text-rose-500"
+                          )}
+                        >
                           {margin.toFixed(1)}%
                         </div>
                       </div>
@@ -313,7 +317,6 @@ export const BatchCreateView = ({
 
               {/* Right Column - Secondary Info */}
               <div className="space-y-6">
-                
                 {/* Dates Card */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
@@ -334,10 +337,10 @@ export const BatchCreateView = ({
                             Data de Fabricação
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
+                            <Input
+                              type="date"
                               className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage className="text-xs text-rose-500" />
@@ -351,13 +354,15 @@ export const BatchCreateView = ({
                         <FormItem>
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Data de Validade
-                            {selectedProduct?.hasExpiration && <span className="text-rose-500 ml-1">*</span>}
+                            {selectedProduct?.hasExpiration && (
+                              <span className="text-rose-500 ml-1">*</span>
+                            )}
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
+                            <Input
+                              type="date"
                               className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           {selectedProduct?.hasExpiration && (
@@ -390,10 +395,10 @@ export const BatchCreateView = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Detalhes adicionais sobre o lote..."
                               className="min-h-[120px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage className="text-xs text-rose-500" />
@@ -402,7 +407,6 @@ export const BatchCreateView = ({
                     />
                   </CardContent>
                 </Card>
-
               </div>
             </div>
 

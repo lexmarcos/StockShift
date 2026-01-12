@@ -9,18 +9,21 @@ export const useStockMovementDetailModel = (movementId: string) => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const { data, error, isLoading, mutate } = useSWR<StockMovementDetailResponse>(
-    movementId ? `stock-movements/${movementId}` : null,
-    async (url) => {
-      const { api } = await import("@/lib/api");
-      return await api.get(url).json<StockMovementDetailResponse>();
-    }
-  );
+  const { data, error, isLoading, mutate } =
+    useSWR<StockMovementDetailResponse>(
+      movementId ? `stock-movements/${movementId}` : null,
+      async (url) => {
+        const { api } = await import("@/lib/api");
+        return await api.get(url).json<StockMovementDetailResponse>();
+      }
+    );
 
   const movement = data?.data ?? null;
 
   useBreadcrumb({
-    title: movement ? `Movimentação #${movement.id.substring(0, 8)}` : "Carregando...",
+    title: movement
+      ? `Movimentação #${movement.id.substring(0, 8)}`
+      : "Carregando...",
     backUrl: "/stock-movements",
   });
 
