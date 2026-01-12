@@ -162,58 +162,37 @@ export const StockMovementDetailView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3 md:gap-4">
-            <Link href="/stock-movements">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2 md:gap-3">
-                <h1 className="text-xs md:text-sm font-bold uppercase tracking-wide text-white">
-                  Detalhes
-                  <span className="hidden md:inline"> da Movimentação</span>
-                </h1>
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    "rounded-[2px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider gap-1 hidden md:inline-flex",
-                    movementStyle.bg,
-                    movementStyle.color,
-                    movementStyle.border
-                  )}
-                >
-                  <movementStyle.icon className="h-3 w-3" />
-                  {movementStyle.label}
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    "rounded-[2px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider",
-                    statusStyle.bg,
-                    statusStyle.color,
-                    statusStyle.border
-                  )}
-                >
-                  {statusStyle.label}
-                </Badge>
-              </div>
-              <span className="font-mono text-[10px] text-neutral-500 uppercase">
-                ID: {movement.id.substring(0, 8)}...
-              </span>
-            </div>
+      {/* Actions Bar */}
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "rounded-[2px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider gap-1",
+                movementStyle.bg,
+                movementStyle.color,
+                movementStyle.border
+              )}
+            >
+              <movementStyle.icon className="h-3 w-3" />
+              {movementStyle.label}
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "rounded-[2px] border px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider",
+                statusStyle.bg,
+                statusStyle.color,
+                statusStyle.border
+              )}
+            >
+              {statusStyle.label}
+            </Badge>
           </div>
 
           {canAct && (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <AlertDialog open={isCancelOpen} onOpenChange={onCancelOpenChange}>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -273,9 +252,9 @@ export const StockMovementDetailView = ({
             </div>
           )}
         </div>
-      </header>
+      </div>
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-3">
           {/* Main Info */}
           <div className="flex flex-col gap-6 md:col-span-2 order-2 md:order-1">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 import type { StockMovementDetailResponse } from "./stock-movements-detail.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const useStockMovementDetailModel = (movementId: string) => {
   const [isCancelOpen, setCancelOpen] = useState(false);
@@ -17,6 +18,11 @@ export const useStockMovementDetailModel = (movementId: string) => {
   );
 
   const movement = data?.data ?? null;
+
+  useBreadcrumb({
+    title: movement ? `Movimentação #${movement.id.substring(0, 8)}` : "Carregando...",
+    backUrl: "/stock-movements",
+  });
 
   const onExecute = async () => {
     if (!movementId) return;
