@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Header } from "@/components/header/header";
+import { BreadcrumbProvider, Breadcrumb } from "@/components/breadcrumb";
 
 export default function PagesLayout({
   children,
@@ -22,7 +23,13 @@ export default function PagesLayout({
           <AppSidebar />
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col md:ml-[var(--sidebar-width)]"><Header />{children}</div>
+        <BreadcrumbProvider>
+          <div className="flex min-w-0 flex-1 flex-col md:ml-[var(--sidebar-width)]">
+            <Header />
+            <Breadcrumb />
+            {children}
+          </div>
+        </BreadcrumbProvider>
       </div>
 
       {isOpen && (
