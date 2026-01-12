@@ -16,6 +16,7 @@ import {
   CreateProductWithBatchResponse,
   CustomAttribute,
 } from "./products-create.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 const CONTINUOUS_MODE_KEY = "productCreate:continuousMode";
 
@@ -33,6 +34,13 @@ export const useProductCreateModel = () => {
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>([]);
   const [productImage, setProductImage] = useState<File | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useBreadcrumb({
+    title: "Novo Produto",
+    backUrl: "/products",
+    section: "Inventário",
+    subsection: "Criar",
+  });
 
   // Fetch categories for the dropdown
   const { data: categoriesData, isLoading: isLoadingCategories } =
