@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { ProductResponse } from "./products-detail.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const useProductDetailModel = (productId: string) => {
   const { data, error, isLoading, mutate } = useSWR<ProductResponse>(
@@ -10,8 +11,15 @@ export const useProductDetailModel = (productId: string) => {
     }
   );
 
+  const product = data?.data || null;
+
+  useBreadcrumb({
+    title: product?.name || "Carregando...",
+    backUrl: "/products",
+  });
+
   return {
-    product: data?.data || null,
+    product,
     isLoading,
     error,
     mutate,
