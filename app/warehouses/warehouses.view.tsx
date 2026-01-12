@@ -1,16 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Form,
@@ -553,23 +543,22 @@ export const WarehousesView = ({
       </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!warehouseToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white">
-              Confirmar Exclusão
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500">
-              Tem certeza que deseja deletar o armazém{" "}
-              <strong className="text-white">{warehouseToDelete?.name}</strong>?
-              Esta ação é irreversível e pode afetar históricos de movimentação.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white">
+      <ResponsiveModal
+        open={!!warehouseToDelete}
+        onOpenChange={closeDeleteDialog}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja deletar o armazém ${warehouseToDelete?.name}?`}
+        maxWidth="sm:max-w-[400px]"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={closeDeleteDialog}
+              className="rounded-[4px] border-neutral-700 bg-transparent text-xs uppercase hover:bg-neutral-800 hover:text-white"
+            >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={confirmDelete}
               disabled={isDeleting}
               className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
@@ -582,10 +571,16 @@ export const WarehousesView = ({
               ) : (
                 "Confirmar Exclusão"
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      >
+        <div className="py-2">
+          <p className="text-xs text-neutral-500">
+            Esta ação é irreversível e pode afetar históricos de movimentação.
+          </p>
+        </div>
+      </ResponsiveModal>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 # Global Breadcrumb Navigation System Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Copilot:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
 **Goal:** Implement a global breadcrumb navigation system using Context API that appears automatically on detail pages (depth 2+) with back button, navigation path, and entity title.
 

@@ -13,7 +13,7 @@ export function Breadcrumb() {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm md:ml-[240px]"
+      className="border-b border-neutral-800 bg-[#0A0A0A]"
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
         <div className="flex items-center gap-4">

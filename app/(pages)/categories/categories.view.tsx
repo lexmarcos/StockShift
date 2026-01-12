@@ -1,16 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Form,
@@ -673,39 +663,42 @@ export const CategoriesView = ({
       </ResponsiveModal>
 
       {/* Delete Dialog */}
-      <AlertDialog open={!!categoryToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 sm:max-w-[400px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-rose-500" />
-              Excluir Categoria?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-500 text-sm">
-              Você está prestes a remover <span className="text-white font-bold">{categoryToDelete?.name}</span>.
-              <br/><br/>
-              {categoryToDelete && flatCategories.find(c => c.id === categoryToDelete.id)?.children?.length && flatCategories.find(c => c.id === categoryToDelete.id)!.children.length > 0 ? (
-                <span className="block p-3 bg-rose-950/20 border border-rose-900/30 rounded-[2px] text-rose-400 text-xs font-bold">
-                  ⚠️ Esta categoria contém subcategorias que também serão afetadas.
-                </span>
-              ) : (
-                "Esta ação não pode ser desfeita."
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-[4px] border-neutral-800 bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white">
+      <ResponsiveModal
+        open={!!categoryToDelete}
+        onOpenChange={closeDeleteDialog}
+        title="Excluir Categoria?"
+        description={`Você está prestes a remover ${categoryToDelete?.name}.`}
+        maxWidth="sm:max-w-[400px]"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={closeDeleteDialog}
+              className="rounded-[4px] border-neutral-800 bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white"
+            >
               Voltar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={confirmDelete}
               disabled={isDeleting}
               className="rounded-[4px] bg-rose-600 text-white hover:bg-rose-700 border-none"
             >
               {isDeleting ? "Excluindo..." : "Sim, excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      >
+        <div className="py-2 text-neutral-500 text-sm">
+          {categoryToDelete && flatCategories.find(c => c.id === categoryToDelete.id)?.children?.length && flatCategories.find(c => c.id === categoryToDelete.id)!.children.length > 0 ? (
+            <div className="flex items-center p-3 bg-rose-950/20 border border-rose-900/30 rounded-[2px] text-rose-400 text-xs font-bold">
+              <AlertTriangle className="h-4 w-4 mr-2 shrink-0" />
+              Esta categoria contém subcategorias que também serão afetadas.
+            </div>
+          ) : (
+            "Esta ação não pode ser desfeita."
+          )}
+        </div>
+      </ResponsiveModal>
     </div>
   );
 };

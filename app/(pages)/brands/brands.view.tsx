@@ -1,16 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Form,
@@ -469,32 +459,37 @@ export const BrandsView = ({
       </ResponsiveModal>
 
       {/* Alert Dialogs */}
-      <AlertDialog open={!!brandToDelete} onOpenChange={closeDeleteDialog}>
-        <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wide text-white flex items-center gap-2">
-              <Trash2 className="h-4 w-4 text-rose-500" /> Excluir Marca
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500 mt-2">
-              Tem certeza que deseja remover o registro de <strong className="text-white font-mono">{brandToDelete?.name}</strong>?
-              <br/><br/>
-              Esta ação removerá permanentemente a marca do sistema e de todos os produtos associados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4 gap-2">
-            <AlertDialogCancel className="rounded-[4px] border-neutral-800 bg-transparent text-[10px] font-bold uppercase text-neutral-500 hover:text-white hover:bg-neutral-800">
+      <ResponsiveModal
+        open={!!brandToDelete}
+        onOpenChange={closeDeleteDialog}
+        title="Excluir Marca"
+        description={`Tem certeza que deseja remover o registro de ${brandToDelete?.name}?`}
+        maxWidth="sm:max-w-[400px]"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={closeDeleteDialog}
+              className="rounded-[4px] border-neutral-800 bg-transparent text-[10px] font-bold uppercase text-neutral-500 hover:text-white hover:bg-neutral-800"
+            >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={confirmDelete}
               disabled={isDeleting}
               className="rounded-[4px] bg-rose-600 text-[10px] font-bold uppercase text-white hover:bg-rose-700 border-none"
             >
               {isDeleting ? "Processando..." : "Confirmar Exclusão"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </>
+        }
+      >
+        <div className="py-2">
+          <p className="text-xs text-neutral-500">
+            Esta ação removerá permanentemente a marca do sistema e de todos os produtos associados.
+          </p>
+        </div>
+      </ResponsiveModal>
 
     </div>
   );

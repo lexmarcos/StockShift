@@ -40,8 +40,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Batch, BatchFilters, SortConfig } from "./batches.types";
 import { deriveBatchStatus } from "./batches.model";
-import type { Warehouse as WarehouseType } from "../warehouses/warehouses.types";
+
 import { cn } from "@/lib/utils";
+import { Warehouse as WarehouseType } from "@/app/warehouses/warehouses.types";
 
 interface BatchesViewProps {
   batches: Batch[];
