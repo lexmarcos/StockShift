@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { toast } from "sonner";
 import { batchCreateSchema, BatchCreateFormData } from "./batches-create.schema";
 import type { BatchCreateResponse } from "./batches-create.types";
+import { useBreadcrumb } from "@/components/breadcrumb";
 
 interface ProductsResponse {
   success: boolean;
@@ -35,6 +36,13 @@ export const buildBatchPayload = (data: BatchCreateFormData) => ({
 
 export const useBatchCreateModel = () => {
   const router = useRouter();
+
+  useBreadcrumb({
+    title: "Novo Lote",
+    backUrl: "/batches",
+    section: "Inventário",
+    subsection: "Criar",
+  });
 
   const form = useForm<BatchCreateFormData>({
     resolver: zodResolver(batchCreateSchema),
