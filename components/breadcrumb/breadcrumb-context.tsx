@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { BreadcrumbData, BreadcrumbContextValue } from "./breadcrumb.types";
 
@@ -31,7 +31,7 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname]);
 
-  const setBreadcrumb = (data: BreadcrumbData) => {
+  const setBreadcrumb = useCallback((data: BreadcrumbData) => {
     // Infer section/subsection if not provided
     const pathSegments = pathname.split("/").filter(Boolean);
     const firstSegment = pathSegments[0];
@@ -44,11 +44,11 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
     };
 
     setBreadcrumbState(finalData);
-  };
+  }, [pathname]);
 
-  const clearBreadcrumb = () => {
+  const clearBreadcrumb = useCallback(() => {
     setBreadcrumbState(null);
-  };
+  }, []);
 
   return (
     <BreadcrumbContext.Provider
