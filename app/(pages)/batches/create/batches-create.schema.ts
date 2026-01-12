@@ -4,12 +4,12 @@ export const batchCreateSchema = z
   .object({
     productId: z.string().min(1, "Selecione um produto"),
     warehouseId: z.string().min(1, "Selecione um warehouse"),
-    quantity: z.coerce.number().int().min(1, "Quantidade inválida"),
+    quantity: z.number().int().min(1, "Quantidade inválida"),
     batchCode: z.string().optional(),
     manufacturedDate: z.string().optional(),
     expirationDate: z.string().optional(),
-    costPrice: z.coerce.number().int().min(0).optional(),
-    sellingPrice: z.coerce.number().int().min(0).optional(),
+    costPrice: z.number().int().min(0).optional(),
+    sellingPrice: z.number().int().min(0).optional(),
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => {

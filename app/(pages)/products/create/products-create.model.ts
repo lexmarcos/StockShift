@@ -232,6 +232,7 @@ export const useProductCreateModel = () => {
         hasExpiration: data.hasExpiration,
         attributes: mergeAttributes(data),
         warehouseId,
+        batchCode: data.batchCode || undefined,
         quantity: data.quantity,
         manufacturedDate: data.manufacturedDate || undefined,
         expirationDate: data.expirationDate || undefined,

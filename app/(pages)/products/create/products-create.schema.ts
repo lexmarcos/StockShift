@@ -15,6 +15,7 @@ export const productCreateSchema = z.object({
     dimensions: z.string().optional(),
   }).optional(),
   // Batch fields
+  batchCode: z.string().optional(),
   quantity: z.number().min(0, "Quantidade deve ser zero ou positiva"),
   manufacturedDate: z.string().optional(),
   expirationDate: z.string().optional(),
