@@ -29,3 +29,36 @@ export interface BatchSummary {
   batchNumber?: string | null;
   quantity: number;
 }
+
+export type WizardPhase = 'setup' | 'addition' | 'review' | 'success';
+
+export interface MobileWizardItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productSku?: string;
+  batchId: string;
+  batchCode: string;
+  quantity: number;
+  maxQuantity: number;
+}
+
+export interface WarehouseOption {
+  id: string;
+  name: string;
+  productCount?: number;
+}
+
+export interface BatchOption {
+  id: string;
+  batchCode: string;
+  quantity: number;
+  expirationDate?: string;
+}
+
+export interface ProductSearchResult {
+  id: string;
+  name: string;
+  sku?: string | null;
+  barcode?: string | null;
+}
