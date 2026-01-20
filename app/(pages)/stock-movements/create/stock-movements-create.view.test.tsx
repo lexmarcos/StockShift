@@ -1,77 +1,88 @@
-import { useState } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { StockMovementCreateView } from "./stock-movements-create.view";
 import type { StockMovementCreateFormData } from "./stock-movements-create.schema";
 
-interface HarnessProps {
-  initialStep?: number;
-  defaultValues?: Partial<StockMovementCreateFormData>;
-  batches?: Array<{
-    id: string;
-    batchCode?: string | null;
-    batchNumber?: string | null;
-    quantity: number;
-  }>;
-}
-
-const TestHarness = ({
-  initialStep = 1,
-  defaultValues,
-  batches = [],
-}: HarnessProps) => {
-  const [step, setStep] = useState(initialStep);
+const TestHarness = () => {
   const baseDefaults: StockMovementCreateFormData = {
     movementType: "ENTRY",
     sourceWarehouseId: "",
     destinationWarehouseId: "",
     notes: "",
     executeNow: false,
-    items: [{ productId: "", batchId: "", quantity: 1, reason: "" }],
+    items: [],
   };
 
   const form = useForm<StockMovementCreateFormData>({
-    defaultValues: {
-      ...baseDefaults,
-      ...defaultValues,
-      items: defaultValues?.items ?? baseDefaults.items,
-    },
+    defaultValues: baseDefaults,
   });
+
+  const movementType = form.watch("movementType");
+  const sourceWarehouseId = form.watch("sourceWarehouseId");
+  const destinationWarehouseId = form.watch("destinationWarehouseId");
+  const executeNow = form.watch("executeNow") ?? false;
+  const notes = form.watch("notes") ?? "";
+  const watchedItems = form.watch("items") ?? [];
 
   return (
     <StockMovementCreateView
       form={form}
-      onSubmit={vi.fn()}
-      items={[{ id: "item-1" }]}
+      items={[]} // Field array items (mocked as empty for view test)
+      watchedItems={watchedItems}
+      warehouses={[
+        { id: "w1", name: "Warehouse A" },
+        { id: "w2", name: "Warehouse B" },
+      ]}
+      products={[
+        { id: "p1", name: "Product A", sku: "SKU-A" },
+      ]}
+      batches={[
+        { id: "b1", batchCode: "BATCH-1", quantity: 100, productId: "p1" },
+      ]}
+      movementType={movementType}
+      sourceWarehouseId={sourceWarehouseId}
+      destinationWarehouseId={destinationWarehouseId}
+      sourceWarehouse={undefined}
+      destinationWarehouse={undefined}
+      executeNow={executeNow}
+      notes={notes}
+      setNotes={(val) => form.setValue("notes", val)}
+      requiresSource={true}
+      requiresDestination={true}
+      requiresBatch={true}
+      totalQuantity={0}
+      canSubmit={false}
+      isSubmitting={false}
       addItem={vi.fn()}
       removeItem={vi.fn()}
-      warehouses={[]}
-      products={[]}
-      batches={batches}
-      currentStep={step}
-      totalSteps={3}
-      onNextStep={() => setStep((prev) => Math.min(prev + 1, 3))}
-      onPrevStep={() => setStep((prev) => Math.max(prev - 1, 1))}
+      updateItemQuantity={vi.fn()}
+      handleSubmit={vi.fn()}
+      getBatchesForProduct={() => []}
     />
   );
 };
 
 describe("StockMovementCreateView", () => {
-  it("navigates between steps", () => {
+  it("renders the create form with all sections", () => {
     render(<TestHarness />);
-    expect(screen.getByText("Tipo *")).toBeTruthy();
-    expect(screen.queryByText("Destino *")).toBeNull();
-    expect(screen.queryByText("Adicionar item")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
-    expect(screen.getByText("Destino *")).toBeTruthy();
-    expect(screen.queryByText("Adicionar item")).toBeNull();
+    // Header
+    expect(screen.getByText("Nova Movimentação")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
-    expect(screen.getByText("Adicionar item")).toBeTruthy();
-    expect(screen.getByText("Buscar produto")).toBeTruthy();
-    expect(screen.getByText("Buscar batch")).toBeTruthy();
+    // Configuration section
+    expect(screen.getByText("Configuração")).toBeTruthy();
+    expect(screen.getByText("Tipo de Movimentação")).toBeTruthy();
+
+    // Route section (requiresSource/Destination=true in harness)
+    expect(screen.getByText("Origem")).toBeTruthy();
+    expect(screen.getByText("Destino")).toBeTruthy();
+
+    // Items section
+    expect(screen.getByText("Itens")).toBeTruthy();
+    expect(screen.getByText("Nenhum item adicionado")).toBeTruthy();
+
+    // Sidebar/Footer
+    expect(screen.getByText("Criar Movimentação")).toBeTruthy();
   });
-
 });
