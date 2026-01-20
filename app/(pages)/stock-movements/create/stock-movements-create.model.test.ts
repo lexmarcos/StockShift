@@ -11,7 +11,7 @@ const formData = {
 
 describe("buildMovementPayload", () => {
   it("maps null warehouse ids and trims notes", () => {
-    const payload = buildMovementPayload({ ...formData, notes: " " } as any);
+    const payload = buildMovementPayload({ ...formData } as any, " ");
     expect(payload.notes).toBeUndefined();
     expect(payload.sourceWarehouseId).toBeNull();
   });

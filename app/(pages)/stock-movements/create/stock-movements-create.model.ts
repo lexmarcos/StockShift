@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -33,11 +33,11 @@ export const filterBatchesByProduct = (
   return batches.filter((batch) => batch.productId === productId);
 };
 
-export const buildMovementPayload = (data: StockMovementCreateFormData) => ({
+export const buildMovementPayload = (data: StockMovementCreateFormData, notes: string) => ({
   movementType: data.movementType,
   sourceWarehouseId: data.sourceWarehouseId || null,
   destinationWarehouseId: data.destinationWarehouseId || null,
-  notes: data.notes?.trim() || undefined,
+  notes: notes?.trim() || undefined,
   items: data.items.map((item) => ({
     productId: item.productId,
     batchId: item.batchId || undefined,
@@ -48,26 +48,27 @@ export const buildMovementPayload = (data: StockMovementCreateFormData) => ({
 
 export const useStockMovementCreateModel = () => {
   const router = useRouter();
-  const totalSteps = 3;
-  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notes, setNotes] = useState("");
 
   const form = useForm<StockMovementCreateFormData>({
-    resolver: zodResolver(stockMovementCreateSchema),
+    resolver: zodResolver(stockMovementCreateSchema) as any,
     defaultValues: {
-      movementType: "ENTRY",
+      movementType: "TRANSFER",
       sourceWarehouseId: "",
       destinationWarehouseId: "",
       notes: "",
       executeNow: false,
-      items: [{ productId: "", batchId: "", quantity: 1, reason: "" }],
+      items: [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items",
   });
 
+  // Data fetching
   const { data: warehousesData } = useSWR<WarehousesResponse>(
     "warehouses",
     async () => {
@@ -85,46 +86,117 @@ export const useStockMovementCreateModel = () => {
   );
 
   const sourceWarehouseId = form.watch("sourceWarehouseId");
+
   const { data: batchesData } = useSWR<BatchesResponse>(
     sourceWarehouseId ? `batches/warehouse/${sourceWarehouseId}` : null,
-    async (url) => {
+    async (url: string) => {
       const { api } = await import("@/lib/api");
       return await api.get(url).json<BatchesResponse>();
     }
   );
 
-  const onSubmit = async (values: StockMovementCreateFormData) => {
-    try {
-      const payload = buildMovementPayload(values);
-      const { api } = await import("@/lib/api");
-      const response = await api
-        .post("stock-movements", { json: payload })
-        .json<StockMovementCreateResponse>();
+  const warehouses = warehousesData?.data || [];
+  const products = productsData?.data || [];
+  const batches = batchesData?.data || [];
 
-      if (response.success) {
-        if (values.executeNow) {
-          await api.post(`stock-movements/${response.data.id}/execute`).json();
-        }
-        toast.success("Movimentação criada");
-        router.push(`/stock-movements/${response.data.id}`);
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao criar movimentação");
+  const movementType = form.watch("movementType");
+  const watchedItems = form.watch("items");
+  const executeNow = form.watch("executeNow");
+  const destinationWarehouseId = form.watch("destinationWarehouseId");
+
+  // Derived state
+  const requiresSource = movementType === "EXIT" || movementType === "TRANSFER" || movementType === "ADJUSTMENT";
+  const requiresDestination = movementType === "ENTRY" || movementType === "TRANSFER";
+  const requiresBatch = movementType === "EXIT" || movementType === "TRANSFER";
+
+  const sourceWarehouse = warehouses.find((w) => w.id === sourceWarehouseId);
+  const destinationWarehouse = warehouses.find((w) => w.id === destinationWarehouseId);
+
+  const totalQuantity = useMemo(() => {
+    return watchedItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }, [watchedItems]);
+
+  const canSubmit = useMemo(() => {
+    if (!movementType) return false;
+    if (requiresSource && !sourceWarehouseId) return false;
+    if (requiresDestination && !destinationWarehouseId) return false;
+    if (watchedItems.length === 0) return false;
+    return true;
+  }, [movementType, requiresSource, requiresDestination, sourceWarehouseId, destinationWarehouseId, watchedItems]);
+
+  // Handlers
+  const addItem = useCallback((productId: string, batchId: string, quantity: number) => {
+    append({
+      productId,
+      batchId: batchId || undefined,
+      quantity,
+      reason: "",
+    });
+  }, [append]);
+
+  const removeItem = useCallback((index: number) => {
+    remove(index);
+  }, [remove]);
+
+  const updateItemQuantity = useCallback((index: number, quantity: number) => {
+    const item = watchedItems[index];
+    if (item) {
+      update(index, { ...item, quantity });
+    }
+  }, [update, watchedItems]);
+
+  const handleSubmit = async (data: StockMovementCreateFormData) => {
+    setIsSubmitting(true);
+    try {
+      const { api } = await import("@/lib/api");
+      const payload = buildMovementPayload(data, notes);
+
+      await api.post("stock-movements", { json: payload }).json<StockMovementCreateResponse>();
+
+      toast.success("Movimentação criada com sucesso!");
+      router.push("/stock-movements");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao criar movimentação";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const getBatchesForProduct = useCallback((productId: string) => {
+    return filterBatchesByProduct(batches, productId).map((b) => ({
+      id: b.id,
+      batchCode: b.batchCode || b.batchNumber || b.id.slice(0, 8),
+      quantity: b.quantity,
+      productId: b.productId,
+    }));
+  }, [batches]);
+
   return {
     form,
-    onSubmit,
     items: fields,
-    addItem: () => append({ productId: "", batchId: "", quantity: 1, reason: "" }),
-    removeItem: (index: number) => remove(index),
-    warehouses: warehousesData?.data || [],
-    products: productsData?.data || [],
-    batches: batchesData?.data || [],
-    currentStep,
-    totalSteps,
-    onNextStep: () => setCurrentStep((prev) => Math.min(prev + 1, totalSteps)),
-    onPrevStep: () => setCurrentStep((prev) => Math.max(prev - 1, 1)),
+    watchedItems,
+    warehouses,
+    products,
+    batches,
+    movementType,
+    sourceWarehouseId,
+    destinationWarehouseId,
+    sourceWarehouse,
+    destinationWarehouse,
+    executeNow,
+    notes,
+    setNotes,
+    requiresSource,
+    requiresDestination,
+    requiresBatch,
+    totalQuantity,
+    canSubmit,
+    isSubmitting,
+    addItem,
+    removeItem,
+    updateItemQuantity,
+    handleSubmit: form.handleSubmit(handleSubmit),
+    getBatchesForProduct,
   };
 };
