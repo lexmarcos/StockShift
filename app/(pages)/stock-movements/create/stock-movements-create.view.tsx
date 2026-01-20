@@ -44,7 +44,7 @@ interface StockMovementCreateViewProps {
   removeItem: (index: number) => void;
   updateItemQuantity: (index: number, quantity: number) => void;
   handleSubmit: () => void;
-  getBatchesForProduct: (productId: string) => Array<{ id: string; batchCode: string; quantity: number; productId: string }>;
+  getBatchesForProduct: (productId: string) => Array<{ id: string; batchCode: string; quantity: number; productId?: string | null }>;
 }
 
 export const StockMovementCreateView = ({

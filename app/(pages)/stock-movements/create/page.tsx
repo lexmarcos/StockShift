@@ -19,10 +19,8 @@ export default function StockMovementCreatePage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Desktop model (only used when not mobile)
-  const desktopModel = useStockMovementCreateModel();
+  const model = useStockMovementCreateModel();
 
-  // SSR fallback
   if (!isClient) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
@@ -31,11 +29,9 @@ export default function StockMovementCreatePage() {
     );
   }
 
-  // Mobile view
   if (isMobile) {
     return <StockMovementCreateMobileView />;
   }
 
-  // Desktop view (existing)
-  return <StockMovementCreateView {...desktopModel} />;
+  return <StockMovementCreateView {...model} />;
 }

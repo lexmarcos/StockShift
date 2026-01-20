@@ -184,7 +184,7 @@ export const useStockMovementCreateModel = () => {
     destinationWarehouseId,
     sourceWarehouse,
     destinationWarehouse,
-    executeNow,
+    executeNow: executeNow || false,
     notes,
     setNotes,
     requiresSource,
