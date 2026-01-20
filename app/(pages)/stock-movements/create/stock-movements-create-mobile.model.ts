@@ -266,8 +266,9 @@ export const useMobileWizardModel = () => {
         setPhase("success");
         toast.success("Transferência criada");
       }
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao criar transferência");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao criar transferência";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
