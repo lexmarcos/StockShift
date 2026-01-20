@@ -25,6 +25,7 @@ interface BatchesResponse {
   success: boolean;
   data: Array<{
     id: string;
+    productId: string;
     batchCode?: string | null;
     batchNumber?: string | null;
     quantity: number;
@@ -83,11 +84,10 @@ export const useMobileWizardModel = () => {
     }
   );
 
-  const { data: batchesData, isLoading: isLoadingBatches } = useSWR<BatchesResponse>(
-    selectedProduct && sourceWarehouseId
-      ? `batches/warehouse/${sourceWarehouseId}/product/${selectedProduct.id}`
-      : null,
-    async (url) => {
+  // Fetch all batches from source warehouse
+  const { data: warehouseBatchesData, isLoading: isLoadingBatches } = useSWR<BatchesResponse>(
+    sourceWarehouseId ? `batches/warehouse/${sourceWarehouseId}` : null,
+    async (url: string) => {
       const { api } = await import("@/lib/api");
       return await api.get(url).json<BatchesResponse>();
     }
@@ -106,12 +106,15 @@ export const useMobileWizardModel = () => {
     barcode: p.barcode,
   }));
 
-  const batches: BatchOption[] = (batchesData?.data || []).map((b) => ({
-    id: b.id,
-    batchCode: b.batchCode || b.batchNumber || b.id.slice(0, 8),
-    quantity: b.quantity,
-    expirationDate: b.expirationDate || undefined,
-  }));
+  // Filter batches by selected product
+  const batches: BatchOption[] = (warehouseBatchesData?.data || [])
+    .filter((b) => selectedProduct && b.productId === selectedProduct.id)
+    .map((b) => ({
+      id: b.id,
+      batchCode: b.batchCode || b.batchNumber || b.id.slice(0, 8),
+      quantity: b.quantity,
+      expirationDate: b.expirationDate || undefined,
+    }));
 
   const sourceWarehouse = warehouses.find((w) => w.id === sourceWarehouseId);
   const destinationWarehouse = warehouses.find((w) => w.id === destinationWarehouseId);
