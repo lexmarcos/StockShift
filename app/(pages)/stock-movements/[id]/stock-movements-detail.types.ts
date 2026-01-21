@@ -15,3 +15,15 @@ export interface StartValidationResponse {
     items: ValidationItem[];
   };
 }
+
+export interface ExistingValidationsResponse {
+  success: boolean;
+  message: string | null;
+  data: {
+    validationId: string;
+    status: "IN_PROGRESS" | "COMPLETED" | "COMPLETED_WITH_DISCREPANCY";
+    startedAt: string;
+    completedAt?: string;
+    items: ValidationItem[];
+  } | null;
+}

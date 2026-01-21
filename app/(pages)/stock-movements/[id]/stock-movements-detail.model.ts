@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
-import type { StockMovementDetailResponse, StartValidationResponse } from "./stock-movements-detail.types";
+import type { StockMovementDetailResponse, StartValidationResponse, ExistingValidationsResponse } from "./stock-movements-detail.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const useStockMovementDetailModel = (movementId: string) => {
@@ -66,13 +66,49 @@ export const useStockMovementDetailModel = (movementId: string) => {
     setIsStartingValidation(true);
     try {
       const { api } = await import("@/lib/api");
+
+      // First, try to get existing validations
+      try {
+        const existingResponse = await api
+          .get(`stock-movements/${movementId}/validations`)
+          .json<ExistingValidationsResponse>();
+
+        // If there's an existing IN_PROGRESS validation, redirect to it
+        if (existingResponse.data && existingResponse.data.validationId) {
+          toast.info("Continuando validação existente");
+          router.push(`/stock-movements/${movementId}/validate/${existingResponse.data.validationId}`);
+          return;
+        }
+      } catch {
+        // No existing validation, proceed to create one
+      }
+
+      // Create new validation
       const response = await api
         .post(`stock-movements/${movementId}/validations`)
         .json<StartValidationResponse>();
       toast.success("Validação iniciada");
       router.push(`/stock-movements/${movementId}/validate/${response.data.validationId}`);
     } catch (err: any) {
-      toast.error(err?.message || "Erro ao iniciar validação");
+      // Handle case where validation already exists (400 error)
+      if (err?.message?.includes("already exists") || err?.response?.status === 400) {
+        try {
+          const { api } = await import("@/lib/api");
+          const existingResponse = await api
+            .get(`stock-movements/${movementId}/validations`)
+            .json<ExistingValidationsResponse>();
+
+          if (existingResponse.data && existingResponse.data.validationId) {
+            toast.info("Continuando validação existente");
+            router.push(`/stock-movements/${movementId}/validate/${existingResponse.data.validationId}`);
+            return;
+          }
+        } catch {
+          toast.error("Erro ao buscar validação existente");
+        }
+      } else {
+        toast.error(err?.message || "Erro ao iniciar validação");
+      }
     } finally {
       setIsStartingValidation(false);
     }
