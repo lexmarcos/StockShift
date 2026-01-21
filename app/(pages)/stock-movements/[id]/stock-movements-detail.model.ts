@@ -73,10 +73,14 @@ export const useStockMovementDetailModel = (movementId: string) => {
           .get(`stock-movements/${movementId}/validations`)
           .json<ExistingValidationsResponse>();
 
-        // If there's an existing IN_PROGRESS validation, redirect to it
-        if (existingResponse.data && existingResponse.data.validationId) {
+        // Find an IN_PROGRESS validation
+        const inProgressValidation = existingResponse.data?.find(
+          (v) => v.status === "IN_PROGRESS"
+        );
+
+        if (inProgressValidation) {
           toast.info("Continuando validação existente");
-          router.push(`/stock-movements/${movementId}/validate/${existingResponse.data.validationId}`);
+          router.push(`/stock-movements/${movementId}/validate/${inProgressValidation.validationId}`);
           return;
         }
       } catch {
@@ -98,9 +102,13 @@ export const useStockMovementDetailModel = (movementId: string) => {
             .get(`stock-movements/${movementId}/validations`)
             .json<ExistingValidationsResponse>();
 
-          if (existingResponse.data && existingResponse.data.validationId) {
+          const inProgressValidation = existingResponse.data?.find(
+            (v) => v.status === "IN_PROGRESS"
+          );
+
+          if (inProgressValidation) {
             toast.info("Continuando validação existente");
-            router.push(`/stock-movements/${movementId}/validate/${existingResponse.data.validationId}`);
+            router.push(`/stock-movements/${movementId}/validate/${inProgressValidation.validationId}`);
             return;
           }
         } catch {
