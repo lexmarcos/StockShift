@@ -46,8 +46,10 @@ describe("StockMovementDetailView", () => {
         error={null}
         isExecuting={false}
         isCancelling={false}
+        isStartingValidation={false}
         onExecute={vi.fn()}
         onCancel={vi.fn()}
+        onStartValidation={vi.fn()}
         isCancelOpen={false}
         onCancelOpenChange={vi.fn()}
       />

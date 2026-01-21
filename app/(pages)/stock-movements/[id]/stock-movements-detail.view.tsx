@@ -39,6 +39,7 @@ import {
   FileText,
   Package,
   Barcode,
+  ScanLine,
 } from "lucide-react";
 import type {
   StockMovement,
@@ -53,8 +54,10 @@ interface StockMovementDetailViewProps {
   error: any;
   isExecuting: boolean;
   isCancelling: boolean;
+  isStartingValidation: boolean;
   onExecute: () => void;
   onCancel: () => void;
+  onStartValidation: () => void;
   isCancelOpen: boolean;
   onCancelOpenChange: (open: boolean) => void;
 }
@@ -65,8 +68,10 @@ export const StockMovementDetailView = ({
   error,
   isExecuting,
   isCancelling,
+  isStartingValidation,
   onExecute,
   onCancel,
+  onStartValidation,
   isCancelOpen,
   onCancelOpenChange,
 }: StockMovementDetailViewProps) => {
@@ -131,6 +136,20 @@ export const StockMovementDetailView = ({
           bg: "bg-amber-500/10",
           border: "border-amber-500/20",
         };
+      case "IN_TRANSIT":
+        return {
+          label: "EM TRÂNSITO",
+          color: "text-blue-500",
+          bg: "bg-blue-500/10",
+          border: "border-blue-500/20",
+        };
+      case "COMPLETED_WITH_DISCREPANCY":
+        return {
+          label: "CONCLUÍDO COM DIVERGÊNCIA",
+          color: "text-amber-500",
+          bg: "bg-amber-500/10",
+          border: "border-amber-500/20",
+        };
       case "CANCELLED":
         return {
           label: "CANCELADO",
@@ -189,6 +208,7 @@ export const StockMovementDetailView = ({
   }
 
   const canAct = movement.status === "PENDING";
+  const canValidate = movement.movementType === "TRANSFER" && movement.status === "IN_TRANSIT";
   const movementStyle = getMovementStyle(movement.movementType);
   const statusStyle = getStatusStyle(movement.status);
 
@@ -288,6 +308,26 @@ export const StockMovementDetailView = ({
                 )}
               </Button>
             </div>
+          )}
+
+          {canValidate && (
+            <Button
+              onClick={onStartValidation}
+              disabled={isStartingValidation}
+              className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+            >
+              {isStartingValidation ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Iniciando...
+                </>
+              ) : (
+                <>
+                  <ScanLine className="mr-2 h-3.5 w-3.5" />
+                  Iniciar Validação
+                </>
+              )}
+            </Button>
           )}
         </div>
       </div>
@@ -584,6 +624,29 @@ export const StockMovementDetailView = ({
               </>
             ) : (
               "Executar"
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile Floating Validation Action */}
+      {canValidate && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0A0A0A]/95 backdrop-blur-sm border-t border-neutral-800 md:hidden z-40">
+          <Button
+            onClick={onStartValidation}
+            disabled={isStartingValidation}
+            className="w-full h-12 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+          >
+            {isStartingValidation ? (
+              <>
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Iniciando Validação...
+              </>
+            ) : (
+              <>
+                <ScanLine className="mr-2 h-3.5 w-3.5" />
+                Iniciar Validação
+              </>
             )}
           </Button>
         </div>

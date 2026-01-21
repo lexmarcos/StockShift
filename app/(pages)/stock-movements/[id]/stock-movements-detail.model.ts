@@ -1,18 +1,21 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
-import type { StockMovementDetailResponse } from "./stock-movements-detail.types";
+import type { StockMovementDetailResponse, StartValidationResponse } from "./stock-movements-detail.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 
 export const useStockMovementDetailModel = (movementId: string) => {
+  const router = useRouter();
   const [isCancelOpen, setCancelOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isStartingValidation, setIsStartingValidation] = useState(false);
 
   const { data, error, isLoading, mutate } =
     useSWR<StockMovementDetailResponse>(
       movementId ? `stock-movements/${movementId}` : null,
-      async (url) => {
+      async (url: string) => {
         const { api } = await import("@/lib/api");
         return await api.get(url).json<StockMovementDetailResponse>();
       }
@@ -58,14 +61,33 @@ export const useStockMovementDetailModel = (movementId: string) => {
     }
   };
 
+  const onStartValidation = async () => {
+    if (!movementId) return;
+    setIsStartingValidation(true);
+    try {
+      const { api } = await import("@/lib/api");
+      const response = await api
+        .post(`stock-movements/${movementId}/validations`)
+        .json<StartValidationResponse>();
+      toast.success("Validação iniciada");
+      router.push(`/stock-movements/${movementId}/validate/${response.data.validationId}`);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao iniciar validação");
+    } finally {
+      setIsStartingValidation(false);
+    }
+  };
+
   return {
     movement,
     isLoading,
     error,
     isExecuting,
     isCancelling,
+    isStartingValidation,
     onExecute,
     onCancel,
+    onStartValidation,
     isCancelOpen,
     onCancelOpenChange: setCancelOpen,
   };
