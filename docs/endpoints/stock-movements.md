@@ -16,7 +16,9 @@ Stock movements track all inventory changes including entries, exits, transfers,
 
 ## Movement Status
 - `PENDING`: Created but not executed
-- `COMPLETED`: Successfully executed
+- `IN_TRANSIT`: Transfer executed, awaiting validation at destination warehouse
+- `COMPLETED`: Successfully executed (or validated for transfers)
+- `COMPLETED_WITH_DISCREPANCY`: Transfer validated but with missing items
 - `CANCELLED`: Cancelled (no stock impact)
 
 ---
@@ -518,3 +520,373 @@ interface BatchPickerProps {
 - Movement reports and analytics
 - Stock transaction history
 - Audit trails
+
+---
+
+## Transfer Validation Endpoints
+
+Transfer movements require validation at the destination warehouse before stock is added. When a TRANSFER is executed, stock leaves the source warehouse and the movement enters `IN_TRANSIT` status. The destination warehouse must then validate received items via barcode scanning.
+
+### Transfer Flow
+```
+PENDING → IN_TRANSIT → COMPLETED (or COMPLETED_WITH_DISCREPANCY)
+    ↑         ↑              ↑
+ Create    Execute       Validate
+          (stock leaves A)  (stock enters B)
+```
+
+---
+
+## POST /api/stock-movements/{id}/validations
+**Summary**: Start a new validation session for an in-transit transfer
+
+### Authorization
+**Required Permissions**: `STOCK_MOVEMENT_EXECUTE` or `ROLE_ADMIN`
+
+### Request
+**Method**: `POST`
+**URL Parameters**: `id` (UUID) - Movement identifier
+
+**Note**: Only TRANSFER movements with status `IN_TRANSIT` can be validated.
+
+### Response
+**Status Code**: `201 CREATED`
+
+```json
+{
+  "success": true,
+  "message": "Validation started successfully",
+  "data": {
+    "validationId": "aa0e8400-e29b-41d4-a716-446655440010",
+    "startedAt": "2026-01-20T10:00:00Z",
+    "items": [
+      {
+        "itemId": "bb0e8400-e29b-41d4-a716-446655440011",
+        "productId": "660e8400-e29b-41d4-a716-446655440001",
+        "productName": "Product Name",
+        "barcode": "7891234567890",
+        "expectedQuantity": 10,
+        "scannedQuantity": 0,
+        "status": "PENDING"
+      }
+    ]
+  }
+}
+```
+
+### Frontend Implementation Guide
+1. **Start Button**: Show "Start Validation" for IN_TRANSIT transfers
+2. **Validation Screen**: Dedicated screen for barcode scanning
+3. **Items List**: Display all expected items with scan status
+4. **Progress Indicator**: Show overall validation progress
+
+---
+
+## POST /api/stock-movements/{id}/validations/{validationId}/scan
+**Summary**: Scan a product barcode during validation
+
+### Authorization
+**Required Permissions**: `STOCK_MOVEMENT_EXECUTE` or `ROLE_ADMIN`
+
+### Request
+**Method**: `POST`
+**URL Parameters**:
+- `id` (UUID) - Movement identifier
+- `validationId` (UUID) - Validation session identifier
+
+**Content-Type**: `application/json`
+
+#### Request Body
+```json
+{
+  "barcode": "7891234567890"
+}
+```
+
+### Response (Success)
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Produto escaneado com sucesso",
+  "data": {
+    "success": true,
+    "message": "Produto escaneado com sucesso",
+    "barcode": "7891234567890",
+    "item": {
+      "itemId": "bb0e8400-e29b-41d4-a716-446655440011",
+      "productId": "660e8400-e29b-41d4-a716-446655440001",
+      "productName": "Product Name",
+      "barcode": "7891234567890",
+      "expectedQuantity": 10,
+      "scannedQuantity": 1,
+      "status": "PARTIAL"
+    }
+  }
+}
+```
+
+### Response (Unknown Barcode)
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Produto não faz parte desta transferência",
+  "data": {
+    "success": false,
+    "message": "Produto não faz parte desta transferência",
+    "barcode": "UNKNOWN123",
+    "item": null
+  }
+}
+```
+
+### Frontend Implementation Guide
+1. **Barcode Input**: Auto-focus input field for scanner
+2. **Immediate Feedback**: Show success/error immediately after scan
+3. **Sound/Vibration**: Audio or haptic feedback for scan result
+4. **Item Highlight**: Highlight the scanned item in the list
+5. **Counter Update**: Update scanned quantity in real-time
+6. **Error Handling**: Clear error message for unknown barcodes
+
+---
+
+## GET /api/stock-movements/{id}/validations/{validationId}
+**Summary**: Get current validation progress
+
+### Authorization
+**Required Permissions**: `STOCK_MOVEMENT_READ` or `ROLE_ADMIN`
+
+### Request
+**Method**: `GET`
+**URL Parameters**:
+- `id` (UUID) - Movement identifier
+- `validationId` (UUID) - Validation session identifier
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "validationId": "aa0e8400-e29b-41d4-a716-446655440010",
+    "status": "IN_PROGRESS",
+    "startedAt": "2026-01-20T10:00:00Z",
+    "items": [
+      {
+        "itemId": "bb0e8400-e29b-41d4-a716-446655440011",
+        "productId": "660e8400-e29b-41d4-a716-446655440001",
+        "productName": "Product Name",
+        "barcode": "7891234567890",
+        "expectedQuantity": 10,
+        "scannedQuantity": 10,
+        "status": "COMPLETE"
+      },
+      {
+        "itemId": "cc0e8400-e29b-41d4-a716-446655440012",
+        "productId": "660e8400-e29b-41d4-a716-446655440002",
+        "productName": "Another Product",
+        "barcode": "7891234567891",
+        "expectedQuantity": 5,
+        "scannedQuantity": 2,
+        "status": "PARTIAL"
+      }
+    ],
+    "progress": {
+      "totalItems": 2,
+      "completeItems": 1,
+      "partialItems": 1,
+      "pendingItems": 0
+    }
+  }
+}
+```
+
+**Item Status Values**:
+- `PENDING`: No items scanned yet (scannedQuantity = 0)
+- `PARTIAL`: Some items scanned (0 < scannedQuantity < expectedQuantity)
+- `COMPLETE`: All items scanned (scannedQuantity >= expectedQuantity)
+
+### Frontend Implementation Guide
+1. **Progress Bar**: Visual progress based on items scanned
+2. **Status Icons**: Color-coded icons per item status
+3. **Refresh**: Periodic refresh or WebSocket for real-time updates
+4. **Summary Card**: Show totals (complete/partial/pending)
+
+---
+
+## POST /api/stock-movements/{id}/validations/{validationId}/complete
+**Summary**: Complete the validation and finalize the transfer
+
+### Authorization
+**Required Permissions**: `STOCK_MOVEMENT_EXECUTE` or `ROLE_ADMIN`
+
+### Request
+**Method**: `POST`
+**URL Parameters**:
+- `id` (UUID) - Movement identifier
+- `validationId` (UUID) - Validation session identifier
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Validation completed successfully",
+  "data": {
+    "validationId": "aa0e8400-e29b-41d4-a716-446655440010",
+    "status": "COMPLETED_WITH_DISCREPANCY",
+    "completedAt": "2026-01-20T11:30:00Z",
+    "summary": {
+      "totalExpected": 15,
+      "totalReceived": 12,
+      "totalMissing": 3
+    },
+    "discrepancies": [
+      {
+        "productId": "660e8400-e29b-41d4-a716-446655440002",
+        "productName": "Another Product",
+        "expected": 5,
+        "received": 2,
+        "missing": 3
+      }
+    ],
+    "reportUrl": "/api/stock-movements/{id}/validations/{validationId}/discrepancy-report"
+  }
+}
+```
+
+**Note**:
+- If all items are fully received, status is `COMPLETED` and discrepancies array is empty.
+- If any items are missing, status is `COMPLETED_WITH_DISCREPANCY` and reportUrl is provided.
+- Only received quantities are added to destination warehouse stock.
+- Missing quantities remain as discrepancies for investigation.
+
+### Frontend Implementation Guide
+1. **Complete Button**: Prominent action to finalize validation
+2. **Confirmation Modal**: Show summary before completing
+3. **Discrepancy Warning**: Warn if completing with missing items
+4. **Result Screen**: Show final status and discrepancies
+5. **Report Link**: Provide link to download discrepancy report
+6. **Navigation**: Return to movement list or detail view
+
+---
+
+## GET /api/stock-movements/{id}/validations/{validationId}/discrepancy-report
+**Summary**: Download discrepancy report (PDF or Excel)
+
+### Authorization
+**Required Permissions**: `STOCK_MOVEMENT_READ` or `ROLE_ADMIN`
+
+### Request
+**Method**: `GET`
+**URL Parameters**:
+- `id` (UUID) - Movement identifier
+- `validationId` (UUID) - Validation session identifier
+
+**Headers**:
+- `Accept: application/pdf` - Returns PDF report (default)
+- `Accept: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` - Returns Excel report
+
+### Response
+**Status Code**: `200 OK`
+**Content-Type**: `application/pdf` or `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+**Content-Disposition**: `attachment; filename="discrepancy-report-{validationId}.pdf"`
+
+Binary file content (PDF or XLSX)
+
+### Report Contents
+- Transfer ID
+- Source and destination warehouse names
+- Validation date and validator name
+- Table with: Product Name, Barcode, Expected, Received, Missing
+- Totals row
+
+### Frontend Implementation Guide
+1. **Download Buttons**: Separate buttons for PDF and Excel
+2. **PDF Button**: Set Accept header to `application/pdf`
+3. **Excel Button**: Set Accept header to Excel MIME type
+4. **File Download**: Handle binary response as file download
+5. **Loading State**: Show spinner during download
+6. **Error Handling**: Handle no-discrepancies error gracefully
+
+---
+
+## Transfer Validation Frontend Components
+
+### Validation Scanner Screen
+```typescript
+interface ValidationScannerProps {
+  movementId: string;
+  validationId: string;
+  onComplete: () => void;
+}
+
+// Features:
+// - Large barcode input field (auto-focus)
+// - Item list with scan status
+// - Progress indicator
+// - Complete button
+// - Sound/vibration feedback
+```
+
+### Validation Progress Card
+```typescript
+interface ValidationProgressProps {
+  progress: {
+    totalItems: number;
+    completeItems: number;
+    partialItems: number;
+    pendingItems: number;
+  };
+}
+
+// Display:
+// - Progress bar (complete/total)
+// - Status breakdown with colors
+// - Percentage complete
+```
+
+### Discrepancy Report Modal
+```typescript
+interface DiscrepancyReportProps {
+  discrepancies: Discrepancy[];
+  onDownloadPdf: () => void;
+  onDownloadExcel: () => void;
+  onClose: () => void;
+}
+
+// Display:
+// - Table of discrepancies
+// - Download buttons
+// - Summary totals
+```
+
+---
+
+## Transfer Validation Best Practices
+
+### Scanning Workflow
+1. **Start Validation**: User at destination warehouse starts validation
+2. **Scan Items**: User scans each received item one by one
+3. **Real-time Feedback**: Each scan shows immediate success/error
+4. **Complete Validation**: User completes when all items scanned
+5. **Handle Discrepancies**: System generates report for missing items
+
+### Error Prevention
+1. **Validate Movement Status**: Only allow validation for IN_TRANSIT
+2. **Prevent Duplicate Validation**: Block if validation already exists
+3. **Reject Unknown Barcodes**: Don't add items not in transfer
+4. **Confirm Completion**: Require confirmation before finalizing
+
+### User Experience
+1. **Mobile-First**: Design for handheld scanner devices
+2. **Large Touch Targets**: Big buttons for warehouse environment
+3. **Clear Feedback**: Visual + audio feedback for scans
+4. **Offline Support**: Consider offline scanning with sync
+5. **Quick Complete**: Easy access to complete button
