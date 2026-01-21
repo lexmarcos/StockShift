@@ -27,6 +27,32 @@ Utilize prioritariamente a pasta `/components/ui`. Se criar novos componentes, u
 ### Criação de Novos Componentes
 **OBRIGATÓRIO:** O design é Dark-Only (Fundo #0A0A0A). Não há necessidade de suporte ao modo light.
 
+### Header com Breadcrumb
+
+**Regra de Navegação:**
+- **Rotas principais** (ex: `/products`, `/warehouses`, `/brands`) **NÃO** precisam de header com breadcrumb
+- **Rotas filhas** (ex: `/products/create`, `/products/[id]/edit`, `/warehouses/create`) **DEVEM** ter header com breadcrumb
+
+**Uso do Breadcrumb:**
+Para adicionar o header com breadcrumb em uma rota filha, utilize o hook `useBreadcrumb` no arquivo `page.tsx`:
+
+```typescript
+import { useBreadcrumb } from "@/components/breadcrumb/use-breadcrumb";
+
+export default function ProductCreatePage() {
+  useBreadcrumb({
+    title: "Novo Produto",
+    backUrl: "/products",
+    section: "Produtos",
+    subsection: "Criar",
+  });
+
+  return <ProductCreateView />;
+}
+```
+
+O hook gerencia automaticamente a exibição do breadcrumb no header global da aplicação.
+
 ## 📱 Design Responsivo
 
 **OBRIGATÓRIO: Mobile First**
@@ -118,12 +144,6 @@ Ao criar novas telas ou formulários que dependem de endpoints, leia o documento
 
 **Regra**: O agente só deve criar arquivos `.md` **se e somente se** for requisitado pelo usuário.
 
-## 🌐 Requisições HTTP
-
-### ky
-
-Use o cliente `ky` para centralizar configuração e facilitar retries/timeouts.
-
 ```typescript
 import ky from "ky";
 
@@ -144,6 +164,7 @@ import useSWR from "swr";
 
 const { data, error, isLoading } = useSWR("/api/endpoint", fetcher);
 ```
+
 
 ## 📦 Dependências
 

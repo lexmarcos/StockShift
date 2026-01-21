@@ -20,6 +20,11 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      "react/no-danger": "error",
+    },
+  },
 ];
 
 export default eslintConfig;

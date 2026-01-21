@@ -112,28 +112,6 @@ export const ValidationView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 font-sans text-neutral-200">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-sm border-b border-neutral-800">
-        <div className="mx-auto w-full max-w-7xl px-4 py-3 md:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              className="h-8 w-8 rounded-[4px] text-neutral-400 hover:text-white hover:bg-neutral-800"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <ScanLine className="h-4 w-4 text-blue-500" />
-              <h1 className="text-sm font-bold uppercase tracking-wide text-white">
-                Validação de Transferência
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <main className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Scanner Section */}
