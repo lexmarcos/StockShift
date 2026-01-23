@@ -21,25 +21,33 @@ import {
 } from "@/components/ui/card";
 import { Loader2, AlertCircle, CheckCircle, Info, Lock, Mail, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type DebugMessage = {
-  timestamp: string;
-  type: 'info' | 'success' | 'error';
-  message: string;
-  details?: any;
-};
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { DebugMessage } from "./login.types";
 
 interface LoginViewProps {
   form: UseFormReturn<LoginFormData>;
   onSubmit: (data: LoginFormData) => void;
   isLoading: boolean;
-  debugMessages: DebugMessage[];
+  debugMessages?: DebugMessage[];
+  requiresCaptcha: boolean;
+  captchaRef: React.RefObject<HCaptcha>;
+  onCaptchaVerify: (token: string) => void;
+  onCaptchaExpire: () => void;
 }
 
-export const LoginView = ({ form, onSubmit, isLoading, debugMessages }: LoginViewProps) => {
+export const LoginView = ({
+  form,
+  onSubmit,
+  isLoading,
+  debugMessages,
+  requiresCaptcha,
+  captchaRef,
+  onCaptchaVerify,
+  onCaptchaExpire,
+}: LoginViewProps) => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-blue-500/30">
-      
+
       {/* Brand / Logo Area */}
       <div className="mb-8 flex flex-col items-center gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)]">
@@ -75,10 +83,10 @@ export const LoginView = ({ form, onSubmit, isLoading, debugMessages }: LoginVie
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600 transition-colors group-focus-within:text-blue-500" />
-                        <Input 
-                          placeholder="usuario@empresa.com" 
+                        <Input
+                          placeholder="usuario@empresa.com"
                           className="pl-10 h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-700 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
-                          {...field} 
+                          {...field}
                         />
                       </div>
                     </FormControl>
@@ -107,10 +115,25 @@ export const LoginView = ({ form, onSubmit, isLoading, debugMessages }: LoginVie
                   </FormItem>
                 )}
               />
-              
-              <Button 
-                type="submit" 
-                className="w-full h-11 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-widest text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] transition-all active:scale-[0.98]" 
+
+              {requiresCaptcha && (
+                <div className="flex flex-col items-center gap-2 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                    Verificação necessária
+                  </p>
+                  <HCaptcha
+                    ref={captchaRef}
+                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
+                    onVerify={onCaptchaVerify}
+                    onExpire={onCaptchaExpire}
+                    theme="dark"
+                  />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-widest text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] transition-all active:scale-[0.98]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -141,8 +164,8 @@ export const LoginView = ({ form, onSubmit, isLoading, debugMessages }: LoginVie
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
             {debugMessages.map((msg, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={cn(
                   "flex gap-2 p-2 rounded-[2px] border-l-2",
                   msg.type === 'error' && "border-rose-500 bg-rose-950/10 text-rose-400",
