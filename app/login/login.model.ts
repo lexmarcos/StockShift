@@ -72,7 +72,13 @@ export const useLoginModel = () => {
       if (error instanceof HTTPError) {
         try {
           const errorResponse = await error.response.json() as LoginErrorResponse;
-          setRequiresCaptcha(errorResponse.requiresCaptcha);
+
+          // Ativa captcha se backend exigir explicitamente ou se token for requerido
+          const captchaRequired =
+            errorResponse.requiresCaptcha ||
+            errorResponse.message === "Captcha token is required";
+
+          setRequiresCaptcha(captchaRequired);
           toast.error(errorResponse.message || "Falha no login. Verifique suas credenciais.");
         } catch {
           toast.error("Falha no login. Verifique suas credenciais.");
