@@ -8,10 +8,10 @@ import {
   useBatchesModel,
 } from "./batches.model";
 
-const useSWRMock = vi.fn();
+const swrMock = vi.fn();
 
 vi.mock("swr", () => ({
-  default: (...args: any[]) => useSWRMock(...args),
+  default: (...args: unknown[]) => swrMock(...args),
 }));
 
 vi.mock("@/hooks/use-selected-warehouse", () => ({
@@ -37,7 +37,7 @@ const baseBatch: Batch = {
 };
 
 const setupSWRMocks = () => {
-  useSWRMock.mockImplementation((key: string) => {
+  swrMock.mockImplementation((key: string) => {
     if (key === "batches") {
       return {
         data: { data: [] },
@@ -57,7 +57,7 @@ const setupSWRMocks = () => {
 };
 
 beforeEach(() => {
-  useSWRMock.mockReset();
+  swrMock.mockReset();
   setupSWRMocks();
 });
 

@@ -9,7 +9,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,8 +23,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -40,7 +37,6 @@ import {
   Tag,
   AlertTriangle,
   XCircle,
-  Filter,
   MoreHorizontal,
   Calendar,
   Globe
@@ -51,7 +47,6 @@ import { Brand, SortConfig } from "./brands.types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -63,7 +58,7 @@ import {
 interface BrandsViewProps {
   brands: Brand[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   sortConfig: SortConfig;

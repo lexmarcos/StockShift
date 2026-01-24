@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
   PackagePlus,
   Box,
-  Warehouse,
   Calendar,
   FileText,
   DollarSign,
   AlertCircle,
-  CheckCircle2,
   Loader2,
   Barcode,
-  Info,
 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchCreateFormData } from "./batches-create.schema";

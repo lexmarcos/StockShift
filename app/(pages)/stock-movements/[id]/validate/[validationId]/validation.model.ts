@@ -84,8 +84,9 @@ export const useValidationModel = (movementId: string, validationId: string) => 
         }
 
         mutate();
-      } catch (err: any) {
-        toast.error(err?.message || "Erro ao escanear produto");
+      } catch (err) {
+        const error = err instanceof Error ? err.message : "Erro ao escanear produto";
+        toast.error(error);
       } finally {
         setIsScanning(false);
       }
@@ -110,8 +111,9 @@ export const useValidationModel = (movementId: string, validationId: string) => 
 
       setShowCompleteModal(false);
       router.push(`/stock-movements/${movementId}`);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao concluir validação");
+    } catch (err) {
+      const error = err instanceof Error ? err.message : "Erro ao concluir validação";
+      toast.error(error);
     } finally {
       setIsCompleting(false);
     }

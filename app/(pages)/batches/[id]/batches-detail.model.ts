@@ -34,8 +34,9 @@ export const useBatchDetailModel = (batchId: string) => {
       toast.success("Batch removido com sucesso");
       setDeleteOpen(false);
       router.push("/batches");
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao remover batch");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao remover batch";
+      toast.error(message);
     } finally {
       setIsDeleting(false);
       mutate();

@@ -40,7 +40,7 @@ export const useBatchEditModel = (batchId: string) => {
 
   const { data, isLoading } = useSWR<BatchEditResponse>(
     batchId ? `batches/${batchId}` : null,
-    async (url) => {
+    async (url: string) => {
       const { api } = await import("@/lib/api");
       return await api.get(url).json<BatchEditResponse>();
     }
@@ -67,8 +67,9 @@ export const useBatchEditModel = (batchId: string) => {
       await api.put(`batches/${batchId}`, { json: values }).json();
       toast.success("Batch atualizado");
       router.push(`/batches/${batchId}`);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao atualizar batch");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao atualizar batch";
+      toast.error(message);
     }
   };
 

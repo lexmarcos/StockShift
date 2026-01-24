@@ -33,10 +33,7 @@ import {
   RefreshCw,
   Scale,
   Calendar,
-  FileText,
   Clock,
-  CheckCircle2,
-  XCircle,
   Eye
 } from "lucide-react";
 import type { StockMovement, MovementFilters, SortConfig, MovementType, MovementStatus } from "./stock-movements.types";
@@ -45,7 +42,7 @@ import { cn } from "@/lib/utils";
 interface StockMovementsViewProps {
   movements: StockMovement[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   filters: MovementFilters;
   sortConfig: SortConfig;
   setSearchQuery: (value: string) => void;

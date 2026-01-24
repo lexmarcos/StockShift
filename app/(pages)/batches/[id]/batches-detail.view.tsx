@@ -19,7 +19,6 @@ import {
   Trash2,
   Box,
   MapPin,
-  Calendar,
   DollarSign,
   Package,
   History,
@@ -36,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 interface BatchesDetailViewProps {
   batch: Batch | null;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   isDeleteOpen: boolean;
   onDeleteOpenChange: (open: boolean) => void;
   isDeleting: boolean;
@@ -122,7 +121,6 @@ export const BatchesDetailView = ({
   const statusBorder = isExpired
     ? "border-rose-500/20"
     : "border-emerald-500/20";
-  const StatusIcon = isExpired ? AlertCircle : CheckCircle2;
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-neutral-200 font-sans selection:bg-blue-500/30">

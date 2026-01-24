@@ -4,7 +4,7 @@ export interface Category {
   description: string | null;
   parentCategoryId: string | null;
   parentCategoryName: string | null;
-  attributesSchema: Record<string, any> | null;
+  attributesSchema: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 }

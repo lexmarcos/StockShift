@@ -38,8 +38,9 @@ export const useStockMovementDetailModel = (movementId: string) => {
       await api.post(`stock-movements/${movementId}/execute`).json();
       toast.success("Movimentação executada");
       mutate();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao executar movimentação");
+    } catch (err) {
+      const error = err instanceof Error ? err.message : "Erro ao executar movimentação";
+      toast.error(error);
     } finally {
       setIsExecuting(false);
     }
@@ -54,8 +55,9 @@ export const useStockMovementDetailModel = (movementId: string) => {
       toast.success("Movimentação cancelada");
       setCancelOpen(false);
       mutate();
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao cancelar movimentação");
+    } catch (err) {
+      const error = err instanceof Error ? err.message : "Erro ao cancelar movimentação";
+      toast.error(error);
     } finally {
       setIsCancelling(false);
     }
@@ -93,9 +95,10 @@ export const useStockMovementDetailModel = (movementId: string) => {
         .json<StartValidationResponse>();
       toast.success("Validação iniciada");
       router.push(`/stock-movements/${movementId}/validate/${response.data.validationId}`);
-    } catch (err: any) {
+    } catch (err) {
       // Handle case where validation already exists (400 error)
-      if (err?.message?.includes("already exists") || err?.response?.status === 400) {
+      const error = err as { message?: string; response?: { status?: number } };
+      if (error?.message?.includes("already exists") || error?.response?.status === 400) {
         try {
           const { api } = await import("@/lib/api");
           const existingResponse = await api
@@ -115,7 +118,8 @@ export const useStockMovementDetailModel = (movementId: string) => {
           toast.error("Erro ao buscar validação existente");
         }
       } else {
-        toast.error(err?.message || "Erro ao iniciar validação");
+        const errorMsg = error?.message || "Erro ao iniciar validação";
+        toast.error(errorMsg);
       }
     } finally {
       setIsStartingValidation(false);

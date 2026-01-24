@@ -1,7 +1,7 @@
 "use client";
 
-import { Scanner } from "@yudiel/react-qr-scanner";
-import { Camera, AlertCircle } from "lucide-react";
+import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { AlertCircle } from "lucide-react";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,7 @@ export const BarcodeScannerModal = ({
   onClose,
   onScan,
 }: BarcodeScannerModalProps) => {
-  const handleScan = (detectedCodes: any[]) => {
+  const handleScan = (detectedCodes: IDetectedBarcode[]) => {
     if (detectedCodes && detectedCodes.length > 0) {
       const code = detectedCodes[0].rawValue;
       onScan(code);

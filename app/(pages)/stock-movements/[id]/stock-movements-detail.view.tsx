@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 interface StockMovementDetailViewProps {
   movement: StockMovement | null;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   isExecuting: boolean;
   isCancelling: boolean;
   isStartingValidation: boolean;

@@ -6,7 +6,7 @@ import { BatchCreateView } from "./batches-create.view";
 import type { BatchCreateFormData } from "./batches-create.schema";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 afterEach(() => cleanup());

@@ -16,9 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft,
   Loader2,
-  ScanLine,
   Check,
   Circle,
   CircleDot,
@@ -38,7 +36,6 @@ export const ValidationView = ({
   lastScanResult,
   onScan,
   onComplete,
-  onBack,
   showCompleteModal,
   onCompleteModalChange,
   hasDiscrepancies,

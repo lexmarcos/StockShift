@@ -22,8 +22,6 @@ import {
 import {
   AlertTriangle,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Filter,
   Layers,
@@ -47,7 +45,7 @@ import { Warehouse as WarehouseType } from "@/app/warehouses/warehouses.types";
 interface BatchesViewProps {
   batches: Batch[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   filters: BatchFilters;
   sortConfig: SortConfig;
   warehouses: WarehouseType[];

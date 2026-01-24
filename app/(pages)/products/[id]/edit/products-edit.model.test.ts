@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useProductEditModel } from "./products-edit.model";
 
-const useSWRMock = vi.fn();
+const swrMock = vi.fn();
 
 vi.mock("swr", () => ({
-  default: (...args: any[]) => useSWRMock(...args),
+  default: (...args: unknown[]) => swrMock(...args),
   mutate: vi.fn(),
 }));
 
@@ -90,7 +90,7 @@ const batchesResponse = {
 };
 
 const setupSWR = () => {
-  useSWRMock.mockImplementation((key: string | null) => {
+  swrMock.mockImplementation((key: string | null) => {
     if (key === "products/prod-1") {
       return { data: productResponse, isLoading: false };
     }
@@ -109,7 +109,7 @@ const setupSWR = () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  useSWRMock.mockReset();
+  swrMock.mockReset();
   setupSWR();
 });
 
@@ -134,7 +134,7 @@ describe("useProductEditModel batches drawer", () => {
     mockMatchMedia(false);
     const { result } = renderHook(() => useProductEditModel("prod-1"));
 
-    const hadBatchesKey = useSWRMock.mock.calls.some(
+    const hadBatchesKey = swrMock.mock.calls.some(
       ([key]) => typeof key === "string" && key.startsWith("batches/product")
     );
     expect(hadBatchesKey).toBe(false);
@@ -143,7 +143,7 @@ describe("useProductEditModel batches drawer", () => {
       result.current.batchesDrawer.onOpenChange(true);
     });
 
-    const hasBatchesKey = useSWRMock.mock.calls.some(
+    const hasBatchesKey = swrMock.mock.calls.some(
       ([key]) => typeof key === "string" && key.startsWith("batches/product")
     );
     expect(hasBatchesKey).toBe(true);

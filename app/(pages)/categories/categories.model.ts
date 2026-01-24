@@ -173,12 +173,13 @@ export const useCategoriesModel = () => {
           closeModal();
         }
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        err?.response?.data?.message ||
-        selectedCategory
+        error?.response?.data?.message ||
+        (selectedCategory
           ? "Erro ao atualizar categoria"
-          : "Erro ao criar categoria";
+          : "Erro ao criar categoria");
       toast.error(errorMessage);
     }
   };
@@ -206,9 +207,10 @@ export const useCategoriesModel = () => {
         mutate();
         closeDeleteDialog();
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        err?.response?.data?.message || "Erro ao deletar categoria";
+        error?.response?.data?.message || "Erro ao deletar categoria";
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);

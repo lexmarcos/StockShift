@@ -2,9 +2,10 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { StockMovementDetailView } from "./stock-movements-detail.view";
+import type { StockMovement } from "../stock-movements.types";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 const movement = {
@@ -41,7 +42,7 @@ describe("StockMovementDetailView", () => {
   it("shows movement header", () => {
     render(
       <StockMovementDetailView
-        movement={movement as any}
+        movement={movement as StockMovement}
         isLoading={false}
         error={null}
         isExecuting={false}

@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, AlertCircle, CheckCircle, Info, Lock, Mail, Box } from "lucide-react";
+import { Loader2, Info, Lock, Mail, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { DebugMessage } from "./login.types";
@@ -30,7 +30,7 @@ interface LoginViewProps {
   isLoading: boolean;
   debugMessages?: DebugMessage[];
   requiresCaptcha: boolean;
-  captchaRef: React.RefObject<HCaptcha>;
+  captchaRef: React.RefObject<HCaptcha | null>;
   onCaptchaVerify: (token: string) => void;
   onCaptchaExpire: () => void;
 }
@@ -73,7 +73,7 @@ export const LoginView = ({
         </CardHeader>
         <CardContent className="pb-8">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <form method="POST" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="email"

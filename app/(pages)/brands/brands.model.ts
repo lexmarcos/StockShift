@@ -137,12 +137,13 @@ export const useBrandsModel = () => {
           closeModal();
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao salvar marca:", error);
 
       // Handle specific errors
-      if (error.response) {
-        const errorData = await error.response.json();
+      const err = error as { response?: Response };
+      if (err.response) {
+        const errorData = await err.response.json();
         if (errorData.message?.includes("já existe")) {
           form.setError("name", {
             message: "Já existe uma marca com este nome",
@@ -178,11 +179,12 @@ export const useBrandsModel = () => {
         mutate();
         closeDeleteDialog();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao deletar marca:", error);
 
-      if (error.response) {
-        const errorData = await error.response.json();
+      const err = error as { response?: Response };
+      if (err.response) {
+        const errorData = await err.response.json();
         if (errorData.message?.includes("produtos vinculados")) {
           toast.error(
             "Esta marca possui produtos. Remova-os primeiro."

@@ -31,7 +31,6 @@ export const useWarehousesModel = () => {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState<Warehouse | null>(null);
-  const [isCheckingCode, setIsCheckingCode] = useState(false);
 
   // Fetch warehouses
   const { data, error, isLoading, mutate } = useSWR<WarehousesResponse>(
@@ -184,11 +183,12 @@ export const useWarehousesModel = () => {
           closeModal();
         }
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        err.response?.data?.message ||
+        error.response?.data?.message ||
         "Erro ao salvar armazém. Tente novamente.";
-      
+
       toast.error(errorMessage);
     }
   };
@@ -216,11 +216,12 @@ export const useWarehousesModel = () => {
         mutate();
         closeDeleteDialog();
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Erro ao deletar armazém";
-      
+    } catch (err) {
+      const error = err as { response?: { status?: number; data?: { message?: string } } };
+      const errorMessage = error.response?.data?.message || "Erro ao deletar armazém";
+
       // Check if deletion is blocked by stock
-      if (err.response?.status === 400 && errorMessage.includes("stock")) {
+      if (error.response?.status === 400 && errorMessage.includes("stock")) {
         toast.error(
           `${errorMessage}. Desative o armazém ou transfira o estoque primeiro.`
         );
@@ -258,7 +259,6 @@ export const useWarehousesModel = () => {
     // Form
     form,
     onSubmit,
-    isCheckingCode,
 
     // Delete
     warehouseToDelete,

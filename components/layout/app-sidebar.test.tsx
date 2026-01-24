@@ -4,7 +4,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { AppSidebar } from "./app-sidebar";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 vi.mock("next/navigation", () => ({

@@ -52,7 +52,7 @@ export const useStockMovementCreateModel = () => {
   const [notes, setNotes] = useState("");
 
   const form = useForm<StockMovementCreateFormData>({
-    resolver: zodResolver(stockMovementCreateSchema) as any,
+    resolver: zodResolver(stockMovementCreateSchema),
     defaultValues: {
       movementType: "TRANSFER",
       sourceWarehouseId: "",

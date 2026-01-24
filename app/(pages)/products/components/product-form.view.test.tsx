@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { ProductForm } from "./product-form.view";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 vi.mock("@/components/product/barcode-scanner-modal", () => ({
@@ -63,11 +63,11 @@ const baseProps = {
     ],
     onSave: vi.fn(),
     updatingBatchId: null,
-    form: {} as any,
+    form: {} as ReturnType<typeof useForm>,
   },
 };
 
-const Wrapper = (props: any) => {
+const Wrapper = (props: typeof baseProps & { defaultValues?: Record<string, unknown> }) => {
   const {
     batchesDrawer: batchesDrawerOverride,
     defaultValues,

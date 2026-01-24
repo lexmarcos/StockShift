@@ -101,8 +101,9 @@ export const useBatchCreateModel = () => {
         toast.success("Batch criado com sucesso");
         router.push(`/batches/${response.data.id}`);
       }
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao criar batch");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao criar batch";
+      toast.error(message);
     }
   };
 

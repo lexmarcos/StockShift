@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { BatchesDetailView } from "./batches-detail.view";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 const baseBatch = {
@@ -29,7 +29,7 @@ describe("BatchesDetailView", () => {
   it("shows batch header and key info", () => {
     render(
       <BatchesDetailView
-        batch={baseBatch as any}
+        batch={baseBatch}
         isLoading={false}
         error={null}
         isDeleting={false}
@@ -51,7 +51,7 @@ describe("BatchesDetailView", () => {
     const batch = { ...baseBatch, costPrice: 12345, sellingPrice: 67890 };
     render(
       <BatchesDetailView
-        batch={batch as any}
+        batch={batch}
         isLoading={false}
         error={null}
         isDeleting={false}

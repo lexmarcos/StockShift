@@ -129,9 +129,10 @@ export const useProductsModel = () => {
         );
         setDeleteBatches(filtered);
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        err?.response?.data?.message || "Erro ao verificar estoque do produto";
+        error?.response?.data?.message || "Erro ao verificar estoque do produto";
       toast.error(errorMessage);
     } finally {
       setIsCheckingDeleteBatches(false);
@@ -164,9 +165,10 @@ export const useProductsModel = () => {
         mutate();
         onCloseDeleteDialog();
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        err?.response?.data?.message || "Erro ao deletar produto";
+        error?.response?.data?.message || "Erro ao deletar produto";
       toast.error(errorMessage);
     } finally {
       setIsDeletingProduct(false);

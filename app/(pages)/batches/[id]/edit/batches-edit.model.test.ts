@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { mapBatchToFormValues } from "./batches-edit.model";
 
-const batch = {
+import type { Batch } from "../../batches.types";
+
+const batch: Partial<Batch> = {
   id: "b1",
   productId: "p1",
   warehouseId: "w1",
@@ -15,7 +17,7 @@ const batch = {
 
 describe("mapBatchToFormValues", () => {
   it("maps api batch to form defaults", () => {
-    const values = mapBatchToFormValues(batch as any);
+    const values = mapBatchToFormValues(batch as Batch);
     expect(values.productId).toBe("p1");
     expect(values.quantity).toBe(12);
   });

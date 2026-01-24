@@ -4,7 +4,7 @@ import { loginSchema, LoginFormData } from "./login.schema";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
-import { LoginResponse, LoginErrorResponse } from "./login.types";
+import { LoginResponse } from "./login.types";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/contexts/auth-context";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
@@ -70,20 +70,18 @@ export const useLoginModel = () => {
       console.error("Login error:", error);
 
       if (error instanceof HTTPError) {
-        try {
-          const errorResponse = await error.response.json() as LoginErrorResponse;
+        const errorMessage = error.message;
+        console.log("[Login Debug] HTTPError message:", errorMessage);
+        console.log("[Login Debug] Status:", error.response.status);
 
-          // Ativa captcha se backend exigir explicitamente ou se token for requerido
-          const captchaRequired =
-            errorResponse.requiresCaptcha ||
-            errorResponse.message === "Captcha token is required";
+        // Ativa captcha se backend exigir token
+        const captchaRequired = errorMessage === "Captcha token is required";
 
-          setRequiresCaptcha(captchaRequired);
-          toast.error(errorResponse.message || "Falha no login. Verifique suas credenciais.");
-        } catch {
-          toast.error("Falha no login. Verifique suas credenciais.");
-        }
+        console.log("[Login Debug] captchaRequired:", captchaRequired);
+        setRequiresCaptcha(captchaRequired);
+        toast.error(errorMessage || "Falha no login. Verifique suas credenciais.");
       } else {
+        console.log("[Login Debug] Non-HTTPError:", error);
         toast.error("Falha no login. Verifique suas credenciais.");
       }
 

@@ -3,9 +3,10 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import Page from "./page";
 import { StockMovementCreateView } from "./stock-movements-create.view";
+import type { UseFormReturn } from "react-hook-form";
 
 const modelReturn = {
-  form: {} as any,
+  form: {} as UseFormReturn,
   onSubmit: vi.fn(),
   items: [],
   addItem: vi.fn(),
@@ -32,7 +33,7 @@ describe("StockMovementCreatePage", () => {
     render(<Page />);
     expect(screen.getByText("create-view")).toBeTruthy();
     expect(StockMovementCreateView).toHaveBeenCalled();
-    const [[props]] = (StockMovementCreateView as any).mock.calls;
+    const [[props]] = (StockMovementCreateView as unknown as { mock: { calls: unknown[][] } }).mock.calls;
     expect(props).toEqual(expect.objectContaining(modelReturn));
   });
 });

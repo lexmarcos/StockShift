@@ -3,10 +3,7 @@ import { z } from "zod";
 export const batchFormSchema = z
   .object({
     quantity: z
-      .number({
-        required_error: "Quantidade é obrigatória",
-        invalid_type_error: "Quantidade deve ser um número",
-      })
+      .number()
       .positive("Quantidade deve ser maior que zero")
       .int("Quantidade deve ser um número inteiro"),
     hasExpiration: z.boolean(),

@@ -35,24 +35,49 @@ These endpoints handle user authentication, registration, and session management
   "success": true,
   "message": null,
   "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
     "tokenType": "Bearer",
     "expiresIn": 3600000,
     "userId": "550e8400-e29b-41d4-a716-446655440000",
     "email": "user@example.com",
-    "fullName": "John Doe"
+    "fullName": "John Doe",
+    "requiresCaptcha": false
   }
 }
 ```
 
+> **Note**: `accessToken` and `refreshToken` are sent as HTTP-only cookies for security and are not included in the JSON response body.
+
+**Response Fields**:
+- `requiresCaptcha`: Indicates if captcha should be required for the next login attempt. Set to `true` when multiple login attempts are detected from the same IP address.
+
+### Error Response (401 Unauthorized)
+```json
+{
+  "timestamp": "2025-01-22T10:30:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Invalid email or password",
+  "path": "/api/auth/login",
+  "requiresCaptcha": true
+}
+```
+
+### Rate Limiting & Captcha Logic
+The system tracks login attempts per IP address using a token bucket algorithm:
+- **Default capacity**: 5 attempts
+- **Refill rate**: 5 tokens every 15 minutes
+- **Captcha threshold**: When remaining tokens ≤ 50% of capacity (e.g., after 3 attempts with capacity=5)
+
+When `requiresCaptcha: true` is returned, the frontend should display a captcha challenge before allowing the next login attempt.
+
 ### Frontend Implementation Guide
 1. **Form Fields**: Create email and password input fields with validation
 2. **Validation**: Validate email format before submission
-3. **Token Storage**: Store `accessToken` and `refreshToken` securely (localStorage/sessionStorage)
-4. **Token Usage**: Include accessToken in Authorization header as `Bearer {accessToken}` for subsequent requests
+3. **Token Storage**: Tokens are stored in HTTP-only cookies automatically by the browser
+4. **Token Usage**: Cookies are sent automatically with requests (ensure `credentials: 'include'` in fetch)
 5. **User Context**: Store userId, email, and fullName for user session management
-6. **Error Handling**: Handle 401 (Invalid credentials) and 400 (Validation errors)
+6. **Error Handling**: Handle 401 (Invalid credentials), 400 (Validation errors), and 429 (Rate limit exceeded)
+7. **Captcha Handling**: Check `requiresCaptcha` in both success and error responses. If `true`, show captcha before next login attempt
 
 ---
 

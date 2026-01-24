@@ -32,8 +32,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  CheckCircle2,
-  XCircle,
   AlertTriangle,
   Building
 } from "lucide-react";
@@ -46,7 +44,7 @@ import { cn } from "@/lib/utils";
 interface WarehousesViewProps {
   warehouses: Warehouse[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   statusFilter: StatusFilter;
@@ -77,8 +75,6 @@ export const WarehousesView = ({
   setSearchQuery,
   statusFilter,
   setStatusFilter,
-  sortConfig,
-  handleSort,
   isModalOpen,
   selectedWarehouse,
   openCreateModal,

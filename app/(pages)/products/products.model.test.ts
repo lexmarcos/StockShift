@@ -6,7 +6,25 @@ const mockMutate = vi.fn();
 const mockGet = vi.fn();
 const mockDelete = vi.fn();
 
-let swrData: any;
+let swrData: {
+  success: boolean;
+  data: {
+    content: typeof baseProduct[];
+    pageable: {
+      pageNumber: number;
+      pageSize: number;
+      sort: unknown[];
+      offset: number;
+      unpaged: boolean;
+      paged: boolean;
+    };
+    totalElements: number;
+    totalPages: number;
+    number: number;
+    size: number;
+    empty: boolean;
+  };
+} | undefined;
 
 vi.mock("swr", () => ({
   default: vi.fn(() => ({

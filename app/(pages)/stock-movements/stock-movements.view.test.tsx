@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { StockMovementsView } from "./stock-movements.view";
 
 vi.mock("next/link", () => ({
-  default: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
 const baseProps = {
@@ -17,7 +17,7 @@ const baseProps = {
     movementType: "all" as const,
     warehouseId: "",
   },
-  sortConfig: { key: "createdAt" as "createdAt", direction: "desc" as const },
+  sortConfig: { key: "createdAt" as const, direction: "desc" as const },
   setSearchQuery: vi.fn(),
   setStatus: vi.fn(),
   setMovementType: vi.fn(),

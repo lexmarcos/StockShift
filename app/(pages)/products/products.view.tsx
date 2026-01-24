@@ -60,7 +60,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ScannerDrawer } from "@/components/product/scanner-drawer/scanner-drawer";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
-import { ProductsViewProps, SortField, SortOrder } from "./products.types";
+import { ProductsViewProps, SortField, SortOrder, Product } from "./products.types";
 import { cn } from "@/lib/utils";
 
 export const ProductsView = ({
@@ -144,7 +144,7 @@ export const ProductsView = ({
     );
   };
 
-  const ProductActions = ({ product }: { product: any }) => (
+  const ProductActions = ({ product }: { product: Product }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white">

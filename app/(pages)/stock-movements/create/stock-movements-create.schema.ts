@@ -12,7 +12,7 @@ export const stockMovementCreateSchema = z
         z.object({
           productId: z.string().min(1, "Selecione um produto"),
           batchId: z.string().optional(),
-          quantity: z.coerce.number().int().min(1, "Quantidade inválida"),
+          quantity: z.number().int().min(1, "Quantidade inválida"),
           reason: z.string().optional(),
         })
       )

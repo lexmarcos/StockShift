@@ -2,7 +2,7 @@ import { differenceInCalendarDays, isValid, parseISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type { Batch, BatchFilters, BatchStatus, SortConfig, BatchesResponse } from "./batches.types";
-import type { Warehouse } from "../warehouses/warehouses.types";
+import type { Warehouse } from "@/app/warehouses/warehouses.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
 export type { Batch, BatchFilters, BatchStatus, SortConfig };
@@ -131,7 +131,7 @@ export const useBatchesModel = () => {
     "warehouses",
     async () => {
       const { api } = await import("@/lib/api");
-      return await api.get("warehouses").json();
+      return await api.get("warehouses").json<{ success: boolean; data: Warehouse[] }>();
     }
   );
 

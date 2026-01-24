@@ -58,7 +58,7 @@ interface CategoriesViewProps {
   categoryTree: CategoryTree[];
   flatCategories: CategoryTree[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   viewMode: ViewMode;
@@ -150,7 +150,7 @@ export const CategoriesView = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              hasChildren && toggleNode(node.id);
+              if (hasChildren) toggleNode(node.id);
             }}
             className={cn(
               "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
@@ -522,7 +522,7 @@ export const CategoriesView = ({
         {!isLoading && !error && flatCategories.length === 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
              <Search className="h-12 w-12 mb-4 opacity-20" />
-             <p className="text-sm">Nenhum resultado para "{searchQuery}"</p>
+             <p className="text-sm">Nenhum resultado para &quot;{searchQuery}&quot;</p>
              <Button 
                variant="link" 
                onClick={() => setSearchQuery("")}

@@ -17,15 +17,6 @@ export const useScannerDrawer = (): UseScannerDrawerReturn => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { warehouseId } = useSelectedWarehouse();
 
-  const generateBatchCode = useCallback(() => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `BATCH-${year}${month}${day}-${random}`;
-  }, []);
-
   const onScan = useCallback(
     async (barcode: string) => {
       if (!barcode || state !== "scanning") return;
@@ -58,6 +49,13 @@ export const useScannerDrawer = (): UseScannerDrawerReturn => {
     },
     [state]
   );
+
+  const onReset = useCallback(() => {
+    setState("scanning");
+    setScannedBarcode(null);
+    setProduct(null);
+    setIsSubmitting(false);
+  }, []);
 
   const onSubmitBatch = useCallback(
     async (data: BatchFormData) => {
@@ -100,15 +98,8 @@ export const useScannerDrawer = (): UseScannerDrawerReturn => {
         setIsSubmitting(false);
       }
     },
-    [product, warehouseId]
+    [product, warehouseId, onReset]
   );
-
-  const onReset = useCallback(() => {
-    setState("scanning");
-    setScannedBarcode(null);
-    setProduct(null);
-    setIsSubmitting(false);
-  }, []);
 
   return {
     state,

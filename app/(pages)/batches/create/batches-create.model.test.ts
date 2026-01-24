@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { buildBatchPayload } from "./batches-create.model";
 
-const formData = {
+import type { BatchCreateFormData } from "./batches-create.schema";
+
+const formData: BatchCreateFormData = {
   productId: "p1",
   warehouseId: "w1",
   quantity: 10,
@@ -19,7 +21,7 @@ describe("buildBatchPayload", () => {
       ...formData,
       batchCode: " ",
       notes: " ",
-    } as any);
+    });
     expect(payload.batchCode).toBeUndefined();
     expect(payload.notes).toBeUndefined();
   });
