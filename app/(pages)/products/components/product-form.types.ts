@@ -1,6 +1,5 @@
 // app/products/components/product-form.types.ts
-import { UseFormReturn } from "react-hook-form";
-import { ProductCreateFormData } from "../create/products-create.schema";
+import { ProductCreateFormData, AiFillData } from "../create/products-create.types";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
 
 export interface Category {
@@ -86,6 +85,12 @@ export interface ProductFormProps {
   closeScanner: () => void;
   isScannerOpen: boolean;
   handleBarcodeScan: (barcode: string) => void;
+
+  // AI Fill
+  isAiModalOpen?: boolean;
+  openAiModal?: () => void;
+  closeAiModal?: () => void;
+  handleAiFill?: (data: AiFillData, file: File, useImage: boolean) => void;
 
   // Outros
   nameInputRef: React.RefObject<HTMLInputElement | null>;

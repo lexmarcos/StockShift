@@ -2,22 +2,33 @@ import type { ComponentProps } from "react";
 import { NumericFormat, type NumberFormatValues } from "react-number-format";
 import { Input } from "./input";
 
-export type CurrencyInputProps = Omit<
+export type NumberInputMode = "integer" | "float";
+
+export type NumberInputProps = Omit<
   ComponentProps<typeof Input>,
   "value" | "defaultValue" | "type"
 > & {
   value?: number;
   onValueChange?: (value?: number) => void;
+  mode?: NumberInputMode;
 };
 
-export function CurrencyInput({
+export function NumberInput({
   value,
   onValueChange,
   inputMode,
+  mode = "integer",
   ...props
-}: CurrencyInputProps) {
+}: NumberInputProps) {
+  const isFloat = mode === "float";
+  const decimalScale = isFloat ? 2 : 0;
+
   const displayValue =
-    typeof value === "number" ? (value / 100).toFixed(2) : undefined;
+    typeof value === "number" && value !== 0
+      ? isFloat
+        ? value.toFixed(2)
+        : String(value)
+      : undefined;
 
   const handleValueChange = (values: NumberFormatValues) => {
     if (values.value === "") {
@@ -25,9 +36,7 @@ export function CurrencyInput({
       return;
     }
 
-    const digits = values.value.replace(/\D/g, "");
-    const parsed = Number(digits);
-
+    const parsed = Number(values.value);
     if (!Number.isFinite(parsed)) return;
 
     onValueChange?.(parsed);
@@ -38,13 +47,15 @@ export function CurrencyInput({
       {...props}
       type="text"
       value={displayValue}
+      valueIsNumericString
       customInput={Input}
-      prefix="R$ "
       thousandSeparator="."
       decimalSeparator=","
+      decimalScale={decimalScale}
+      fixedDecimalScale={isFloat}
       allowNegative={false}
-      allowedDecimalSeparators={[".", ","]}
-      inputMode={inputMode ?? "decimal"}
+      allowedDecimalSeparators={isFloat ? [".", ","] : []}
+      inputMode={inputMode ?? (isFloat ? "decimal" : "numeric")}
       onValueChange={handleValueChange}
     />
   );

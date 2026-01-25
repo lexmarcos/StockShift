@@ -2,6 +2,7 @@
 
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
+import { ProductAiFillModal } from "@/components/product/product-ai-fill-modal";
 import { ImageDropzone } from "@/components/product/image-dropzone";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -61,7 +63,8 @@ import {
   Scan,
   Box,
   Barcode,
-  Info
+  Info,
+  Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { ProductFormProps } from "./product-form.types";
@@ -91,6 +94,10 @@ export const ProductForm = ({
   handleImageSelect,
   handleImageRemove,
   batchesDrawer,
+  isAiModalOpen,
+  openAiModal,
+  closeAiModal,
+  handleAiFill,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
   
@@ -112,6 +119,17 @@ export const ProductForm = ({
       />
       
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
+        {/* AI Fill Modal */}
+        {mode === 'create' && isAiModalOpen !== undefined && closeAiModal && handleAiFill && (
+          <ProductAiFillModal
+            open={isAiModalOpen}
+            onClose={closeAiModal}
+            onConfirm={handleAiFill}
+            categories={categories}
+            brands={brands}
+          />
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -121,11 +139,26 @@ export const ProductForm = ({
                 {/* Basic Info Card */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Box className="h-4 w-4 text-blue-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Informações Básicas
-                      </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Box className="h-4 w-4 text-blue-500" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                          Informações Básicas
+                        </CardTitle>
+                      </div>
+
+                      {mode === 'create' && openAiModal && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={openAiModal}
+                          className="h-7 gap-2 rounded-[4px] border-indigo-500/30 bg-indigo-500/10 text-[10px] font-bold uppercase tracking-wide text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                        >
+                          <Sparkles className="h-3 w-3" />
+                          Preencher com IA
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-5">
@@ -360,23 +393,27 @@ export const ProductForm = ({
                         <FormField
                           control={form.control}
                           name="quantity"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Qtd. Inicial <span className="text-rose-500">*</span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          )}
+                          render={({ field }) => {
+                            const { onChange, value, ...rest } = field;
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Qtd. Inicial <span className="text-rose-500">*</span>
+                                </FormLabel>
+                                <FormControl>
+                                  <NumberInput
+                                    {...rest}
+                                    value={value}
+                                    onValueChange={onChange}
+                                    mode="integer"
+                                    placeholder="0"
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            );
+                          }}
                         />
                         <FormField
                           control={form.control}
@@ -455,103 +492,124 @@ export const ProductForm = ({
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-6 space-y-5">
-                    <FormField
-                      control={form.control}
-                      name="categoryId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Categoria
-                          </FormLabel>
-                          <Select
-                            key={field.value || 'empty'}
-                            onValueChange={field.onChange}
-                            value={field.value || undefined}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                              {isLoadingCategories ? (
-                                <>
-                                  {field.value && (
-                                    <SelectItem value={field.value} className="text-xs">
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 gap-5">
+                      <FormField
+                        control={form.control}
+                        name="categoryId"
+                        render={({ field }) => (
+                          <FormItem className="space-y-1.5">
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                              <Layers className="h-3 w-3 text-amber-500/70" />
+                              Categoria
+                            </FormLabel>
+                            <Select
+                              key={field.value || 'empty'}
+                              onValueChange={field.onChange}
+                              value={field.value || undefined}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0 focus:border-blue-600 transition-colors">
+                                  <SelectValue placeholder="Selecione a categoria..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300 max-h-[300px]">
+                                {isLoadingCategories ? (
+                                  <>
+                                    {field.value && (
+                                      <SelectItem value={field.value} className="text-xs">
+                                        Carregando...
+                                      </SelectItem>
+                                    )}
+                                    <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                                       Carregando...
+                                    </div>
+                                  </>
+                                ) : (
+                                  categories.map((category) => (
+                                    <SelectItem
+                                      key={category.id}
+                                      value={category.id}
+                                      className="text-xs focus:bg-neutral-800 focus:text-white py-2.5"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div className="h-2 w-2 rounded-full bg-amber-500/50" />
+                                        {category.name}
+                                      </div>
                                     </SelectItem>
-                                  )}
-                                  <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                    Carregando...
-                                  </div>
-                                </>
-                              ) : (
-                                categories.map((category) => (
-                                  <SelectItem
-                                    key={category.id}
-                                    value={category.id}
-                                    className="text-xs focus:bg-neutral-800 focus:text-white"
-                                  >
-                                    {category.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage className="text-xs text-rose-500" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="brandId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Marca
-                          </FormLabel>
-                          <Select
-                            key={field.value || 'empty'}
-                            onValueChange={field.onChange}
-                            value={field.value || undefined}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                              {isLoadingBrands ? (
-                                <>
-                                  {field.value && (
-                                    <SelectItem value={field.value} className="text-xs">
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-xs text-rose-500" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="brandId"
+                        render={({ field }) => (
+                          <FormItem className="space-y-1.5">
+                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3 text-blue-500/70" />
+                              Marca / Fabricante
+                            </FormLabel>
+                            <Select
+                              key={field.value || 'empty'}
+                              onValueChange={field.onChange}
+                              value={field.value || undefined}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0 focus:border-blue-600 transition-colors">
+                                  <SelectValue placeholder="Selecione a marca..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300 max-h-[300px]">
+                                {isLoadingBrands ? (
+                                  <>
+                                    {field.value && (
+                                      <SelectItem value={field.value} className="text-xs">
+                                        Carregando...
+                                      </SelectItem>
+                                    )}
+                                    <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                                       Carregando...
+                                    </div>
+                                  </>
+                                ) : (
+                                  brands.map((brand) => (
+                                    <SelectItem
+                                      key={brand.id}
+                                      value={brand.id}
+                                      className="text-xs focus:bg-neutral-800 focus:text-white py-2.5"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {brand.logoUrl ? (
+                                           <img
+                                             src={brand.logoUrl}
+                                             alt={brand.name}
+                                             className="h-4 w-4 object-contain rounded-[2px]"
+                                           />
+                                        ) : (
+                                           <div className="h-4 w-4 rounded-[2px] bg-neutral-800 flex items-center justify-center text-[8px] font-bold text-neutral-500">
+                                             {brand.name.substring(0, 1)}
+                                           </div>
+                                        )}
+                                        {brand.name}
+                                      </div>
                                     </SelectItem>
-                                  )}
-                                  <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                    Carregando...
-                                  </div>
-                                </>
-                              ) : (
-                                brands.map((brand) => (
-                                  <SelectItem
-                                    key={brand.id}
-                                    value={brand.id}
-                                    className="text-xs focus:bg-neutral-800 focus:text-white"
-                                  >
-                                    {brand.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage className="text-xs text-rose-500" />
-                        </FormItem>
-                      )}
-                    />
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-xs text-rose-500" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 

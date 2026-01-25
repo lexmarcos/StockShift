@@ -40,3 +40,21 @@ export interface BrandsResponse {
   success: boolean;
   data: Brand[];
 }
+
+export interface AiFillData {
+  name: string;
+  brandId?: string;
+  brandName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  volumeValue?: number;
+  volumeUnit?: string;
+  detectedCategory?: string;
+  detectedBrand?: string;
+}
+
+export interface AnalyzeImageResponse {
+  success: boolean;
+  message: string | null;
+  data: AiFillData;
+}

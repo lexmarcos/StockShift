@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { useCallback, useState, useEffect } from "react";
+import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { compressImage } from "@/lib/image-compressor";
 
 interface ImageDropzoneProps {
   onImageSelect: (file: File | null) => void;
@@ -16,6 +17,22 @@ export const ImageDropzone = ({ onImageSelect, value, disabled = false, currentI
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [showRemovalIndicator, setShowRemovalIndicator] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  // Sync preview with value prop changes (e.g. from AI Fill)
+  useEffect(() => {
+    if (value) {
+      // If we have a value but no preview, or if the value object reference changed
+      // (assuming external updates pass a new File object)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(value);
+    } else {
+      setPreview(null);
+    }
+  }, [value]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -46,19 +63,35 @@ export const ImageDropzone = ({ onImageSelect, value, disabled = false, currentI
     return true;
   };
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!validateFile(file)) {
       return;
     }
 
-    onImageSelect(file);
+    setIsCompressing(true);
+    try {
+      // Compress image before passing to parent
+      const compressedFile = await compressImage(file, 0.7);
+      onImageSelect(compressedFile);
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+      // Create preview from compressed file
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      // Fallback to original file if compression fails
+      onImageSelect(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsCompressing(false);
+    }
   }, [onImageSelect]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -222,7 +255,30 @@ export const ImageDropzone = ({ onImageSelect, value, disabled = false, currentI
     );
   }
 
-  // State 4: No image (create mode or empty)
+  // State 4: Compressing image
+  if (isCompressing) {
+    return (
+      <div className="w-full">
+        <div className="relative rounded-sm border-2 border-dashed p-8 border-blue-600/40 bg-blue-950/10">
+          <div className="flex flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-blue-600/10 border border-blue-600/30">
+              <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
+                Comprimindo imagem...
+              </p>
+              <p className="text-[11px] text-muted-foreground/70 mt-1">
+                Otimizando para upload
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // State 5: No image (create mode or empty)
   return (
     <div className="w-full">
       <div

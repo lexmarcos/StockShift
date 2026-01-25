@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchEditFormData } from "./batches-edit.schema";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -39,23 +39,14 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
     );
   }
 
+  const costPrice = form.watch("costPrice") || 0;
+  const sellingPrice = form.watch("sellingPrice") || 0;
+  const profit = sellingPrice - costPrice;
+  const margin = costPrice > 0 ? (profit / costPrice) * 100 : 0;
+  const isProfitable = profit > 0;
+
   return (
     <div className="min-h-screen bg-background pb-10">
-      <header className="sticky top-0 z-20 border-b border-border/40 bg-card">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 md:px-6 lg:px-8">
-          <Link
-            href="/batches"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-          </Link>
-          <div className="border-l border-border/40 pl-3">
-            <h1 className="text-base font-semibold uppercase tracking-wide">Editar Batch</h1>
-            <p className="text-xs text-muted-foreground hidden md:block">Atualização de lote</p>
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -116,7 +107,11 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                     <FormItem>
                       <FormLabel className="text-xs font-semibold uppercase tracking-wide">Quantidade</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} className="h-9 rounded-sm border-border/40 text-xs" />
+                        <NumberInput
+                          {...field}
+                          mode="integer"
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -149,12 +144,6 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="sellingPrice"
                   render={({ field }) => {
                     const { onChange, value, ...rest } = field;
-                    const costPrice = form.watch("costPrice") || 0;
-                    const sellingPrice = value || 0;
-                    const profit = sellingPrice - costPrice;
-                    const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
-                    const isProfitable = profit > 0;
-
                     return (
                       <FormItem>
                         <FormLabel className="text-xs font-semibold uppercase tracking-wide">Venda</FormLabel>
@@ -167,17 +156,43 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                             className="h-9 rounded-sm border-border/40 text-xs"
                           />
                         </FormControl>
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="text-muted-foreground">Lucro:</span>
-                          <span className={cn("font-bold font-mono", isProfitable ? "text-emerald-500" : "text-rose-500")}>
-                            {profit.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} ({margin.toFixed(1)}%)
-                          </span>
-                        </div>
                         <FormMessage />
                       </FormItem>
                     );
                   }}
                 />
+                <div
+                  className={cn(
+                    "md:col-span-3 mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                    isProfitable
+                      ? "border-emerald-900/30 bg-emerald-950/10"
+                      : "border-rose-900/30 bg-rose-950/10"
+                  )}
+                >
+                  <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    Lucro Estimado
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-sm font-bold font-mono",
+                        isProfitable ? "text-emerald-500" : "text-rose-500"
+                      )}
+                    >
+                      {(profit / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    <div
+                      className={cn(
+                        "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
+                        isProfitable
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                          : "border-rose-500/30 bg-rose-500/10 text-rose-500"
+                      )}
+                    >
+                      {margin.toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 

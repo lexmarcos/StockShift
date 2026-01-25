@@ -607,8 +607,8 @@ export const ProductsView = ({
         onOpenChange={(open) => {
           if (!open) onCloseDeleteDialog();
         }}
-        title="Confirmar exclusão"
-        description={`Tem certeza que deseja deletar o produto ${deleteProduct?.name}? Esta ação é irreversível.`}
+        title="Confirmar remoção"
+        description={`Tem certeza que deseja remover o produto ${deleteProduct?.name} deste armazém? Esta ação removerá todos os lotes associados.`}
         maxWidth="sm:max-w-[450px]"
         footer={
           <>
@@ -628,10 +628,10 @@ export const ProductsView = ({
               {isDeletingProduct ? (
                 <>
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Excluindo...
+                  Removendo...
                 </>
               ) : (
-                "Excluir"
+                "Remover"
               )}
             </Button>
           </>
@@ -652,12 +652,12 @@ export const ProductsView = ({
                 Estoque Existente
               </div>
               <p className="mt-1 opacity-90">
-                Ainda existe estoque deste produto. Zere o estoque antes de excluir.
+                Ainda existe estoque deste produto neste armazém. A remoção irá apagar todos os lotes.
               </p>
               <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
                 {deleteBatches.map((batch) => (
                   <div key={batch.id} className="flex items-center justify-between">
-                    <span>Lote {batch.batchNumber}</span>
+                    <span>Lote {batch.batchCode || batch.id.slice(0, 8)}</span>
                     <span>{batch.quantity} un</span>
                   </div>
                 ))}
@@ -673,7 +673,7 @@ export const ProductsView = ({
           if (!open) onCloseSecondConfirm();
         }}
         title="Confirmação Final"
-        description={`Tem certeza que deseja deletar? O produto ${deleteProduct?.name} será desativado.`}
+        description={`Tem certeza que deseja remover? O produto ${deleteProduct?.name} será desvinculado deste armazém.`}
         maxWidth="sm:max-w-[400px]"
         footer={
           <>
@@ -692,10 +692,10 @@ export const ProductsView = ({
               {isDeletingProduct ? (
                 <>
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Deletando...
+                  Removendo...
                 </>
               ) : (
-                "Confirmar Exclusão"
+                "Confirmar Remoção"
               )}
             </Button>
           </>
@@ -703,7 +703,7 @@ export const ProductsView = ({
       >
         <div className="py-2">
           <p className="text-xs text-neutral-500">
-            Esta é a última confirmação antes da remoção definitiva dos registros associados a este produto.
+            Esta é a última confirmação antes da remoção definitiva dos lotes deste produto neste armazém.
           </p>
         </div>
       </ResponsiveModal>

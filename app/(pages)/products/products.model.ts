@@ -17,10 +17,11 @@ interface BatchesResponse {
   data: Batch[];
 }
 
-interface DeleteProductResponse {
-  success: boolean;
-  message: string | null;
-  data: null;
+interface DeleteBatchesResponse {
+  message: string;
+  deletedCount: number;
+  productId: string;
+  warehouseId: string;
 }
 
 export const useProductsModel = () => {
@@ -152,23 +153,21 @@ export const useProductsModel = () => {
   };
 
   const executeDelete = async () => {
-    if (!deleteProduct) return;
+    if (!deleteProduct || !warehouseId) return;
 
     setIsDeletingProduct(true);
     try {
       const response = await api
-        .delete(`products/${deleteProduct.id}`)
-        .json<DeleteProductResponse>();
+        .delete(`batches/warehouses/${warehouseId}/products/${deleteProduct.id}/batches`)
+        .json<DeleteBatchesResponse>();
 
-      if (response.success) {
-        toast.success(response.message || "Produto deletado com sucesso");
-        mutate();
-        onCloseDeleteDialog();
-      }
+      toast.success(response.message || "Produto removido do armazém com sucesso");
+      mutate();
+      onCloseDeleteDialog();
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        error?.response?.data?.message || "Erro ao deletar produto";
+        error?.response?.data?.message || "Erro ao remover produto do armazém";
       toast.error(errorMessage);
     } finally {
       setIsDeletingProduct(false);

@@ -35,11 +35,12 @@ import {
   AlertTriangle,
   Building
 } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, Controller } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
 import { WarehouseStockInfo } from "./warehouse-stock-info";
 import { cn } from "@/lib/utils";
+import { PatternFormat } from "react-number-format";
 
 interface WarehousesViewProps {
   warehouses: Warehouse[];
@@ -94,39 +95,66 @@ export const WarehousesView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-      <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col gap-6">
-          {/* Toolbar */}
-          <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-            <div className="relative flex-1 w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
-              <Input
-                placeholder="Buscar por nome, código ou cidade..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
-              />
+      {/* Sticky Header with Controls */}
+      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
+        <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+          <div className="flex flex-col gap-4">
+            {/* Top Row: Title & Action */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
+                  <Building2 className="h-4 w-4 text-blue-500" />
+                </div>
+                <h1 className="text-lg font-bold tracking-tight text-white uppercase">Armazéns</h1>
+              </div>
+
+              <Button
+                onClick={openCreateModal}
+                className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Novo Armazém</span>
+                <span className="sm:hidden">Novo</span>
+              </Button>
             </div>
 
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-              {(["all", "active", "inactive"] as const).map((status) => (
-                <Button
-                  key={status}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setStatusFilter(status)}
-                  className={cn(
-                    "h-8 rounded-[4px] px-3 text-xs font-bold uppercase tracking-wide border transition-all",
-                    statusFilter === status
-                      ? "bg-blue-600 border-blue-600 text-white shadow-sm hover:bg-blue-700"
-                      : "border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:border-neutral-600"
-                  )}
-                >
-                  {status === "all" ? "Todos" : status === "active" ? "Ativos" : "Inativos"}
-                </Button>
-              ))}
+            {/* Bottom Row: Search & Filters */}
+            <div className="flex flex-col md:flex-row gap-3 items-center">
+              <div className="relative flex-1 w-full md:max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                <Input
+                  placeholder="Buscar por nome, código ou cidade..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                />
+              </div>
+
+              <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                {(["all", "active", "inactive"] as const).map((status) => (
+                  <Button
+                    key={status}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStatusFilter(status)}
+                    className={cn(
+                      "h-8 rounded-[4px] px-3 text-xs font-bold uppercase tracking-wide border transition-all",
+                      statusFilter === status
+                        ? "bg-blue-600 border-blue-600 text-white shadow-sm hover:bg-blue-700"
+                        : "border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:border-neutral-600"
+                    )}
+                  >
+                    {status === "all" ? "Todos" : status === "active" ? "Ativos" : "Inativos"}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-7xl p-4 md:px-6 lg:px-8 mt-4">
+        <div className="flex flex-col gap-6">
 
           {/* Content Area */}
           <div className="min-h-[400px]">
@@ -307,9 +335,10 @@ export const WarehousesView = ({
       {/* Floating Action Button - Mobile */}
       <Button
         onClick={openCreateModal}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40 flex items-center justify-center"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:bg-blue-700 active:scale-95 transition-all md:hidden z-40"
+        size="icon"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-7 w-7" />
       </Button>
 
       {/* Create/Edit Modal */}
@@ -465,22 +494,28 @@ export const WarehousesView = ({
             <div className="space-y-4 pt-2 border-t border-neutral-800">
               <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Contato</h4>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField
+                <Controller
                   control={form.control}
                   name="phone"
-                  render={({ field }) => (
+                  render={({ field: { onChange, value, ref }, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                         Telefone
                       </FormLabel>
                       <FormControl>
-                        <Input
+                        <PatternFormat
+                          format="(##) #####-####"
+                          mask="_"
+                          value={value || ""}
+                          onValueChange={(values) => {
+                            onChange(values.formattedValue);
+                          }}
+                          getInputRef={ref}
+                          className="flex h-10 w-full rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                           placeholder="(00) 00000-0000"
-                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                          {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-xs text-rose-500" />
+                      {error && <p className="text-xs text-rose-500">{error.message}</p>}
                     </FormItem>
                   )}
                 />

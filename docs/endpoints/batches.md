@@ -570,6 +570,165 @@ Same structure as POST /api/batches
 
 ---
 
+## DELETE /api/warehouses/{warehouseId}/products/{productId}/batches
+**Summary**: Delete all batches of a product in a warehouse
+
+### Authorization
+**Required Permissions**: `BATCH_DELETE` or `ROLE_ADMIN`
+
+### Description
+This endpoint performs a bulk soft-delete operation, removing all batches that match the specified product and warehouse combination. The batches are soft-deleted (marked with a deletion timestamp) rather than permanently removed, preserving data for audit purposes. The operation is scoped to the current tenant and validates that both the warehouse and product exist before proceeding.
+
+### Request
+**Method**: `DELETE`
+**URL Parameters**:
+- `warehouseId` (UUID) - Warehouse identifier
+- `productId` (UUID) - Product identifier
+
+**Example**: `/api/warehouses/660e8400-e29b-41d4-a716-446655440001/products/550e8400-e29b-41d4-a716-446655440000/batches`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "message": "Successfully deleted 5 batches",
+  "deletedCount": 5,
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "warehouseId": "660e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+**Response Fields**:
+- `message`: Descriptive message indicating the number of batches deleted
+- `deletedCount`: Integer count of batches that were soft-deleted
+- `productId`: UUID of the product (confirmation)
+- `warehouseId`: UUID of the warehouse (confirmation)
+
+### Success Scenarios
+
+#### Batches Deleted
+Returns 200 with the count of deleted batches:
+```json
+{
+  "message": "Successfully deleted 3 batches",
+  "deletedCount": 3,
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "warehouseId": "660e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+#### No Batches to Delete
+Returns 200 with zero count (idempotent operation):
+```json
+{
+  "message": "Successfully deleted 0 batches",
+  "deletedCount": 0,
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "warehouseId": "660e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+### Error Responses
+
+#### 404 Not Found - Warehouse Not Found
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Warehouse not found with id: 660e8400-e29b-41d4-a716-446655440001",
+  "timestamp": "2026-01-25T00:00:00Z"
+}
+```
+
+#### 404 Not Found - Product Not Found
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Product not found with id: 550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2026-01-25T00:00:00Z"
+}
+```
+
+#### 403 Forbidden - Insufficient Permissions
+```json
+{
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access denied",
+  "timestamp": "2026-01-25T00:00:00Z"
+}
+```
+
+### Frontend Implementation Guide
+
+1. **Confirmation Dialog**:
+   - Display product name and warehouse name
+   - Show count of batches that will be deleted (fetch count first if needed)
+   - Require explicit confirmation with product name typing or checkbox
+   - Example: "Type 'DELETE' to confirm deletion of all batches for [Product Name] in [Warehouse Name]"
+
+2. **Validation**:
+   - Verify warehouse and product IDs are valid UUIDs
+   - Check user has BATCH_DELETE permission before showing delete option
+   - Consider checking if batches have recent movements before allowing deletion
+
+3. **Success Feedback**:
+   - Display success message with deleted count
+   - Example: "Successfully deleted 5 batches of Product X from Warehouse Y"
+   - Update related views (product detail, warehouse inventory)
+   - Refresh batch lists to reflect deletion
+
+4. **Error Handling**:
+   - 404 errors: Show clear message that warehouse or product doesn't exist
+   - 403 errors: Hide delete option or show permission error
+   - Handle edge case of zero deletions gracefully
+
+5. **Use Cases**:
+   - Product discontinuation: Remove all stock of a product from a specific location
+   - Warehouse closure: Clear out specific products before closing
+   - Inventory cleanup: Remove obsolete batches in bulk
+   - Product recall: Quickly remove all batches of a recalled product from a location
+
+6. **UX Considerations**:
+   - Show a summary before deletion (number of batches, total quantity)
+   - Provide undo option or recovery information (batches are soft-deleted)
+   - Display loading state during deletion operation
+   - Consider batch size - large deletions might take longer
+
+7. **Alternative Actions**:
+   - Before deletion, suggest alternatives:
+     - Transfer batches to another warehouse
+     - Adjust quantities to zero (if preserving batch history is important)
+     - Individual batch deletion for selective cleanup
+
+8. **Audit Trail**:
+   - Log who performed the bulk deletion
+   - Include deletion timestamp
+   - Preserve reference to deleted batches for reporting
+
+### When to Use This Endpoint
+
+- ✅ Removing all batches of a discontinued product from a warehouse
+- ✅ Clearing out stock before warehouse closure or reorganization
+- ✅ Product recall - removing all batches from a specific location
+- ✅ Inventory cleanup of obsolete items
+- ❌ Deleting a single specific batch (use `DELETE /api/batches/{id}`)
+- ❌ Transferring stock between warehouses (use stock movement endpoints)
+- ❌ Adjusting quantities (use stock adjustment endpoints)
+
+### Technical Notes
+
+- **Soft Delete**: Batches are marked as deleted (deleted_at timestamp set) but not physically removed from database
+- **Tenant Isolation**: Operation is scoped to current tenant - cannot delete batches from other tenants
+- **Idempotent**: Calling multiple times with same parameters is safe (subsequent calls return 0)
+- **Atomic Operation**: Either all batches are deleted or none (transaction-based)
+- **Performance**: Efficient bulk UPDATE query, not individual deletions
+- **Filtering**: Soft-deleted batches are automatically excluded from all batch queries
+
+---
+
 ## Frontend Component Examples
 
 ### Batch Table

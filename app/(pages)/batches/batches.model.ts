@@ -1,7 +1,13 @@
 import { differenceInCalendarDays, isValid, parseISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import type { Batch, BatchFilters, BatchStatus, SortConfig, BatchesResponse } from "./batches.types";
+import type {
+  Batch,
+  BatchFilters,
+  BatchStatus,
+  SortConfig,
+  BatchesResponse,
+} from "./batches.types";
 import type { Warehouse } from "@/app/warehouses/warehouses.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
@@ -9,12 +15,14 @@ export type { Batch, BatchFilters, BatchStatus, SortConfig };
 
 export const deriveBatchStatus = (
   batch: Batch,
-  options: { today?: Date; lowStockThreshold?: number } = {}
+  options: { today?: Date; lowStockThreshold?: number } = {},
 ): BatchStatus => {
   const today = options.today ?? new Date();
   const threshold = options.lowStockThreshold ?? 10;
   const quantity = batch.quantity ?? 0;
-  const expirationDate = batch.expirationDate ? parseISO(batch.expirationDate) : null;
+  const expirationDate = batch.expirationDate
+    ? parseISO(batch.expirationDate)
+    : null;
   const hasValidExpiration = expirationDate && isValid(expirationDate);
 
   if (hasValidExpiration) {
@@ -108,6 +116,8 @@ export const useBatchesModel = () => {
     lowStockThreshold: 10,
   });
 
+  console.log(filters.warehouseId);
+
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "createdAt",
     direction: "desc",
@@ -124,31 +134,33 @@ export const useBatchesModel = () => {
     async () => {
       const { api } = await import("@/lib/api");
       return await api.get("batches").json<BatchesResponse>();
-    }
+    },
   );
 
-  const { data: warehousesData } = useSWR<{ success: boolean; data: Warehouse[] }>(
-    "warehouses",
-    async () => {
-      const { api } = await import("@/lib/api");
-      return await api.get("warehouses").json<{ success: boolean; data: Warehouse[] }>();
-    }
-  );
+  const { data: warehousesData } = useSWR<{
+    success: boolean;
+    data: Warehouse[];
+  }>("warehouses", async () => {
+    const { api } = await import("@/lib/api");
+    return await api
+      .get("warehouses")
+      .json<{ success: boolean; data: Warehouse[] }>();
+  });
 
   const rawBatches = data?.data || [];
 
   const filtered = useMemo(
     () => filterBatches(rawBatches, filters),
-    [rawBatches, filters]
+    [rawBatches, filters],
   );
 
   const sorted = useMemo(
     () => sortBatches(filtered, sortConfig),
-    [filtered, sortConfig]
+    [filtered, sortConfig],
   );
 
   const statusCounts = useMemo(() => {
-    return rawBatches.reduce(
+    return filtered.reduce(
       (acc, batch) => {
         const status = deriveBatchStatus(batch, {
           lowStockThreshold: filters.lowStockThreshold,
@@ -158,9 +170,9 @@ export const useBatchesModel = () => {
         if (status.kind === "low") acc.low += 1;
         return acc;
       },
-      { expired: 0, expiring: 0, low: 0 }
+      { expired: 0, expiring: 0, low: 0 },
     );
-  }, [rawBatches, filters.lowStockThreshold]);
+  }, [filtered, filters.lowStockThreshold]);
 
   return {
     batches: sorted,

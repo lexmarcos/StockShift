@@ -8,6 +8,60 @@ These endpoints manage products in the StockShift system. All endpoints require 
 
 ---
 
+## POST /api/products/analyze-image
+**Summary**: Analyze a product image using AI to extract details
+
+### Authorization
+**Required Permissions**: `PRODUCT_CREATE` or `ROLE_ADMIN`
+
+### Request
+**Method**: `POST`
+**Content-Type**: `multipart/form-data`
+
+#### Request Parts
+- `image`: Required, image file (PNG, JPG, JPEG, WEBP)
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "name": "Make Me Fever Gold",
+    "brandId": "660e8400-e29b-41d4-a716-446655440002",
+    "brandName": "Mahogany",
+    "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+    "categoryName": "Perfumes",
+    "volumeValue": 100,
+    "volumeUnit": "ml",
+    "detectedCategory": null,
+    "detectedBrand": null
+  }
+}
+```
+
+**Field Details**:
+- `name`: Suggested product name
+- `brandId`: UUID of the matching brand found in the database
+- `brandName`: Name of the brand (from DB or detected)
+- `categoryId`: UUID of the matching category found in the database
+- `categoryName`: Name of the category (from DB or detected)
+- `volumeValue`: Numeric volume extracted
+- `volumeUnit`: Unit of measurement (ml, L, g, kg)
+- `detectedCategory`: Raw category text from AI if no DB match found
+- `detectedBrand`: Raw brand text from AI if no DB match found
+
+### Frontend Implementation Guide
+1. **Camera/Upload**: Allow user to take a photo or upload an image
+2. **Loading State**: Show a spinner/progress bar while analysis is running (can take a few seconds)
+3. **Auto-fill**: Use the returned data to pre-fill the product creation form
+4. **Validation**: Allow user to review and correct the AI suggestions
+5. **Brand/Category Logic**: If `brandId` is present, pre-select the dropdown. If only `detectedBrand` is present, allow user to create a new brand or search manually.
+
+---
+
 ## POST /api/products
 **Summary**: Create a new product
 

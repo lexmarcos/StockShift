@@ -5,6 +5,7 @@ import { Scanner } from "@yudiel/react-qr-scanner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Package,
+  Keyboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ValidationViewProps, ValidationItem } from "./validation.types";
@@ -43,6 +45,7 @@ export const ValidationView = ({
 }: ValidationViewProps) => {
   const [scannerKey, setScannerKey] = useState(0);
   const lastScannedRef = useRef<string | null>(null);
+  const [manualBarcode, setManualBarcode] = useState("");
 
   // Reset scanner after each scan to allow scanning same barcode again
   useEffect(() => {
@@ -62,6 +65,14 @@ export const ValidationView = ({
         lastScannedRef.current = barcode;
         onScan(barcode);
       }
+    }
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualBarcode.trim() && !isScanning) {
+      onScan(manualBarcode.trim());
+      setManualBarcode("");
     }
   };
 
@@ -179,6 +190,37 @@ export const ValidationView = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Manual Input */}
+            <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Keyboard className="h-4 w-4 text-neutral-500" />
+                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                  Entrada Manual
+                </h3>
+              </div>
+              <form onSubmit={handleManualSubmit} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Digite o código de barras..."
+                  value={manualBarcode}
+                  onChange={(e) => setManualBarcode(e.target.value)}
+                  disabled={isScanning}
+                  className="flex-1 h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 font-mono"
+                />
+                <Button
+                  type="submit"
+                  disabled={!manualBarcode.trim() || isScanning}
+                  className="h-10 px-6 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isScanning ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Validar"
+                  )}
+                </Button>
+              </form>
             </div>
 
             {/* Progress Card */}

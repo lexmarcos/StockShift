@@ -15,6 +15,7 @@ import {
   BrandsResponse,
   CreateProductWithBatchResponse,
   CustomAttribute,
+  AiFillData,
 } from "./products-create.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 
@@ -35,6 +36,7 @@ export const useProductCreateModel = () => {
     []
   );
   const [productImage, setProductImage] = useState<File | null>(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useBreadcrumb({
@@ -132,6 +134,37 @@ export const useProductCreateModel = () => {
 
   const handleImageSelect = (file: File | null) => {
     setProductImage(file);
+  };
+
+  const openAiModal = () => setIsAiModalOpen(true);
+  const closeAiModal = () => setIsAiModalOpen(false);
+
+  const handleAiFill = (data: AiFillData, file: File, useImage: boolean) => {
+    // Fill name
+    if (data.name) form.setValue("name", data.name);
+
+    // Fill category if ID matches
+    if (data.categoryId) {
+      form.setValue("categoryId", data.categoryId);
+    }
+
+    // Fill brand if ID matches
+    if (data.brandId) {
+      form.setValue("brandId", data.brandId);
+    }
+
+    // Fill weight if present
+    if (data.volumeValue) {
+      const weightStr = `${data.volumeValue}${data.volumeUnit || ""}`;
+      form.setValue("attributes.weight", weightStr);
+    }
+
+    // Handle Image
+    if (useImage && file) {
+      setProductImage(file);
+    }
+
+    toast.success("Dados preenchidos via IA!");
   };
 
   const validateCustomAttributes = (): boolean => {
@@ -295,5 +328,9 @@ export const useProductCreateModel = () => {
     handleImageSelect,
     currentImageUrl: undefined, // Create mode has no existing image
     handleImageRemove: undefined, // Create mode doesn't need remove handler
+    isAiModalOpen,
+    openAiModal,
+    closeAiModal,
+    handleAiFill,
   };
 };

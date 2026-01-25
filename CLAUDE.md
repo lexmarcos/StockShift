@@ -120,7 +120,7 @@ Todas as páginas do projeto **DEVEM** seguir a arquitetura MVVM com a seguinte 
 ```
 nome-da-pasta/
 ├── nome-da-pasta.model.ts    # 🧠 TODA a lógica (states, hooks, http requests) fica aqui
-├── nome-da-pasta.view.tsx    # 👁️  OBRIGATORIAMENTE APENAS o JSX de visualização
+├── nome-da-pasta.view.tsx    # 👁️  OBRIGATORIAMENTE APENAS o JSX de visualização. Em nenhuma hipótse crie estados, receba-os via props
 ├── nome-da-pasta.types.ts    # 📝 Tipos centralizados
 └── page.tsx                   # 🔄 Atua como ViewModel
 ```

@@ -44,3 +44,6 @@ next-env.d.ts
 .worktrees/
 .github
 .vscode
+
+#agents
+strix_runs
