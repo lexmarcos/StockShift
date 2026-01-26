@@ -386,14 +386,7 @@ export const CategoriesView = ({
           
           <div className="flex flex-col gap-4">
             {/* Title & Main Action */}
-            <div className="flex items-center justify-between">
-               <div className="flex items-center gap-2">
-                 <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
-                   <Layers className="h-4 w-4 text-blue-500" />
-                 </div>
-                 <h1 className="text-lg font-bold tracking-tight text-white uppercase">Categorias</h1>
-               </div>
-               
+            <div className="flex items-center justify-end">
                <Button
                 onClick={openCreateModal}
                 className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"

@@ -8,6 +8,7 @@ import {
   Tag,
   Folder,
   ArrowLeftRight,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/products", label: "Produtos", Icon: Package },
   { href: "/batches", label: "Batches", Icon: Layers },
   { href: "/brands", label: "Marcas", Icon: Tag },

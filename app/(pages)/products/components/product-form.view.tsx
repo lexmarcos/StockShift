@@ -64,7 +64,7 @@ import {
   Box,
   Barcode,
   Info,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { ProductFormProps } from "./product-form.types";
@@ -100,7 +100,7 @@ export const ProductForm = ({
   handleAiFill,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
-  
+
   const costPrice = form.watch("costPrice") || 0;
   const sellingPrice = form.watch("sellingPrice") || 0;
   const profit = sellingPrice - costPrice;
@@ -117,29 +117,31 @@ export const ProductForm = ({
         onClose={closeScanner}
         onScan={handleBarcodeScan}
       />
-      
+
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
         {/* AI Fill Modal */}
-        {mode === 'create' && isAiModalOpen !== undefined && closeAiModal && handleAiFill && (
-          <ProductAiFillModal
-            open={isAiModalOpen}
-            onClose={closeAiModal}
-            onConfirm={handleAiFill}
-            categories={categories}
-            brands={brands}
-          />
-        )}
+        {mode === "create" &&
+          isAiModalOpen !== undefined &&
+          closeAiModal &&
+          handleAiFill && (
+            <ProductAiFillModal
+              open={isAiModalOpen}
+              onClose={closeAiModal}
+              onConfirm={handleAiFill}
+              categories={categories}
+              brands={brands}
+            />
+          )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Left Column - Main Content */}
               <div className="space-y-6 lg:col-span-2">
-                
                 {/* Basic Info Card */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-0 justify-between">
                       <div className="flex items-center gap-2">
                         <Box className="h-4 w-4 text-blue-500" />
                         <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
@@ -147,13 +149,11 @@ export const ProductForm = ({
                         </CardTitle>
                       </div>
 
-                      {mode === 'create' && openAiModal && (
+                      {mode === "create" && openAiModal && (
                         <Button
                           type="button"
-                          variant="outline"
-                          size="sm"
                           onClick={openAiModal}
-                          className="h-7 gap-2 rounded-[4px] border-indigo-500/30 bg-indigo-500/10 text-[10px] font-bold uppercase tracking-wide text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                          className="w-full md:w-fit h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
                         >
                           <Sparkles className="h-3 w-3" />
                           Preencher com IA
@@ -168,7 +168,8 @@ export const ProductForm = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Nome do Produto <span className="text-rose-500">*</span>
+                            Nome do Produto{" "}
+                            <span className="text-rose-500">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -290,7 +291,9 @@ export const ProductForm = ({
                     </div>
 
                     <div className="pt-4 border-t border-neutral-800">
-                      <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-4">Atributos Personalizados</h4>
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-4">
+                        Atributos Personalizados
+                      </h4>
                       <CustomAttributesBuilder
                         attributes={customAttributes}
                         onAdd={addCustomAttribute}
@@ -364,31 +367,44 @@ export const ProductForm = ({
                       />
                     </div>
 
-                    <div className={cn(
-                      "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
-                      isProfitable ? "border-emerald-900/30 bg-emerald-950/10" : "border-rose-900/30 bg-rose-950/10"
-                    )}>
+                    <div
+                      className={cn(
+                        "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                        isProfitable
+                          ? "border-emerald-900/30 bg-emerald-950/10"
+                          : "border-rose-900/30 bg-rose-950/10",
+                      )}
+                    >
                       <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
                         Lucro Estimado
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-sm font-bold font-mono",
-                          isProfitable ? "text-emerald-500" : "text-rose-500"
-                        )}>
-                          {(profit / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        <span
+                          className={cn(
+                            "text-sm font-bold font-mono",
+                            isProfitable ? "text-emerald-500" : "text-rose-500",
+                          )}
+                        >
+                          {(profit / 100).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
                         </span>
-                        <div className={cn(
-                          "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
-                          isProfitable ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-rose-500/30 bg-rose-500/10 text-rose-500"
-                        )}>
+                        <div
+                          className={cn(
+                            "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
+                            isProfitable
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                              : "border-rose-500/30 bg-rose-500/10 text-rose-500",
+                          )}
+                        >
                           {margin.toFixed(1)}%
                         </div>
                       </div>
                     </div>
 
                     {/* Inventory Row (Only in Create Mode) */}
-                    {mode === 'create' && (
+                    {mode === "create" && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <FormField
                           control={form.control}
@@ -398,7 +414,8 @@ export const ProductForm = ({
                             return (
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                  Qtd. Inicial <span className="text-rose-500">*</span>
+                                  Qtd. Inicial{" "}
+                                  <span className="text-rose-500">*</span>
                                 </FormLabel>
                                 <FormControl>
                                   <NumberInput
@@ -441,7 +458,9 @@ export const ProductForm = ({
                             <FormItem>
                               <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
                                 <Calendar className="h-3 w-3" /> Validade
-                                {hasExpiration && <span className="text-rose-500">*</span>}
+                                {hasExpiration && (
+                                  <span className="text-rose-500">*</span>
+                                )}
                               </FormLabel>
                               <FormControl>
                                 <Input
@@ -463,7 +482,6 @@ export const ProductForm = ({
 
               {/* Right Column - Sidebar */}
               <div className="space-y-6">
-                
                 {/* Image Upload */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
@@ -504,7 +522,7 @@ export const ProductForm = ({
                               Categoria
                             </FormLabel>
                             <Select
-                              key={field.value || 'empty'}
+                              key={field.value || "empty"}
                               onValueChange={field.onChange}
                               value={field.value || undefined}
                             >
@@ -517,7 +535,10 @@ export const ProductForm = ({
                                 {isLoadingCategories ? (
                                   <>
                                     {field.value && (
-                                      <SelectItem value={field.value} className="text-xs">
+                                      <SelectItem
+                                        value={field.value}
+                                        className="text-xs"
+                                      >
                                         Carregando...
                                       </SelectItem>
                                     )}
@@ -557,7 +578,7 @@ export const ProductForm = ({
                               Marca / Fabricante
                             </FormLabel>
                             <Select
-                              key={field.value || 'empty'}
+                              key={field.value || "empty"}
                               onValueChange={field.onChange}
                               value={field.value || undefined}
                             >
@@ -570,7 +591,10 @@ export const ProductForm = ({
                                 {isLoadingBrands ? (
                                   <>
                                     {field.value && (
-                                      <SelectItem value={field.value} className="text-xs">
+                                      <SelectItem
+                                        value={field.value}
+                                        className="text-xs"
+                                      >
                                         Carregando...
                                       </SelectItem>
                                     )}
@@ -588,15 +612,15 @@ export const ProductForm = ({
                                     >
                                       <div className="flex items-center gap-2">
                                         {brand.logoUrl ? (
-                                           <img
-                                             src={brand.logoUrl}
-                                             alt={brand.name}
-                                             className="h-4 w-4 object-contain rounded-[2px]"
-                                           />
+                                          <img
+                                            src={brand.logoUrl}
+                                            alt={brand.name}
+                                            className="h-4 w-4 object-contain rounded-[2px]"
+                                          />
                                         ) : (
-                                           <div className="h-4 w-4 rounded-[2px] bg-neutral-800 flex items-center justify-center text-[8px] font-bold text-neutral-500">
-                                             {brand.name.substring(0, 1)}
-                                           </div>
+                                          <div className="h-4 w-4 rounded-[2px] bg-neutral-800 flex items-center justify-center text-[8px] font-bold text-neutral-500">
+                                            {brand.name.substring(0, 1)}
+                                          </div>
                                         )}
                                         {brand.name}
                                       </div>
@@ -638,13 +662,17 @@ export const ProductForm = ({
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600" />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-blue-600"
+                            />
                           </FormControl>
                         </FormItem>
                       )}
                     />
 
-                    {mode === 'create' && (
+                    {mode === "create" && (
                       <FormField
                         control={form.control}
                         name="continuousMode"
@@ -660,7 +688,11 @@ export const ProductForm = ({
                               </FormDescription>
                             </div>
                             <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-amber-500" />
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-amber-500"
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -677,7 +709,11 @@ export const ProductForm = ({
                               Controlar Validade
                             </FormLabel>
                             <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600 scale-90" />
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-blue-600 scale-90"
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -692,7 +728,11 @@ export const ProductForm = ({
                               É um Kit (Combo)
                             </FormLabel>
                             <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-blue-600 scale-90" />
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-blue-600 scale-90"
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -700,7 +740,6 @@ export const ProductForm = ({
                     </div>
                   </CardContent>
                 </Card>
-
               </div>
             </div>
 
@@ -728,7 +767,9 @@ export const ProductForm = ({
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                      {mode === 'create' ? 'Salvar Produto' : 'Atualizar Produto'}
+                      {mode === "create"
+                        ? "Salvar Produto"
+                        : "Atualizar Produto"}
                     </>
                   )}
                 </Button>
@@ -786,208 +827,226 @@ export const ProductForm = ({
 
                 {!batchesDrawerState.isLoading &&
                   batchesDrawerState.fields.length === 0 && (
-                  <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-6 text-center">
-                    <p className="text-xs uppercase tracking-wide text-neutral-500">
-                      Nenhum lote encontrado para este produto
-                    </p>
-                  </div>
-                )}
+                    <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-6 text-center">
+                      <p className="text-xs uppercase tracking-wide text-neutral-500">
+                        Nenhum lote encontrado para este produto
+                      </p>
+                    </div>
+                  )}
 
                 {!batchesDrawerState.isLoading &&
                   batchesDrawerState.fields.length > 0 && (
-                  <Form {...batchesDrawerState.form}>
-                    <Accordion type="multiple" className="space-y-3">
-                      {batchesDrawerState.fields.map((batch, index) => (
-                        <AccordionItem
-                          key={batch.fieldId || batch.id}
-                          value={batch.fieldId || batch.id}
-                          className="rounded-[4px] border border-neutral-800 bg-neutral-900/30 px-3"
-                        >
-                          <AccordionTrigger className="py-3 hover:no-underline">
-                            <div className="flex flex-1 flex-col gap-1 text-left">
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-xs font-bold uppercase tracking-wide text-white">
-                                  {batch.batchCode}
-                                </span>
-                                <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded-[2px] border border-neutral-800">
-                                  QTD: {batch.quantity}
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-500">
-                                <span className="uppercase">
-                                  {batch.warehouseName}
-                                </span>
-                                <span className="text-neutral-700">•</span>
-                                <span>
-                                  {batch.expirationDate
-                                    ? `VAL: ${batch.expirationDate}`
-                                    : "SEM VALIDADE"}
-                                </span>
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div
-                              className="max-h-[70vh] overflow-y-auto pr-1"
-                              data-testid="batch-accordion-scroll"
-                            >
-                              <div className="space-y-4 pb-2 pt-2">
-                              
-                              <div className="grid gap-4">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <FormField
-                                    control={batchesDrawerState.form.control}
-                                    name={`batches.${index}.quantity`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                          Quantidade
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Input
-                                            type="number"
-                                            className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
-                                            {...field}
-                                            value={field.value ?? 0}
-                                            onChange={(event) => {
-                                              const value = event.target.value;
-                                              field.onChange(
-                                                value === "" ? 0 : Number(value)
-                                              );
-                                            }}
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={batchesDrawerState.form.control}
-                                    name={`batches.${index}.expirationDate`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                          Validade
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Input
-                                            type="date"
-                                            className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
-                                            {...field}
-                                            value={field.value || ""}
-                                            onChange={(event) =>
-                                              field.onChange(
-                                                event.target.value || ""
-                                              )
-                                            }
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
+                    <Form {...batchesDrawerState.form}>
+                      <Accordion type="multiple" className="space-y-3">
+                        {batchesDrawerState.fields.map((batch, index) => (
+                          <AccordionItem
+                            key={batch.fieldId || batch.id}
+                            value={batch.fieldId || batch.id}
+                            className="rounded-[4px] border border-neutral-800 bg-neutral-900/30 px-3"
+                          >
+                            <AccordionTrigger className="py-3 hover:no-underline">
+                              <div className="flex flex-1 flex-col gap-1 text-left">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-xs font-bold uppercase tracking-wide text-white">
+                                    {batch.batchCode}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded-[2px] border border-neutral-800">
+                                    QTD: {batch.quantity}
+                                  </span>
                                 </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <FormField
-                                    control={batchesDrawerState.form.control}
-                                    name={`batches.${index}.costPrice`}
-                                    render={({ field }) => {
-                                      const { onChange, value, ...rest } = field;
-                                      return (
-                                        <FormItem>
-                                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                            Custo Unitário
-                                          </FormLabel>
-                                          <FormControl>
-                                            <CurrencyInput
-                                              {...rest}
-                                              value={value}
-                                              onValueChange={onChange}
-                                              placeholder="0,00"
-                                              className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
-                                            />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      );
-                                    }}
-                                  />
-                                  <FormField
-                                    control={batchesDrawerState.form.control}
-                                    name={`batches.${index}.sellingPrice`}
-                                    render={({ field }) => {
-                                      const { onChange, value, ...rest } = field;
-                                      return (
-                                        <FormItem>
-                                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                            Preço de Venda
-                                          </FormLabel>
-                                          <FormControl>
-                                            <CurrencyInput
-                                              {...rest}
-                                              value={value}
-                                              onValueChange={onChange}
-                                              placeholder="0,00"
-                                              className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
-                                            />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      );
-                                    }}
-                                  />
+                                <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-500">
+                                  <span className="uppercase">
+                                    {batch.warehouseName}
+                                  </span>
+                                  <span className="text-neutral-700">•</span>
+                                  <span>
+                                    {batch.expirationDate
+                                      ? `VAL: ${batch.expirationDate}`
+                                      : "SEM VALIDADE"}
+                                  </span>
                                 </div>
-
-                                <FormField
-                                  control={batchesDrawerState.form.control}
-                                  name={`batches.${index}.notes`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                        Observações
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Textarea
-                                          className="min-h-[60px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
-                                          {...field}
-                                          value={field.value || ""}
-                                          onChange={(event) =>
-                                            field.onChange(event.target.value)
-                                          }
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
                               </div>
-
-                              <Button
-                                type="button"
-                                onClick={() => batchesDrawerState.onSave(index)}
-                                disabled={
-                                  batchesDrawerState.updatingBatchId === batch.id
-                                }
-                                className="w-full h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div
+                                className="max-h-[70vh] overflow-y-auto pr-1"
+                                data-testid="batch-accordion-scroll"
                               >
-                                {batchesDrawerState.updatingBatchId === batch.id ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                                    Salvando...
-                                  </>
-                                ) : (
-                                  "Salvar Alterações"
-                                )}
-                              </Button>
+                                <div className="space-y-4 pb-2 pt-2">
+                                  <div className="grid gap-4">
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                      <FormField
+                                        control={
+                                          batchesDrawerState.form.control
+                                        }
+                                        name={`batches.${index}.quantity`}
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                              Quantidade
+                                            </FormLabel>
+                                            <FormControl>
+                                              <Input
+                                                type="number"
+                                                className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
+                                                {...field}
+                                                value={field.value ?? 0}
+                                                onChange={(event) => {
+                                                  const value =
+                                                    event.target.value;
+                                                  field.onChange(
+                                                    value === ""
+                                                      ? 0
+                                                      : Number(value),
+                                                  );
+                                                }}
+                                              />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      <FormField
+                                        control={
+                                          batchesDrawerState.form.control
+                                        }
+                                        name={`batches.${index}.expirationDate`}
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                              Validade
+                                            </FormLabel>
+                                            <FormControl>
+                                              <Input
+                                                type="date"
+                                                className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
+                                                {...field}
+                                                value={field.value || ""}
+                                                onChange={(event) =>
+                                                  field.onChange(
+                                                    event.target.value || "",
+                                                  )
+                                                }
+                                              />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    </div>
+
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                      <FormField
+                                        control={
+                                          batchesDrawerState.form.control
+                                        }
+                                        name={`batches.${index}.costPrice`}
+                                        render={({ field }) => {
+                                          const { onChange, value, ...rest } =
+                                            field;
+                                          return (
+                                            <FormItem>
+                                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                                Custo Unitário
+                                              </FormLabel>
+                                              <FormControl>
+                                                <CurrencyInput
+                                                  {...rest}
+                                                  value={value}
+                                                  onValueChange={onChange}
+                                                  placeholder="0,00"
+                                                  className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
+                                                />
+                                              </FormControl>
+                                              <FormMessage />
+                                            </FormItem>
+                                          );
+                                        }}
+                                      />
+                                      <FormField
+                                        control={
+                                          batchesDrawerState.form.control
+                                        }
+                                        name={`batches.${index}.sellingPrice`}
+                                        render={({ field }) => {
+                                          const { onChange, value, ...rest } =
+                                            field;
+                                          return (
+                                            <FormItem>
+                                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                                Preço de Venda
+                                              </FormLabel>
+                                              <FormControl>
+                                                <CurrencyInput
+                                                  {...rest}
+                                                  value={value}
+                                                  onValueChange={onChange}
+                                                  placeholder="0,00"
+                                                  className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
+                                                />
+                                              </FormControl>
+                                              <FormMessage />
+                                            </FormItem>
+                                          );
+                                        }}
+                                      />
+                                    </div>
+
+                                    <FormField
+                                      control={batchesDrawerState.form.control}
+                                      name={`batches.${index}.notes`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                            Observações
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Textarea
+                                              className="min-h-[60px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-xs focus:border-blue-600 focus:ring-0"
+                                              {...field}
+                                              value={field.value || ""}
+                                              onChange={(event) =>
+                                                field.onChange(
+                                                  event.target.value,
+                                                )
+                                              }
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+
+                                  <Button
+                                    type="button"
+                                    onClick={() =>
+                                      batchesDrawerState.onSave(index)
+                                    }
+                                    disabled={
+                                      batchesDrawerState.updatingBatchId ===
+                                      batch.id
+                                    }
+                                    className="w-full h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
+                                  >
+                                    {batchesDrawerState.updatingBatchId ===
+                                    batch.id ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                                        Salvando...
+                                      </>
+                                    ) : (
+                                      "Salvar Alterações"
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </Form>
-                )}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </Form>
+                  )}
               </div>
             </div>
           </DrawerContent>
