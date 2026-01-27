@@ -93,23 +93,25 @@ These endpoints manage products in the StockShift system. All endpoints require 
   },
   "hasExpiration": true,
   "active": true,
-  "imageUrl": "https://example.com/storage/products/uuid.png"
+  "imageUrl": "https://example.com/image.png"
 }
 ```
 
-**Field Details**:
-- `name`: Required, product name
-- `description`: Optional, product description
+**Field Details & Validations**:
+- `name`: Required, max 255 characters, allows letters, numbers, spaces, hyphens, periods, ampersands, apostrophes, and parentheses
+- `description`: Optional, max 1000 characters, allows letters, numbers, spaces, hyphens, periods, ampersands, apostrophes, parentheses, commas, exclamation marks, question marks, and semicolons
 - `categoryId`: Optional, UUID of the category
 - `brandId`: Optional, UUID of the brand
-- `barcode`: Optional, product barcode
+- `barcode`: Optional, alphanumeric with hyphens only
 - `barcodeType`: Optional, enum values: `EAN13`, `EAN8`, `UPC`, `CODE128`, `CODE39`
-- `sku`: Optional, stock keeping unit code
+- `sku`: Optional, alphanumeric with hyphens only
 - `isKit`: Optional, default `false`, indicates if product is a kit
-- `attributes`: Optional, JSON object with custom attributes
+- `attributes`: Optional, JSON object with custom key-value pairs
 - `hasExpiration`: Optional, default `false`, indicates if product has expiration date
 - `active`: Optional, default `true`, product status
-- `imageUrl`: Optional, URL of the product image
+- `imageUrl`: Optional, max 500 characters, must be valid HTTP/HTTPS URL if provided
+
+> **Note**: If an image file is provided in the `image` field, it will be used instead of the `imageUrl`. The `imageUrl` field is useful when you want to reference an externally hosted image.
 
 ### Response
 **Status Code**: `201 CREATED`

@@ -19,13 +19,15 @@ These endpoints handle user authentication, registration, and session management
 ```json
 {
   "email": "user@example.com",
-  "password": "userpassword"
+  "password": "userpassword",
+  "captchaToken": "03AHJ_ASjnLA23KSD... (optional)"
 }
 ```
 
 **Field Validations**:
 - `email`: Required, must be a valid email format
 - `password`: Required, cannot be blank
+- `captchaToken`: Optional, required when `requiresCaptcha` is true from previous attempt
 
 ### Response
 **Status Code**: `200 OK`
@@ -40,7 +42,8 @@ These endpoints handle user authentication, registration, and session management
     "userId": "550e8400-e29b-41d4-a716-446655440000",
     "email": "user@example.com",
     "fullName": "John Doe",
-    "requiresCaptcha": false
+    "requiresCaptcha": false,
+    "mustChangePassword": false
   }
 }
 ```
@@ -49,6 +52,7 @@ These endpoints handle user authentication, registration, and session management
 
 **Response Fields**:
 - `requiresCaptcha`: Indicates if captcha should be required for the next login attempt. Set to `true` when multiple login attempts are detected from the same IP address.
+- `mustChangePassword`: Indicates if the user must change their password. Set to `true` for users created by an admin with a temporary password. The frontend should redirect to a password change screen when this is `true`.
 
 ### Error Response (401 Unauthorized)
 ```json
@@ -82,22 +86,16 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 ---
 
 ## POST /api/auth/refresh
-**Summary**: Generate new access token using refresh token
+**Summary**: Generate new access and refresh tokens using refresh token cookie
 
 ### Request
-**Method**: `POST`  
-**Content-Type**: `application/json`  
+**Method**: `POST`
+**Content-Type**: `application/json`
 **Authentication**: Not required
 
-#### Request Body
-```json
-{
-  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
+**Request Body**: None
 
-**Field Validations**:
-- `refreshToken`: Required, must be a valid UUID string
+**Note**: This endpoint reads the refresh token from HTTP-only cookies automatically. No request body is needed.
 
 ### Response
 **Status Code**: `200 OK`
@@ -105,38 +103,33 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 ```json
 {
   "success": true,
-  "message": null,
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "tokenType": "Bearer",
-    "expiresIn": 3600000
-  }
+  "message": "Tokens refreshed successfully",
+  "data": null
 }
 ```
+
+> **Note**: New access and refresh tokens are set as HTTP-only cookies. The refresh token is automatically rotated for security.
 
 ### Frontend Implementation Guide
 1. **Auto-Refresh**: Implement automatic token refresh before expiration (e.g., 5 minutes before)
 2. **401 Handler**: On 401 responses, attempt token refresh automatically
-3. **Token Update**: Update stored accessToken with new token
+3. **Cookie Handling**: Cookies are managed automatically by the browser
 4. **Failure Handling**: On refresh failure, redirect to login page
 5. **Request Queue**: Queue failed requests and retry after successful refresh
 
 ---
 
 ## POST /api/auth/logout
-**Summary**: Revoke refresh token and logout user
+**Summary**: Revoke tokens and clear HTTP-only cookies
 
 ### Request
-**Method**: `POST`  
-**Content-Type**: `application/json`  
-**Authentication**: Not required (but refreshToken must be valid)
+**Method**: `POST`
+**Content-Type**: `application/json`
+**Authentication**: Not required
 
-#### Request Body
-```json
-{
-  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
+**Request Body**: None
+
+**Note**: This endpoint reads access and refresh tokens from HTTP-only cookies automatically. No request body is needed.
 
 ### Response
 **Status Code**: `200 OK`
@@ -149,8 +142,10 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 }
 ```
 
+> **Note**: Both access and refresh token cookies are automatically cleared by the server.
+
 ### Frontend Implementation Guide
-1. **Clear Storage**: Remove all stored tokens and user data
+1. **Cookie Clearing**: Cookies are cleared automatically by the server
 2. **Reset State**: Clear application state (Redux/Context)
 3. **Redirect**: Navigate to login page
 4. **API Call**: Always call logout endpoint before clearing local data
@@ -162,27 +157,23 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 **Summary**: Register new tenant with first admin user
 
 ### Request
-**Method**: `POST`  
-**Content-Type**: `application/json`  
+**Method**: `POST`
+**Content-Type**: `application/json`
 **Authentication**: Not required
 
 #### Request Body
 ```json
 {
-  "tenantName": "My Company",
-  "tenantSlug": "my-company",
-  "userFullName": "John Doe",
-  "userEmail": "admin@mycompany.com",
-  "userPassword": "securePassword123"
+  "companyName": "My Company",
+  "email": "admin@mycompany.com",
+  "password": "securePassword123"
 }
 ```
 
 **Field Validations**:
-- `tenantName`: Required, 2-100 characters
-- `tenantSlug`: Required, 2-50 characters, lowercase, alphanumeric with hyphens
-- `userFullName`: Required, 2-100 characters
-- `userEmail`: Required, valid email format
-- `userPassword`: Required, minimum 8 characters
+- `companyName`: Required, cannot be blank
+- `email`: Required, valid email format
+- `password`: Required, minimum 6 characters
 
 ### Response
 **Status Code**: `201 CREATED`
@@ -193,23 +184,85 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
   "message": "Registration successful",
   "data": {
     "tenantId": "550e8400-e29b-41d4-a716-446655440000",
-    "tenantName": "My Company",
-    "tenantSlug": "my-company",
+    "businessName": "My Company",
     "userId": "660e8400-e29b-41d4-a716-446655440001",
     "userEmail": "admin@mycompany.com",
-    "userFullName": "John Doe"
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...",
+    "tokenType": "Bearer",
+    "expiresIn": 3600000
   }
 }
 ```
 
 ### Frontend Implementation Guide
-1. **Registration Form**: Create multi-step or single form with all required fields
-2. **Slug Validation**: Auto-generate slug from tenant name, validate format
-3. **Password Strength**: Implement password strength indicator
-4. **Email Validation**: Validate email format and check availability
-5. **Success Flow**: After registration, automatically log user in or redirect to login
-6. **Error Handling**: Display specific validation errors per field
-7. **Tenant Context**: Store tenant information for branding/customization
+1. **Registration Form**: Create simple form with company name, email, and password
+2. **Password Strength**: Implement password strength indicator (minimum 6 characters)
+3. **Email Validation**: Validate email format before submission
+4. **Success Flow**: After registration, user is automatically authenticated with tokens
+5. **Error Handling**: Display specific validation errors per field
+6. **Token Storage**: Store tokens for authenticated API calls
+
+---
+
+## POST /api/auth/change-password
+**Summary**: Change the authenticated user's password
+
+### Request
+**Method**: `POST`
+**Content-Type**: `application/json`
+**Authentication**: Required (Bearer token via HTTP-only cookie)
+
+#### Request Body
+```json
+{
+  "currentPassword": "currentPassword123",
+  "newPassword": "newSecurePassword456"
+}
+```
+
+**Field Validations**:
+- `currentPassword`: Required, cannot be blank
+- `newPassword`: Required, minimum 6 characters
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully",
+  "data": null
+}
+```
+
+### Error Responses
+
+**400 Bad Request** (Current password incorrect):
+```json
+{
+  "success": false,
+  "message": "Current password is incorrect",
+  "data": null
+}
+```
+
+**401 Unauthorized** (Not authenticated):
+```json
+{
+  "success": false,
+  "message": "Unauthorized",
+  "data": null
+}
+```
+
+### Frontend Implementation Guide
+1. **Password Change Screen**: Create form with current password and new password fields
+2. **Redirect on Login**: If `mustChangePassword` is `true` after login, redirect to this screen
+3. **Validation**: Validate new password meets minimum length (6 characters)
+4. **Success Flow**: After successful change, redirect to main application
+5. **Error Handling**: Display specific error messages (incorrect current password, validation errors)
+6. **Confirmation**: Optionally add "confirm new password" field for UX
 
 ---
 

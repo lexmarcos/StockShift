@@ -342,8 +342,6 @@ This endpoint atomically creates a new product and its first batch in a single t
     }
   ]
 }
-  ]
-}
 ```
 
 ### Frontend Implementation Guide

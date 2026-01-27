@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Info, Lock, Mail, Box } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { DebugMessage } from "./login.types";
@@ -149,6 +150,16 @@ export const LoginView = ({
           </Form>
         </CardContent>
       </Card>
+
+      {/* Register link */}
+      <div className="mt-6 text-center">
+        <p className="text-xs text-neutral-600">
+          Ainda não tem uma conta?{" "}
+          <Link href="/register" className="font-semibold text-blue-500 hover:text-blue-400 transition-colors">
+            Cadastre sua empresa
+          </Link>
+        </p>
+      </div>
 
       <div className="mt-8 text-center">
         <p className="text-[10px] text-neutral-600 uppercase tracking-widest">
