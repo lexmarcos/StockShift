@@ -9,8 +9,10 @@ import {
   Folder,
   ArrowLeftRight,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/contexts/auth-context";
 
 type NavItem = {
   href: string;
@@ -29,30 +31,57 @@ const navItems: NavItem[] = [
 
 export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
+
+  const renderNavLink = (item: NavItem) => {
+    const isActive =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
+          "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
+          isActive && "border-border/60 bg-foreground/10 text-foreground"
+        )}
+      >
+        <item.Icon className="h-3.5 w-3.5" />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
+  const isSystemActive =
+    pathname === "/system" || pathname.startsWith("/system/");
 
   return (
-    <nav className="space-y-2 h-svh">
-      {navItems.map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-        return (
+    <nav className="flex flex-col h-svh">
+      {/* Main navigation */}
+      <div className="space-y-2 flex-1">
+        {navItems.map(renderNavLink)}
+      </div>
+
+      {/* Admin section - bottom */}
+      {isAdmin && (
+        <div className="pt-4 mt-4 border-t border-border/40">
           <Link
-            key={item.href}
-            href={item.href}
+            href="/system"
             onClick={onNavigate}
-            aria-current={isActive ? "page" : undefined}
+            aria-current={isSystemActive ? "page" : undefined}
             className={cn(
               "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
               "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-              isActive &&
-                "border-border/60 bg-foreground/10 text-foreground"
+              isSystemActive && "border-border/60 bg-foreground/10 text-foreground"
             )}
           >
-            <item.Icon className="h-3.5 w-3.5" />
-            <span>{item.label}</span>
+            <Settings className="h-3.5 w-3.5" />
+            <span>Gerenciamento</span>
           </Link>
-        );
-      })}
+        </div>
+      )}
     </nav>
   );
 };
