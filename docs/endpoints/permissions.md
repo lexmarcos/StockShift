@@ -5,6 +5,37 @@ The StockShift system uses a role-based permission system. Permissions follow th
 
 ---
 
+## Endpoints
+
+### List All Permissions
+
+```
+GET /stockshift/api/permissions
+```
+
+**Authorization:** Requires `ROLE_ADMIN`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "resource": "PRODUCT",
+      "resourceDisplayName": "Produto",
+      "action": "CREATE",
+      "actionDisplayName": "Criar",
+      "scope": "ALL",
+      "scopeDisplayName": "Todos",
+      "description": "Create products"
+    }
+  ]
+}
+```
+
+---
+
 ## Permission Format
 
 ```

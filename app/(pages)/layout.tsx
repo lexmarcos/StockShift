@@ -16,7 +16,7 @@ export default function PagesLayout({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex min-h-screen">
-        <aside className="hidden w-60 flex-col border-r border-border/40 bg-card/80 p-4 md:flex fixed">
+        <aside className="hidden w-60 flex-col border-r border-border/40 bg-card/80 p-4 md:flex fixed h-svh">
           <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
             Navegação
           </div>
@@ -35,7 +35,7 @@ export default function PagesLayout({
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={closeMenu} />
-          <div className="absolute inset-y-0 left-0 w-64 border-r border-border/40 bg-card p-4">
+          <div className="absolute inset-y-0 left-0 w-64 border-r border-border/40 bg-card p-4 flex flex-col">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
                 Navegação

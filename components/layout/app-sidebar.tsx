@@ -31,7 +31,7 @@ const navItems: NavItem[] = [
 
 export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const pathname = usePathname();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading } = useAuth();
 
   const renderNavLink = (item: NavItem) => {
     const isActive =
@@ -58,14 +58,14 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
     pathname === "/system" || pathname.startsWith("/system/");
 
   return (
-    <nav className="flex flex-col h-svh">
+    <nav className="flex flex-col flex-1">
       {/* Main navigation */}
       <div className="space-y-2 flex-1">
         {navItems.map(renderNavLink)}
       </div>
 
       {/* Admin section - bottom */}
-      {isAdmin && (
+      {(isLoading || isAdmin) && (
         <div className="pt-4 mt-4 border-t border-border/40">
           <Link
             href="/system"
@@ -78,7 +78,7 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
             )}
           >
             <Settings className="h-3.5 w-3.5" />
-            <span>Gerenciamento</span>
+            <span>Gerenciamento do sistema</span>
           </Link>
         </div>
       )}
