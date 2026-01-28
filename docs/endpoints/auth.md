@@ -266,6 +266,142 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 
 ---
 
+## GET /api/auth/me
+**Summary**: Get authenticated user information and permissions
+
+### Request
+**Method**: `GET`
+**Authentication**: Required (Bearer token via HTTP-only cookie)
+
+**Request Body**: None
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "tenantId": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "mustChangePassword": false,
+    "roles": [
+      "VENDEDOR",
+      "ESTOQUISTA"
+    ],
+    "permissions": [
+      "PRODUCT:READ:ALL",
+      "PRODUCT:UPDATE:ALL",
+      "WAREHOUSE:READ:ALL",
+      "SALE:READ:ALL",
+      "SALE:CREATE:ALL"
+    ]
+  }
+}
+```
+
+**Response Fields**:
+- `id`: The user's unique identifier
+- `tenantId`: The tenant the user belongs to
+- `email`: The user's email address
+- `fullName`: The user's full name
+- `mustChangePassword`: Whether the user must change their password
+- `roles`: List of role names assigned to the user (e.g., `["ADMIN"]`, `["VENDEDOR", "ESTOQUISTA"]`)
+- `permissions`: List of permission codes granted to the user. Format: `RESOURCE:ACTION:SCOPE`. Admin users receive `["*"]` which grants full access to all resources.
+
+### Roles
+Roles are tenant-specific groups that bundle permissions. Common roles include:
+- `ADMIN`: System administrator with full access (receives `["*"]` permission)
+- Custom roles created by the tenant (e.g., `VENDEDOR`, `GERENTE`, `ESTOQUISTA`)
+
+### Permission Format
+Permissions follow the format `RESOURCE:ACTION:SCOPE`:
+- **RESOURCE**: The entity type (e.g., `PRODUCT`, `STOCK`, `SALE`, `USER`, `WAREHOUSE`, `REPORT`)
+- **ACTION**: The operation (e.g., `CREATE`, `READ`, `UPDATE`, `DELETE`, `APPROVE`)
+- **SCOPE**: The access scope (e.g., `ALL`, `OWN_WAREHOUSE`, `OWN`)
+
+**Special Permission**:
+- `*` (wildcard): Grants full access to all resources. Only assigned to users with the ADMIN role.
+
+### Error Response (401 Unauthorized)
+```json
+{
+  "success": false,
+  "message": "Unauthorized",
+  "data": null
+}
+```
+
+### Frontend Implementation Guide
+1. **Session Validation**: Call this endpoint on app initialization to validate the session
+2. **User Context**: Use the response to populate user context/state
+3. **Permission Checks**: Use the `permissions` array for frontend authorization checks
+4. **Password Change**: If `mustChangePassword` is `true`, redirect to password change screen
+5. **Token Refresh**: If this endpoint returns 401, attempt token refresh before redirecting to login
+
+---
+
+## Access Token (JWT) Structure
+
+The access token is a JWT (JSON Web Token) signed with HS256. Below is the decoded payload structure:
+
+### Header
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+### Payload
+```json
+{
+  "jti": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "sub": "660e8400-e29b-41d4-a716-446655440001",
+  "tenantId": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "roles": [
+    "VENDEDOR",
+    "ESTOQUISTA"
+  ],
+  "permissions": [
+    "PRODUCT:READ:ALL",
+    "PRODUCT:UPDATE:ALL",
+    "WAREHOUSE:READ:ALL"
+  ],
+  "iat": 1706097600,
+  "exp": 1706101200
+}
+```
+
+> **Note**: Admin users will have `"roles": ["ADMIN"]` and `"permissions": ["*"]` instead of individual permissions.
+
+### Payload Fields
+| Field | Type | Description |
+|-------|------|-------------|
+| `jti` | string (UUID) | Unique token identifier, used for token revocation |
+| `sub` | string (UUID) | User ID (subject) |
+| `tenantId` | string (UUID) | Tenant ID the user belongs to |
+| `email` | string | User's email address |
+| `roles` | array of strings | List of role names assigned to the user |
+| `permissions` | array of strings | List of permission codes granted to the user |
+| `iat` | number | Issued at timestamp (Unix epoch in seconds) |
+| `exp` | number | Expiration timestamp (Unix epoch in seconds) |
+
+### Token Expiration
+- **Access Token**: 1 hour (3600000 ms)
+- **Refresh Token**: 7 days
+
+### Frontend Notes
+- The access token is stored in an HTTP-only cookie and is not accessible via JavaScript
+- Use the `/api/auth/me` endpoint to retrieve user information and permissions
+- For authorization checks, rely on the `permissions` array from `/api/auth/me` rather than decoding the JWT
+
+---
+
 ## Error Response Format
 All endpoints return errors in the following format:
 

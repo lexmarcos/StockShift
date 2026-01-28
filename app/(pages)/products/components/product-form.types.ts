@@ -1,4 +1,5 @@
 // app/products/components/product-form.types.ts
+import { UseFormReturn } from "react-hook-form";
 import { ProductCreateFormData, AiFillData } from "../create/products-create.types";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
 

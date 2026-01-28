@@ -657,7 +657,7 @@ export const ProductsView = ({
               <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
                 {deleteBatches.map((batch) => (
                   <div key={batch.id} className="flex items-center justify-between">
-                    <span>Lote {batch.batchCode || batch.id.slice(0, 8)}</span>
+                    <span>Lote {batch.id.slice(0, 8)}</span>
                     <span>{batch.quantity} un</span>
                   </div>
                 ))}

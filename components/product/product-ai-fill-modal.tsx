@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { ImageDropzone } from "@/components/product/image-dropzone";
 import { Sparkles, CheckCircle2, AlertTriangle, X } from "lucide-react";
-import { AiFillData, Category, Brand } from "../../(pages)/products/create/products-create.types";
+import { AiFillData, Category, Brand } from "@/app/(pages)/products/create/products-create.types";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
