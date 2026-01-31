@@ -10,7 +10,6 @@ const TestHarness = () => {
     sourceWarehouseId: "",
     destinationWarehouseId: "",
     notes: "",
-    executeNow: false,
     items: [],
   };
 
@@ -21,7 +20,6 @@ const TestHarness = () => {
   const movementType = form.watch("movementType");
   const sourceWarehouseId = form.watch("sourceWarehouseId");
   const destinationWarehouseId = form.watch("destinationWarehouseId");
-  const executeNow = form.watch("executeNow") ?? false;
   const notes = form.watch("notes") ?? "";
   const watchedItems = form.watch("items") ?? [];
 
@@ -38,14 +36,13 @@ const TestHarness = () => {
         { id: "p1", name: "Product A", sku: "SKU-A" },
       ]}
       batches={[
-        { id: "b1", batchCode: "BATCH-1", quantity: 100, productId: "p1" },
+        { id: "b1", batchNumber: "BATCH-1", quantity: 100, productId: "p1" },
       ]}
       movementType={movementType}
       sourceWarehouseId={sourceWarehouseId}
       destinationWarehouseId={destinationWarehouseId}
       sourceWarehouse={undefined}
       destinationWarehouse={undefined}
-      executeNow={executeNow}
       notes={notes}
       setNotes={(val) => form.setValue("notes", val)}
       requiresSource={true}
@@ -78,11 +75,11 @@ describe("StockMovementCreateView", () => {
     expect(screen.getByText("Origem")).toBeTruthy();
     expect(screen.getByText("Destino")).toBeTruthy();
 
-    // Items section
-    expect(screen.getByText("Itens")).toBeTruthy();
+    // Items section (multiple elements, use getAllByText)
+    expect(screen.getAllByText("Itens").length).toBeGreaterThan(0);
     expect(screen.getByText("Nenhum item adicionado")).toBeTruthy();
 
-    // Sidebar/Footer
-    expect(screen.getByText("Criar Movimentação")).toBeTruthy();
+    // Sidebar/Footer (multiple buttons with same text - desktop and mobile)
+    expect(screen.getAllByText("Criar Movimentação").length).toBeGreaterThan(0);
   });
 });

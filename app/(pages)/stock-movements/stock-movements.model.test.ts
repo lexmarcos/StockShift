@@ -16,8 +16,6 @@ const baseMovement: StockMovement = {
   notes: "Pedido 123",
   createdBy: "u1",
   createdByName: "User",
-  executedBy: null,
-  executedByName: null,
   items: [
     {
       id: "i1",
@@ -27,7 +25,8 @@ const baseMovement: StockMovement = {
       batchId: null,
       batchNumber: null,
       quantity: 10,
-      reason: "Reposição",
+      unitPrice: 15.00,
+      totalPrice: 150.00,
     },
   ],
   createdAt: "2026-01-01T10:00:00Z",

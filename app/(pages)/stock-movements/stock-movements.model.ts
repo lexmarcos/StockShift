@@ -41,7 +41,7 @@ export const filterMovements = (
         .map(
           (item) =>
             `${item.productName} ${item.productSku ?? ""} ${
-              item.batchNumber ?? ""
+              item.batchCode ?? ""
             }`
         )
         .join(" ")

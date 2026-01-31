@@ -19,8 +19,6 @@ const movement = {
   notes: "Pedido",
   createdBy: "u1",
   createdByName: "User",
-  executedBy: null,
-  executedByName: null,
   items: [
     {
       id: "i1",
@@ -30,7 +28,8 @@ const movement = {
       batchId: null,
       batchNumber: null,
       quantity: 2,
-      reason: "",
+      unitPrice: 10.00,
+      totalPrice: 20.00,
     },
   ],
   createdAt: "2026-01-01T10:00:00Z",

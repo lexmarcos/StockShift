@@ -21,8 +21,8 @@ describe("buildMovementPayload", () => {
 describe("filterBatchesByProduct", () => {
   it("returns only batches for the selected product", () => {
     const batches = [
-      { id: "b1", batchCode: "BATCH-001", quantity: 5, productId: "p1" },
-      { id: "b2", batchCode: "BATCH-002", quantity: 3, productId: "p2" },
+      { id: "b1", batchNumber: "BATCH-001", quantity: 5, productId: "p1" },
+      { id: "b2", batchNumber: "BATCH-002", quantity: 3, productId: "p2" },
     ] as Batch[];
 
     const result = filterBatchesByProduct(batches, "p1");
@@ -32,7 +32,7 @@ describe("filterBatchesByProduct", () => {
 
   it("returns empty when no product is selected", () => {
     const batches = [
-      { id: "b1", batchCode: "BATCH-001", quantity: 5, productId: "p1" },
+      { id: "b1", batchNumber: "BATCH-001", quantity: 5, productId: "p1" },
     ] as Batch[];
 
     const result = filterBatchesByProduct(batches, "");
