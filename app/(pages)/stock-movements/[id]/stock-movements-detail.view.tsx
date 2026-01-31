@@ -38,7 +38,6 @@ import {
   Warehouse,
   FileText,
   Package,
-  Barcode,
   ScanLine,
 } from "lucide-react";
 import type {
@@ -406,23 +405,13 @@ export const StockMovementDetailView = ({
                     </div>
 
                     <div className="flex items-center gap-3 text-[10px] text-neutral-500 border-t border-neutral-800 pt-2 mt-2">
-                      {item.productSku && (
-                        <div className="flex items-center gap-1">
-                          <Barcode className="h-3 w-3" />
-                          <span className="font-mono">{item.productSku}</span>
-                        </div>
-                      )}
-
                       {item.batchNumber && (
-                        <>
-                          <div className="h-3 w-px bg-neutral-800"></div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold uppercase">Lote:</span>
-                            <span className="font-mono text-neutral-300">
-                              {item.batchNumber}
-                            </span>
-                          </div>
-                        </>
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold uppercase">Lote:</span>
+                          <span className="font-mono text-neutral-300">
+                            {item.batchNumber}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -457,14 +446,6 @@ export const StockMovementDetailView = ({
                               <span className="text-sm font-medium text-white">
                                 {item.productName}
                               </span>
-                              {item.productSku && (
-                                <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
-                                  <Barcode className="h-3 w-3" />
-                                  <span className="font-mono">
-                                    {item.productSku}
-                                  </span>
-                                </div>
-                              )}
                             </div>
                           </TableCell>
                           <TableCell className="py-3">
