@@ -87,8 +87,6 @@ export interface DashboardViewProps {
   isRefreshing: boolean;
   navigateToLowStock: () => void;
   navigateToExpiring: () => void;
-  navigateToMovement: (movementId: string) => void;
-  navigateToNewMovement: () => void;
 }
 
 // Component Props
@@ -116,20 +114,4 @@ export interface ChartCardProps {
   children: React.ReactNode;
   isLoading?: boolean;
   action?: React.ReactNode;
-}
-
-export interface MovementTimelineProps {
-  movements: RecentMovement[];
-  isLoading?: boolean;
-  onItemClick: (id: string) => void;
-}
-
-export interface ChartCardProps {
-  title: string;
-  children: React.ReactNode;
-  isLoading?: boolean;
-}
-
-export interface MovementTimelineProps {
-  movements: RecentMovement[];
 }

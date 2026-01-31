@@ -47,17 +47,6 @@ export function useDashboardModel(): DashboardViewProps {
     router.push("/reports/expiring");
   }, [router]);
 
-  const navigateToMovement = useCallback(
-    (movementId: string) => {
-      router.push(`/stock-movements/${movementId}`);
-    },
-    [router],
-  );
-
-  const navigateToNewMovement = useCallback(() => {
-    router.push("/stock-movements/create");
-  }, [router]);
-
   return {
     data,
     isLoading,
@@ -66,8 +55,6 @@ export function useDashboardModel(): DashboardViewProps {
     isRefreshing,
     navigateToLowStock,
     navigateToExpiring,
-    navigateToMovement,
-    navigateToNewMovement,
   };
 }
 
@@ -100,55 +87,4 @@ export function formatRelativeTime(dateString: string): string {
     day: "2-digit",
     month: "short",
   });
-}
-
-export function getMovementTypeConfig(type: string) {
-  const configs = {
-    ENTRY: {
-      label: "Entrada",
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
-    },
-    EXIT: {
-      label: "Saída",
-      color: "text-rose-500",
-      bg: "bg-rose-500/10",
-      border: "border-rose-500/20",
-    },
-    TRANSFER: {
-      label: "Transferência",
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
-    },
-    ADJUSTMENT: {
-      label: "Ajuste",
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/20",
-    },
-  };
-  return configs[type as keyof typeof configs] || configs.ADJUSTMENT;
-}
-
-export function getStatusConfig(status: string) {
-  const configs = {
-    COMPLETED: {
-      label: "Concluído",
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-    },
-    PENDING: {
-      label: "Pendente",
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-    },
-    CANCELLED: {
-      label: "Cancelado",
-      color: "text-neutral-500",
-      bg: "bg-neutral-500/10",
-    },
-  };
-  return configs[status as keyof typeof configs] || configs.PENDING;
 }

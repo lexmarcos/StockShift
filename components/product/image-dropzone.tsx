@@ -11,9 +11,19 @@ interface ImageDropzoneProps {
   disabled?: boolean;
   currentImageUrl?: string;
   onRemoveImage?: () => void;
+  className?: string;
+  text?: string;
 }
 
-export const ImageDropzone = ({ onImageSelect, value, disabled = false, currentImageUrl, onRemoveImage }: ImageDropzoneProps) => {
+export const ImageDropzone = ({
+  onImageSelect,
+  value,
+  disabled = false,
+  currentImageUrl,
+  onRemoveImage,
+  className,
+  text
+}: ImageDropzoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [showRemovalIndicator, setShowRemovalIndicator] = useState(false);
@@ -308,7 +318,7 @@ export const ImageDropzone = ({ onImageSelect, value, disabled = false, currentI
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-              {isDragging ? "Solte a imagem aqui" : "Arraste uma imagem ou clique"}
+              {isDragging ? "Solte a imagem aqui" : (text || "Arraste uma imagem ou clique")}
             </p>
             <p className="text-[11px] text-muted-foreground/70 mt-1">
               PNG, JPG, JPEG ou WEBP • Máx 5MB

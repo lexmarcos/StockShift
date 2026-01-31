@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Info } from "lucide-react";
-import { Role } from "@/app/(pages)/system/system.types";
+import { Role } from "@/app/(pages)/system/roles/roles.types";
 import {
   CreateUserFormData,
   UpdateUserFormData,

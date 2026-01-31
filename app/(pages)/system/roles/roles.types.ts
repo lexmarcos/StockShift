@@ -83,4 +83,5 @@ export interface RolesViewProps {
   isSubmitting: boolean;
   isAdmin: boolean;
   groupedPermissions: Map<string, Permission[]>;
+  isLoadingAdmin: boolean;
 }

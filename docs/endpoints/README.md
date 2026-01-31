@@ -93,20 +93,6 @@ Each endpoint documentation file follows this structure:
 
 ---
 
-### [stock-movements.md](stock-movements.md)
-**Stock Movement Operations**
-- Inventory transactions
-- Entry, exit, transfer, adjustment
-- Pending and completed movements
-
-**Key Concepts**:
-- Movement types (ENTRY, EXIT, TRANSFER, ADJUSTMENT)
-- Movement status (PENDING, COMPLETED, CANCELLED)
-- Two-step workflow (create → execute)
-- Multi-item movements
-
----
-
 ### [reports.md](reports.md)
 **Reporting & Analytics**
 - Dashboard metrics
@@ -172,7 +158,6 @@ The API uses a permission-based authorization system. Each endpoint specifies re
 - **Categories**: `CATEGORY_CREATE`, `CATEGORY_READ`, `CATEGORY_UPDATE`, `CATEGORY_DELETE`
 - **Warehouses**: `WAREHOUSE_CREATE`, `WAREHOUSE_READ`, `WAREHOUSE_UPDATE`, `WAREHOUSE_DELETE`
 - **Batches**: `BATCH_CREATE`, `BATCH_READ`, `BATCH_UPDATE`, `BATCH_DELETE`
-- **Stock Movements**: `STOCK_MOVEMENT_CREATE`, `STOCK_MOVEMENT_READ`, `STOCK_MOVEMENT_UPDATE`, `STOCK_MOVEMENT_DELETE`, `STOCK_MOVEMENT_EXECUTE`
 - **Reports**: `REPORT_READ`
 
 ## Frontend Development Guidelines
@@ -324,7 +309,6 @@ apiClient.interceptors.response.use(
 ### E2E Tests
 - Test critical user flows
 - Test permission-based access
-- Test multi-step operations (stock movements)
 
 ## Accessibility
 
@@ -400,12 +384,11 @@ Target modern browsers:
 2. **Authentication**: Implement auth flow first
 3. **API Services**: Create service layer for all endpoints
 4. **Core Features**: Build core features (products, warehouses, batches)
-5. **Stock Movements**: Implement movement workflow
-6. **Reports**: Build dashboard and reports
-7. **Testing**: Write tests for critical paths
-8. **Optimization**: Optimize performance
-9. **Accessibility**: Ensure accessibility compliance
-10. **Documentation**: Document components and flows
+5. **Reports**: Build dashboard and reports
+6. **Testing**: Write tests for critical paths
+7. **Optimization**: Optimize performance
+8. **Accessibility**: Ensure accessibility compliance
+9. **Documentation**: Document components and flows
 
 ## Support and Questions
 

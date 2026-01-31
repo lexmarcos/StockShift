@@ -2,31 +2,21 @@
 
 import {
   AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
-  Box,
   Calendar,
   Layers,
   Package,
-  Plus,
   RefreshCw,
-  TrendingDown,
   TrendingUp,
   Warehouse,
 } from "lucide-react";
-import Link from "next/link";
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   Cell,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 
 import { Button } from "@/components/ui/button";
@@ -39,16 +29,11 @@ import {
   formatCurrency,
   formatNumber,
   formatRelativeTime,
-  getMovementTypeConfig,
-  getStatusConfig,
 } from "./dashboard.model";
 import {
   AlertCardProps,
   ChartCardProps,
-  DashboardData,
   KPICardProps,
-  MovementTimelineProps,
-  RecentMovement,
   DashboardViewProps,
 } from "./dashboard.types";
 
@@ -276,104 +261,6 @@ function CustomTooltip({
 }
 
 // ============================================================================
-// Movement Timeline Component
-// ============================================================================
-function MovementTimeline({
-  movements,
-  isLoading,
-  onItemClick,
-}: MovementTimelineProps) {
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-[4px]" />
-        ))}
-      </div>
-    );
-  }
-
-  if (!movements || !movements.length) {
-    return (
-      <div className="flex h-32 flex-col items-center justify-center rounded-[4px] border border-dashed border-neutral-800 text-neutral-600">
-        <TrendingUp className="h-8 w-8 mb-2 opacity-20" />
-        <p className="text-[10px] uppercase font-bold tracking-widest">
-          Sem atividades registradas
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col divide-y divide-neutral-800/50">
-      {movements.slice(0, 10).map((movement) => {
-        const typeConfig = getMovementTypeConfig(movement.movementType);
-        const statusConfig = getStatusConfig(movement.status);
-
-        return (
-          <button
-            key={movement.id}
-            onClick={() => onItemClick(movement.id)}
-            className="group flex items-center gap-4 py-3 text-left transition-colors hover:bg-neutral-800/30 px-2"
-          >
-            <div
-              className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] font-mono text-[10px] font-bold ring-1 ring-inset transition-all group-hover:scale-110",
-                typeConfig.bg,
-                typeConfig.color.replace("text-", "ring-"),
-              )}
-            >
-              {movement.movementType.charAt(0)}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span
-                  className={cn(
-                    "text-[10px] font-bold uppercase tracking-wider",
-                    typeConfig.color,
-                  )}
-                >
-                  {typeConfig.label}
-                </span>
-                <span className="text-[10px] font-mono text-neutral-600">
-                  #{movement.id.slice(0, 8)}
-                </span>
-              </div>
-              <p className="truncate text-xs text-neutral-400">
-                <span className="text-white font-medium">
-                  {movement.productCount}
-                </span>{" "}
-                itens
-                {movement.originWarehouseName &&
-                  ` de ${movement.originWarehouseName}`}
-                {movement.destinationWarehouseName &&
-                  ` para ${movement.destinationWarehouseName}`}
-              </p>
-            </div>
-
-            <div className="text-right shrink-0">
-              <span
-                className={cn(
-                  "inline-block rounded-[4px] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-tighter mb-1",
-                  statusConfig.bg,
-                  statusConfig.color,
-                )}
-              >
-                {statusConfig.label}
-              </span>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase">
-                {formatRelativeTime(movement.createdAt)}
-              </p>
-            </div>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ============================================================================
 // Loading Skeleton
 // ============================================================================
 function DashboardSkeleton() {
@@ -398,9 +285,6 @@ function DashboardSkeleton() {
           <Skeleton key={i} className="h-[280px] rounded-[4px]" />
         ))}
       </div>
-
-      {/* Timeline Skeleton */}
-      <Skeleton className="h-[300px] rounded-[4px]" />
     </div>
   );
 }
@@ -446,8 +330,6 @@ export function DashboardView({
   isRefreshing,
   navigateToLowStock,
   navigateToExpiring,
-  navigateToMovement,
-  navigateToNewMovement,
 }: DashboardViewProps) {
   if (isLoading) {
     return (
@@ -473,45 +355,11 @@ export function DashboardView({
   const lowStockItems = data.lowStockProducts || [];
   const expiringItems = data.expiringProducts || [];
 
-  // Prepare chart data
-  const warehouseChartData = (data.stockByWarehouse || []).map((w, i) => ({
-    name: w.warehouseName,
-    value: w.stockValue,
-    color: CHART_COLORS[i % CHART_COLORS.length],
-  }));
-
   const categoryChartData = (data.stockByCategory || []).map((c, i) => ({
     name: c.categoryName,
     value: c.stockValue,
     color: CHART_COLORS[i % CHART_COLORS.length],
   }));
-
-  const movementStats = data.movementStats || {
-    thisMonth: { entries: 0, exits: 0, transfers: 0, adjustments: 0 },
-  };
-
-  const movementTypeData = [
-    {
-      name: "Entradas",
-      value: movementStats.thisMonth.entries,
-      color: CHART_COLORS[1], // emerald
-    },
-    {
-      name: "Saídas",
-      value: movementStats.thisMonth.exits,
-      color: CHART_COLORS[3], // rose
-    },
-    {
-      name: "Transferências",
-      value: movementStats.thisMonth.transfers,
-      color: CHART_COLORS[0], // blue
-    },
-    {
-      name: "Ajustes",
-      value: movementStats.thisMonth.adjustments,
-      color: CHART_COLORS[2], // amber
-    },
-  ];
 
   const stockHistoryData = data.stockHistory || [
     { date: "01/01", value: 45000 },
@@ -550,14 +398,6 @@ export function DashboardView({
               strokeWidth={2.5}
             />
             Sincronizar
-          </Button>
-          <Button
-            onClick={navigateToNewMovement}
-            size="sm"
-            className="h-9 w-full md:w-auto rounded-[4px] bg-blue-600 px-4 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-blue-700"
-          >
-            <Plus className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
-            Novo Movimento
           </Button>
         </div>
       </div>
@@ -647,35 +487,6 @@ export function DashboardView({
                   </div>
                 )}
               </ChartCard>
-
-              <ChartCard title="Fluxo Mensal (Tipos)">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={movementTypeData} layout="vertical">
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={100}
-                      tick={{
-                        fill: "#737373",
-                        fontSize: 9,
-                        fontWeight: "bold",
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "rgba(255,255,255,0.02)" }}
-                      content={<CustomTooltip />}
-                    />
-                    <Bar dataKey="value" radius={[0, 2, 2, 0]} barSize={12}>
-                      {movementTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
             </div>
           </div>
 
@@ -692,26 +503,6 @@ export function DashboardView({
               items={expiringItems}
               onSeeAll={navigateToExpiring}
             />
-
-            <div className="flex flex-col rounded-[4px] border border-neutral-800 bg-neutral-900 overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-neutral-800/50">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white">
-                  Logs Atividade
-                </p>
-                <Link
-                  href="/stock-movements"
-                  className="text-[10px] font-bold uppercase tracking-widest text-blue-500 hover:text-white transition-colors"
-                >
-                  FULL LOG →
-                </Link>
-              </div>
-              <div className="p-2">
-                <MovementTimeline
-                  movements={data.recentMovements || []}
-                  onItemClick={navigateToMovement}
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -12,7 +12,6 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,17 +29,15 @@ import {
   Loader2,
   MoreVertical,
   MapPin,
-  Phone,
-  Mail,
   AlertTriangle,
-  Building
+  Building,
+  Hash
 } from "lucide-react";
-import { UseFormReturn, Controller } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
 import { WarehouseStockInfo } from "./warehouse-stock-info";
 import { cn } from "@/lib/utils";
-import { PatternFormat } from "react-number-format";
 
 interface WarehousesViewProps {
   warehouses: Warehouse[];
@@ -231,9 +228,14 @@ export const WarehousesView = ({
                           <Building2 className="h-5 w-5" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-white leading-tight">
-                            {warehouse.name}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider bg-blue-500/10 px-1.5 py-0.5 rounded-[2px] border border-blue-500/20">
+                              {warehouse.code}
+                            </span>
+                            <h3 className="text-sm font-bold text-white leading-tight">
+                              {warehouse.name}
+                            </h3>
+                          </div>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge
                               variant="outline"
@@ -286,11 +288,6 @@ export const WarehousesView = ({
                       </DropdownMenu>
                     </div>
 
-                    {/* Description */}
-                    <p className="text-xs text-neutral-500 line-clamp-2 min-h-[2.5em]">
-                      {warehouse.description || "Sem descrição disponível."}
-                    </p>
-
                     {/* Details */}
                     <div className="space-y-2 pt-4 border-t border-neutral-800">
                       <div className="flex items-start gap-2 text-xs text-neutral-400">
@@ -301,23 +298,6 @@ export const WarehousesView = ({
                             : `${warehouse.city} - ${warehouse.state}`}
                         </span>
                       </div>
-                      
-                      {(warehouse.phone || warehouse.email) && (
-                        <div className="flex flex-col gap-1.5 pt-1">
-                          {warehouse.phone && (
-                            <div className="flex items-center gap-2 text-xs text-neutral-400">
-                              <Phone className="h-3.5 w-3.5 text-neutral-600 shrink-0" />
-                              <span>{warehouse.phone}</span>
-                            </div>
-                          )}
-                          {warehouse.email && (
-                            <div className="flex items-center gap-2 text-xs text-neutral-400">
-                              <Mail className="h-3.5 w-3.5 text-neutral-600 shrink-0" />
-                              <span className="truncate">{warehouse.email}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                     {/* Stock Summary Placeholder */}
@@ -381,51 +361,57 @@ export const WarehousesView = ({
       >
         <Form {...form}>
           <form id="warehouse-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
-            {/* Basic Info */}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    Nome do Armazém <span className="text-rose-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="EX: CENTRAL DE DISTRIBUIÇÃO"
-                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs text-rose-500" />
-                </FormItem>
-              )}
-            />
+            {/* Identification */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Hash className="h-3 w-3 text-blue-500" />
+                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        Código <span className="text-rose-500">*</span>
+                      </FormLabel>
+                    </div>
+                    <FormControl>
+                      <Input
+                        placeholder="EX: CD-01"
+                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 uppercase"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs text-rose-500" />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                    Descrição
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Detalhes sobre a operação deste local..."
-                      className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm resize-none focus:border-blue-600 focus:ring-0 min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs text-rose-500" />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Nome do Armazém <span className="text-rose-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="EX: CENTRAL DE DISTRIBUIÇÃO"
+                        className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs text-rose-500" />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Location */}
             <div className="space-y-4 pt-2 border-t border-neutral-800">
               <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Localização</h4>
-              
+
               <FormField
                 control={form.control}
                 name="address"
@@ -480,59 +466,6 @@ export const WarehousesView = ({
                           placeholder="Ex: SP"
                           maxLength={2}
                           className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 uppercase"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-xs text-rose-500" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Contact */}
-            <div className="space-y-4 pt-2 border-t border-neutral-800">
-              <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">Contato</h4>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Controller
-                  control={form.control}
-                  name="phone"
-                  render={({ field: { onChange, value, ref }, fieldState: { error } }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                        Telefone
-                      </FormLabel>
-                      <FormControl>
-                        <PatternFormat
-                          format="(##) #####-####"
-                          mask="_"
-                          value={value || ""}
-                          onValueChange={(values) => {
-                            onChange(values.formattedValue);
-                          }}
-                          getInputRef={ref}
-                          className="flex h-10 w-full rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="(00) 00000-0000"
-                        />
-                      </FormControl>
-                      {error && <p className="text-xs text-rose-500">{error.message}</p>}
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                        Email
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="email@empresa.com"
-                          className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                           {...field}
                         />
                       </FormControl>

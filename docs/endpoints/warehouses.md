@@ -23,21 +23,19 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
 {
   "name": "Main Warehouse",
   "code": "WH-001",
-  "description": "Primary storage facility",
+  "city": "New York",
+  "state": "NY",
   "address": "123 Storage St, City, State 12345",
-  "phone": "+1234567890",
-  "email": "warehouse@company.com",
   "isActive": true
 }
 ```
 
 **Field Details**:
-- `name`: Required, warehouse name (2-100 characters)
-- `code`: Required, unique warehouse code (2-20 characters)
-- `description`: Optional, warehouse description
-- `address`: Optional, physical address
-- `phone`: Optional, contact phone
-- `email`: Optional, contact email
+- `name`: Required, warehouse name (2-255 characters)
+- `code`: Required, unique warehouse code (max 20 chars, uppercase letters, numbers, hyphens)
+- `city`: Required, city name (max 100 characters)
+- `state`: Required, state code (2 uppercase letters)
+- `address`: Optional, physical address (max 500 characters)
 - `isActive`: Optional, default `true`, warehouse status
 
 ### Response
@@ -46,15 +44,14 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
 ```json
 {
   "success": true,
-  "message": "Warehouse created successfully",
+  "message": null,
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Main Warehouse",
     "code": "WH-001",
-    "description": "Primary storage facility",
+    "city": "New York",
+    "state": "NY",
     "address": "123 Storage St, City, State 12345",
-    "phone": "+1234567890",
-    "email": "warehouse@company.com",
     "isActive": true,
     "createdAt": "2025-12-28T10:00:00Z",
     "updatedAt": "2025-12-28T10:00:00Z"
@@ -94,10 +91,9 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "Main Warehouse",
       "code": "WH-001",
-      "description": "Primary storage facility",
+      "city": "New York",
+      "state": "NY",
       "address": "123 Storage St, City, State 12345",
-      "phone": "+1234567890",
-      "email": "warehouse@company.com",
       "isActive": true,
       "createdAt": "2025-12-28T10:00:00Z",
       "updatedAt": "2025-12-28T10:00:00Z"
@@ -289,10 +285,9 @@ curl -H "Authorization: Bearer {token}" \
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Main Warehouse",
     "code": "WH-001",
-    "description": "Primary storage facility",
+    "city": "New York",
+    "state": "NY",
     "address": "123 Storage St, City, State 12345",
-    "phone": "+1234567890",
-    "email": "warehouse@company.com",
     "isActive": true,
     "createdAt": "2025-12-28T10:00:00Z",
     "updatedAt": "2025-12-28T10:00:00Z"

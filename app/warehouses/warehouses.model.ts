@@ -46,13 +46,11 @@ export const useWarehousesModel = () => {
   const form = useForm<WarehouseFormData>({
     resolver: zodResolver(warehouseSchema),
     defaultValues: {
+      code: "",
       name: "",
-      description: "",
       address: "",
       city: "",
       state: "",
-      phone: "",
-      email: "",
       isActive: true,
     },
   });
@@ -73,7 +71,8 @@ export const useWarehousesModel = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (w) =>
-          w.name.toLowerCase().includes(query)
+          w.name.toLowerCase().includes(query) ||
+          w.code.toLowerCase().includes(query)
       );
     }
 
@@ -100,13 +99,11 @@ export const useWarehousesModel = () => {
   const openCreateModal = () => {
     setSelectedWarehouse(null);
     form.reset({
+      code: "",
       name: "",
-      description: "",
       address: "",
       city: "",
       state: "",
-      phone: "",
-      email: "",
       isActive: true,
     });
     setIsModalOpen(true);
@@ -115,13 +112,11 @@ export const useWarehousesModel = () => {
   const openEditModal = (warehouse: Warehouse) => {
     setSelectedWarehouse(warehouse);
     form.reset({
+      code: warehouse.code,
       name: warehouse.name,
-      description: warehouse.description || "",
       address: warehouse.address || "",
       city: warehouse.city,
       state: warehouse.state,
-      phone: warehouse.phone || "",
-      email: warehouse.email || "",
       isActive: warehouse.isActive,
     });
     setIsModalOpen(true);
@@ -131,13 +126,11 @@ export const useWarehousesModel = () => {
     setIsModalOpen(false);
     setSelectedWarehouse(null);
     form.reset({
+      code: "",
       name: "",
-      description: "",
       address: "",
       city: "",
       state: "",
-      phone: "",
-      email: "",
       isActive: true,
     });
   };

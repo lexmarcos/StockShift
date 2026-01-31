@@ -1,12 +1,10 @@
 export interface Warehouse {
   id: string;
+  code: string;
   name: string;
-  description: string | null;
   address: string | null;
   city: string;
   state: string;
-  phone: string | null;
-  email: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

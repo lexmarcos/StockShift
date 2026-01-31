@@ -15,7 +15,6 @@ const ROUTE_SECTIONS: Record<string, { section: string; subsection: string }> =
   {
     products: { section: "Produtos", subsection: "Detalhes" },
     batches: { section: "Lotes", subsection: "Detalhes" },
-    "stock-movements": { section: "Movimentações", subsection: "Detalhes" },
     warehouses: { section: "Armazéns", subsection: "Detalhes" },
     categories: { section: "Configurações", subsection: "Categoria" },
     brands: { section: "Configurações", subsection: "Marca" },

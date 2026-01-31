@@ -3,7 +3,7 @@
 ## Overview
 These endpoints manage sales transactions in the StockShift system. All endpoints require authentication with appropriate permissions.
 
-**Base URL**: `/api/sales`  
+**Base URL**: `/api/sales`
 **Authentication**: Required (Bearer token)
 
 ---
@@ -22,7 +22,7 @@ These endpoints manage sales transactions in the StockShift system. All endpoint
 **Required Permissions**: `SALES:CREATE`
 
 ### Request
-**Method**: `POST`  
+**Method**: `POST`
 **Content-Type**: `application/json`
 
 #### Request Body
@@ -207,7 +207,7 @@ These endpoints manage sales transactions in the StockShift system. All endpoint
 **Required Permissions**: `SALES:CANCEL`
 
 ### Request
-**Method**: `PUT`  
+**Method**: `PUT`
 **Content-Type**: `application/json`
 
 #### Path Parameters

@@ -7,7 +7,6 @@ import {
   Layers,
   Tag,
   Folder,
-  ArrowLeftRight,
   LayoutDashboard,
   Settings,
 } from "lucide-react";
@@ -26,7 +25,6 @@ const navItems: NavItem[] = [
   { href: "/batches", label: "Batches", Icon: Layers },
   { href: "/brands", label: "Marcas", Icon: Tag },
   { href: "/categories", label: "Categorias", Icon: Folder },
-  { href: "/stock-movements", label: "Movimentações", Icon: ArrowLeftRight },
 ];
 
 export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
