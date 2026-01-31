@@ -85,8 +85,8 @@ export interface StockMovement {
   notes?: string | null;
   createdBy: string;
   createdByName: string;
-  executedBy: string | null;
-  executedByName: string | null;
+  executedBy?: string | null;
+  executedByName?: string | null;
   items: StockMovementItem[];
   createdAt: string;
   updatedAt: string;
