@@ -45,7 +45,7 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
         className={cn(
           "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
           "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-          isActive && "border-border/60 bg-foreground/10 text-foreground"
+          isActive && "border-border/60 bg-foreground/10 text-foreground",
         )}
       >
         <item.Icon className="h-3.5 w-3.5" />
@@ -60,9 +60,7 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   return (
     <nav className="flex flex-col flex-1">
       {/* Main navigation */}
-      <div className="space-y-2 flex-1">
-        {navItems.map(renderNavLink)}
-      </div>
+      <div className="space-y-2 flex-1">{navItems.map(renderNavLink)}</div>
 
       {/* Admin section - bottom */}
       {(isLoading || isAdmin) && (
@@ -74,7 +72,8 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
             className={cn(
               "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
               "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-              isSystemActive && "border-border/60 bg-foreground/10 text-foreground"
+              isSystemActive &&
+                "border-border/60 bg-foreground/10 text-foreground",
             )}
           >
             <Settings className="h-3.5 w-3.5" />
