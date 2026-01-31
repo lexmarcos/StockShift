@@ -45,6 +45,7 @@ export const useMobileWizardModel = () => {
   const [phase, setPhase] = useState<WizardPhase>("setup");
 
   // Setup state
+  const [movementType, setMovementType] = useState<"ENTRY" | "EXIT" | "TRANSFER" | "ADJUSTMENT">("ENTRY");
   const [sourceWarehouseId, setSourceWarehouseId] = useState<string | null>(null);
   const [destinationWarehouseId, setDestinationWarehouseId] = useState<string | null>(null);
 
@@ -57,7 +58,6 @@ export const useMobileWizardModel = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // Review state
-  const [executeNow, setExecuteNow] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Success state
@@ -119,6 +119,10 @@ export const useMobileWizardModel = () => {
   const sourceWarehouse = warehouses.find((w) => w.id === sourceWarehouseId);
   const destinationWarehouse = warehouses.find((w) => w.id === destinationWarehouseId);
 
+  // Derived state for requirements
+  const requiresSource = movementType === "EXIT" || movementType === "TRANSFER" || movementType === "ADJUSTMENT";
+  const requiresDestination = movementType === "ENTRY" || movementType === "TRANSFER";
+
   // Navigation
   const goToSetup = useCallback(() => setPhase("setup"), []);
   const goToAddition = useCallback(() => setPhase("addition"), []);
@@ -147,7 +151,9 @@ export const useMobileWizardModel = () => {
     setDestinationWarehouseId(warehouse.id);
   }, []);
 
-  const canContinueFromSetup = sourceWarehouseId && destinationWarehouseId;
+  const canContinueFromSetup =
+    (requiresSource ? !!sourceWarehouseId : true) &&
+    (requiresDestination ? !!destinationWarehouseId : true);
 
   // Addition handlers
   const handleProductSelect = useCallback((product: ProductSearchResult) => {
@@ -225,7 +231,7 @@ export const useMobileWizardModel = () => {
 
   // Submit
   const handleSubmit = useCallback(async () => {
-    if (!sourceWarehouseId || !destinationWarehouseId || items.length === 0) {
+    if ((requiresSource && !sourceWarehouseId) || (requiresDestination && !destinationWarehouseId) || items.length === 0) {
       return;
     }
 
@@ -235,9 +241,9 @@ export const useMobileWizardModel = () => {
       const { api } = await import("@/lib/api");
 
       const payload = {
-        movementType: "TRANSFER",
-        sourceWarehouseId,
-        destinationWarehouseId,
+        movementType,
+        sourceWarehouseId: requiresSource ? sourceWarehouseId : null,
+        destinationWarehouseId: requiresDestination ? destinationWarehouseId : null,
         items: items.map((item) => ({
           productId: item.productId,
           batchId: item.batchId,
@@ -250,21 +256,10 @@ export const useMobileWizardModel = () => {
         .json<CreateMovementResponse>();
 
       if (response.success) {
-        let status: "PENDING" | "COMPLETED" = "PENDING";
-
-        if (executeNow) {
-          try {
-            await api.post(`stock-movements/${response.data.id}/execute`).json();
-            status = "COMPLETED";
-          } catch {
-            toast.error("Criada, mas não foi possível executar");
-          }
-        }
-
         setCreatedMovement({
           id: response.data.id,
           code: response.data.movementCode || `MOV-${response.data.id.slice(0, 8)}`,
-          status,
+          status: "COMPLETED",
         });
         setPhase("success");
         toast.success("Transferência criada");
@@ -275,7 +270,7 @@ export const useMobileWizardModel = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [sourceWarehouseId, destinationWarehouseId, items, executeNow]);
+  }, [sourceWarehouseId, destinationWarehouseId, items]);
 
   // Reset
   const handleNewMovement = useCallback(() => {
@@ -285,12 +280,13 @@ export const useMobileWizardModel = () => {
     setItems([]);
     setSearchQuery("");
     setSelectedProduct(null);
-    setExecuteNow(false);
     setCreatedMovement(null);
   }, []);
 
   return {
     phase,
+    movementType,
+    setMovementType,
     warehouses,
     sourceWarehouseId,
     destinationWarehouseId,
@@ -317,12 +313,12 @@ export const useMobileWizardModel = () => {
     isScannerOpen,
     setIsScannerOpen,
     handleBarcodeScan,
-    executeNow,
-    setExecuteNow,
     isSubmitting,
     handleSubmit,
     createdMovement,
     handleNewMovement,
+    requiresSource,
+    requiresDestination,
     goToSetup,
     goToAddition,
     goToReview,

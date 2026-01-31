@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowDown, Package, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +13,6 @@ interface MovementSummarySidebarProps {
   totalQuantity: number;
   notes: string;
   onNotesChange: (notes: string) => void;
-  executeNow: boolean;
-  onExecuteNowChange: (value: boolean) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
   canSubmit: boolean;
@@ -36,14 +33,13 @@ export function MovementSummarySidebar({
   totalQuantity,
   notes,
   onNotesChange,
-  executeNow,
-  onExecuteNowChange,
   onSubmit,
   isSubmitting,
   canSubmit,
 }: MovementSummarySidebarProps) {
   const config = movementType ? typeConfig[movementType] : null;
-  const showRoute = movementType === "TRANSFER" || movementType === "ENTRY" || movementType === "EXIT" || movementType === "ADJUSTMENT";
+  const showSource = movementType === "EXIT" || movementType === "TRANSFER" || movementType === "ADJUSTMENT";
+  const showDestination = movementType === "ENTRY" || movementType === "TRANSFER";
 
   return (
     <div className="sticky top-8 rounded-[4px] border border-neutral-800 bg-[#171717]">
@@ -72,10 +68,10 @@ export function MovementSummarySidebar({
       </div>
 
       {/* Route */}
-      {showRoute && (
+      {(showSource || showDestination) && (
         <div className="border-b border-neutral-800 p-4">
           <div className="flex flex-col items-center gap-1.5">
-            {(movementType === "EXIT" || movementType === "TRANSFER" || movementType === "ADJUSTMENT") && (
+            {showSource && (
               sourceWarehouseName ? (
                 <div className="flex w-full items-center gap-2 rounded-[4px] bg-neutral-800/50 px-3 py-2">
                   <Package className="h-4 w-4 text-neutral-500" />
@@ -93,7 +89,7 @@ export function MovementSummarySidebar({
               <ArrowDown className="h-4 w-4 text-neutral-600" />
             )}
 
-            {(movementType === "ENTRY" || movementType === "TRANSFER") && (
+            {showDestination && (
               destinationWarehouseName ? (
                 <div className="flex w-full items-center gap-2 rounded-[4px] bg-neutral-800/50 px-3 py-2">
                   <Package className="h-4 w-4 text-neutral-500" />
@@ -143,21 +139,6 @@ export function MovementSummarySidebar({
           placeholder="Notas opcionais..."
           className="min-h-[80px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs resize-none"
         />
-      </div>
-
-      {/* Execute Now */}
-      <div className="border-b border-neutral-800 p-4">
-        <label className="flex items-center gap-3 cursor-pointer">
-          <Checkbox
-            checked={executeNow}
-            onCheckedChange={(checked) => onExecuteNowChange(checked as boolean)}
-            className="rounded-[2px] border-neutral-700 data-[state=checked]:bg-blue-600"
-          />
-          <div>
-            <span className="text-xs font-medium text-white">Executar imediatamente</span>
-            <p className="text-[10px] text-neutral-500">Atualiza o estoque ao salvar</p>
-          </div>
-        </label>
       </div>
 
       {/* Submit Button */}

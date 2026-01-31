@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Package } from "lucide-react";
 import { RouteSelector } from "./_components/route-selector";
 import { AddItemForm } from "./_components/add-item-form";
@@ -31,7 +30,6 @@ interface StockMovementCreateViewProps {
   destinationWarehouseId: string | undefined;
   sourceWarehouse: { id: string; name: string } | undefined;
   destinationWarehouse: { id: string; name: string } | undefined;
-  executeNow: boolean;
   notes: string;
   setNotes: (notes: string) => void;
   requiresSource: boolean;
@@ -59,7 +57,6 @@ export const StockMovementCreateView = ({
   destinationWarehouseId,
   sourceWarehouse,
   destinationWarehouse,
-  executeNow,
   notes,
   setNotes,
   requiresSource,
@@ -80,6 +77,33 @@ export const StockMovementCreateView = ({
     quantity: b.quantity,
     productId: b.productId || undefined,
   }));
+
+  const MOVEMENT_TYPE_OPTIONS = [
+    {
+      value: "ENTRY",
+      label: "Entrada",
+      description: "Compra, produção, devolução de cliente",
+      color: "bg-emerald-500"
+    },
+    {
+      value: "EXIT",
+      label: "Saída",
+      description: "Venda, consumo, descarte",
+      color: "bg-rose-500"
+    },
+    {
+      value: "TRANSFER",
+      label: "Transferência",
+      description: "Entre armazéns",
+      color: "bg-blue-500"
+    },
+    {
+      value: "ADJUSTMENT",
+      label: "Ajuste",
+      description: "Correção, inventário físico",
+      color: "bg-amber-500"
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] font-sans text-neutral-200">
@@ -126,45 +150,16 @@ export const StockMovementCreateView = ({
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717]">
-                      <SelectItem value="ENTRY" className="text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          Entrada (Compra/Retorno)
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="EXIT" className="text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-rose-500" />
-                          Saída (Venda/Perda)
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="TRANSFER" className="text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-500" />
-                          Transferência Interna
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="ADJUSTMENT" className="text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Ajuste de Estoque
-                        </div>
-                      </SelectItem>
+                      {MOVEMENT_TYPE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className={`h-2 w-2 rounded-full ${option.color}`} />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="flex items-center gap-3 pt-5">
-                  <Checkbox
-                    id="executeNow"
-                    checked={executeNow}
-                    onCheckedChange={(checked) => form.setValue("executeNow", checked as boolean)}
-                    className="rounded-[2px] border-neutral-700 data-[state=checked]:bg-blue-600"
-                  />
-                  <label htmlFor="executeNow" className="cursor-pointer">
-                    <span className="text-xs font-medium text-white">Executar Imediatamente</span>
-                    <p className="text-[10px] text-neutral-500">Atualiza o estoque ao salvar</p>
-                  </label>
                 </div>
               </div>
             </div>
@@ -250,8 +245,6 @@ export const StockMovementCreateView = ({
               totalQuantity={totalQuantity}
               notes={notes}
               onNotesChange={setNotes}
-              executeNow={executeNow}
-              onExecuteNowChange={(value) => form.setValue("executeNow", value)}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
               canSubmit={canSubmit}

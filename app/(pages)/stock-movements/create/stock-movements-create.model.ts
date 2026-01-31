@@ -42,7 +42,7 @@ export const buildMovementPayload = (data: StockMovementCreateFormData, notes: s
     productId: item.productId,
     batchId: item.batchId || undefined,
     quantity: item.quantity,
-    reason: item.reason?.trim() || undefined,
+    unitPrice: item.unitPrice,
   })),
 });
 
@@ -54,11 +54,10 @@ export const useStockMovementCreateModel = () => {
   const form = useForm<StockMovementCreateFormData>({
     resolver: zodResolver(stockMovementCreateSchema),
     defaultValues: {
-      movementType: "TRANSFER",
+      movementType: "ENTRY",
       sourceWarehouseId: "",
       destinationWarehouseId: "",
       notes: "",
-      executeNow: false,
       items: [],
     },
   });
@@ -101,7 +100,6 @@ export const useStockMovementCreateModel = () => {
 
   const movementType = form.watch("movementType");
   const watchedItems = form.watch("items");
-  const executeNow = form.watch("executeNow");
   const destinationWarehouseId = form.watch("destinationWarehouseId");
 
   // Derived state
@@ -130,7 +128,6 @@ export const useStockMovementCreateModel = () => {
       productId,
       batchId: batchId || undefined,
       quantity,
-      reason: "",
     });
   }, [append]);
 
@@ -184,7 +181,6 @@ export const useStockMovementCreateModel = () => {
     destinationWarehouseId,
     sourceWarehouse,
     destinationWarehouse,
-    executeNow: executeNow || false,
     notes,
     setNotes,
     requiresSource,

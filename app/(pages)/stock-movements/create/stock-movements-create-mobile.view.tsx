@@ -18,11 +18,11 @@ export const StockMovementCreateMobileView = () => {
   const getHeaderTitle = () => {
     switch (model.phase) {
       case "setup":
-        return "Nova Transferência";
+        return "Nova Movimentação";
       case "addition":
-        return "Transferência";
+        return "Movimentação";
       case "review":
-        return "Revisar Transferência";
+        return "Revisar Movimentação";
       case "success":
         return "";
       default:
@@ -42,12 +42,10 @@ export const StockMovementCreateMobileView = () => {
       )}
 
       {/* Context Bar (only in addition and review phases) */}
-      {(model.phase === "addition" || model.phase === "review") &&
-        model.sourceWarehouse &&
-        model.destinationWarehouse && (
+      {(model.phase === "addition" || model.phase === "review") && (
           <WarehouseContextBar
-            sourceWarehouse={model.sourceWarehouse.name}
-            destinationWarehouse={model.destinationWarehouse.name}
+            sourceWarehouse={model.sourceWarehouse?.name}
+            destinationWarehouse={model.destinationWarehouse?.name}
           />
         )}
 
@@ -59,6 +57,10 @@ export const StockMovementCreateMobileView = () => {
           destinationWarehouseId={model.destinationWarehouseId}
           onSourceChange={model.handleSourceChange}
           onDestinationChange={model.handleDestinationChange}
+          movementType={model.movementType}
+          onMovementTypeChange={model.setMovementType}
+          requiresSource={model.requiresSource}
+          requiresDestination={model.requiresDestination}
         />
       )}
 
@@ -74,25 +76,23 @@ export const StockMovementCreateMobileView = () => {
         />
       )}
 
-      {model.phase === "review" && model.sourceWarehouse && model.destinationWarehouse && (
+      {model.phase === "review" && (
         <ReviewPhase
-          sourceWarehouseName={model.sourceWarehouse.name}
-          destinationWarehouseName={model.destinationWarehouse.name}
+          sourceWarehouseName={model.sourceWarehouse?.name}
+          destinationWarehouseName={model.destinationWarehouse?.name}
           items={model.items}
-          executeNow={model.executeNow}
-          onExecuteNowChange={model.setExecuteNow}
           onEditRoute={model.goToSetup}
           onEditItems={model.goToAddition}
         />
       )}
 
-      {model.phase === "success" && model.createdMovement && model.sourceWarehouse && model.destinationWarehouse && (
+      {model.phase === "success" && model.createdMovement && (
         <SuccessScreen
           movementId={model.createdMovement.id}
           movementCode={model.createdMovement.code}
           totalQuantity={model.items.reduce((sum, item) => sum + item.quantity, 0)}
-          sourceWarehouse={model.sourceWarehouse.name}
-          destinationWarehouse={model.destinationWarehouse.name}
+          sourceWarehouse={model.sourceWarehouse?.name}
+          destinationWarehouse={model.destinationWarehouse?.name}
           status={model.createdMovement.status}
           onNewMovement={model.handleNewMovement}
         />
@@ -134,7 +134,7 @@ export const StockMovementCreateMobileView = () => {
       {model.phase === "review" && (
         <MobileFooterActions
           primaryAction={{
-            label: model.isSubmitting ? "Enviando..." : "Confirmar Transferência",
+            label: model.isSubmitting ? "Enviando..." : "Confirmar Movimentação",
             onClick: model.handleSubmit,
             disabled: model.isSubmitting,
             variant: "emerald",

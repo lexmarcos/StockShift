@@ -9,8 +9,8 @@ interface SuccessScreenProps {
   movementId: string;
   movementCode: string;
   totalQuantity: number;
-  sourceWarehouse: string;
-  destinationWarehouse: string;
+  sourceWarehouse?: string;
+  destinationWarehouse?: string;
   status: "PENDING" | "COMPLETED";
   onNewMovement: () => void;
 }
@@ -36,7 +36,7 @@ export const SuccessScreen = ({
 
         {/* Title */}
         <h1 className="text-xl font-bold uppercase tracking-wide text-white">
-          Transferência Criada
+          Movimentação Criada
         </h1>
 
         {/* Details */}
@@ -48,7 +48,9 @@ export const SuccessScreen = ({
             {totalQuantity} unidades
           </p>
           <p className="text-sm text-neutral-500">
-            {sourceWarehouse} → {destinationWarehouse}
+            {sourceWarehouse && destinationWarehouse
+              ? `${sourceWarehouse} → ${destinationWarehouse}`
+              : sourceWarehouse || destinationWarehouse}
           </p>
         </div>
 
@@ -74,7 +76,7 @@ export const SuccessScreen = ({
           onClick={onNewMovement}
           className="h-14 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
         >
-          Nova Transferência
+          Nova Movimentação
         </Button>
         <Link
           href={`/stock-movements/${movementId}`}

@@ -3,15 +3,12 @@
 import { useState } from "react";
 import { Pencil, Package, Warehouse, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { MobileWizardItem } from "../stock-movements-create.types";
 
 interface ReviewPhaseProps {
-  sourceWarehouseName: string;
-  destinationWarehouseName: string;
+  sourceWarehouseName?: string;
+  destinationWarehouseName?: string;
   items: MobileWizardItem[];
-  executeNow: boolean;
-  onExecuteNowChange: (value: boolean) => void;
   onEditRoute: () => void;
   onEditItems: () => void;
 }
@@ -20,8 +17,6 @@ export const ReviewPhase = ({
   sourceWarehouseName,
   destinationWarehouseName,
   items,
-  executeNow,
-  onExecuteNowChange,
   onEditRoute,
   onEditItems,
 }: ReviewPhaseProps) => {
@@ -51,30 +46,44 @@ export const ReviewPhase = ({
             </Button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-neutral-800">
-              <Package className="h-5 w-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">
-                {sourceWarehouseName}
-              </p>
-            </div>
-          </div>
+          <div className="space-y-4">
+            {sourceWarehouseName && (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-neutral-800">
+                  <Package className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Origem
+                  </p>
+                  <p className="text-sm font-medium text-white">
+                    {sourceWarehouseName}
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <div className="flex justify-center my-2">
-            <div className="h-6 w-px bg-neutral-700" />
-          </div>
+            {sourceWarehouseName && destinationWarehouseName && (
+              <div className="flex justify-center">
+                <div className="h-6 w-px bg-neutral-700" />
+              </div>
+            )}
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-neutral-800">
-              <Warehouse className="h-5 w-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">
-                {destinationWarehouseName}
-              </p>
-            </div>
+            {destinationWarehouseName && (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-neutral-800">
+                  <Warehouse className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Destino
+                  </p>
+                  <p className="text-sm font-medium text-white">
+                    {destinationWarehouseName}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -143,25 +152,6 @@ export const ReviewPhase = ({
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Execute Now Toggle */}
-        <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <Checkbox
-              checked={executeNow}
-              onCheckedChange={(checked) => onExecuteNowChange(checked === true)}
-              className="mt-0.5 h-5 w-5 rounded-[2px] border-neutral-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-            />
-            <div>
-              <p className="text-sm font-medium text-white">
-                Executar agora
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Atualiza o estoque imediatamente
-              </p>
-            </div>
-          </label>
         </div>
       </div>
     </div>
