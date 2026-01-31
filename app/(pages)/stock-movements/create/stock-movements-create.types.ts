@@ -13,7 +13,6 @@ export interface StockMovementCreateFormData {
   destinationWarehouseId?: string;
   notes?: string;
   items: MovementItemFormData[];
-  executeNow?: boolean;
 }
 
 export interface StockMovementCreateResponse {
