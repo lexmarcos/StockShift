@@ -34,6 +34,12 @@ export interface DeleteWarehouseResponse {
   data: null;
 }
 
+export interface SwitchWarehouseResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
 export type SortKey = 'name' | 'createdAt';
 
 export interface SortConfig {

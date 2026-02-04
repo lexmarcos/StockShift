@@ -12,6 +12,7 @@ import {
   CreateWarehouseResponse,
   UpdateWarehouseResponse,
   DeleteWarehouseResponse,
+  SwitchWarehouseResponse,
   SortConfig,
   StatusFilter,
 } from "./warehouses.types";
@@ -144,9 +145,24 @@ export const useWarehousesModel = () => {
   };
 
   // Warehouse selection handler
-  const handleSelectWarehouse = (id: string) => {
-    setWarehouseId(id);
-    toast.success("Armazém selecionado");
+  const handleSelectWarehouse = async (id: string) => {
+    try {
+      const response = await api
+        .post("auth/switch-warehouse", { json: { warehouseId: id } })
+        .json<SwitchWarehouseResponse>();
+
+      if (response.success) {
+        setWarehouseId(id);
+        toast.success(response.message || "Armazém selecionado");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const errorMessage =
+        error.response?.data?.message ||
+        "Erro ao selecionar armazém. Tente novamente.";
+
+      toast.error(errorMessage);
+    }
   };
 
   // Submit handler

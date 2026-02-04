@@ -344,6 +344,67 @@ Permissions follow the format `RESOURCE:ACTION:SCOPE`:
 
 ---
 
+## POST /api/auth/switch-warehouse
+**Summary**: Switch to a different warehouse and get a new access token
+
+### Request
+**Method**: `POST`
+**Content-Type**: `application/json`
+**Authentication**: Required (Bearer token via HTTP-only cookie)
+
+#### Request Body
+```json
+{
+  "warehouseId": "770e8400-e29b-41d4-a716-446655440002"
+}
+```
+
+**Field Validations**:
+- `warehouseId`: Required, must be a valid UUID
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Warehouse switched successfully",
+  "data": null
+}
+```
+
+> **Note**: A new access token containing the `warehouseId` claim is set as an HTTP-only cookie. The refresh token remains unchanged.
+
+### Error Responses
+
+**401 Unauthorized** (Not authenticated):
+```json
+{
+  "success": false,
+  "message": "User not authenticated",
+  "data": null
+}
+```
+
+**401 Unauthorized** (No access to warehouse):
+```json
+{
+  "success": false,
+  "message": "User does not have access to this warehouse",
+  "data": null
+}
+```
+
+### Frontend Implementation Guide
+1. **Warehouse Selector**: Display a dropdown/selector with warehouses the user has access to
+2. **On Selection**: Call this endpoint when user selects a different warehouse
+3. **Cookie Update**: The new access token cookie is set automatically by the browser
+4. **Context Update**: After switching, refresh application state to reflect the new warehouse context
+5. **Error Handling**: Handle 401 errors (not authenticated, no access to warehouse)
+6. **UI Feedback**: Show loading state during switch, success/error toast after completion
+
+---
+
 ## Access Token (JWT) Structure
 
 The access token is a JWT (JSON Web Token) signed with HS256. Below is the decoded payload structure:
