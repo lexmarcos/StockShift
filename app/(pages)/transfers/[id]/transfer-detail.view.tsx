@@ -1,23 +1,23 @@
-import React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Calendar, FileText, Truck, AlertCircle, CheckCircle, XCircle, Edit } from "lucide-react";
+import { ArrowRight, Calendar, FileText, Truck, CheckCircle, XCircle, Edit } from "lucide-react";
 import { TransferDetailViewProps } from "./transfer-detail.types";
 import { TransferStatus } from "../transfers.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 
 export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
   isLoading,
+  error,
   transfer,
   isSource,
   isDestination,
@@ -40,9 +40,6 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <div className="text-neutral-400">Transferência não encontrada</div>
-        <Link href="/transfers">
-          <Button variant="outline">Voltar para Transferências</Button>
-        </Link>
       </div>
     );
   }
@@ -50,17 +47,17 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
   const getStatusBadge = (status: TransferStatus) => {
     switch (status) {
       case TransferStatus.DRAFT:
-        return <Badge variant="outline" className="bg-neutral-800 text-neutral-400 border-neutral-700">RASCUNHO</Badge>;
+        return <Badge variant="outline" className="bg-neutral-800 text-neutral-400 border-neutral-700 rounded-[4px]">RASCUNHO</Badge>;
       case TransferStatus.IN_TRANSIT:
-        return <Badge className="bg-blue-600/20 text-blue-500 border-blue-600/50">EM TRÂNSITO</Badge>;
+        return <Badge className="bg-blue-600/20 text-blue-500 border-blue-600/50 rounded-[4px]">EM TRÂNSITO</Badge>;
       case TransferStatus.IN_VALIDATION:
-        return <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/50">EM VALIDAÇÃO</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/50 rounded-[4px]">EM VALIDAÇÃO</Badge>;
       case TransferStatus.COMPLETED:
-        return <Badge className="bg-emerald-600/20 text-emerald-500 border-emerald-600/50">CONCLUÍDA</Badge>;
+        return <Badge className="bg-emerald-600/20 text-emerald-500 border-emerald-600/50 rounded-[4px]">CONCLUÍDA</Badge>;
       case TransferStatus.CANCELLED:
-        return <Badge className="bg-rose-600/20 text-rose-500 border-rose-600/50">CANCELADA</Badge>;
+        return <Badge className="bg-rose-600/20 text-rose-500 border-rose-600/50 rounded-[4px]">CANCELADA</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="rounded-[4px]">{status}</Badge>;
     }
   };
 
@@ -79,14 +76,6 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
       {/* Header */}
       <div className="bg-neutral-900 border-b border-neutral-800 p-6">
         <div className="max-w-7xl mx-auto">
-          <Link 
-            href="/transfers" 
-            className="inline-flex items-center text-sm text-neutral-400 hover:text-white mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para Transferências
-          </Link>
-          
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
@@ -94,7 +83,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 {getStatusBadge(transfer.status)}
               </div>
               <p className="text-neutral-400 text-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4" strokeWidth={2} />
                 Criado em {new Date(transfer.createdAt).toLocaleDateString()}
               </p>
             </div>
@@ -107,7 +96,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
         <Card className={`bg-[#171717] border-neutral-800 border-l-4 ${getStatusColor(transfer.status)} rounded-[4px]`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Truck className="w-5 h-5 text-neutral-400" />
+              <Truck className="w-5 h-5 text-neutral-400" strokeWidth={2} />
               Rota de Transferência
             </CardTitle>
           </CardHeader>
@@ -118,11 +107,11 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <div className="text-lg font-medium text-white">{transfer.sourceWarehouseName}</div>
                 {isSource && <span className="text-xs text-blue-500 font-mono mt-1 block">SEU WAREHOUSE</span>}
               </div>
-              
+
               <div className="hidden md:flex items-center justify-center px-4">
-                <ArrowRight className="w-6 h-6 text-neutral-600" />
+                <ArrowRight className="w-6 h-6 text-neutral-600" strokeWidth={2} />
               </div>
-              
+
               <div className="flex-1 md:text-right">
                 <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider block mb-1">Destino</span>
                 <div className="text-lg font-medium text-white">{transfer.destinationWarehouseName}</div>
@@ -135,7 +124,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <Separator className="my-6 bg-neutral-800" />
                 <div>
                   <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider block mb-2">
-                    <FileText className="w-3 h-3 inline mr-1" />
+                    <FileText className="w-3 h-3 inline mr-1" strokeWidth={2} />
                     Observações
                   </span>
                   <p className="text-neutral-300 text-sm leading-relaxed">{transfer.notes}</p>
@@ -187,20 +176,20 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             <>
               <Link href={`/transfers/${transfer.id}/edit`}>
                 <Button variant="ghost" className="text-neutral-400 hover:text-white uppercase tracking-wide">
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-4 h-4 mr-2" strokeWidth={2} />
                   Editar
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                onClick={onCancel} 
+              <Button
+                variant="outline"
+                onClick={onCancel}
                 disabled={isCancelling}
                 className="border-neutral-700 text-neutral-300 hover:bg-rose-900/20 hover:text-rose-500 hover:border-rose-900"
               >
                 {isCancelling ? "Cancelando..." : "CANCELAR"}
               </Button>
-              <Button 
-                onClick={onExecute} 
+              <Button
+                onClick={onExecute}
                 disabled={isExecuting}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase"
               >
@@ -210,8 +199,8 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
           )}
 
           {isSource && transfer.status === TransferStatus.IN_TRANSIT && (
-             <Button 
-                variant="outline" 
+             <Button
+                variant="outline"
                 onClick={onCancel}
                 disabled={isCancelling}
                 className="border-neutral-700 text-neutral-300 hover:bg-rose-900/20 hover:text-rose-500 hover:border-rose-900"
@@ -222,8 +211,8 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
 
           {/* Destination Actions */}
           {isDestination && transfer.status === TransferStatus.IN_TRANSIT && (
-             <Button 
-                onClick={onStartValidation} 
+             <Button
+                onClick={onStartValidation}
                 disabled={isValidating}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase"
               >
@@ -233,7 +222,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
 
           {isDestination && transfer.status === TransferStatus.IN_VALIDATION && (
              <Link href={`/transfers/${transfer.id}/validate`}>
-               <Button 
+               <Button
                   className="bg-amber-600 hover:bg-amber-700 text-white font-bold tracking-wide uppercase"
                 >
                   CONTINUAR VALIDAÇÃO
@@ -245,7 +234,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
           {transfer.status === TransferStatus.COMPLETED && (
             <>
               <div className="text-emerald-500 flex items-center gap-2 text-sm font-medium px-4">
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" strokeWidth={2} />
                 Transferência Concluída
               </div>
               {isDestination && (
@@ -259,7 +248,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
            {/* Cancelled State */}
            {transfer.status === TransferStatus.CANCELLED && (
             <div className="text-rose-500 flex items-center gap-2 text-sm font-medium px-4">
-              <XCircle className="w-5 h-5" />
+              <XCircle className="w-5 h-5" strokeWidth={2} />
               Transferência Cancelada
             </div>
           )}
