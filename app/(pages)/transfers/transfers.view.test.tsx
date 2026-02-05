@@ -42,6 +42,7 @@ describe("TransfersView", () => {
   const defaultProps = {
     transfers: mockTransfers,
     isLoading: false,
+    error: null,
     activeTab: "outgoing" as const,
     onTabChange: vi.fn(),
   };
