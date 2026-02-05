@@ -7,8 +7,19 @@ export interface NewTransferViewProps {
   warehouses: { id: string; name: string }[];
   products: { id: string; name: string }[];
   batches: { id: string; code: string; quantity: number }[];
-  onSearchProduct: (query: string) => void;
   onSelectProduct: (productId: string) => void;
   isLoading: boolean;
   isSubmitting: boolean;
+
+  // Item builder state (managed by model)
+  selectedProductId: string;
+  selectedBatchId: string;
+  itemQuantity: string;
+  addItemError: string | null;
+  onProductChange: (productId: string) => void;
+  onBatchChange: (batchId: string) => void;
+  onQuantityChange: (value: string) => void;
+  onAddItem: () => void;
+  onRemoveItem: (index: number) => void;
+  items: Array<{ id: string; productName?: string; batchCode?: string; quantity: number }>;
 }
