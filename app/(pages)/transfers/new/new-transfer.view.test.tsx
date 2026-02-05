@@ -18,7 +18,7 @@ const TestWrapper = (props: Partial<NewTransferViewProps>) => {
   const form = useForm<NewTransferSchema>({
     resolver: zodResolver(newTransferSchema),
     defaultValues: {
-      destinationWarehouseId: "" as any,
+      destinationWarehouseId: "",
       items: [],
     },
   });

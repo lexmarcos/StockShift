@@ -11,9 +11,24 @@ import { newTransferSchema, NewTransferSchema } from "./new-transfer.schema";
 import { NewTransferViewProps } from "./new-transfer.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 
-const fetcher = async (url: string) => {
-  return await api.get(url).json<any>();
-};
+interface WarehouseListResponse {
+  success: boolean;
+  data: Array<{ id: string; name: string }>;
+}
+
+interface ProductListResponse {
+  success: boolean;
+  data:
+    | { content: Array<{ id: string; name: string }> }
+    | Array<{ id: string; name: string }>;
+}
+
+interface BatchListResponse {
+  success: boolean;
+  data:
+    | { content: Array<{ id: string; code: string; quantity: number }> }
+    | Array<{ id: string; code: string; quantity: number }>;
+}
 
 export function useNewTransferModel(): NewTransferViewProps {
   const router = useRouter();
@@ -44,31 +59,37 @@ export function useNewTransferModel(): NewTransferViewProps {
     name: "items",
   });
 
-  const { data: warehousesData, isLoading: isLoadingWarehouses } = useSWR(
-    "warehouses",
-    fetcher
-  );
+  const { data: warehousesData, isLoading: isLoadingWarehouses } =
+    useSWR<WarehouseListResponse>("warehouses", async (url: string) =>
+      api.get(url).json<WarehouseListResponse>()
+    );
 
-  const { data: productsData, isLoading: isLoadingProducts } = useSWR(
-    "products",
-    fetcher
-  );
+  const { data: productsData, isLoading: isLoadingProducts } =
+    useSWR<ProductListResponse>("products", async (url: string) =>
+      api.get(url).json<ProductListResponse>()
+    );
 
-  const { data: batchesData } = useSWR(
+  const { data: batchesData } = useSWR<BatchListResponse>(
     selectedProductId ? `batches?productId=${selectedProductId}` : null,
-    fetcher
+    async (url: string) => api.get(url).json<BatchListResponse>()
   );
 
   const warehouses = (warehousesData?.data || [])
-    .filter((w: any) => w.id !== currentWarehouseId)
-    .map((w: any) => ({ id: w.id, name: w.name }));
+    .filter((w) => w.id !== currentWarehouseId)
+    .map((w) => ({ id: w.id, name: w.name }));
 
-  const products = (productsData?.data?.content || productsData?.data || []).map((p: any) => ({
+  const rawProducts = productsData?.data;
+  const products = (
+    Array.isArray(rawProducts) ? rawProducts : rawProducts?.content || []
+  ).map((p) => ({
     id: p.id,
     name: p.name,
   }));
 
-  const batches = (batchesData?.data?.content || batchesData?.data || []).map((b: any) => ({
+  const rawBatches = batchesData?.data;
+  const batches = (
+    Array.isArray(rawBatches) ? rawBatches : rawBatches?.content || []
+  ).map((b) => ({
     id: b.id,
     code: b.code,
     quantity: b.quantity,
@@ -99,7 +120,7 @@ export function useNewTransferModel(): NewTransferViewProps {
       return;
     }
 
-    const batch = batches.find((b: { id: string }) => b.id === selectedBatchId);
+    const batch = batches.find((b) => b.id === selectedBatchId);
     if (!batch) {
       setAddItemError("Lote inválido.");
       return;
@@ -110,7 +131,7 @@ export function useNewTransferModel(): NewTransferViewProps {
       return;
     }
 
-    const product = products.find((p: { id: string }) => p.id === selectedProductId);
+    const product = products.find((p) => p.id === selectedProductId);
 
     append({
       sourceBatchId: selectedBatchId,
@@ -153,7 +174,8 @@ export function useNewTransferModel(): NewTransferViewProps {
 
       toast.success("Transferência criada com sucesso!");
       router.push("/transfers");
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       const errorMessage = error.message || "Erro ao criar transferência.";
       toast.error(errorMessage);
     } finally {

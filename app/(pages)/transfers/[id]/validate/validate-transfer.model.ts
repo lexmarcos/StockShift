@@ -49,7 +49,7 @@ export const useValidateTransferModel = (transferId: string) => {
     }
   );
 
-  const validationLogs = logsData?.data || [];
+  const validationLogs = useMemo(() => logsData?.data || [], [logsData]);
 
   useBreadcrumb({
     title: transfer?.code ? `Validação ${transfer.code}` : "Validação",

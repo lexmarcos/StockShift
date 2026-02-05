@@ -15,7 +15,7 @@ export function useTransfersModel() {
     }
   );
 
-  const allTransfers = data?.data?.content || [];
+  const allTransfers = useMemo(() => data?.data?.content || [], [data]);
 
   const filteredTransfers = useMemo(() => {
     if (!warehouseId) return [];
