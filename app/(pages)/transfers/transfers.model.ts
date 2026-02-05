@@ -1,36 +1,41 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
+import { api } from "@/lib/api";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
-import { Transfer } from "./transfers.types";
+import { TransfersPageResponse } from "./transfers.types";
 
 export function useTransfersModel() {
   const [activeTab, setActiveTab] = useState<"outgoing" | "incoming">("outgoing");
   const { warehouseId } = useSelectedWarehouse();
 
-  // Fetch all transfers
-  // In a real app, we might want to filter on the server side
-  const { data, isLoading } = useSWR<Transfer[]>("/stockshift/api/transfers");
-
-  const transfers = data || [];
-
-  const filteredTransfers = transfers.filter((transfer) => {
-    if (!warehouseId) return false;
-
-    if (activeTab === "outgoing") {
-      return transfer.sourceWarehouseId === warehouseId;
-    } else {
-      return transfer.destinationWarehouseId === warehouseId;
+  const { data, isLoading, error } = useSWR<TransfersPageResponse>(
+    warehouseId ? "transfers" : null,
+    async (url: string) => {
+      return await api.get(url).json<TransfersPageResponse>();
     }
-  });
-
-  // Sort by createdAt desc
-  const sortedTransfers = [...filteredTransfers].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  const allTransfers = data?.data?.content || [];
+
+  const filteredTransfers = useMemo(() => {
+    if (!warehouseId) return [];
+
+    const filtered = allTransfers.filter((transfer) => {
+      if (activeTab === "outgoing") {
+        return transfer.sourceWarehouseId === warehouseId;
+      }
+      return transfer.destinationWarehouseId === warehouseId;
+    });
+
+    return [...filtered].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [allTransfers, warehouseId, activeTab]);
+
   return {
-    transfers: sortedTransfers,
+    transfers: filteredTransfers,
     isLoading,
+    error: error || null,
     activeTab,
     onTabChange: setActiveTab,
   };
