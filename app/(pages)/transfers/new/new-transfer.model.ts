@@ -46,13 +46,13 @@ export function useNewTransferModel(): NewTransferViewProps {
   );
 
   // Filter warehouses to exclude current source
-  const warehouses = (warehousesData || [])
-    .filter((w) => w.id !== currentWarehouseId)
-    .map((w) => ({ id: w.id, name: w.name }));
+  const warehouses = (warehousesData?.data || [])
+    .filter((w: any) => w.id !== currentWarehouseId)
+    .map((w: any) => ({ id: w.id, name: w.name }));
 
-  const products = (productsData || []).map((p) => ({ id: p.id, name: p.name }));
+  const products = (productsData?.data?.content || productsData?.data || []).map((p: any) => ({ id: p.id, name: p.name }));
 
-  const batches = (batchesData || []).map((b) => ({
+  const batches = (batchesData?.data?.content || batchesData?.data || []).map((b: any) => ({
     id: b.id,
     code: b.code,
     quantity: b.quantity,
@@ -83,7 +83,7 @@ export function useNewTransferModel(): NewTransferViewProps {
           destinationWarehouseId: data.destinationWarehouseId,
           notes: data.notes,
           items: data.items.map((item) => ({
-            batchId: item.sourceBatchId,
+            sourceBatchId: item.sourceBatchId,
             quantity: item.quantity,
           })),
         },
