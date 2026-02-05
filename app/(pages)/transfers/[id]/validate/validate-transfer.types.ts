@@ -1,11 +1,12 @@
-import { Transfer, DiscrepancyItem } from "../../transfers.types";
+import { DiscrepancyItem } from "../../transfers.types";
 
-export interface ScannedItem {
+export interface ScanResultItem {
+  valid: boolean;
+  message: string;
   productName: string;
-  batchCode: string;
-  timestamp: Date;
-  isSuccess: boolean;
-  message?: string;
+  productBarcode: string;
+  quantitySent: number;
+  quantityReceived: number;
 }
 
 export interface ExpectedItem {
@@ -19,16 +20,18 @@ export interface ExpectedItem {
 export interface ValidateTransferViewProps {
   isLoading: boolean;
   isProcessing: boolean;
-  transfer?: Transfer;
-  scannedItems: ScannedItem[];
+  transfer?: import("../../transfers.types").Transfer;
   expectedItems: ExpectedItem[];
   progress: number;
-  lastScannedItem?: ScannedItem | null;
-  
-  onScan: (barcode: string) => void;
+  lastScanResult: ScanResultItem | null;
+
+  barcode: string;
+  onBarcodeChange: (value: string) => void;
+  onScan: () => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+
   onFinish: () => void;
-  
-  // Modal props for finish confirmation
+
   showFinishModal: boolean;
   setShowFinishModal: (show: boolean) => void;
   discrepancies: DiscrepancyItem[];
