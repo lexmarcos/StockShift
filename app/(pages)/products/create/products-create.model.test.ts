@@ -37,6 +37,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/components/breadcrumb", () => ({
+  useBreadcrumb: vi.fn(),
+}));
+
 describe("useProductCreateModel - multipart submit", () => {
   const baseFormData = {
     name: "Produto Teste",

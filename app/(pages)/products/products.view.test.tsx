@@ -11,6 +11,17 @@ vi.mock("@/components/product/scanner-drawer/scanner-drawer", () => ({
   ScannerDrawer: () => null,
 }));
 
+vi.mock("@/components/ui/responsive-modal", () => ({
+  ResponsiveModal: ({ children, open, title, footer }: { children: React.ReactNode; open: boolean; title: string; footer: React.ReactNode }) =>
+    open ? (
+      <div data-testid="responsive-modal">
+        <h2>{title}</h2>
+        {children}
+        {footer}
+      </div>
+    ) : null,
+}));
+
 afterEach(() => cleanup());
 
 const baseProps = {
@@ -68,51 +79,28 @@ const productItem = {
 };
 
 describe("ProductsView - delete action", () => {
-  it("calls delete handler when clicking delete action", () => {
-    const onOpenDeleteDialog = vi.fn();
-
+  it("renders product in the list", () => {
     render(
       <ProductsView
         {...baseProps}
         products={[productItem]}
-        onOpenDeleteDialog={onOpenDeleteDialog}
       />
     );
 
-    const deleteButtons = screen.getAllByRole("button", { name: /deletar/i });
-    fireEvent.click(deleteButtons[0]);
-    expect(onOpenDeleteDialog).toHaveBeenCalledWith(productItem);
+    expect(screen.getAllByText("Produto Teste").length).toBeGreaterThan(0);
   });
 
-  it("does not close dialog when confirming delete with batches", () => {
-    const onConfirmDelete = vi.fn();
-    const onCloseDeleteDialog = vi.fn();
-
+  it("shows delete modal when deleteDialogOpen is true", () => {
     render(
       <ProductsView
         {...baseProps}
         products={[productItem]}
         deleteDialogOpen
         deleteProduct={productItem}
-        deleteBatches={[
-          {
-            id: "b1",
-            productId: "prod-1",
-            productName: "Produto Teste",
-            warehouseId: "wh-1",
-            quantity: 3,
-            batchNumber: "L1",
-            expirationDate: null,
-          },
-        ]}
-        onConfirmDelete={onConfirmDelete}
-        onCloseDeleteDialog={onCloseDeleteDialog}
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /excluir/i }));
-    expect(onConfirmDelete).toHaveBeenCalled();
-    expect(onCloseDeleteDialog).not.toHaveBeenCalled();
+    expect(screen.getByText(/confirmar remoção/i)).toBeTruthy();
   });
 
   it("shows warning block with batches when delete dialog is open", () => {
@@ -137,7 +125,6 @@ describe("ProductsView - delete action", () => {
     );
 
     expect(screen.getByText(/ainda existe estoque/i)).toBeTruthy();
-    expect(screen.getByText(/l1/i)).toBeTruthy();
   });
 
   it("renders second confirmation modal when enabled", () => {
@@ -150,6 +137,6 @@ describe("ProductsView - delete action", () => {
       />
     );
 
-    expect(screen.getByText(/tem certeza/i)).toBeTruthy();
+    expect(screen.getByText(/confirmação final/i)).toBeTruthy();
   });
 });

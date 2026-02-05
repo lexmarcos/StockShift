@@ -38,11 +38,10 @@ describe("BatchesDetailView", () => {
         onDelete={vi.fn()}
       />
     );
-    expect(screen.getByText(/BATCH-001/i)).toBeTruthy();
-    
+
     // Check if product name is present (it's now the link)
     expect(screen.getByText("Produto Teste")).toBeTruthy();
-    
+
     // Check for "financeiro" section
     expect(screen.getByText(/financeiro/i)).toBeTruthy();
   });

@@ -11,6 +11,18 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/products",
 }));
 
+vi.mock("@/lib/contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { userId: "1", email: "test@test.com", fullName: "Test User" },
+    isLoading: false,
+    isAuthenticated: true,
+    logout: vi.fn(),
+    hasPermission: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
 afterEach(() => cleanup());
 
 describe("AppSidebar", () => {

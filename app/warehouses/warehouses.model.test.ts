@@ -11,6 +11,7 @@ vi.mock("swr", () => ({
       data: [
         {
           id: "1",
+          code: "WH-001",
           name: "Main Warehouse",
           description: "Primary storage",
           address: "123 Main St",
@@ -24,6 +25,7 @@ vi.mock("swr", () => ({
         },
         {
           id: "2",
+          code: "WH-002",
           name: "Secondary Warehouse",
           description: "Secondary storage",
           address: "456 Secondary St",

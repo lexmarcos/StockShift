@@ -32,6 +32,10 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock("@/components/breadcrumb", () => ({
+  useBreadcrumb: vi.fn(),
+}));
+
 const mockMatchMedia = (matches: boolean) => {
   Object.defineProperty(window, "matchMedia", {
     writable: true,

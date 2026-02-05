@@ -191,7 +191,7 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onSecondConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
     expect(result.current.secondConfirmOpen).toBe(false);
   });
 
@@ -230,7 +230,7 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
     expect(result.current.secondConfirmOpen).toBe(false);
     expect(result.current.deleteDialogOpen).toBe(false);
   });
