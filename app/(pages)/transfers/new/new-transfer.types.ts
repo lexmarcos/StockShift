@@ -7,7 +7,6 @@ export interface NewTransferViewProps {
   warehouses: { id: string; name: string }[];
   products: { id: string; name: string }[];
   batches: { id: string; code: string; quantity: number }[];
-  onSelectProduct: (productId: string) => void;
   isLoading: boolean;
   isSubmitting: boolean;
 

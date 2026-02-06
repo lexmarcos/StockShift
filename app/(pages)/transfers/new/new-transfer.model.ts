@@ -189,7 +189,6 @@ export function useNewTransferModel(): NewTransferViewProps {
     warehouses,
     products,
     batches,
-    onSelectProduct: handleProductChange,
     isLoading: isLoadingWarehouses || isLoadingProducts,
     isSubmitting,
     selectedProductId,

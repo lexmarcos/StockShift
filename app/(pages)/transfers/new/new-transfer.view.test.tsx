@@ -32,7 +32,6 @@ const TestWrapper = (props: Partial<NewTransferViewProps>) => {
     ],
     products: [{ id: "p1", name: "Product 1" }],
     batches: [{ id: "b1", code: "BATCH-001", quantity: 100 }],
-    onSelectProduct: vi.fn(),
     isLoading: false,
     isSubmitting: false,
     selectedProductId: "",

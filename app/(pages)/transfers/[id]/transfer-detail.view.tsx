@@ -17,7 +17,6 @@ import {
 
 export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
   isLoading,
-  error,
   transfer,
   isSource,
   isDestination,

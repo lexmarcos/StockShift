@@ -35,7 +35,6 @@ describe("TransfersView", () => {
       status: TransferStatus.DRAFT,
       items: [{ id: "i1", sourceBatchId: "b1", quantity: 10, productName: "Item 1" }],
       createdAt: "2023-01-01T00:00:00Z",
-      updatedAt: "2023-01-01T00:00:00Z",
     },
   ];
 
