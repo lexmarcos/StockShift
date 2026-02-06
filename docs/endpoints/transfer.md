@@ -1,7 +1,13 @@
 # Transfer Endpoints
 
 ## Overview
-These endpoints manage inventory transfers between warehouses. A transfer follows a strict lifecycle: `DRAFT` -> `IN_TRANSIT` -> `IN_VALIDATION` -> `COMPLETED` (or `CANCELLED`).
+These endpoints manage inventory transfers between warehouses.
+
+Transfer lifecycle:
+- `DRAFT` -> `IN_TRANSIT` -> `PENDING_VALIDATION` -> `COMPLETED`
+- `DRAFT` -> `IN_TRANSIT` -> `PENDING_VALIDATION` -> `COMPLETED_WITH_DISCREPANCY`
+- `DRAFT` -> `CANCELLED`
+- `IN_TRANSIT` -> `CANCELLED`
 
 **Base URL**: `/stockshift/api/transfers`
 **Authentication**: Required (Bearer token)
@@ -60,7 +66,7 @@ These endpoints manage inventory transfers between warehouses. A transfer follow
 ### Request
 **Method**: `GET`
 **Query Parameters**:
-- `status`: Filter by status (`DRAFT`, `IN_TRANSIT`, `IN_VALIDATION`, `COMPLETED`, `CANCELLED`)
+- `status`: Filter by status (`DRAFT`, `IN_TRANSIT`, `PENDING_VALIDATION`, `COMPLETED`, `COMPLETED_WITH_DISCREPANCY`, `CANCELLED`)
 - `sourceWarehouseId`: Filter by origin warehouse
 - `destinationWarehouseId`: Filter by destination warehouse
 - `page`, `size`, `sort`: Standard pagination parameters
@@ -166,7 +172,7 @@ This operation deducts the items from the source warehouse inventory and marks t
 **Required Permissions**: `TRANSFER_VALIDATE` or `ROLE_ADMIN`
 
 ### Description
-Moves the status to `IN_VALIDATION`. This step is required before starting to scan items at the destination.
+Moves the status to `PENDING_VALIDATION`. This step is required before scanning items at the destination.
 
 ### Response (200 OK)
 ```json
@@ -238,7 +244,8 @@ Finalizes the process, moving stock from "transit" to the destination warehouse.
 **Summary**: Get the discrepancy report for a transfer.
 
 ### Description
-Returns a report showing any differences between sent and received quantities. Use this before completing validation to review discrepancies.
+Returns a report showing differences between sent and received quantities.
+This endpoint is only available when transfer status is `COMPLETED_WITH_DISCREPANCY`.
 
 ### Response (200 OK)
 ```json
@@ -247,16 +254,34 @@ Returns a report showing any differences between sent and received quantities. U
   "message": "Discrepancy report retrieved successfully",
   "data": {
     "transferId": "...",
-    "items": [
+    "transferCode": "TRF-2026-0001",
+    "sourceWarehouseName": "Warehouse A",
+    "destinationWarehouseName": "Warehouse B",
+    "completedAt": "2026-02-06T01:20:00Z",
+    "discrepancies": [
       {
         "productName": "Perfume XYZ",
+        "productBarcode": "7891234567890",
         "quantitySent": 10.0,
         "quantityReceived": 9.0,
-        "discrepancyType": "SHORTAGE",
-        "difference": -1.0
+        "difference": -1.0,
+        "type": "SHORTAGE"
       }
-    ]
+    ],
+    "totalShortage": 1.0,
+    "totalOverage": 0.0
   }
+}
+```
+
+### Response (400 Bad Request)
+```json
+{
+  "timestamp": "2026-02-06T01:30:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Discrepancy report only available for transfers with discrepancies",
+  "path": "/stockshift/api/transfers/{id}/discrepancy-report"
 }
 ```
 
@@ -275,9 +300,11 @@ Returns all barcode scan events recorded during the validation process.
   "message": "Validation logs retrieved successfully",
   "data": [
     {
+      "id": "880e8400-e29b-41d4-a716-446655440004",
+      "transferItemId": "990e8400-e29b-41d4-a716-446655440005",
       "barcode": "7891234567890",
-      "productName": "Perfume XYZ",
-      "scannedAt": "2026-02-04T14:30:00Z",
+      "validatedByUserId": "aa0e8400-e29b-41d4-a716-446655440006",
+      "validatedAt": "2026-02-04T14:30:00Z",
       "valid": true
     }
   ]
@@ -318,5 +345,5 @@ Cancels a transfer. If the transfer is `IN_TRANSIT`, stock movements are reverte
 2. **Warehouse Context**: The source warehouse is inferred from the user's current active warehouse.
 3. **Real-time Scanning**: The `/scan` endpoint is optimized for high-frequency use with handheld scanners.
 4. **Validation UX**: Show a list of items to be received and highlight discrepancies in real-time as the user scans.
-5. **Discrepancy Report**: Before completing validation, call `/discrepancy-report` to show missing or extra items.
-6. **Validation Logs**: Use `/validation-logs` to display a history of all scanned items during validation.
+5. **Validation Resume**: Use `GET /stockshift/api/transfers/{id}` and `items[].quantityReceived` to resume an in-progress validation (`PENDING_VALIDATION`) without starting it again.
+6. **Discrepancy Report Rule**: Call `/discrepancy-report` only when status is `COMPLETED_WITH_DISCREPANCY`; otherwise expect `400 Bad Request`.

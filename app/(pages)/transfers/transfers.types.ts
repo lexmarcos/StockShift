@@ -11,6 +11,8 @@ export interface TransferItem {
   id: string;
   sourceBatchId: string;
   quantity: number;
+  quantitySent?: number;
+  quantityReceived?: number;
   productName?: string;
   productBarcode?: string;
   batchCode?: string;
@@ -84,9 +86,11 @@ export interface DiscrepancyReportResponse {
 
 // GET /transfers/{id}/validation-logs
 export interface ValidationLogEntry {
+  id: string;
+  transferItemId: string;
   barcode: string;
-  productName: string;
-  scannedAt: string;
+  validatedByUserId: string;
+  validatedAt: string;
   valid: boolean;
 }
 

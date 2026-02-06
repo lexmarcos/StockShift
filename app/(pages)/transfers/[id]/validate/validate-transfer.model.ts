@@ -19,7 +19,9 @@ export const useValidateTransferModel = (transferId: string) => {
   const [isFinishing, setIsFinishing] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [discrepancies, setDiscrepancies] = useState<DiscrepancyItem[]>([]);
-  const [lastScanResult, setLastScanResult] = useState<ScanResultItem | null>(null);
+  const [lastScanResult, setLastScanResult] = useState<ScanResultItem | null>(
+    null,
+  );
   const [barcode, setBarcode] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,21 +34,26 @@ export const useValidateTransferModel = (transferId: string) => {
   }, []);
 
   // Fetch transfer details
-  const { data: transferData, isLoading: isLoadingTransfer } = useSWR<TransferDetailResponse>(
-    transferId ? `transfers/${transferId}` : null,
-    async (url: string) => {
-      return await api.get(url).json<TransferDetailResponse>();
-    }
-  );
+  const { data: transferData, isLoading: isLoadingTransfer } =
+    useSWR<TransferDetailResponse>(
+      transferId ? `transfers/${transferId}` : null,
+      async (url: string) => {
+        return await api.get(url).json<TransferDetailResponse>();
+      },
+    );
 
   const transfer = transferData?.data;
 
   // Fetch validation logs (scan history)
-  const { data: logsData, isLoading: isLoadingLogs, mutate: mutateLogs } = useSWR<ValidationLogsResponse>(
+  const {
+    data: logsData,
+    isLoading: isLoadingLogs,
+    mutate: mutateLogs,
+  } = useSWR<ValidationLogsResponse>(
     transferId ? `transfers/${transferId}/validation-logs` : null,
     async (url: string) => {
       return await api.get(url).json<ValidationLogsResponse>();
-    }
+    },
   );
 
   const validationLogs = useMemo(() => logsData?.data || [], [logsData]);
@@ -66,8 +73,9 @@ export const useValidateTransferModel = (transferId: string) => {
 
     const scannedCounts: Record<string, number> = {};
     validationLogs.forEach((log) => {
-      if (log.valid) {
-        scannedCounts[log.productName] = (scannedCounts[log.productName] || 0) + 1;
+      if (log.valid && log.transferItemId) {
+        scannedCounts[log.transferItemId] =
+          (scannedCounts[log.transferItemId] || 0) + 1;
       }
     });
 
@@ -75,16 +83,22 @@ export const useValidateTransferModel = (transferId: string) => {
       id: item.id,
       productName: item.productName || "Produto desconhecido",
       batchCode: item.batchCode || "Sem lote",
-      expectedQuantity: item.quantity,
-      scannedQuantity: scannedCounts[item.productName || ""] || 0,
+      expectedQuantity: item.quantitySent || item.quantity || 0,
+      scannedQuantity: scannedCounts[item.id] || 0,
     }));
   }, [transfer, validationLogs]);
 
   // Calculate global progress
   const progress = useMemo(() => {
     if (!expectedItems.length) return 0;
-    const totalExpected = expectedItems.reduce((acc, item) => acc + item.expectedQuantity, 0);
-    const totalScanned = expectedItems.reduce((acc, item) => acc + item.scannedQuantity, 0);
+    const totalExpected = expectedItems.reduce(
+      (acc, item) => acc + item.expectedQuantity,
+      0,
+    );
+    const totalScanned = expectedItems.reduce(
+      (acc, item) => acc + item.scannedQuantity,
+      0,
+    );
     if (totalExpected === 0) return 100;
     return Math.min(100, (totalScanned / totalExpected) * 100);
   }, [expectedItems]);
@@ -98,7 +112,9 @@ export const useValidateTransferModel = (transferId: string) => {
       setBarcode("");
 
       const result = await api
-        .post(`transfers/${transferId}/scan`, { json: { barcode: trimmedBarcode } })
+        .post(`transfers/${transferId}/scan`, {
+          json: { barcode: trimmedBarcode },
+        })
         .json<ScanResponse>();
 
       const scanData = result.data;
@@ -125,23 +141,23 @@ export const useValidateTransferModel = (transferId: string) => {
     }
   };
 
-  const handleFinish = async () => {
+  const handleFinish = () => {
     if (!transferId) return;
 
-    try {
-      setIsProcessing(true);
-      const report = await api
-        .get(`transfers/${transferId}/discrepancy-report`)
-        .json<DiscrepancyReportResponse>();
+    // Calculate discrepancies locally based on scanned vs expected quantities
+    const localDiscrepancies: DiscrepancyItem[] = expectedItems
+      .filter((item) => item.scannedQuantity !== item.expectedQuantity)
+      .map((item) => ({
+        productName: item.productName,
+        quantitySent: item.expectedQuantity,
+        quantityReceived: item.scannedQuantity,
+        difference: item.scannedQuantity - item.expectedQuantity,
+        discrepancyType:
+          item.scannedQuantity > item.expectedQuantity ? "OVERAGE" : "SHORTAGE",
+      }));
 
-      setDiscrepancies(report.data.items);
-      setShowFinishModal(true);
-    } catch (err: unknown) {
-      const error = err as Error;
-      toast.error(error.message || "Erro ao gerar relatório de discrepâncias.");
-    } finally {
-      setIsProcessing(false);
-    }
+    setDiscrepancies(localDiscrepancies);
+    setShowFinishModal(true);
   };
 
   const handleConfirmFinish = async () => {

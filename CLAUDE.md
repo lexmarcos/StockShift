@@ -77,8 +77,27 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 - **Ícones:** Lucide, sempre com `stroke-width={2}` ou `2.5`.
 - **Feedback:** Erros e sucessos usam cores de fundo em opacidade 10% com bordas e ícones na cor pura (Ex: `bg-rose-500/10 text-rose-500`).
 
+## Checklist Obrigatório para Telas
+
+  Antes de finalizar qualquer view, verifique:
+  - [ ] Breadcrumb: Rota filha? → useBreadcrumb no page.tsx
+  - [ ] Header: PageHeader com título e ação principal
+  - [ ] Botão principal: uppercase, tracking-wide, bg-blue-600
+  - [ ] Cards: bg-[#171717], border-neutral-800, rounded-[4px]
+  - [ ] Status: border-l-4 com cor vivid correspondente
+  - [ ] Empty state: border dashed, ícone centralizado
+  - [ ] Mobile: Layout mobile-first, FAB para ação principal
+  - [ ] Fixed bars: inclui md:ml-[240px]
+  - [ ] Sem animações/transições suaves
+
 ## Instruções Detalhadas
 - [Arquitetura MVVM](.claude/architecture.md) - Estrutura de páginas e validação
 - [Componentes](.claude/components.md) - UI, breadcrumb, responsivo
 - [Data Fetching](.claude/data-fetching.md) - SWR e ky
 - [Testes](.claude/testing.md) - Vitest e workflow
+
+## Browser Automation
+
+### Usuário de teste para automação:
+email: test@test.com
+senha: test123

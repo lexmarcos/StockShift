@@ -13,9 +13,13 @@ vi.mock("lucide-react", () => ({
 
 // Mock Link
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 // Clean up after each test
@@ -33,7 +37,9 @@ describe("TransfersView", () => {
       destinationWarehouseId: "wh2",
       destinationWarehouseName: "Warehouse B",
       status: TransferStatus.DRAFT,
-      items: [{ id: "i1", sourceBatchId: "b1", quantity: 10, productName: "Item 1" }],
+      items: [
+        { id: "i1", sourceBatchId: "b1", quantity: 10, productName: "Item 1" },
+      ],
       createdAt: "2023-01-01T00:00:00Z",
     },
   ];
@@ -54,7 +60,9 @@ describe("TransfersView", () => {
   });
 
   it("renders the new transfer button only on outgoing tab", () => {
-    const { rerender } = render(<TransfersView {...defaultProps} activeTab="outgoing" />);
+    const { rerender } = render(
+      <TransfersView {...defaultProps} activeTab="outgoing" />,
+    );
     expect(screen.queryByText("Nova Transferência")).toBeDefined();
 
     rerender(<TransfersView {...defaultProps} activeTab="incoming" />);
@@ -68,12 +76,14 @@ describe("TransfersView", () => {
     // Check for warehouse name
     expect(screen.getAllByText("Warehouse B").length).toBeGreaterThan(0);
     // Check for item count
-    expect(screen.getAllByText("10 itens").length).toBeGreaterThan(0);
+    expect(screen.getByText("1 itens")).toBeDefined();
   });
 
   it("reflects active tab state", () => {
     // We check if the tabs have the correct data-state attribute based on props
-    const { rerender } = render(<TransfersView {...defaultProps} activeTab="outgoing" />);
+    const { rerender } = render(
+      <TransfersView {...defaultProps} activeTab="outgoing" />,
+    );
     const outgoingTab = screen.getByRole("tab", { name: /enviadas/i });
     const incomingTab = screen.getByRole("tab", { name: /recebidas/i });
 
@@ -81,16 +91,16 @@ describe("TransfersView", () => {
     // Since we are mocking or running in JSDOM, we check if the prop is passed down correctly
     // indirectly by checking if the content is rendered or the tab styling class is applied if possible.
     // However, simply checking existence of elements is safer.
-    
+
     expect(outgoingTab.getAttribute("data-state")).toBe("active");
     expect(incomingTab.getAttribute("data-state")).toBe("inactive");
 
     rerender(<TransfersView {...defaultProps} activeTab="incoming" />);
-    
+
     // Re-query elements as they might be re-rendered
     const outgoingTab2 = screen.getByRole("tab", { name: /enviadas/i });
     const incomingTab2 = screen.getByRole("tab", { name: /recebidas/i });
-    
+
     expect(outgoingTab2.getAttribute("data-state")).toBe("inactive");
     expect(incomingTab2.getAttribute("data-state")).toBe("active");
   });
