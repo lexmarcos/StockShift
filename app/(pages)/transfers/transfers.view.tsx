@@ -78,7 +78,7 @@ export function TransfersView({
             </div>
           ) : (
             transfers.map((transfer) => {
-              const config = statusConfig[transfer.status];
+              const config = statusConfig[transfer.status] || { color: "border-neutral-600", label: transfer.status };
               const totalItems = transfer.items.reduce((acc, item) => acc + item.quantity, 0);
 
               return (
