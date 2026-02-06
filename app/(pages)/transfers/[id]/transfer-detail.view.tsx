@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Calendar, FileText, Truck, CheckCircle, XCircle, Edit } from "lucide-react";
+import { ArrowRight, Calendar, FileText, CheckCircle, XCircle, Edit } from "lucide-react";
 import { TransferDetailViewProps } from "./transfer-detail.types";
 import { TransferStatus } from "../transfers.types";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
         return <Badge variant="outline" className="bg-neutral-800 text-neutral-400 border-neutral-700 rounded-[4px]">RASCUNHO</Badge>;
       case TransferStatus.IN_TRANSIT:
         return <Badge className="bg-blue-600/20 text-blue-500 border-blue-600/50 rounded-[4px]">EM TRÂNSITO</Badge>;
+      case TransferStatus.PENDING_VALIDATION:
+        return <Badge className="bg-purple-500/20 text-purple-500 border-purple-500/50 rounded-[4px]">AGUARDANDO VALIDAÇÃO</Badge>;
       case TransferStatus.IN_VALIDATION:
         return <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/50 rounded-[4px]">EM VALIDAÇÃO</Badge>;
       case TransferStatus.COMPLETED:
@@ -63,6 +65,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
   const getStatusColor = (status: TransferStatus) => {
     switch (status) {
       case TransferStatus.IN_TRANSIT: return "border-l-blue-600";
+      case TransferStatus.PENDING_VALIDATION: return "border-l-purple-500";
       case TransferStatus.IN_VALIDATION: return "border-l-amber-500";
       case TransferStatus.COMPLETED: return "border-l-emerald-600";
       case TransferStatus.CANCELLED: return "border-l-rose-600";
@@ -72,32 +75,20 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
 
   return (
     <div className="min-h-screen pb-32">
-      {/* Header */}
-      <div className="bg-neutral-900 border-b border-neutral-800 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        {/* Route Card */}
+        <Card className={`bg-[#171717] border-neutral-800 border-l-4 ${getStatusColor(transfer.status)} rounded-[4px]`}>
+          <CardHeader className="pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold tracking-tight text-white">{transfer.code}</h1>
                 {getStatusBadge(transfer.status)}
               </div>
-              <p className="text-neutral-400 text-sm flex items-center gap-2">
+              <p className="text-neutral-500 text-sm flex items-center gap-2">
                 <Calendar className="w-4 h-4" strokeWidth={2} />
                 Criado em {new Date(transfer.createdAt).toLocaleDateString()}
               </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        {/* Route Card */}
-        <Card className={`bg-[#171717] border-neutral-800 border-l-4 ${getStatusColor(transfer.status)} rounded-[4px]`}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Truck className="w-5 h-5 text-neutral-400" strokeWidth={2} />
-              Rota de Transferência
-            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

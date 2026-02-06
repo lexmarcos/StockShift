@@ -17,7 +17,8 @@ interface TransfersViewProps {
 const statusConfig: Record<TransferStatus, { color: string; label: string }> = {
   [TransferStatus.DRAFT]: { color: "border-blue-600", label: "Rascunho" },
   [TransferStatus.IN_TRANSIT]: { color: "border-amber-500", label: "Em Trânsito" },
-  [TransferStatus.IN_VALIDATION]: { color: "border-purple-500", label: "Em Validação" },
+  [TransferStatus.PENDING_VALIDATION]: { color: "border-purple-500", label: "Aguardando Validação" },
+  [TransferStatus.IN_VALIDATION]: { color: "border-amber-500", label: "Em Validação" },
   [TransferStatus.COMPLETED]: { color: "border-emerald-600", label: "Concluído" },
   [TransferStatus.CANCELLED]: { color: "border-neutral-600", label: "Cancelado" },
 };
