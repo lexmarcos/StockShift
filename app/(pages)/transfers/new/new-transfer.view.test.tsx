@@ -53,7 +53,7 @@ const TestWrapper = (props: Partial<NewTransferViewProps>) => {
 describe("NewTransferView", () => {
   it("renders the form correctly", () => {
     render(<TestWrapper />);
-    expect(screen.getByText("Destino")).toBeTruthy();
+    expect(screen.getByText("Rota")).toBeTruthy();
     expect(screen.getByText("Adicionar Item")).toBeTruthy();
 
     const buttons = screen.getAllByText("CRIAR TRANSFERÊNCIA");

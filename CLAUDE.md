@@ -14,6 +14,7 @@ Frontend de gerenciamento de estoque construído com Next.js 15, TypeScript, Tai
 - **Dark-Only** - Fundo `#0A0A0A`, sem suporte a light mode
 - **Mobile First** - Sempre começar pelo mobile
 - **MVVM obrigatório** - Toda página segue a arquitetura MVVM
+- **Componentes Compostos obrigatórios** - Ao criar páginas, SEMPRE usar os componentes compostos (`PageContainer`, `PageHeader`, `InsightCard`, `StatusCard`, `FormSection`, `EmptyState`, `LoadingState`, `ErrorState`, `FixedBottomBar`, `SectionLabel`) e consultar os templates em `.claude/templates/`
 - **Não criar arquivos .md** - Apenas se o usuário solicitar
 - **Perguntar sobre testes** - Ao finalizar uma página, oferecer testes do model
 
@@ -92,9 +93,10 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 
 ## Instruções Detalhadas
 - [Arquitetura MVVM](.claude/architecture.md) - Estrutura de páginas e validação
-- [Componentes](.claude/components.md) - UI, breadcrumb, responsivo
+- [Componentes](.claude/components.md) - UI, breadcrumb, responsivo, componentes compostos
 - [Data Fetching](.claude/data-fetching.md) - SWR e ky
 - [Testes](.claude/testing.md) - Vitest e workflow
+- [Templates de Página](.claude/templates/) - Templates de referência para listagem, formulário e detalhe
 
 ## Browser Automation
 

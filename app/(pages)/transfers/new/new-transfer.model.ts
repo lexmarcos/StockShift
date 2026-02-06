@@ -26,8 +26,8 @@ interface ProductListResponse {
 interface BatchListResponse {
   success: boolean;
   data:
-    | { content: Array<{ id: string; code: string; quantity: number }> }
-    | Array<{ id: string; code: string; quantity: number }>;
+    | { content: Array<{ id: string; code: string; quantity: number; productId: string }> }
+    | Array<{ id: string; code: string; quantity: number; productId: string }>;
 }
 
 export function useNewTransferModel(): NewTransferViewProps {
@@ -70,7 +70,9 @@ export function useNewTransferModel(): NewTransferViewProps {
     );
 
   const { data: batchesData } = useSWR<BatchListResponse>(
-    selectedProductId ? `batches?productId=${selectedProductId}` : null,
+    selectedProductId && currentWarehouseId
+      ? `batches/warehouse/${currentWarehouseId}`
+      : null,
     async (url: string) => api.get(url).json<BatchListResponse>()
   );
 
@@ -89,11 +91,13 @@ export function useNewTransferModel(): NewTransferViewProps {
   const rawBatches = batchesData?.data;
   const batches = (
     Array.isArray(rawBatches) ? rawBatches : rawBatches?.content || []
-  ).map((b) => ({
-    id: b.id,
-    code: b.code,
-    quantity: b.quantity,
-  }));
+  )
+    .filter((b) => b.productId === selectedProductId)
+    .map((b) => ({
+      id: b.id,
+      code: b.code,
+      quantity: b.quantity,
+    }));
 
   const handleProductChange = (productId: string) => {
     setSelectedProductId(productId);

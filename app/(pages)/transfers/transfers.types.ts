@@ -10,7 +10,7 @@ export enum TransferStatus {
 export interface TransferItem {
   id: string;
   sourceBatchId: string;
-  quantity: number;
+  quantity?: number;
   quantitySent?: number;
   quantityReceived?: number;
   productName?: string;

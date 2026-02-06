@@ -1,19 +1,70 @@
 import Link from "next/link";
-import { ArrowRight, Calendar, FileText, CheckCircle, XCircle, Edit } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Edit,
+  Package,
+  Warehouse,
+  Truck,
+  MapPin,
+  Hash,
+  Clock,
+  ShieldCheck,
+} from "lucide-react";
 import { TransferDetailViewProps } from "./transfer-detail.types";
 import { TransferStatus } from "../transfers.types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionLabel } from "@/components/ui/section-label";
+import { LoadingState } from "@/components/ui/loading-state";
+import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
+import { cn } from "@/lib/utils";
+
+const statusConfig: Record<
+  TransferStatus,
+  { dot: string; bg: string; text: string; label: string }
+> = {
+  [TransferStatus.DRAFT]: {
+    dot: "bg-neutral-500",
+    bg: "bg-neutral-500/10 border-neutral-500/30",
+    text: "text-neutral-400",
+    label: "RASCUNHO",
+  },
+  [TransferStatus.IN_TRANSIT]: {
+    dot: "bg-amber-500",
+    bg: "bg-amber-500/10 border-amber-500/30",
+    text: "text-amber-400",
+    label: "EM TRÂNSITO",
+  },
+  [TransferStatus.PENDING_VALIDATION]: {
+    dot: "bg-purple-500",
+    bg: "bg-purple-500/10 border-purple-500/30",
+    text: "text-purple-400",
+    label: "AGUARDANDO VALIDAÇÃO",
+  },
+  [TransferStatus.IN_VALIDATION]: {
+    dot: "bg-purple-500",
+    bg: "bg-purple-500/10 border-purple-500/30",
+    text: "text-purple-400",
+    label: "EM VALIDAÇÃO",
+  },
+  [TransferStatus.COMPLETED]: {
+    dot: "bg-emerald-500",
+    bg: "bg-emerald-500/10 border-emerald-500/30",
+    text: "text-emerald-400",
+    label: "CONCLUÍDA",
+  },
+  [TransferStatus.CANCELLED]: {
+    dot: "bg-rose-500",
+    bg: "bg-rose-500/10 border-rose-500/30",
+    text: "text-rose-400",
+    label: "CANCELADA",
+  },
+};
 
 export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
   isLoading,
@@ -29,221 +80,461 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-neutral-500">
-        Carregando detalhes...
-      </div>
+      <PageContainer>
+        <LoadingState message="Carregando detalhes da transferência..." />
+      </PageContainer>
     );
   }
 
   if (!transfer) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="text-neutral-400">Transferência não encontrada</div>
-      </div>
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-32">
+          <Package className="mb-4 h-10 w-10 text-neutral-600" strokeWidth={2} />
+          <p className="text-sm font-bold text-white">Transferência não encontrada</p>
+          <p className="mt-1 text-xs text-neutral-500">
+            Verifique o ID e tente novamente.
+          </p>
+        </div>
+      </PageContainer>
     );
   }
 
-  const getStatusBadge = (status: TransferStatus) => {
-    switch (status) {
-      case TransferStatus.DRAFT:
-        return <Badge variant="outline" className="bg-neutral-800 text-neutral-400 border-neutral-700 rounded-[4px]">RASCUNHO</Badge>;
-      case TransferStatus.IN_TRANSIT:
-        return <Badge className="bg-blue-600/20 text-blue-500 border-blue-600/50 rounded-[4px]">EM TRÂNSITO</Badge>;
-      case TransferStatus.PENDING_VALIDATION:
-        return <Badge className="bg-purple-500/20 text-purple-500 border-purple-500/50 rounded-[4px]">AGUARDANDO VALIDAÇÃO</Badge>;
-      case TransferStatus.IN_VALIDATION:
-        return <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/50 rounded-[4px]">EM VALIDAÇÃO</Badge>;
-      case TransferStatus.COMPLETED:
-        return <Badge className="bg-emerald-600/20 text-emerald-500 border-emerald-600/50 rounded-[4px]">CONCLUÍDA</Badge>;
-      case TransferStatus.CANCELLED:
-        return <Badge className="bg-rose-600/20 text-rose-500 border-rose-600/50 rounded-[4px]">CANCELADA</Badge>;
-      default:
-        return <Badge variant="outline" className="rounded-[4px]">{status}</Badge>;
-    }
-  };
-
-  const getStatusColor = (status: TransferStatus) => {
-    switch (status) {
-      case TransferStatus.IN_TRANSIT: return "border-l-blue-600";
-      case TransferStatus.PENDING_VALIDATION: return "border-l-purple-500";
-      case TransferStatus.IN_VALIDATION: return "border-l-amber-500";
-      case TransferStatus.COMPLETED: return "border-l-emerald-600";
-      case TransferStatus.CANCELLED: return "border-l-rose-600";
-      default: return "border-l-neutral-600";
-    }
-  };
+  const status = statusConfig[transfer.status] || statusConfig[TransferStatus.DRAFT];
+  const getItemQty = (item: { quantity?: number; quantitySent?: number }) =>
+    item.quantity ?? item.quantitySent ?? 0;
+  const totalQuantity = transfer.items.reduce((acc, item) => acc + getItemQty(item), 0);
+  const hasActions =
+    (isSource && transfer.status === TransferStatus.DRAFT) ||
+    (isSource && transfer.status === TransferStatus.IN_TRANSIT) ||
+    (isDestination && transfer.status === TransferStatus.IN_TRANSIT) ||
+    (isDestination &&
+      (transfer.status === TransferStatus.PENDING_VALIDATION ||
+        transfer.status === TransferStatus.IN_VALIDATION)) ||
+    transfer.status === TransferStatus.COMPLETED ||
+    transfer.status === TransferStatus.CANCELLED;
 
   return (
-    <div className="min-h-screen pb-32">
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        {/* Route Card */}
-        <Card className={`bg-[#171717] border-neutral-800 border-l-4 ${getStatusColor(transfer.status)} rounded-[4px]`}>
-          <CardHeader className="pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-white">{transfer.code}</h1>
-                {getStatusBadge(transfer.status)}
+    <PageContainer bottomPadding={hasActions ? "fixed-bar" : "default"}>
+      <PageHeader
+        title={transfer.code}
+        subtitle="Detalhes da Transferência"
+        actions={
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                "flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest",
+                status.bg,
+                status.text
+              )}
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
+              {status.label}
+            </span>
+          </div>
+        }
+      />
+
+      {/* ── Route Card ── */}
+      <div className="mb-8 rounded-[4px] border border-neutral-800 bg-[#171717] p-5 sm:p-6">
+        {/* Route visual */}
+        <div className="flex flex-col items-stretch gap-0 sm:flex-row sm:items-center sm:gap-0">
+          {/* Origin node */}
+          <div className="flex flex-1 items-start gap-4 sm:items-center">
+            <div className="relative flex flex-col items-center">
+              <div
+                className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-[4px] border",
+                  isSource
+                    ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
+                    : "border-neutral-700 bg-neutral-800 text-neutral-400"
+                )}
+              >
+                <Warehouse className="h-5 w-5" strokeWidth={2} />
               </div>
-              <p className="text-neutral-500 text-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4" strokeWidth={2} />
-                Criado em {new Date(transfer.createdAt).toLocaleDateString()}
+              {/* Vertical connector (mobile only) */}
+              <div className="mt-1 h-6 w-px bg-neutral-700 sm:hidden" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Origem
               </p>
+              <p className="mt-0.5 truncate text-base font-bold text-white">
+                {transfer.sourceWarehouseName}
+              </p>
+              {isSource && (
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-blue-500">
+                  Seu depósito
+                </p>
+              )}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex-1">
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider block mb-1">Origem</span>
-                <div className="text-lg font-medium text-white">{transfer.sourceWarehouseName}</div>
-                {isSource && <span className="text-xs text-blue-500 font-mono mt-1 block">SEU WAREHOUSE</span>}
-              </div>
+          </div>
 
-              <div className="hidden md:flex items-center justify-center px-4">
-                <ArrowRight className="w-6 h-6 text-neutral-600" strokeWidth={2} />
+          {/* Route connector */}
+          <div className="flex items-center justify-center py-1 sm:px-6 sm:py-0">
+            {/* Desktop: horizontal dashed line + truck */}
+            <div className="hidden items-center gap-0 sm:flex">
+              <div className="h-px w-8 border-t border-dashed border-neutral-700" />
+              <div
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-full border",
+                  transfer.status === TransferStatus.IN_TRANSIT
+                    ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
+                    : transfer.status === TransferStatus.COMPLETED
+                      ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500"
+                )}
+              >
+                {transfer.status === TransferStatus.COMPLETED ? (
+                  <CheckCircle className="h-4 w-4" strokeWidth={2.5} />
+                ) : transfer.status === TransferStatus.CANCELLED ? (
+                  <XCircle className="h-4 w-4" strokeWidth={2.5} />
+                ) : (
+                  <Truck className="h-4 w-4" strokeWidth={2} />
+                )}
               </div>
-
-              <div className="flex-1 md:text-right">
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider block mb-1">Destino</span>
-                <div className="text-lg font-medium text-white">{transfer.destinationWarehouseName}</div>
-                {isDestination && <span className="text-xs text-blue-500 font-mono mt-1 block">SEU WAREHOUSE</span>}
-              </div>
+              <div className="h-px w-8 border-t border-dashed border-neutral-700" />
             </div>
 
-            {transfer.notes && (
-              <>
-                <Separator className="my-6 bg-neutral-800" />
-                <div>
-                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider block mb-2">
-                    <FileText className="w-3 h-3 inline mr-1" strokeWidth={2} />
-                    Observações
-                  </span>
-                  <p className="text-neutral-300 text-sm leading-relaxed">{transfer.notes}</p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+            {/* Mobile: vertical connector with icon */}
+            <div className="flex flex-col items-center sm:hidden">
+              <div
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-full border",
+                  transfer.status === TransferStatus.IN_TRANSIT
+                    ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
+                    : transfer.status === TransferStatus.COMPLETED
+                      ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500"
+                )}
+              >
+                {transfer.status === TransferStatus.COMPLETED ? (
+                  <CheckCircle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                ) : transfer.status === TransferStatus.CANCELLED ? (
+                  <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                ) : (
+                  <ArrowRight className="h-3.5 w-3.5 rotate-90" strokeWidth={2.5} />
+                )}
+              </div>
+              <div className="h-6 w-px bg-neutral-700" />
+            </div>
+          </div>
 
-        {/* Items List */}
-        <Card className="bg-[#171717] border-neutral-800 rounded-[4px]">
-          <CardHeader>
-            <CardTitle className="text-lg">Itens da Transferência</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-neutral-800 hover:bg-transparent">
-                  <TableHead className="text-neutral-500">Produto</TableHead>
-                  <TableHead className="text-neutral-500">Lote</TableHead>
-                  <TableHead className="text-right text-neutral-500">Qtd.</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transfer.items.map((item) => (
-                  <TableRow key={item.id} className="border-neutral-800 hover:bg-neutral-800/50">
-                    <TableCell className="font-medium text-white">
-                      {item.productName || "Produto Desconhecido"}
-                    </TableCell>
-                    <TableCell className="text-neutral-400 font-mono text-xs">
-                      {item.batchCode || "N/A"}
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-bold text-white tracking-tighter">
-                      {item.quantity}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+          {/* Destination node */}
+          <div className="flex flex-1 items-start gap-4 sm:items-center sm:justify-end">
+            <div className="order-1 min-w-0 flex-1 sm:order-none sm:text-right">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Destino
+              </p>
+              <p className="mt-0.5 truncate text-base font-bold text-white">
+                {transfer.destinationWarehouseName}
+              </p>
+              {isDestination && (
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-blue-500">
+                  Seu depósito
+                </p>
+              )}
+            </div>
+            <div
+              className={cn(
+                "order-0 flex h-12 w-12 items-center justify-center rounded-[4px] border sm:order-none",
+                isDestination
+                  ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
+                  : "border-neutral-700 bg-neutral-800 text-neutral-400"
+              )}
+            >
+              <MapPin className="h-5 w-5" strokeWidth={2} />
+            </div>
+          </div>
+        </div>
+
+        {/* Meta row */}
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-neutral-800 pt-5">
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
+            <Calendar className="h-3.5 w-3.5" strokeWidth={2} />
+            <span>
+              Criado em{" "}
+              <span className="font-medium text-neutral-300">
+                {new Date(transfer.createdAt).toLocaleDateString()}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
+            <Package className="h-3.5 w-3.5" strokeWidth={2} />
+            <span>
+              <span className="font-mono font-bold tracking-tighter text-neutral-300">
+                {transfer.items.length}
+              </span>{" "}
+              {transfer.items.length === 1 ? "item" : "itens"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
+            <Hash className="h-3.5 w-3.5" strokeWidth={2} />
+            <span>
+              Total{" "}
+              <span className="font-mono font-bold tracking-tighter text-neutral-300">
+                {totalQuantity}
+              </span>{" "}
+              unidades
+            </span>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {transfer.notes && (
+          <div className="mt-5 border-t border-neutral-800 pt-5">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <FileText className="h-3.5 w-3.5" strokeWidth={2.5} />
+              Observações
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-300">
+              {transfer.notes}
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Action Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-neutral-800 p-4 md:p-6 md:ml-[240px] z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-end gap-3">
-          {/* Source Actions */}
-          {isSource && transfer.status === TransferStatus.DRAFT && (
-            <>
-              <Link href={`/transfers/${transfer.id}/edit`}>
-                <Button variant="ghost" className="text-neutral-400 hover:text-white uppercase tracking-wide">
-                  <Edit className="w-4 h-4 mr-2" strokeWidth={2} />
-                  Editar
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                disabled={isCancelling}
-                className="border-neutral-700 text-neutral-300 hover:bg-rose-900/20 hover:text-rose-500 hover:border-rose-900"
-              >
-                {isCancelling ? "Cancelando..." : "CANCELAR"}
-              </Button>
-              <Button
-                onClick={onExecute}
-                disabled={isExecuting}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase"
-              >
-                {isExecuting ? "Processando..." : "EXECUTAR TRANSFERÊNCIA"}
-              </Button>
-            </>
-          )}
+      {/* ── Items ── */}
+      <SectionLabel icon={Package} className="mb-4">
+        Itens da Transferência
+      </SectionLabel>
 
-          {isSource && transfer.status === TransferStatus.IN_TRANSIT && (
-             <Button
+      {/* Mobile cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {transfer.items.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-white">
+                  {item.productName || "Produto Desconhecido"}
+                </p>
+                {item.batchCode && (
+                  <p className="mt-1 font-mono text-[10px] tracking-widest text-neutral-500">
+                    Lote: {item.batchCode}
+                  </p>
+                )}
+              </div>
+              <span className="font-mono text-lg font-bold tracking-tighter text-white">
+                {getItemQty(item)}
+              </span>
+            </div>
+            {(item.quantitySent != null || item.quantityReceived != null) && (
+              <div className="mt-3 flex gap-4 border-t border-neutral-800 pt-3">
+                {item.quantitySent != null && (
+                  <div className="text-xs text-neutral-500">
+                    Enviado{" "}
+                    <span className="font-mono font-bold tracking-tighter text-neutral-300">
+                      {item.quantitySent}
+                    </span>
+                  </div>
+                )}
+                {item.quantityReceived != null && (
+                  <div className="text-xs text-neutral-500">
+                    Recebido{" "}
+                    <span className="font-mono font-bold tracking-tighter text-emerald-400">
+                      {item.quantityReceived}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-neutral-800">
+                <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Produto
+                </th>
+                <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Lote
+                </th>
+                <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Quantidade
+                </th>
+                {(transfer.status === TransferStatus.IN_VALIDATION ||
+                  transfer.status === TransferStatus.PENDING_VALIDATION ||
+                  transfer.status === TransferStatus.COMPLETED) && (
+                  <>
+                    <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Enviado
+                    </th>
+                    <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Recebido
+                    </th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {transfer.items.map((item) => (
+                <tr
+                  key={item.id}
+                  className="border-b border-neutral-800 last:border-0"
+                >
+                  <td className="px-5 py-3.5 text-sm font-medium text-white">
+                    {item.productName || "Produto Desconhecido"}
+                  </td>
+                  <td className="px-5 py-3.5 font-mono text-xs text-neutral-400">
+                    {item.batchCode || "—"}
+                  </td>
+                  <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
+                    {getItemQty(item)}
+                  </td>
+                  {(transfer.status === TransferStatus.IN_VALIDATION ||
+                    transfer.status === TransferStatus.PENDING_VALIDATION ||
+                    transfer.status === TransferStatus.COMPLETED) && (
+                    <>
+                      <td className="px-5 py-3.5 text-right font-mono text-sm tracking-tighter text-neutral-400">
+                        {item.quantitySent ?? "—"}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-emerald-400">
+                        {item.quantityReceived ?? "—"}
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-neutral-700">
+                <td className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Total
+                </td>
+                <td />
+                <td className="px-5 py-3 text-right font-mono text-sm font-bold tracking-tighter text-white">
+                  {totalQuantity}
+                </td>
+                {(transfer.status === TransferStatus.IN_VALIDATION ||
+                  transfer.status === TransferStatus.PENDING_VALIDATION ||
+                  transfer.status === TransferStatus.COMPLETED) && (
+                  <>
+                    <td className="px-5 py-3 text-right font-mono text-sm tracking-tighter text-neutral-400">
+                      {transfer.items.reduce(
+                        (acc, i) => acc + (i.quantitySent ?? 0),
+                        0
+                      ) || "—"}
+                    </td>
+                    <td className="px-5 py-3 text-right font-mono text-sm font-bold tracking-tighter text-emerald-400">
+                      {transfer.items.reduce(
+                        (acc, i) => acc + (i.quantityReceived ?? 0),
+                        0
+                      ) || "—"}
+                    </td>
+                  </>
+                )}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Action Footer ── */}
+      {hasActions && (
+        <FixedBottomBar>
+          <div className="mx-auto flex max-w-7xl items-center justify-end gap-3">
+            {/* Source DRAFT actions */}
+            {isSource && transfer.status === TransferStatus.DRAFT && (
+              <>
+                <Link href={`/transfers/${transfer.id}/edit`}>
+                  <Button
+                    variant="ghost"
+                    className="h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-neutral-400 hover:text-white"
+                  >
+                    <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                    Editar
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={isCancelling}
+                  className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
+                >
+                  {isCancelling ? "Cancelando..." : "CANCELAR"}
+                </Button>
+                <Button
+                  onClick={onExecute}
+                  disabled={isExecuting}
+                  className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                >
+                  {isExecuting ? "Processando..." : "EXECUTAR TRANSFERÊNCIA"}
+                </Button>
+              </>
+            )}
+
+            {/* Source IN_TRANSIT actions */}
+            {isSource && transfer.status === TransferStatus.IN_TRANSIT && (
+              <Button
                 variant="outline"
                 onClick={onCancel}
                 disabled={isCancelling}
-                className="border-neutral-700 text-neutral-300 hover:bg-rose-900/20 hover:text-rose-500 hover:border-rose-900"
+                className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
               >
                 {isCancelling ? "Cancelando..." : "CANCELAR TRANSFERÊNCIA"}
               </Button>
-          )}
+            )}
 
-          {/* Destination Actions */}
-          {isDestination && transfer.status === TransferStatus.IN_TRANSIT && (
-             <Button
+            {/* Destination IN_TRANSIT actions */}
+            {isDestination && transfer.status === TransferStatus.IN_TRANSIT && (
+              <Button
                 onClick={onStartValidation}
                 disabled={isValidating}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase"
+                className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
               >
+                <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
                 {isValidating ? "Iniciando..." : "INICIAR VALIDAÇÃO"}
               </Button>
-          )}
+            )}
 
-          {isDestination && (transfer.status === TransferStatus.PENDING_VALIDATION || transfer.status === TransferStatus.IN_VALIDATION) && (
-             <Link href={`/transfers/${transfer.id}/validate`}>
-               <Button
-                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold tracking-wide uppercase"
-                >
-                  CONTINUAR VALIDAÇÃO
-                </Button>
-             </Link>
-          )}
-
-          {/* Completed State */}
-          {transfer.status === TransferStatus.COMPLETED && (
-            <>
-              <div className="text-emerald-500 flex items-center gap-2 text-sm font-medium px-4">
-                <CheckCircle className="w-5 h-5" strokeWidth={2} />
-                Transferência Concluída
-              </div>
-              {isDestination && (
-                <Button variant="outline" className="border-neutral-700 text-neutral-300 hover:text-white uppercase tracking-wide">
-                  VER RELATÓRIO
-                </Button>
+            {/* Destination PENDING / IN_VALIDATION */}
+            {isDestination &&
+              (transfer.status === TransferStatus.PENDING_VALIDATION ||
+                transfer.status === TransferStatus.IN_VALIDATION) && (
+                <Link href={`/transfers/${transfer.id}/validate`}>
+                  <Button className="h-10 rounded-[4px] bg-amber-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
+                    <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
+                    CONTINUAR VALIDAÇÃO
+                  </Button>
+                </Link>
               )}
-            </>
-          )}
 
-           {/* Cancelled State */}
-           {transfer.status === TransferStatus.CANCELLED && (
-            <div className="text-rose-500 flex items-center gap-2 text-sm font-medium px-4">
-              <XCircle className="w-5 h-5" strokeWidth={2} />
-              Transferência Cancelada
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            {/* Completed */}
+            {transfer.status === TransferStatus.COMPLETED && (
+              <>
+                <div className="flex items-center gap-2 px-4 text-sm font-medium text-emerald-500">
+                  <CheckCircle className="h-5 w-5" strokeWidth={2} />
+                  Transferência Concluída
+                </div>
+                {isDestination && (
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:text-white"
+                  >
+                    VER RELATÓRIO
+                  </Button>
+                )}
+              </>
+            )}
+
+            {/* Cancelled */}
+            {transfer.status === TransferStatus.CANCELLED && (
+              <div className="flex items-center gap-2 px-4 text-sm font-medium text-rose-500">
+                <XCircle className="h-5 w-5" strokeWidth={2} />
+                Transferência Cancelada
+              </div>
+            )}
+          </div>
+        </FixedBottomBar>
+      )}
+    </PageContainer>
   );
 };

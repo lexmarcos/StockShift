@@ -1,16 +1,28 @@
-import { Check, AlertTriangle, ScanLine, Package, AlertCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
+import { useState } from "react";
+import {
+  Check,
+  AlertTriangle,
+  ScanLine,
+  Package,
+  AlertCircle,
+  Camera,
+  Truck,
+  Target,
+  Zap,
+  X,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react";
+import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/ui/page-header";
+import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
+import { SectionLabel } from "@/components/ui/section-label";
 import { ValidateTransferViewProps } from "./validate-transfer.types";
 import { cn } from "@/lib/utils";
 
@@ -32,11 +44,23 @@ export function ValidateTransferView({
   onConfirmFinish,
   isFinishing,
 }: ValidateTransferViewProps) {
+  const [showScanner, setShowScanner] = useState(false);
+
   if (isLoading || !transfer) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="text-neutral-500">Carregando dados da transferência...</div>
-      </div>
+      <PageContainer>
+        <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+          <div className="relative h-16 w-16">
+            <div className="absolute inset-0 animate-ping rounded-full border-2 border-blue-600/30" />
+            <div className="absolute inset-2 animate-pulse rounded-full border-2 border-blue-600/50" />
+            <div className="absolute inset-4 rounded-full bg-blue-600/20" />
+            <Truck className="absolute inset-0 m-auto h-6 w-6 text-blue-500" />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+            Carregando validação...
+          </p>
+        </div>
+      </PageContainer>
     );
   }
 
@@ -45,207 +69,539 @@ export function ValidateTransferView({
     onScan();
   };
 
+  const handleCameraScan = (detectedCodes: IDetectedBarcode[]) => {
+    if (detectedCodes && detectedCodes.length > 0) {
+      const code = detectedCodes[0].rawValue;
+      onBarcodeChange(code);
+      setShowScanner(false);
+      // Trigger scan after a brief delay to allow state update
+      setTimeout(() => {
+        onScan();
+      }, 100);
+    }
+  };
+
+  const completedItems = expectedItems.filter(
+    (i) => i.scannedQuantity >= i.expectedQuantity
+  ).length;
+  const totalItems = expectedItems.length;
+  const totalExpected = expectedItems.reduce(
+    (acc, i) => acc + i.expectedQuantity,
+    0
+  );
+  const totalScanned = expectedItems.reduce(
+    (acc, i) => acc + i.scannedQuantity,
+    0
+  );
+
+  // Calculate arc for circular progress
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
   return (
-    <div className="min-h-screen pb-32">
-      {/* Progress Bar */}
-      <div className="border-b border-neutral-800 bg-[#0A0A0A]">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-3">
-            <div>
-              <h2 className="text-lg font-bold leading-none text-white">Validação #{transfer.code}</h2>
-              <p className="text-xs text-neutral-500 mt-1">
-                {transfer.sourceWarehouseName} → {transfer.destinationWarehouseName}
+    <PageContainer bottomPadding="fixed-bar">
+      <PageHeader
+        title={`Validação ${transfer.code}`}
+        subtitle={`${transfer.sourceWarehouseName} → ${transfer.destinationWarehouseName}`}
+      />
+
+      {/* ── Mission Control Header ── */}
+      <div className="mb-6 rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
+        <div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
+          {/* Circular Progress */}
+          <div className="relative flex items-center justify-center">
+            <svg className="h-32 w-32 -rotate-90" viewBox="0 0 120 120">
+              {/* Background circle */}
+              <circle
+                cx="60"
+                cy="60"
+                r={radius}
+                stroke="#262626"
+                strokeWidth="8"
+                fill="none"
+              />
+              {/* Progress circle */}
+              <circle
+                cx="60"
+                cy="60"
+                r={radius}
+                stroke={progress === 100 ? "#059669" : "#2563EB"}
+                strokeWidth="8"
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-500"
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center">
+              <span className="font-mono text-3xl font-bold tracking-tighter text-white">
+                {Math.round(progress)}%
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Validado
+              </span>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid flex-1 grid-cols-3 gap-4 md:max-w-md">
+            <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <Target className="h-4 w-4 text-blue-500" strokeWidth={2} />
+              </div>
+              <p className="font-mono text-2xl font-bold tracking-tighter text-white">
+                {totalExpected}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Esperado
+              </p>
+            </div>
+            <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <Zap className="h-4 w-4 text-amber-500" strokeWidth={2} />
+              </div>
+              <p className="font-mono text-2xl font-bold tracking-tighter text-white">
+                {totalScanned}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Escaneado
+              </p>
+            </div>
+            <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <CheckCircle2
+                  className="h-4 w-4 text-emerald-500"
+                  strokeWidth={2}
+                />
+              </div>
+              <p className="font-mono text-2xl font-bold tracking-tighter text-white">
+                {completedItems}/{totalItems}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Itens OK
               </p>
             </div>
           </div>
-          <div className="flex justify-between text-xs mb-2">
-            <span className="text-neutral-500">Progresso</span>
-            <span className="font-mono font-bold text-white">{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
         </div>
       </div>
 
-      <div className="p-4 space-y-6 max-w-7xl mx-auto">
-        {/* Scanner Input */}
-        <Card className="border-l-4 border-l-blue-600 bg-[#171717] border-neutral-800 rounded-[4px]">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <div className="relative flex-1">
-                <ScanLine className="absolute left-3 top-2.5 h-5 w-5 text-blue-500" strokeWidth={2} />
-                <Input
-                  ref={inputRef}
-                  value={barcode}
-                  onChange={(e) => onBarcodeChange(e.target.value)}
-                  placeholder="Escanear código de barras..."
-                  className="pl-10 h-10 bg-neutral-900 border-neutral-800 focus-visible:ring-blue-600 rounded-[4px]"
-                  autoComplete="off"
-                  disabled={isProcessing}
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={!barcode.trim() || isProcessing}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase rounded-[4px]"
-              >
-                Scan
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Last Scan Result */}
-        {lastScanResult && (
-          <Card className={cn(
-            "border-l-4 bg-[#171717] border-neutral-800 rounded-[4px]",
-            lastScanResult.valid ? "border-l-emerald-600" : "border-l-rose-600"
-          )}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-3">
-                <div className={cn(
-                  "p-2 rounded-[4px]",
-                  lastScanResult.valid ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
-                )}>
-                  {lastScanResult.valid ? <Check className="h-5 w-5" strokeWidth={2} /> : <AlertCircle className="h-5 w-5" strokeWidth={2} />}
-                </div>
-                <div>
-                  <p className="font-bold text-sm text-white">
-                    {lastScanResult.valid ? "Sucesso" : "Erro"}
-                  </p>
-                  <p className="text-sm font-medium mt-1 text-neutral-300">{lastScanResult.productName}</p>
-                  <p className="text-xs text-neutral-500 font-mono mt-1">Código: {lastScanResult.productBarcode}</p>
-                  {lastScanResult.valid && (
-                    <p className="text-xs text-neutral-400 mt-1">
-                      Recebido: {lastScanResult.quantityReceived} / {lastScanResult.quantitySent}
-                    </p>
-                  )}
-                  {!lastScanResult.valid && lastScanResult.message && (
-                    <p className="text-xs text-rose-500 mt-2 font-medium">{lastScanResult.message}</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Expected Items List */}
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-3">Itens Esperados</h2>
-          <div className="space-y-3">
-            {expectedItems.map((item) => {
-              const isComplete = item.scannedQuantity >= item.expectedQuantity;
-              const isOverage = item.scannedQuantity > item.expectedQuantity;
-
-              return (
-                <Card key={item.id} className={cn(
-                  "bg-[#171717] border-neutral-800 rounded-[4px]",
-                  isComplete && "opacity-60"
-                )}>
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "p-2 rounded-[4px]",
-                        isComplete ? "bg-emerald-500/10 text-emerald-500" :
-                        isOverage ? "bg-rose-500/10 text-rose-500" : "bg-neutral-800 text-neutral-400"
-                      )}>
-                        {isComplete ? <Check className="h-4 w-4" strokeWidth={2} /> :
-                         isOverage ? <AlertTriangle className="h-4 w-4" strokeWidth={2} /> : <Package className="h-4 w-4" strokeWidth={2} />}
-                      </div>
-                      <div>
-                        <p className={cn("font-medium text-sm", isComplete ? "text-neutral-500 line-through" : "text-white")}>
-                          {item.productName}
-                        </p>
-                        <p className="text-xs text-neutral-500 font-mono">
-                          {item.batchCode}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className={cn(
-                        "text-sm font-bold font-mono",
-                        isComplete ? "text-emerald-500" :
-                        isOverage ? "text-rose-500" : "text-neutral-200"
-                      )}>
-                        {item.scannedQuantity} / {item.expectedQuantity}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+      {/* ── Scanner Input Section ── */}
+      <div className="mb-6 rounded-[4px] border-l-4 border-l-blue-600 border border-neutral-800 bg-[#171717] p-5">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-blue-600/50 bg-blue-600/10">
+            <ScanLine className="h-5 w-5 text-blue-400" strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white">Scanner de Validação</p>
+            <p className="text-xs text-neutral-500">
+              Escaneie o código de barras do produto
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Footer Action */}
-      <div className="fixed bottom-0 left-0 right-0 md:ml-[240px] p-4 bg-[#0A0A0A] border-t border-neutral-800">
-        <div className="max-w-7xl mx-auto">
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <div className="relative min-w-0 flex-1">
+            <Input
+              ref={inputRef}
+              value={barcode}
+              onChange={(e) => onBarcodeChange(e.target.value)}
+              placeholder="Digite ou escaneie o código..."
+              className="h-12 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 pl-4 pr-12 font-mono text-sm text-white placeholder:text-neutral-600 focus:border-blue-600"
+              autoComplete="off"
+              disabled={isProcessing}
+            />
+            {/* Camera Button inside input */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowScanner(true)}
+              className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-[4px] text-neutral-500 hover:bg-blue-600/10 hover:text-blue-400"
+            >
+              <Camera className="h-5 w-5" strokeWidth={2} />
+            </Button>
+          </div>
           <Button
-            className="w-full h-12 text-base font-bold tracking-wide uppercase bg-emerald-600 hover:bg-emerald-700 text-white rounded-[4px]"
-            onClick={onFinish}
-            disabled={isFinishing || expectedItems.every((i) => i.scannedQuantity === 0)}
+            type="submit"
+            disabled={!barcode.trim() || isProcessing}
+            className="h-12 rounded-[4px] bg-blue-600 px-6 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
           >
+            {isProcessing ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            ) : (
+              "VALIDAR"
+            )}
+          </Button>
+        </form>
+      </div>
+
+      {/* ── Last Scan Result ── */}
+      {lastScanResult && (
+        <div
+          className={cn(
+            "mb-6 rounded-[4px] border-l-4 border border-neutral-800 bg-[#171717] p-4",
+            lastScanResult.valid ? "border-l-emerald-600" : "border-l-rose-600"
+          )}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className={cn(
+                "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[4px]",
+                lastScanResult.valid
+                  ? "border border-emerald-600/50 bg-emerald-600/10"
+                  : "border border-rose-600/50 bg-rose-600/10"
+              )}
+            >
+              {lastScanResult.valid ? (
+                <Check
+                  className="h-6 w-6 text-emerald-500"
+                  strokeWidth={2.5}
+                />
+              ) : (
+                <X className="h-6 w-6 text-rose-500" strokeWidth={2.5} />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <span
+                  className={cn(
+                    "text-xs font-bold uppercase tracking-wide",
+                    lastScanResult.valid ? "text-emerald-500" : "text-rose-500"
+                  )}
+                >
+                  {lastScanResult.valid ? "VALIDADO" : "ERRO"}
+                </span>
+              </div>
+              <p className="truncate text-sm font-bold text-white">
+                {lastScanResult.productName}
+              </p>
+              <p className="mt-1 font-mono text-xs text-neutral-500">
+                {lastScanResult.productBarcode}
+              </p>
+              {lastScanResult.valid && (
+                <div className="mt-2 inline-flex items-center gap-2 rounded-[4px] bg-neutral-900/50 px-3 py-1.5">
+                  <span className="text-xs text-neutral-500">Contagem:</span>
+                  <span className="font-mono text-sm font-bold tracking-tighter text-white">
+                    {lastScanResult.quantityReceived} /{" "}
+                    {lastScanResult.quantitySent}
+                  </span>
+                </div>
+              )}
+              {!lastScanResult.valid && lastScanResult.message && (
+                <p className="mt-2 text-xs font-medium text-rose-400">
+                  {lastScanResult.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Expected Items List ── */}
+      <div>
+        <SectionLabel icon={Package} className="mb-4">
+          Itens da Transferência ({completedItems}/{totalItems})
+        </SectionLabel>
+
+        <div className="space-y-3">
+          {expectedItems.map((item) => {
+            const isComplete = item.scannedQuantity >= item.expectedQuantity;
+            const isOverage = item.scannedQuantity > item.expectedQuantity;
+            const progressPercent = Math.min(
+              100,
+              (item.scannedQuantity / item.expectedQuantity) * 100
+            );
+
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  "relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]",
+                  isComplete && "opacity-60"
+                )}
+              >
+                {/* Progress bar background */}
+                <div
+                  className={cn(
+                    "absolute inset-y-0 left-0 transition-all duration-500",
+                    isComplete
+                      ? "bg-emerald-600/10"
+                      : isOverage
+                        ? "bg-rose-600/10"
+                        : "bg-blue-600/5"
+                  )}
+                  style={{ width: `${progressPercent}%` }}
+                />
+
+                <div className="relative flex items-center justify-between p-4">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[4px]",
+                        isComplete
+                          ? "border border-emerald-600/50 bg-emerald-600/10 text-emerald-500"
+                          : isOverage
+                            ? "border border-rose-600/50 bg-rose-600/10 text-rose-500"
+                            : "border border-neutral-700 bg-neutral-800 text-neutral-400"
+                      )}
+                    >
+                      {isComplete ? (
+                        <Check className="h-5 w-5" strokeWidth={2.5} />
+                      ) : isOverage ? (
+                        <AlertTriangle className="h-5 w-5" strokeWidth={2} />
+                      ) : (
+                        <Package className="h-5 w-5" strokeWidth={2} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p
+                        className={cn(
+                          "truncate text-sm font-medium",
+                          isComplete
+                            ? "text-neutral-500 line-through"
+                            : "text-white"
+                        )}
+                      >
+                        {item.productName}
+                      </p>
+                      <p className="mt-0.5 font-mono text-xs text-neutral-500">
+                        {item.batchCode}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "rounded-[4px] px-3 py-1.5 font-mono text-sm font-bold tracking-tighter",
+                        isComplete
+                          ? "bg-emerald-600/10 text-emerald-500"
+                          : isOverage
+                            ? "bg-rose-600/10 text-rose-500"
+                            : "bg-neutral-800 text-neutral-200"
+                      )}
+                    >
+                      {item.scannedQuantity} / {item.expectedQuantity}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-neutral-600" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Camera Scanner Modal ── */}
+      <ResponsiveModal
+        open={showScanner}
+        onOpenChange={setShowScanner}
+        title="Scanner de Câmera"
+        description="Posicione o código de barras dentro da área de leitura"
+        footer={
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowScanner(false)}
+            className="w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
+          >
+            Cancelar
+          </Button>
+        }
+      >
+        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
+          <Scanner
+            onScan={handleCameraScan}
+            onError={(error) => console.error("Camera error:", error)}
+            formats={[
+              "qr_code",
+              "ean_13",
+              "ean_8",
+              "code_128",
+              "code_39",
+              "upc_a",
+              "upc_e",
+            ]}
+            styles={{
+              container: {
+                width: "100%",
+                height: "280px",
+              },
+              video: {
+                objectFit: "cover",
+              },
+            }}
+            components={{
+              onOff: false,
+              torch: false,
+              zoom: false,
+              finder: true,
+            }}
+          />
+
+          {/* Scan line animation */}
+          <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 animate-pulse bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.8)]" />
+
+          {/* Corner markers */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-6 top-6 h-8 w-8 border-l-2 border-t-2 border-blue-500" />
+            <div className="absolute right-6 top-6 h-8 w-8 border-r-2 border-t-2 border-blue-500" />
+            <div className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2 border-blue-500" />
+            <div className="absolute bottom-6 right-6 h-8 w-8 border-b-2 border-r-2 border-blue-500" />
+          </div>
+
+          {/* Instructions overlay */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+            <div className="flex items-center justify-center gap-2 text-center">
+              <ScanLine className="h-4 w-4 text-blue-400" />
+              <span className="text-xs font-bold uppercase tracking-wide text-blue-400">
+                Leitura Automática Ativa
+              </span>
+            </div>
+          </div>
+        </div>
+      </ResponsiveModal>
+
+      {/* ── Fixed Bottom Bar ── */}
+      <FixedBottomBar>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <div className="hidden items-center gap-4 text-xs text-neutral-500 sm:flex">
+            <span>
+              <span className="font-mono font-bold tracking-tighter text-neutral-300">
+                {totalScanned}
+              </span>{" "}
+              de{" "}
+              <span className="font-mono font-bold tracking-tighter text-neutral-300">
+                {totalExpected}
+              </span>{" "}
+              unidades
+            </span>
+          </div>
+          <Button
+            onClick={onFinish}
+            disabled={
+              isFinishing || expectedItems.every((i) => i.scannedQuantity === 0)
+            }
+            className="h-11 flex-1 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 sm:flex-none sm:px-8"
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" strokeWidth={2} />
             Finalizar Validação
           </Button>
         </div>
-      </div>
+      </FixedBottomBar>
 
-      {/* Confirmation Modal */}
-      <Dialog open={showFinishModal} onOpenChange={setShowFinishModal}>
-        <DialogContent className="bg-[#171717] border-neutral-800 text-neutral-200 max-h-[80vh] overflow-y-auto rounded-[4px]">
-          <DialogHeader>
-            <DialogTitle className="text-white">Confirmar Validação</DialogTitle>
-            <DialogDescription className="text-neutral-400">
-              Revise o relatório de discrepâncias antes de finalizar.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {discrepancies.length === 0 ? (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-[4px] p-4 flex items-center gap-3">
-                <Check className="h-5 w-5 text-emerald-500" strokeWidth={2} />
-                <span className="text-sm font-medium text-emerald-500">Nenhuma discrepância encontrada. Tudo certo!</span>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {discrepancies.map((disc, idx) => (
-                  <div key={idx} className={cn(
-                    "p-3 rounded-[4px] border text-sm",
-                    disc.discrepancyType === "OVERAGE"
-                      ? "bg-rose-500/10 border-rose-500/20"
-                      : "bg-amber-500/10 border-amber-500/20"
-                  )}>
-                    <div className="flex justify-between font-bold mb-1">
-                      <span className="text-white">{disc.productName}</span>
-                      <span className={disc.discrepancyType === "OVERAGE" ? "text-rose-500" : "text-amber-500"}>
-                        {disc.discrepancyType === "OVERAGE" ? "EXCESSO" : "FALTA"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs text-neutral-400">
-                      <span>Esperado: {disc.quantitySent}</span>
-                      <span>Recebido: {disc.quantityReceived}</span>
-                      <span className="font-mono font-bold text-white">Dif: {disc.difference}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="bg-neutral-900 rounded-[4px] p-4 text-xs text-neutral-500">
-              <p>Ao confirmar, o estoque será atualizado conforme a quantidade recebida. Itens faltantes não serão adicionados ao estoque.</p>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowFinishModal(false)} className="border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:text-white rounded-[4px]">
+      {/* ── Confirmation Modal ── */}
+      <ResponsiveModal
+        open={showFinishModal}
+        onOpenChange={setShowFinishModal}
+        title="Confirmar Validação"
+        description="Revise o relatório antes de finalizar"
+        maxWidth="sm:max-w-[500px]"
+        footer={
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowFinishModal(false)}
+              className="rounded-[4px] border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+            >
               Voltar
             </Button>
-            <Button onClick={onConfirmFinish} disabled={isFinishing} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-[4px]">
+            <Button
+              onClick={onConfirmFinish}
+              disabled={isFinishing}
+              className="rounded-[4px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+            >
               {isFinishing ? "Processando..." : "Confirmar e Finalizar"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        }
+      >
+        <div className="space-y-4 py-2">
+          {discrepancies.length === 0 ? (
+            <div className="flex items-center gap-4 rounded-[4px] border border-emerald-600/30 bg-emerald-600/10 p-4">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-600/20">
+                <CheckCircle2
+                  className="h-6 w-6 text-emerald-500"
+                  strokeWidth={2}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-emerald-400">
+                  Validação Perfeita
+                </p>
+                <p className="text-xs text-emerald-500/80">
+                  Todas as quantidades conferem com o esperado.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-amber-500">
+                <AlertCircle className="h-4 w-4" strokeWidth={2} />
+                <span className="text-xs font-bold uppercase tracking-wide">
+                  {discrepancies.length} Discrepância
+                  {discrepancies.length > 1 ? "s" : ""} Encontrada
+                  {discrepancies.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              {discrepancies.map((disc, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "rounded-[4px] border p-4",
+                    disc.discrepancyType === "OVERAGE"
+                      ? "border-rose-600/30 bg-rose-600/10"
+                      : "border-amber-600/30 bg-amber-600/10"
+                  )}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">
+                      {disc.productName}
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-[4px] px-2 py-0.5 text-[10px] font-bold uppercase",
+                        disc.discrepancyType === "OVERAGE"
+                          ? "bg-rose-600/20 text-rose-400"
+                          : "bg-amber-600/20 text-amber-400"
+                      )}
+                    >
+                      {disc.discrepancyType === "OVERAGE" ? "Excesso" : "Falta"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex gap-4 text-neutral-400">
+                      <span>Esperado: {disc.quantitySent}</span>
+                      <span>Recebido: {disc.quantityReceived}</span>
+                    </div>
+                    <span
+                      className={cn(
+                        "font-mono font-bold",
+                        disc.discrepancyType === "OVERAGE"
+                          ? "text-rose-400"
+                          : "text-amber-400"
+                      )}
+                    >
+                      {disc.difference > 0 ? "+" : ""}
+                      {disc.difference}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4">
+            <p className="text-xs text-neutral-500">
+              <strong className="text-neutral-400">Atenção:</strong> Ao
+              confirmar, o estoque será atualizado conforme as quantidades
+              recebidas. Itens faltantes não serão adicionados ao inventário.
+            </p>
+          </div>
+        </div>
+      </ResponsiveModal>
+    </PageContainer>
   );
 }
