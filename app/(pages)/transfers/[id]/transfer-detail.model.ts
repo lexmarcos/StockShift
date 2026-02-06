@@ -72,8 +72,16 @@ export const useTransferDetailModel = (transferId: string) => {
       toast.success("Validação iniciada!");
       router.push(`/transfers/${transferId}/validate`);
     } catch (err: unknown) {
-      const error = err as Error;
-      toast.error(error.message || "Erro ao iniciar validação.");
+      // Handle idempotency: if validation was already started, refetch and continue
+      const freshData = await mutate();
+      const currentStatus = freshData?.data?.status;
+      if (currentStatus === "PENDING_VALIDATION" || currentStatus === "IN_VALIDATION") {
+        toast.info("Validação já iniciada. Continuando...");
+        router.push(`/transfers/${transferId}/validate`);
+      } else {
+        const error = err as Error;
+        toast.error(error.message || "Erro ao iniciar validação.");
+      }
     } finally {
       setIsValidating(false);
     }

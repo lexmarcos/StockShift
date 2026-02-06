@@ -200,7 +200,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
           )}
 
           {/* Destination Actions */}
-          {isDestination && transfer.status === TransferStatus.PENDING_VALIDATION && (
+          {isDestination && transfer.status === TransferStatus.IN_TRANSIT && (
              <Button
                 onClick={onStartValidation}
                 disabled={isValidating}
@@ -210,7 +210,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
               </Button>
           )}
 
-          {isDestination && transfer.status === TransferStatus.IN_VALIDATION && (
+          {isDestination && (transfer.status === TransferStatus.PENDING_VALIDATION || transfer.status === TransferStatus.IN_VALIDATION) && (
              <Link href={`/transfers/${transfer.id}/validate`}>
                <Button
                   className="bg-amber-600 hover:bg-amber-700 text-white font-bold tracking-wide uppercase"
