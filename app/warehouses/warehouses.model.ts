@@ -47,7 +47,6 @@ export const useWarehousesModel = () => {
   const form = useForm<WarehouseFormData>({
     resolver: zodResolver(warehouseSchema),
     defaultValues: {
-      code: "",
       name: "",
       address: "",
       city: "",
@@ -100,7 +99,6 @@ export const useWarehousesModel = () => {
   const openCreateModal = () => {
     setSelectedWarehouse(null);
     form.reset({
-      code: "",
       name: "",
       address: "",
       city: "",
@@ -113,7 +111,6 @@ export const useWarehousesModel = () => {
   const openEditModal = (warehouse: Warehouse) => {
     setSelectedWarehouse(warehouse);
     form.reset({
-      code: warehouse.code,
       name: warehouse.name,
       address: warehouse.address || "",
       city: warehouse.city,
@@ -127,7 +124,6 @@ export const useWarehousesModel = () => {
     setIsModalOpen(false);
     setSelectedWarehouse(null);
     form.reset({
-      code: "",
       name: "",
       address: "",
       city: "",

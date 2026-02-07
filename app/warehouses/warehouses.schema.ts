@@ -1,11 +1,6 @@
 import { z } from "zod";
 
 export const warehouseSchema = z.object({
-  code: z
-    .string()
-    .min(1, "Código é obrigatório")
-    .max(20, "Código deve ter no máximo 20 caracteres")
-    .regex(/^[A-Z0-9-]+$/, "Código deve conter apenas letras maiúsculas, números e hifens"),
   name: z
     .string()
     .min(1, "Nome é obrigatório")

@@ -1,10 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { X, Building2, Loader2 } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Header } from "@/components/header/header";
 import { BreadcrumbProvider, Breadcrumb } from "@/components/breadcrumb";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
 export default function PagesLayout({
   children,
@@ -12,6 +15,29 @@ export default function PagesLayout({
   children: React.ReactNode;
 }) {
   const { isOpen, closeMenu } = useMobileMenu();
+  const { warehouseId } = useSelectedWarehouse();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (warehouseId === null) {
+      router.replace("/warehouses");
+    }
+  }, [warehouseId, router]);
+
+  // Show loading while checking warehouse
+  if (warehouseId === null) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
+          <Building2 className="h-8 w-8 text-blue-500" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+          <span className="text-sm text-neutral-400">Redirecionando para seleção de armazém...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">

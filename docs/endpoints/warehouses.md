@@ -22,7 +22,6 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
 ```json
 {
   "name": "Main Warehouse",
-  "code": "WH-001",
   "city": "New York",
   "state": "NY",
   "address": "123 Storage St, City, State 12345",
@@ -32,11 +31,18 @@ These endpoints manage warehouses (physical locations where stock is stored) in 
 
 **Field Details**:
 - `name`: Required, warehouse name (2-255 characters)
-- `code`: Required, unique warehouse code (max 20 chars, uppercase letters, numbers, hyphens)
+- `code`: Optional, unique warehouse code (max 20 chars, uppercase letters, numbers, hyphens). If not provided, the backend auto-generates a human-readable code based on the warehouse name and city (e.g., "Main Warehouse" in "New York" → `MAI-NE`)
 - `city`: Required, city name (max 100 characters)
 - `state`: Required, state code (2 uppercase letters)
 - `address`: Optional, physical address (max 500 characters)
 - `isActive`: Optional, default `true`, warehouse status
+
+**Auto-generated Code Format**:
+- Pattern: `{3 letters from name}-{2 letters from city}`
+- If code already exists, a numeric suffix is added: `MAI-NE-02`, `MAI-NE-03`, etc.
+- Examples:
+  - "Central Depot" + "São Paulo" → `CEN-SA`
+  - "North Warehouse" + "Rio de Janeiro" → `NOR-RI`
 
 ### Response
 **Status Code**: `201 CREATED`
@@ -538,10 +544,6 @@ interface WarehouseFilters {
 ### With Batches
 - GET `/api/batches/warehouse/{warehouseId}` - Get all batches in warehouse
 - Used in warehouse detail view to show inventory
-
-### With Stock Movements
-- Filter stock movements by warehouse
-- Show recent movements in warehouse detail
 
 ### With Reports
 - GET `/api/reports/stock` - Filter by warehouse

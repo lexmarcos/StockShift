@@ -30,6 +30,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { PageContainer } from "@/components/ui/page-container";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SectionLabel } from "@/components/ui/section-label";
 import {
   Users,
   Loader2,
@@ -41,7 +47,6 @@ import {
   Warehouse,
   Copy,
   Check,
-  ShieldAlert,
   Clock,
   Pencil,
   UserX,
@@ -49,7 +54,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { UsersViewProps, User } from "./users.types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const UsersView = ({
@@ -294,165 +298,76 @@ export const UsersView = ({
   // Access denied state
   if (!isLoadingAdmin && !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-          <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-950/30 ring-1 ring-rose-900/50">
-              <ShieldAlert className="h-8 w-8 text-rose-500" />
-            </div>
-            <div className="text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wide text-rose-500">
-                Acesso Negado
-              </h3>
-              <p className="mt-1 max-w-xs text-xs text-rose-500/70">
-                Você não tem permissão para acessar esta página.
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
+      <PageContainer>
+        <PageHeader title="Usuários" subtitle="Sistema" />
+        <ErrorState
+          title="Acesso Negado"
+          description="Você não tem permissão para acessar esta página."
+        />
+      </PageContainer>
     );
   }
 
   return (
     <>
-      <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-          <div className="space-y-6">
-            <div className="flex flex-col gap-5">
-              {/* Actions Bar */}
-              <div className="flex items-center justify-end gap-3">
-                <Button
-                  onClick={openCreateModal}
-                  className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Usuário
-                </Button>
-              </div>
+      <PageContainer>
+        <PageHeader
+          title="Usuários"
+          subtitle="Sistema"
+          actions={
+            <Button
+              onClick={openCreateModal}
+              className="hidden h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:flex"
+            >
+              <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+              NOVO USUÁRIO
+            </Button>
+          }
+        />
 
-              {/* Search */}
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
-                <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
-                  <div className="text-neutral-500 absolute left-3">
-                    <Search className="h-3.5 w-3.5" />
-                  </div>
-                  <Input
-                    placeholder="Pesquisar por nome ou email..."
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
-                  />
-                </div>
-              </div>
+        {/* Search */}
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
+          <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
+            <div className="text-neutral-500 absolute left-3">
+              <Search className="h-3.5 w-3.5" strokeWidth={2.5} />
             </div>
+            <Input
+              placeholder="Pesquisar por nome ou email..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 hover:border-neutral-700"
+            />
+          </div>
+        </div>
 
-            {/* Data Display */}
-            <div className="min-h-[400px]">
-              {isLoading ? (
-                <>
-                  {/* Desktop Skeleton */}
-                  <div className="hidden md:block overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
-                    <div className="bg-neutral-900 px-4 py-3 border-b border-neutral-800">
-                      <div className="flex gap-4">
-                        <Skeleton className="h-4 w-32 bg-neutral-800" />
-                        <Skeleton className="h-4 w-20 bg-neutral-800" />
-                        <Skeleton className="h-4 w-24 bg-neutral-800" />
-                        <Skeleton className="h-4 w-16 bg-neutral-800" />
-                        <Skeleton className="h-4 w-28 bg-neutral-800" />
-                        <Skeleton className="h-4 w-16 bg-neutral-800 ml-auto" />
-                      </div>
-                    </div>
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-neutral-800/50">
-                        <div className="flex flex-col gap-1.5 flex-1">
-                          <Skeleton className="h-4 w-40 bg-neutral-800" />
-                          <Skeleton className="h-3 w-48 bg-neutral-800" />
-                        </div>
-                        <div className="flex gap-1">
-                          <Skeleton className="h-5 w-16 rounded-[2px] bg-neutral-800" />
-                          <Skeleton className="h-5 w-20 rounded-[2px] bg-neutral-800" />
-                        </div>
-                        <div className="flex gap-1">
-                          <Skeleton className="h-5 w-24 rounded-[2px] bg-neutral-800" />
-                        </div>
-                        <Skeleton className="h-5 w-16 rounded-[2px] bg-neutral-800" />
-                        <Skeleton className="h-4 w-32 bg-neutral-800" />
-                        <div className="flex gap-1">
-                          <Skeleton className="h-8 w-8 rounded-[4px] bg-neutral-800" />
-                          <Skeleton className="h-8 w-8 rounded-[4px] bg-neutral-800" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Mobile Skeleton */}
-                  <div className="grid gap-3 md:hidden">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1.5">
-                            <Skeleton className="h-5 w-36 bg-neutral-800" />
-                            <Skeleton className="h-3 w-44 bg-neutral-800" />
-                          </div>
-                          <Skeleton className="h-6 w-16 rounded-[2px] bg-neutral-800" />
-                        </div>
-                        <div className="flex gap-2">
-                          <Skeleton className="h-5 w-16 rounded-[2px] bg-neutral-800" />
-                          <Skeleton className="h-5 w-20 rounded-[2px] bg-neutral-800" />
-                        </div>
-                        <Skeleton className="h-3 w-32 bg-neutral-800" />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : error ? (
-                <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-                  <AlertTriangle className="h-8 w-8 text-rose-500" />
-                  <div className="text-center">
-                    <h3 className="text-sm font-bold uppercase text-rose-500">
-                      Falha na conexão
-                    </h3>
-                    <p className="text-xs text-rose-500/70">
-                      Não foi possível carregar a lista de usuários
-                    </p>
-                  </div>
-                </div>
-              ) : users.length === 0 ? (
-                <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
-                    <Users className="h-8 w-8 text-neutral-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
-                      {searchQuery
-                        ? "Nenhum resultado encontrado"
-                        : "Nenhum usuário cadastrado"}
-                    </h3>
-                    <p className="mt-1 max-w-xs text-xs text-neutral-500">
-                      {searchQuery
-                        ? "Tente ajustar seus termos de busca."
-                        : "Comece adicionando usuários ao sistema."}
-                    </p>
-                  </div>
-                  {searchQuery ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => onSearchChange("")}
-                      className="rounded-[4px] border-neutral-700 text-xs uppercase text-neutral-300 hover:bg-neutral-800"
-                    >
-                      Limpar Busca
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={openCreateModal}
-                      className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                    >
-                      <Plus className="mr-2 h-3.5 w-3.5" />
-                      Primeiro Usuário
-                    </Button>
-                  )}
-                </div>
-              ) : (
+        <SectionLabel icon={Users} className="mb-4">
+          Lista de Usuários
+        </SectionLabel>
+
+        {/* Data Display */}
+        {isLoading ? (
+          <LoadingState message="Carregando usuários..." />
+        ) : error ? (
+          <ErrorState
+            title="Falha na conexão"
+            description="Não foi possível carregar a lista de usuários."
+          />
+        ) : users.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title={searchQuery ? "Nenhum resultado encontrado" : "Nenhum usuário cadastrado"}
+            description={
+              searchQuery
+                ? "Tente ajustar seus termos de busca."
+                : "Comece adicionando usuários ao sistema."
+            }
+            action={
+              searchQuery
+                ? { label: "LIMPAR BUSCA", onClick: () => onSearchChange("") }
+                : { label: "NOVO USUÁRIO", onClick: openCreateModal }
+            }
+          />
+        ) : (
                 <>
                   <div className="hidden overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] md:block">
                     <Table>
@@ -483,7 +398,7 @@ export const UsersView = ({
                           <TableRow
                             key={user.id}
                             className={cn(
-                              "group border-b border-neutral-800/50 hover:bg-neutral-800/50 transition-colors",
+                              "group border-b border-neutral-800/50 hover:bg-neutral-800/50",
                               !user.isActive && "opacity-50"
                             )}
                           >
@@ -530,7 +445,7 @@ export const UsersView = ({
                       <div
                         key={user.id}
                         className={cn(
-                          "relative flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:border-neutral-700",
+                          "relative flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 hover:border-neutral-700",
                           !user.isActive && "opacity-50"
                         )}
                       >
@@ -570,19 +485,16 @@ export const UsersView = ({
                   </div>
                 </>
               )}
-            </div>
-          </div>
-        </main>
+      </PageContainer>
 
-        {/* FAB Mobile */}
-        <Button
-          onClick={openCreateModal}
-          className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-          size="icon"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
+      {/* FAB Mobile */}
+      <Button
+        onClick={openCreateModal}
+        className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
+        size="icon"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </Button>
 
       {/* Create User Modal */}
       <ResponsiveModal

@@ -18,6 +18,7 @@ const ROUTE_SECTIONS: Record<string, { section: string; subsection: string }> =
     warehouses: { section: "Armazéns", subsection: "Detalhes" },
     categories: { section: "Configurações", subsection: "Categoria" },
     brands: { section: "Configurações", subsection: "Marca" },
+    system: { section: "Sistema", subsection: "Configurações" },
   };
 
 const BreadcrumbContext = createContext<BreadcrumbContextValue | undefined>(
