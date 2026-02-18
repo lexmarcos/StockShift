@@ -8,9 +8,17 @@ export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
 
-  const { product, isLoading, error } = useProductDetailModel(productId);
+  const { product, batches, isLoading, isLoadingBatches, error, batchesError } =
+    useProductDetailModel(productId);
 
   return (
-    <ProductDetailView product={product} isLoading={isLoading} error={error} />
+    <ProductDetailView
+      product={product}
+      batches={batches}
+      isLoading={isLoading}
+      isLoadingBatches={isLoadingBatches}
+      error={error}
+      batchesError={batchesError}
+    />
   );
 }

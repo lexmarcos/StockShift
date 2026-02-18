@@ -2,11 +2,12 @@
 
 import { useBreadcrumbContext } from "./breadcrumb-context";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 export function Breadcrumb() {
   const { breadcrumb } = useBreadcrumbContext();
+  const router = useRouter();
 
   if (!breadcrumb) return null;
 
@@ -17,15 +18,16 @@ export function Breadcrumb() {
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <Link href={breadcrumb.backUrl} aria-label="Voltar para lista">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-[4px] border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button
+            type="button"
+            aria-label="Voltar"
+            onClick={() => router.back()}
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-[4px] border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
 
           <div>
             <div className="flex items-center gap-2">

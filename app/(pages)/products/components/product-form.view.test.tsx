@@ -121,6 +121,17 @@ const Wrapper = (props: typeof baseProps & { defaultValues?: Record<string, unkn
 };
 
 describe("ProductForm batches drawer", () => {
+  it("hides inventory and pricing section in edit mode", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="edit"
+        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: false }}
+      />
+    );
+    expect(screen.queryByText(/estoque e precifica..o/i)).toBeNull();
+  });
+
   it("shows the batches button in edit mode", () => {
     render(
       <Wrapper

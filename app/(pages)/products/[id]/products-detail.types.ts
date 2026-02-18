@@ -28,3 +28,27 @@ export interface ProductResponse {
   message: string | null;
   data: Product;
 }
+
+export interface ProductBatch {
+  id: string;
+  productId: string;
+  warehouseId: string;
+  warehouseName: string;
+  warehouseCode?: string | null;
+  quantity: number;
+  batchNumber?: string | null;
+  batchCode?: string | null;
+  expirationDate?: string | null;
+  manufacturedDate?: string | null;
+  costPrice?: number | null;
+  sellingPrice?: number | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductBatchesResponse {
+  success: boolean;
+  message: string | null;
+  data: ProductBatch[];
+}

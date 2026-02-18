@@ -6,6 +6,11 @@ export type { ProductCreateFormData, CustomAttribute };
 export interface Category {
   id: string;
   name: string;
+  parentCategoryName?: string | null;
+  parentCategory?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface Brand {

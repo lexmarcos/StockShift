@@ -30,7 +30,7 @@ describe("AppSidebar", () => {
     render(<AppSidebar />);
 
     const productsLink = screen.getByRole("link", { name: /produtos/i });
-    const batchesLink = screen.getByRole("link", { name: /batches/i });
+    const batchesLink = screen.getByRole("link", { name: /lotes/i });
 
     expect(productsLink.getAttribute("aria-current")).toBe("page");
     expect(batchesLink.getAttribute("aria-current")).toBeNull();

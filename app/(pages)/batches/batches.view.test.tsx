@@ -71,4 +71,38 @@ describe("BatchesView", () => {
     fireEvent.click(screen.getByRole("columnheader", { name: /produto/i }));
     expect(setSortConfig).toHaveBeenCalledWith({ key: "product", direction: "asc" });
   });
+
+  it("groups lots by product when grouping option is enabled", () => {
+    render(
+      <BatchesView
+        {...baseProps}
+        batches={[
+          batchItem,
+          {
+            ...batchItem,
+            id: "b2",
+            batchNumber: "BATCH-002",
+            quantity: 7,
+          },
+          {
+            ...batchItem,
+            id: "b3",
+            productId: "p2",
+            productName: "Produto B",
+            productSku: "SKU-B",
+            batchNumber: "BATCH-003",
+          },
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /agrupar por produto/i }));
+
+    expect(
+      screen.getByRole("button", { name: /produto a/i })
+    ).toBeTruthy();
+
+    expect(screen.getByText(/2 lotes/i)).toBeTruthy();
+    expect(screen.getByText(/1 lote/i)).toBeTruthy();
+  });
 });

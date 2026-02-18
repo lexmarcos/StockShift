@@ -97,11 +97,15 @@ export function ProductAiFillModal({
     }
   };
 
+  const getCategoryParentName = (category: Category) => {
+    return category.parentCategoryName ?? category.parentCategory?.name ?? null;
+  };
+
   return (
     <ResponsiveModal
       open={open}
       onOpenChange={(val) => !val && handleClose()}
-      title="Preencher com IA"
+      title="Pegar dados de uma foto"
       description="Envie uma foto do produto para preencher os dados automaticamente usando inteligência artificial."
     >
       <div className="py-4">
@@ -185,9 +189,23 @@ export function ProductAiFillModal({
                        <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent className="bg-[#171717] border-neutral-800 text-neutral-300">
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
-                      ))}
+                      {categories.map((c) => {
+                        const parentName = getCategoryParentName(c);
+
+                        return (
+                          <SelectItem key={c.id} value={c.id} className="text-xs">
+                            {parentName ? (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="text-neutral-500">{parentName}</span>
+                                <span className="text-neutral-600">/</span>
+                                <span>{c.name}</span>
+                              </span>
+                            ) : (
+                              c.name
+                            )}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

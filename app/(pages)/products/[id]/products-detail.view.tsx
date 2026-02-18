@@ -1,13 +1,11 @@
 "use client";
 
-import { Product } from "./products-detail.types";
+import { Product, ProductBatch } from "./products-detail.types";
 import {
   ArrowLeft,
   Package,
   Tag,
   Barcode,
-  CheckCircle2,
-  XCircle,
   Calendar,
   Layers,
   AlertCircle,
@@ -29,14 +27,20 @@ import { toast } from "sonner";
 
 interface ProductDetailViewProps {
   product: Product | null;
+  batches: ProductBatch[];
   isLoading: boolean;
+  isLoadingBatches: boolean;
   error: Error | null;
+  batchesError: Error | null;
 }
 
 export const ProductDetailView = ({
   product,
+  batches,
   isLoading,
+  isLoadingBatches,
   error,
+  batchesError,
 }: ProductDetailViewProps) => {
   // Formatters
   const formatDateTime = (dateString: string) => {
@@ -55,6 +59,16 @@ export const ProductDetailView = ({
       className: "bg-[#171717] border-neutral-800 text-white rounded-[4px]",
       descriptionClassName: "text-neutral-400",
     });
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "Sem validade";
+
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return dateString;
+    }
   };
 
   // Loading State
@@ -333,6 +347,76 @@ export const ProductDetailView = ({
                     Fabricante registrado do produto
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Product Batches */}
+            <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+              <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-amber-500" />
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+                    Lotes do Produto
+                  </h3>
+                </div>
+                <Badge className="rounded-[2px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-300">
+                  {batches.length}
+                </Badge>
+              </div>
+
+              <div className="p-5">
+                {isLoadingBatches && (
+                  <div className="space-y-3">
+                    <div className="h-14 rounded-[4px] bg-neutral-900" />
+                    <div className="h-14 rounded-[4px] bg-neutral-900" />
+                  </div>
+                )}
+
+                {!isLoadingBatches && batchesError && (
+                  <p className="text-xs text-rose-500/80">
+                    Não foi possível carregar os lotes deste produto.
+                  </p>
+                )}
+
+                {!isLoadingBatches &&
+                  !batchesError &&
+                  batches.length === 0 && (
+                    <p className="text-sm text-neutral-500">
+                      Nenhum lote cadastrado para este produto.
+                    </p>
+                  )}
+
+                {!isLoadingBatches &&
+                  !batchesError &&
+                  batches.length > 0 && (
+                    <div className="space-y-3">
+                      {batches.map((batch) => (
+                        <Link
+                          key={batch.id}
+                          href={`/batches/${batch.id}`}
+                          className="group flex items-center justify-between gap-4 rounded-[4px] border border-neutral-800 bg-neutral-900/40 px-4 py-3 hover:border-neutral-700"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-mono text-xs font-bold uppercase tracking-wide text-white">
+                              {batch.batchNumber || batch.batchCode || "SEM LOTE"}
+                            </p>
+                            <p className="text-xs text-neutral-500">
+                              {batch.warehouseName}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-white">
+                              {batch.quantity} un
+                            </p>
+                            <div className="flex items-center justify-end gap-1 text-[10px] uppercase tracking-wide text-neutral-500">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(batch.expirationDate)}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
               </div>
             </div>
 

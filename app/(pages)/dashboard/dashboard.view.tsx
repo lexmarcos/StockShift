@@ -96,7 +96,7 @@ function AlertCard({ type, items, isLoading, onSeeAll }: AlertCardProps) {
           {items && items.length > 0 ? (
             items.slice(0, 10).map((item) => (
               <div
-                key={item.productId}
+                key={`${item.productId}-${item.warehouseId}-${item.nearestExpiration ?? "na"}`}
                 className="flex items-center justify-between p-2 hover:bg-neutral-800/50 transition-colors"
               >
                 <div className="min-w-0">

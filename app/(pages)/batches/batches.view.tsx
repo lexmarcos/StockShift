@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Table,
   TableBody,
@@ -55,6 +62,15 @@ interface BatchesViewProps {
   setStatus: (value: BatchFilters["status"]) => void;
   setSortConfig: (value: SortConfig) => void;
   onClearFilters: () => void;
+}
+
+interface ProductBatchesGroup {
+  key: string;
+  productId: string;
+  productName: string;
+  productSku?: string | null;
+  totalQuantity: number;
+  batches: Batch[];
 }
 
 const getStatusStyle = (kind: string) => {
@@ -117,6 +133,35 @@ export const BatchesView = ({
   setSortConfig,
   onClearFilters,
 }: BatchesViewProps) => {
+  const [isGroupedByProduct, setIsGroupedByProduct] = useState(false);
+
+  const groupedByProduct = useMemo<ProductBatchesGroup[]>(() => {
+    if (!isGroupedByProduct) return [];
+
+    const groups = new Map<string, ProductBatchesGroup>();
+
+    for (const batch of batches) {
+      const groupKey = batch.productId || batch.productName;
+      const existing = groups.get(groupKey);
+
+      if (existing) {
+        existing.batches.push(batch);
+        existing.totalQuantity += batch.quantity ?? 0;
+        continue;
+      }
+
+      groups.set(groupKey, {
+        key: groupKey,
+        productId: batch.productId,
+        productName: batch.productName,
+        productSku: batch.productSku,
+        totalQuantity: batch.quantity ?? 0,
+        batches: [batch],
+      });
+    }
+
+    return Array.from(groups.values());
+  }, [batches, isGroupedByProduct]);
   
   const handleSort = (key: SortConfig["key"]) => {
     if (sortConfig.key === key) {
@@ -265,6 +310,21 @@ export const BatchesView = ({
                     <SelectItem value="ok" className="text-[9px] font-bold uppercase focus:bg-neutral-800 text-emerald-500">Regular</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsGroupedByProduct((prev) => !prev)}
+                  className={cn(
+                    "w-full md:w-auto rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest",
+                    isGroupedByProduct
+                      ? "border-blue-600 bg-blue-950/20 text-blue-500 hover:bg-blue-950/30"
+                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white",
+                  )}
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  {isGroupedByProduct ? "Lista Completa" : "Agrupar por Produto"}
+                </Button>
                 
                 {(filters.searchQuery || filters.warehouseId || filters.status !== "all") && (
                   <Button
@@ -338,6 +398,104 @@ export const BatchesView = ({
             {/* Table View (Desktop) */}
             {!isLoading && !error && batches.length > 0 && (
               <>
+                {isGroupedByProduct && (
+                  <Accordion type="multiple" className="space-y-3">
+                    {groupedByProduct.map((group) => (
+                      <AccordionItem
+                        key={group.key}
+                        value={group.key}
+                        className="rounded-[4px] border border-neutral-800 bg-[#171717] px-4"
+                      >
+                        <AccordionTrigger className="py-3 text-left hover:no-underline">
+                          <div className="flex w-full items-center justify-between gap-3 pr-2">
+                            <div className="space-y-0.5">
+                              <h3 className="text-sm font-bold text-white">
+                                {group.productName}
+                              </h3>
+                              <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+                                {group.productSku || "SEM SKU"}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                                {group.batches.length}{" "}
+                                {group.batches.length === 1 ? "lote" : "lotes"}
+                              </p>
+                              <p className="text-sm font-bold tracking-tighter text-white">
+                                {group.totalQuantity} un
+                              </p>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+
+                        <AccordionContent className="pb-0">
+                          <div className="divide-y divide-neutral-800/60 border-t border-neutral-800">
+                            {group.batches.map((batch) => {
+                              const status = deriveBatchStatus(batch, {
+                                lowStockThreshold: filters.lowStockThreshold,
+                              });
+                              const style = getStatusStyle(status.kind);
+
+                              return (
+                                <div
+                                  key={batch.id}
+                                  className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between"
+                                >
+                                  <div className="grid gap-1 text-xs">
+                                    <div className="flex items-center gap-2 text-neutral-300">
+                                      <span className="font-mono text-[11px]">
+                                        {batch.batchNumber || "SEM LOTE"}
+                                      </span>
+                                      {batch.batchCode && (
+                                        <>
+                                          <span className="text-neutral-700">•</span>
+                                          <span className="font-mono text-[10px] text-neutral-500">
+                                            {batch.batchCode}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wider text-neutral-500">
+                                      <span>{batch.warehouseName}</span>
+                                      <span className="text-neutral-700">•</span>
+                                      <span>Qtd: {batch.quantity}</span>
+                                      <span className="text-neutral-700">•</span>
+                                      <span>Val: {formatDate(batch.expirationDate)}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                                        style.bg,
+                                        style.color,
+                                        style.border,
+                                      )}
+                                    >
+                                      {status.label}
+                                    </Badge>
+                                    <Link href={`/batches/${batch.id}`}>
+                                      <Button
+                                        variant="outline"
+                                        className="h-8 rounded-[4px] border-neutral-800 bg-neutral-900 px-3 text-[10px] font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                                      >
+                                        Detalhes
+                                      </Button>
+                                    </Link>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                )}
+
+                {!isGroupedByProduct && (
                 <div className="hidden overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] md:block">
                   <Table>
                     <TableHeader className="bg-neutral-900">
@@ -449,8 +607,10 @@ export const BatchesView = ({
                     </TableBody>
                   </Table>
                 </div>
+                )}
 
                 {/* Mobile Grid */}
+                {!isGroupedByProduct && (
                 <div className="grid gap-3 md:hidden">
                   {batches.map((batch) => {
                     const status = deriveBatchStatus(batch, {
@@ -514,6 +674,7 @@ export const BatchesView = ({
                     );
                   })}
                 </div>
+                )}
               </>
             )}
           </div>

@@ -108,6 +108,9 @@ export const ProductForm = ({
   const isProfitable = profit > 0;
 
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
+  const getCategoryParentName = (category: ProductFormProps["categories"][number]) => {
+    return category.parentCategoryName ?? category.parentCategory?.name ?? null;
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
@@ -156,7 +159,7 @@ export const ProductForm = ({
                           className="w-full md:w-fit h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
                         >
                           <Sparkles className="h-3 w-3" />
-                          Preencher com IA
+                          Pegar dados de uma foto
                         </Button>
                       )}
                     </div>
@@ -305,16 +308,21 @@ export const ProductForm = ({
                 </Card>
 
                 {/* Inventory & Pricing Card */}
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-emerald-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Estoque e Precificação
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-6">
+                {mode === "create" && (
+                  <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                    <CardHeader className="border-b border-neutral-800 pb-4">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-emerald-500" />
+                        <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+                          Estoque e Precificação
+                        </CardTitle>
+                      </div>
+                      <CardDescription className="mt-2 text-xs text-neutral-500">
+                        Ao salvar, o primeiro lote do produto será criado
+                        automaticamente com os dados informados nesta seção.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
                     {/* Pricing Row */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <FormField
@@ -403,8 +411,6 @@ export const ProductForm = ({
                       </div>
                     </div>
 
-                    {/* Inventory Row (Only in Create Mode) */}
-                    {mode === "create" && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <FormField
                           control={form.control}
@@ -475,9 +481,9 @@ export const ProductForm = ({
                           )}
                         />
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* Right Column - Sidebar */}
@@ -548,18 +554,30 @@ export const ProductForm = ({
                                     </div>
                                   </>
                                 ) : (
-                                  categories.map((category) => (
-                                    <SelectItem
-                                      key={category.id}
-                                      value={category.id}
-                                      className="text-xs focus:bg-neutral-800 focus:text-white py-2.5"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full bg-amber-500/50" />
-                                        {category.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))
+                                  categories.map((category) => {
+                                    const parentName = getCategoryParentName(category);
+
+                                    return (
+                                      <SelectItem
+                                        key={category.id}
+                                        value={category.id}
+                                        className="text-xs focus:bg-neutral-800 focus:text-white py-2.5"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <div className="h-2 w-2 rounded-full bg-amber-500/50" />
+                                          {parentName ? (
+                                            <span className="inline-flex items-center gap-1">
+                                              <span className="text-neutral-500">{parentName}</span>
+                                              <span className="text-neutral-600">/</span>
+                                              <span>{category.name}</span>
+                                            </span>
+                                          ) : (
+                                            category.name
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })
                                 )}
                               </SelectContent>
                             </Select>
