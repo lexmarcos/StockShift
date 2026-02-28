@@ -48,6 +48,7 @@ import { deriveBatchStatus } from "./batches.model";
 
 import { cn } from "@/lib/utils";
 import { Warehouse as WarehouseType } from "@/app/warehouses/warehouses.types";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchesViewProps {
   batches: Batch[];
@@ -190,12 +191,14 @@ export const BatchesView = ({
           <div className="flex flex-col gap-5">
             {/* Actions Bar */}
             <div className="flex items-center justify-end">
-              <Link href="/batches/create">
-                <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Lote
-                </Button>
-              </Link>
+              <PermissionGate permission="batches:create">
+                <Link href="/batches/create">
+                  <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Novo Lote
+                  </Button>
+                </Link>
+              </PermissionGate>
             </div>
 
             {/* Row 1: Insight Cards */}
@@ -385,12 +388,14 @@ export const BatchesView = ({
                     Limpar Filtros
                   </Button>
                 ) : (
-                  <Link href="/batches/create">
-                    <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
-                      <Plus className="mr-2 h-3.5 w-3.5" />
-                      Primeiro Lote
-                    </Button>
-                  </Link>
+                  <PermissionGate permission="batches:create">
+                    <Link href="/batches/create">
+                      <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
+                        <Plus className="mr-2 h-3.5 w-3.5" />
+                        Primeiro Lote
+                      </Button>
+                    </Link>
+                  </PermissionGate>
                 )}
               </div>
             )}

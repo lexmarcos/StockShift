@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface ProductDetailViewProps {
   product: Product | null;
@@ -127,14 +128,16 @@ export const ProductDetailView = ({
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-neutral-200 font-sans pb-20">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        <div className="w-full flex justify-end mb-4">
-          <Link href={`/products/${product.id}/edit`} className="shrink-0">
-            <Button className="h-9 w-full sm:w-auto rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-              <Pencil className="mr-2 h-3.5 w-3.5" />
-              Editar Produto
-            </Button>
-          </Link>
-        </div>
+        <PermissionGate permission="products:update">
+          <div className="w-full flex justify-end mb-4">
+            <Link href={`/products/${product.id}/edit`} className="shrink-0">
+              <Button className="h-9 w-full sm:w-auto rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                <Pencil className="mr-2 h-3.5 w-3.5" />
+                Editar Produto
+              </Button>
+            </Link>
+          </div>
+        </PermissionGate>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left Column: Image & Quick Stats (4 cols) */}
           <div className="space-y-6 lg:col-span-4">

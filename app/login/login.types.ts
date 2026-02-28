@@ -12,6 +12,7 @@ export interface LoginResponse {
     email: string;
     fullName: string;
     requiresCaptcha: boolean;
+    mustChangePassword: boolean;
   };
 }
 

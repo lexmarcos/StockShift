@@ -19,17 +19,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Info, Lock, Mail, Box } from "lucide-react";
+import { Loader2, Info, Lock, Mail, Box, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { DebugMessage } from "./login.types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface LoginViewProps {
   form: UseFormReturn<LoginFormData>;
   onSubmit: (data: LoginFormData) => void;
   isLoading: boolean;
   debugMessages?: DebugMessage[];
+  errorMessage?: string | null;
   requiresCaptcha: boolean;
   captchaRef: React.RefObject<HCaptcha | null>;
   onCaptchaVerify: (token: string) => void;
@@ -41,6 +43,7 @@ export const LoginView = ({
   onSubmit,
   isLoading,
   debugMessages,
+  errorMessage,
   requiresCaptcha,
   captchaRef,
   onCaptchaVerify,
@@ -73,6 +76,16 @@ export const LoginView = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-8">
+          {errorMessage && (
+            <Alert variant="destructive" className="mb-6 border-none bg-rose-500/10 text-rose-500 border border-rose-500 text-left">
+              <AlertCircle className="h-4 w-4 text-rose-500" />
+              <AlertTitle className="text-xs font-bold uppercase tracking-wider text-rose-500">Erro de Acesso</AlertTitle>
+              <AlertDescription className="text-xs mt-1 text-rose-400">
+                {errorMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Form {...form}>
             <form method="POST" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField

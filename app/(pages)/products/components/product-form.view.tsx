@@ -67,6 +67,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { PermissionGate } from "@/components/permission-gate";
 import { ProductFormProps } from "./product-form.types";
 import { cn } from "@/lib/utils";
 
@@ -153,14 +154,16 @@ export const ProductForm = ({
                       </div>
 
                       {mode === "create" && openAiModal && (
-                        <Button
-                          type="button"
-                          onClick={openAiModal}
-                          className="w-full md:w-fit h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          Pegar dados de uma foto
-                        </Button>
+                        <PermissionGate permission="products:analyze_image">
+                          <Button
+                            type="button"
+                            onClick={openAiModal}
+                            className="w-full md:w-fit h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            Pegar dados de uma foto
+                          </Button>
+                        </PermissionGate>
                       )}
                     </div>
                   </CardHeader>

@@ -8,6 +8,7 @@ if (!API_BASE_URL) {
 
 // Estado para controlar refresh em andamento
 let isRefreshing = false;
+let isRedirectingToLogin = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -25,55 +26,29 @@ const processQueue = (error: Error | null = null) => {
   failedQueue = [];
 };
 
+const redirectToLogin = () => {
+  if (typeof window === "undefined" || isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+  localStorage.removeItem("user-data");
+  localStorage.removeItem("selected-warehouse-id");
+  window.location.href = "/login";
+};
+
 export const api = ky.create({
   prefixUrl: `${API_BASE_URL}/api`,
-  credentials: "include", // ← OBRIGATÓRIO: Habilita envio de cookies
+  credentials: "include",
   timeout: 30000,
-  retry: 0, // Desabilita retry automático (vamos controlar manualmente)
+  retry: 0,
   hooks: {
     beforeError: [
       async (error) => {
         const { response } = error;
 
-        // Se for 401, tenta refresh de token
-        if (response?.status === 403) {
-          // Se já está fazendo refresh, adiciona à fila
-          if (isRefreshing) {
-            await new Promise((resolve, reject) => {
-              failedQueue.push({ resolve, reject });
-            });
-            // Não retorna nada, apenas aguarda o refresh
-            return error;
-          }
+        // Não tenta processar se já estamos redirecionando
+        if (isRedirectingToLogin) return error;
 
-          isRefreshing = true;
-
-          try {
-            // Tenta fazer refresh do token
-            await ky.post(`${API_BASE_URL}/api/auth/refresh`, {
-              credentials: "include",
-            });
-
-            processQueue();
-            isRefreshing = false;
-
-            // Nota: o retry deve ser feito via retry hook ou manualmente
-            // beforeError deve retornar apenas o error modificado
-            return error;
-          } catch (refreshError) {
-            processQueue(refreshError as Error);
-            isRefreshing = false;
-
-            // Refresh falhou - redirecionar para login
-            if (typeof window !== "undefined") {
-              window.location.href = "/login";
-            }
-            return error;
-          }
-        }
-
-        // Para outros erros, tenta extrair mensagem da API
-        if (response) {
+        // Para erros que não são 403, tenta extrair mensagem da API
+        if (response && response.status !== 403) {
           try {
             const body = (await response.json()) as { message?: string };
             error.message = body.message || error.message;
@@ -87,7 +62,10 @@ export const api = ky.create({
     ],
     afterResponse: [
       async (request, _options, response) => {
-        // Se receber 401, tenta refresh automaticamente
+        // Se já estamos redirecionando, não processa mais nada
+        if (isRedirectingToLogin) return response;
+
+        // Se receber 403, tenta refresh automaticamente
         if (response.status === 403) {
           if (!isRefreshing) {
             isRefreshing = true;
@@ -109,20 +87,27 @@ export const api = ky.create({
               isRefreshing = false;
 
               // Refresh falhou - redirecionar para login
-              if (typeof window !== "undefined") {
-                window.location.href = "/login";
-              }
+              redirectToLogin();
               return response;
             }
           } else {
             // Se já está fazendo refresh, adiciona à fila
-            await new Promise((resolve, reject) => {
-              failedQueue.push({ resolve, reject });
-            });
-            // Retry da requisição original após refresh
-            return ky(request.clone(), {
-              credentials: "include",
-            });
+            try {
+              await new Promise((resolve, reject) => {
+                failedQueue.push({ resolve, reject });
+              });
+
+              // Se o redirect já foi iniciado, não tenta retry
+              if (isRedirectingToLogin) return response;
+
+              // Retry da requisição original após refresh
+              return ky(request.clone(), {
+                credentials: "include",
+              });
+            } catch {
+              // Refresh falhou enquanto esperava na fila
+              return response;
+            }
           }
         }
 

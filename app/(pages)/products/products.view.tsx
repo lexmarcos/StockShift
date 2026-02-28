@@ -58,6 +58,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { PermissionGate } from "@/components/permission-gate";
 import { ScannerDrawer } from "@/components/product/scanner-drawer/scanner-drawer";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { ProductsViewProps, SortField, SortOrder, Product } from "./products.types";
@@ -159,14 +160,18 @@ export const ProductsView = ({
             <Eye className="mr-2 h-3.5 w-3.5" /> Detalhes
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/products/${product.id}/edit`} className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full">
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onOpenDeleteDialog(product)} className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400">
-          <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
-        </DropdownMenuItem>
+        <PermissionGate permission="products:update">
+          <DropdownMenuItem asChild>
+            <Link href={`/products/${product.id}/edit`} className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full">
+              <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+            </Link>
+          </DropdownMenuItem>
+        </PermissionGate>
+        <PermissionGate permission="products:delete">
+          <DropdownMenuItem onClick={() => onOpenDeleteDialog(product)} className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400">
+            <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
+          </DropdownMenuItem>
+        </PermissionGate>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -250,12 +255,14 @@ export const ProductsView = ({
                     <ScanLine className="mr-2 h-3.5 w-3.5" />
                     Scanner
                   </Button>
-                  <Link href="/products/create">
-                    <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Novo Produto
-                    </Button>
-                  </Link>
+                  <PermissionGate permission="products:create">
+                    <Link href="/products/create">
+                      <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Novo Produto
+                      </Button>
+                    </Link>
+                  </PermissionGate>
                 </div>
 
                 {/* Row 1: Insight Cards */}
@@ -379,12 +386,14 @@ export const ProductsView = ({
                         Limpar Filtros
                       </Button>
                     ) : (
-                      <Link href="/products/create">
-                        <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
-                          <Plus className="mr-2 h-3.5 w-3.5" />
-                          Primeiro Produto
-                        </Button>
-                      </Link>
+                      <PermissionGate permission="products:create">
+                        <Link href="/products/create">
+                          <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
+                            <Plus className="mr-2 h-3.5 w-3.5" />
+                            Primeiro Produto
+                          </Button>
+                        </Link>
+                      </PermissionGate>
                     )}
                   </div>
                 )}
@@ -479,24 +488,28 @@ export const ProductsView = ({
                                         <Eye className="h-4 w-4" />
                                       </Link>
                                     </Button>
-                                    <Button
-                                      asChild
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-                                    >
-                                      <Link href={`/products/${product.id}/edit`}>
-                                        <Pencil className="h-4 w-4" />
-                                      </Link>
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => onOpenDeleteDialog(product)}
-                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <PermissionGate permission="products:update">
+                                      <Button
+                                        asChild
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                      >
+                                        <Link href={`/products/${product.id}/edit`}>
+                                          <Pencil className="h-4 w-4" />
+                                        </Link>
+                                      </Button>
+                                    </PermissionGate>
+                                    <PermissionGate permission="products:delete">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onOpenDeleteDialog(product)}
+                                        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </PermissionGate>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -592,14 +605,16 @@ export const ProductsView = ({
           <ScanLine className="h-5 w-5" />
         </Button>
         
-        <Link href="/products/create">
-          <Button
-            className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-            size="icon"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        </Link>
+        <PermissionGate permission="products:create">
+          <Link href="/products/create">
+            <Button
+              className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
+              size="icon"
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       <ResponsiveModal

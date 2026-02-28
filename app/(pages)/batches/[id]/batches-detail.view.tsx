@@ -31,6 +31,7 @@ import { ptBR } from "date-fns/locale";
 import type { Batch } from "../batches.types";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchesDetailViewProps {
   batch: Batch | null;
@@ -139,28 +140,32 @@ export const BatchesDetailView = ({
             {isExpired ? "Expirado" : "Ativo"}
           </Badge>
           <div className="flex items-center gap-2">
-            <Link href={`/batches/${batch.id}/edit`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-[4px] border-[#262626] bg-[#171717] hover:bg-[#262626] hover:text-white text-neutral-400 font-medium"
-              >
-                <Pencil className="mr-2 h-3.5 w-3.5" />
-                EDITAR
-              </Button>
-            </Link>
-
-            <AlertDialog open={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
-              <AlertDialogTrigger asChild>
+            <PermissionGate permission="batches:update">
+              <Link href={`/batches/${batch.id}/edit`}>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-[4px] border-[#262626] bg-[#171717] hover:bg-rose-950/30 hover:border-rose-900/50 hover:text-rose-500 text-neutral-400 font-medium transition-colors"
+                  className="h-9 rounded-[4px] border-[#262626] bg-[#171717] hover:bg-[#262626] hover:text-white text-neutral-400 font-medium"
                 >
-                  <Trash2 className="mr-2 h-3.5 w-3.5" />
-                  EXCLUIR
+                  <Pencil className="mr-2 h-3.5 w-3.5" />
+                  EDITAR
                 </Button>
-              </AlertDialogTrigger>
+              </Link>
+            </PermissionGate>
+
+            <AlertDialog open={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
+              <PermissionGate permission="batches:delete">
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-[4px] border-[#262626] bg-[#171717] hover:bg-rose-950/30 hover:border-rose-900/50 hover:text-rose-500 text-neutral-400 font-medium transition-colors"
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    EXCLUIR
+                  </Button>
+                </AlertDialogTrigger>
+              </PermissionGate>
               <AlertDialogContent className="rounded-[4px] border-[#262626] bg-[#171717]">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-white">

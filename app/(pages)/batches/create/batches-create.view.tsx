@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchCreateViewProps {
   form: UseFormReturn<BatchCreateFormData>;
@@ -397,23 +398,25 @@ export const BatchCreateView = ({
                 >
                   <Link href="/batches">Cancelar</Link>
                 </Button>
-                <Button
-                  type="submit"
-                  className="h-10 w-full md:w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <PackagePlus className="mr-2 h-3.5 w-3.5" />
-                      Criar Lote
-                    </>
-                  )}
-                </Button>
+                <PermissionGate permission="batches:create">
+                  <Button
+                    type="submit"
+                    className="h-10 w-full md:w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <PackagePlus className="mr-2 h-3.5 w-3.5" />
+                        Criar Lote
+                      </>
+                    )}
+                  </Button>
+                </PermissionGate>
               </div>
             </div>
           </form>

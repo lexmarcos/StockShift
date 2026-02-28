@@ -23,6 +23,7 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { cn } from "@/lib/utils";
+import { PermissionGate } from "@/components/permission-gate";
 
 const statusConfig: Record<
   TransferStatus,
@@ -444,67 +445,79 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             {/* Source DRAFT actions */}
             {isSource && transfer.status === TransferStatus.DRAFT && (
               <>
-                <Link href={`/transfers/${transfer.id}/edit`}>
+                <PermissionGate permission="transfers:update">
+                  <Link href={`/transfers/${transfer.id}/edit`}>
+                    <Button
+                      variant="ghost"
+                      className="h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-neutral-400 hover:text-white"
+                    >
+                      <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                      Editar
+                    </Button>
+                  </Link>
+                </PermissionGate>
+                <PermissionGate permission="transfers:delete">
                   <Button
-                    variant="ghost"
-                    className="h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-neutral-400 hover:text-white"
+                    variant="outline"
+                    onClick={onCancel}
+                    disabled={isCancelling}
+                    className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
                   >
-                    <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
-                    Editar
+                    {isCancelling ? "Cancelando..." : "CANCELAR"}
                   </Button>
-                </Link>
+                </PermissionGate>
+                <PermissionGate permission="transfers:update">
+                  <Button
+                    onClick={onExecute}
+                    disabled={isExecuting}
+                    className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                  >
+                    {isExecuting ? "Processando..." : "EXECUTAR TRANSFERÊNCIA"}
+                  </Button>
+                </PermissionGate>
+              </>
+            )}
+
+            {/* Source IN_TRANSIT actions */}
+            {isSource && transfer.status === TransferStatus.IN_TRANSIT && (
+              <PermissionGate permission="transfers:delete">
                 <Button
                   variant="outline"
                   onClick={onCancel}
                   disabled={isCancelling}
                   className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
                 >
-                  {isCancelling ? "Cancelando..." : "CANCELAR"}
+                  {isCancelling ? "Cancelando..." : "CANCELAR TRANSFERÊNCIA"}
                 </Button>
-                <Button
-                  onClick={onExecute}
-                  disabled={isExecuting}
-                  className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                >
-                  {isExecuting ? "Processando..." : "EXECUTAR TRANSFERÊNCIA"}
-                </Button>
-              </>
-            )}
-
-            {/* Source IN_TRANSIT actions */}
-            {isSource && transfer.status === TransferStatus.IN_TRANSIT && (
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                disabled={isCancelling}
-                className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
-              >
-                {isCancelling ? "Cancelando..." : "CANCELAR TRANSFERÊNCIA"}
-              </Button>
+              </PermissionGate>
             )}
 
             {/* Destination IN_TRANSIT actions */}
             {isDestination && transfer.status === TransferStatus.IN_TRANSIT && (
-              <Button
-                onClick={onStartValidation}
-                disabled={isValidating}
-                className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-              >
-                <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
-                {isValidating ? "Iniciando..." : "INICIAR VALIDAÇÃO"}
-              </Button>
+              <PermissionGate permission="transfers:update">
+                <Button
+                  onClick={onStartValidation}
+                  disabled={isValidating}
+                  className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
+                  {isValidating ? "Iniciando..." : "INICIAR VALIDAÇÃO"}
+                </Button>
+              </PermissionGate>
             )}
 
             {/* Destination PENDING / IN_VALIDATION */}
             {isDestination &&
               (transfer.status === TransferStatus.PENDING_VALIDATION ||
                 transfer.status === TransferStatus.IN_VALIDATION) && (
-                <Link href={`/transfers/${transfer.id}/validate`}>
-                  <Button className="h-10 rounded-[4px] bg-amber-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
-                    <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
-                    CONTINUAR VALIDAÇÃO
-                  </Button>
-                </Link>
+                <PermissionGate permission="transfers:update">
+                  <Link href={`/transfers/${transfer.id}/validate`}>
+                    <Button className="h-10 rounded-[4px] bg-amber-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
+                      <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
+                      CONTINUAR VALIDAÇÃO
+                    </Button>
+                  </Link>
+                </PermissionGate>
               )}
 
             {/* Completed */}

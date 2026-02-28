@@ -18,20 +18,59 @@ type NavItem = {
   href: string;
   label: string;
   Icon: typeof Package;
+  requiredPermission?: string;
+  adminOnly?: boolean;
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/products", label: "Produtos", Icon: Package },
-  { href: "/batches", label: "Lotes", Icon: Layers },
-  { href: "/transfers", label: "Transferências", Icon: ArrowLeftRight },
-  { href: "/brands", label: "Marcas", Icon: Tag },
-  { href: "/categories", label: "Categorias", Icon: Folder },
+  { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard, adminOnly: true },
+  {
+    href: "/products",
+    label: "Produtos",
+    Icon: Package,
+    requiredPermission: "products:read",
+  },
+  {
+    href: "/batches",
+    label: "Lotes",
+    Icon: Layers,
+    requiredPermission: "batches:read",
+  },
+  {
+    href: "/transfers",
+    label: "Transferências",
+    Icon: ArrowLeftRight,
+    requiredPermission: "transfers:read",
+  },
+  {
+    href: "/brands",
+    label: "Marcas",
+    Icon: Tag,
+    requiredPermission: "brands:read",
+  },
+  {
+    href: "/categories",
+    label: "Categorias",
+    Icon: Folder,
+    requiredPermission: "categories:read",
+  },
 ];
 
 export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const pathname = usePathname();
-  const { isAdmin, isLoading } = useAuth();
+  const { isAdmin, hasPermission } = useAuth();
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
+
+  const canAccessSystem =
+    isAdmin ||
+    hasPermission("users:read") ||
+    hasPermission("roles:read") ||
+    hasPermission("permissions:read");
 
   const renderNavLink = (item: NavItem) => {
     const isActive =
@@ -60,10 +99,10 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   return (
     <nav className="flex flex-col flex-1">
       {/* Main navigation */}
-      <div className="space-y-2 flex-1">{navItems.map(renderNavLink)}</div>
+      <div className="space-y-2 flex-1">{visibleNavItems.map(renderNavLink)}</div>
 
-      {/* Admin section - bottom */}
-      {(isLoading || isAdmin) && (
+      {/* System section - bottom */}
+      {canAccessSystem && (
         <div className="pt-4 mt-4 border-t border-border/40">
           <Link
             href="/system"

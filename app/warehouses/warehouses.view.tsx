@@ -37,6 +37,7 @@ import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
 import { WarehouseStockInfo } from "./warehouse-stock-info";
 import { cn } from "@/lib/utils";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface WarehousesViewProps {
   warehouses: Warehouse[];
@@ -111,13 +112,15 @@ export const WarehousesView = ({
                 </div>
               </div>
 
-              <Button
-                onClick={openCreateModal}
-                className="hidden md:flex h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Armazém
-              </Button>
+              <PermissionGate permission="warehouses:create">
+                <Button
+                  onClick={openCreateModal}
+                  className="hidden md:flex h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Armazém
+                </Button>
+              </PermissionGate>
             </div>
 
             {/* Bottom Row: Search & Filters */}
@@ -201,13 +204,15 @@ export const WarehousesView = ({
                   </p>
                 </div>
                 {!searchQuery && statusFilter === "all" && (
-                  <Button
-                    onClick={openCreateModal}
-                    className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                  >
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    Criar Primeiro Armazém
-                  </Button>
+                  <PermissionGate permission="warehouses:create">
+                    <Button
+                      onClick={openCreateModal}
+                      className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                    >
+                      <Plus className="mr-2 h-3.5 w-3.5" />
+                      Criar Primeiro Armazém
+                    </Button>
+                  </PermissionGate>
                 )}
               </div>
             )}
@@ -299,26 +304,30 @@ export const WarehousesView = ({
                             align="end"
                             className="w-40 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300"
                           >
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(warehouse);
-                              }}
-                              className="text-xs focus:bg-neutral-800 focus:text-white cursor-pointer"
-                            >
-                              <Edit className="mr-2 h-3.5 w-3.5" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDeleteDialog(warehouse);
-                              }}
-                              className="text-xs text-rose-500 focus:bg-rose-950/20 focus:text-rose-400 cursor-pointer"
-                            >
-                              <Trash2 className="mr-2 h-3.5 w-3.5" />
-                              Excluir
-                            </DropdownMenuItem>
+                            <PermissionGate permission="warehouses:update">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(warehouse);
+                                }}
+                                className="text-xs focus:bg-neutral-800 focus:text-white cursor-pointer"
+                              >
+                                <Edit className="mr-2 h-3.5 w-3.5" />
+                                Editar
+                              </DropdownMenuItem>
+                            </PermissionGate>
+                            <PermissionGate permission="warehouses:delete">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openDeleteDialog(warehouse);
+                                }}
+                                className="text-xs text-rose-500 focus:bg-rose-950/20 focus:text-rose-400 cursor-pointer"
+                              >
+                                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </PermissionGate>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -357,13 +366,15 @@ export const WarehousesView = ({
       </main>
 
       {/* Floating Action Button - Mobile */}
-      <Button
-        onClick={openCreateModal}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40"
-        size="icon"
-      >
-        <Plus className="h-7 w-7" />
-      </Button>
+      <PermissionGate permission="warehouses:create">
+        <Button
+          onClick={openCreateModal}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40"
+          size="icon"
+        >
+          <Plus className="h-7 w-7" />
+        </Button>
+      </PermissionGate>
 
       {/* Create/Edit Modal */}
       <ResponsiveModal

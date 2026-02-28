@@ -52,6 +52,7 @@ import { UseFormReturn } from "react-hook-form";
 import { CategoryFormData } from "./categories.schema";
 import { Category, CategoryTree, SortConfig, ViewMode } from "./categories.types";
 import { cn } from "@/lib/utils";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface CategoriesViewProps {
   categories: CategoryTree[] | CategoryTree[];
@@ -194,28 +195,32 @@ export const CategoriesView = ({
           <div className="flex items-center gap-1">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-1 transition-opacity">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openEditModal(node);
-                }}
-                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDeleteDialog(node);
-                }}
-                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <PermissionGate permission="categories:update">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(node);
+                  }}
+                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </PermissionGate>
+              <PermissionGate permission="categories:delete">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDeleteDialog(node);
+                  }}
+                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </PermissionGate>
             </div>
 
             {/* Mobile Actions Menu */}
@@ -236,20 +241,24 @@ export const CategoriesView = ({
                     Opções
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-neutral-800" />
-                  <DropdownMenuItem 
-                    onClick={() => openEditModal(node)}
-                    className="cursor-pointer focus:bg-neutral-800 focus:text-white"
-                  >
-                    <Edit className="mr-2 h-3.5 w-3.5" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => openDeleteDialog(node)}
-                    className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
-                  >
-                    <Trash2 className="mr-2 h-3.5 w-3.5" />
-                    Excluir
-                  </DropdownMenuItem>
+                  <PermissionGate permission="categories:update">
+                    <DropdownMenuItem 
+                      onClick={() => openEditModal(node)}
+                      className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+                    >
+                      <Edit className="mr-2 h-3.5 w-3.5" />
+                      Editar
+                    </DropdownMenuItem>
+                  </PermissionGate>
+                  <PermissionGate permission="categories:delete">
+                    <DropdownMenuItem 
+                      onClick={() => openDeleteDialog(node)}
+                      className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </PermissionGate>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -319,22 +328,26 @@ export const CategoriesView = ({
         <div className="flex items-center gap-1">
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-1 transition-opacity">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => openEditModal(node)}
-              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => openDeleteDialog(node)}
-              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <PermissionGate permission="categories:update">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => openEditModal(node)}
+                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </PermissionGate>
+            <PermissionGate permission="categories:delete">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => openDeleteDialog(node)}
+                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </PermissionGate>
           </div>
 
           {/* Mobile Actions Menu */}
@@ -355,20 +368,24 @@ export const CategoriesView = ({
                   Opções
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-neutral-800" />
-                <DropdownMenuItem 
-                  onClick={() => openEditModal(node)}
-                  className="cursor-pointer focus:bg-neutral-800 focus:text-white"
-                >
-                  <Edit className="mr-2 h-3.5 w-3.5" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => openDeleteDialog(node)}
-                  className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
-                >
-                  <Trash2 className="mr-2 h-3.5 w-3.5" />
-                  Excluir
-                </DropdownMenuItem>
+                <PermissionGate permission="categories:update">
+                  <DropdownMenuItem 
+                    onClick={() => openEditModal(node)}
+                    className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+                  >
+                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    Editar
+                  </DropdownMenuItem>
+                </PermissionGate>
+                <PermissionGate permission="categories:delete">
+                  <DropdownMenuItem 
+                    onClick={() => openDeleteDialog(node)}
+                    className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    Excluir
+                  </DropdownMenuItem>
+                </PermissionGate>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -387,14 +404,16 @@ export const CategoriesView = ({
           <div className="flex flex-col gap-4">
             {/* Title & Main Action */}
             <div className="flex items-center justify-end">
-               <Button
-                onClick={openCreateModal}
-                className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Nova Categoria</span>
-                <span className="sm:hidden">Nova</span>
-              </Button>
+              <PermissionGate permission="categories:create">
+                <Button
+                  onClick={openCreateModal}
+                  className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Nova Categoria</span>
+                  <span className="sm:hidden">Nova</span>
+                </Button>
+              </PermissionGate>
             </div>
 
             {/* Filters Toolbar */}
@@ -501,13 +520,15 @@ export const CategoriesView = ({
                 Organize seu estoque criando estruturas de categorias.
               </p>
             </div>
-            <Button
-              onClick={openCreateModal}
-              className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-            >
-              <Plus className="mr-2 h-3.5 w-3.5" />
-              Criar Primeira Categoria
-            </Button>
+            <PermissionGate permission="categories:create">
+              <Button
+                onClick={openCreateModal}
+                className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+              >
+                <Plus className="mr-2 h-3.5 w-3.5" />
+                Criar Primeira Categoria
+              </Button>
+            </PermissionGate>
           </div>
         )}
 

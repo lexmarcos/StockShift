@@ -14,6 +14,7 @@ export const useLoginModel = () => {
   const router = useRouter();
   const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCaptcha, setRequiresCaptcha] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
@@ -40,16 +41,17 @@ export const useLoginModel = () => {
   };
 
   const onSubmit = async (data: LoginFormData) => {
+    setErrorMessage(null);
+    
     if (requiresCaptcha && !captchaToken) {
+      setErrorMessage("Por favor, resolva o captcha.");
       toast.error("Por favor, resolva o captcha.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const payload = requiresCaptcha
-        ? { ...data, captchaToken }
-        : data;
+      const payload = requiresCaptcha ? { ...data, captchaToken } : data;
 
       const response = await api
         .post("auth/login", { json: payload })
@@ -64,24 +66,38 @@ export const useLoginModel = () => {
         });
 
         toast.success("Login realizado com sucesso!");
-        router.push("/warehouses");
+
+        if (response.data.mustChangePassword) {
+          router.push("/change-password");
+        } else {
+          router.push("/warehouses");
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
 
       if (error instanceof HTTPError) {
-        const errorMessage = error.message;
-        console.log("[Login Debug] HTTPError message:", errorMessage);
-        console.log("[Login Debug] Status:", error.response.status);
+        let errorMsg = "Falha no login. Verifique suas credenciais.";
+        
+        try {
+          const errorData = await error.response.json();
+          if (errorData.message) {
+             errorMsg = errorData.message;
+          }
+        } catch (parseError) {
+           errorMsg = error.message;
+        }
 
         // Ativa captcha se backend exigir token
-        const captchaRequired = errorMessage === "Captcha token is required";
+        const captchaRequired = errorMsg === "Captcha token is required";
 
-        console.log("[Login Debug] captchaRequired:", captchaRequired);
         setRequiresCaptcha(captchaRequired);
-        toast.error(errorMessage || "Falha no login. Verifique suas credenciais.");
+        setErrorMessage(errorMsg || "Falha no login. Verifique suas credenciais.");
+        toast.error(
+          errorMsg || "Falha no login. Verifique suas credenciais.",
+        );
       } else {
-        console.log("[Login Debug] Non-HTTPError:", error);
+        setErrorMessage("Falha no login. Verifique suas credenciais.");
         toast.error("Falha no login. Verifique suas credenciais.");
       }
 
@@ -95,6 +111,7 @@ export const useLoginModel = () => {
     form,
     onSubmit,
     isLoading,
+    errorMessage,
     requiresCaptcha,
     captchaRef,
     onCaptchaVerify,

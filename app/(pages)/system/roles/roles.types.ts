@@ -1,12 +1,13 @@
 export interface Permission {
   id: string;
-  resource: string;
-  resourceDisplayName: string;
-  action: string;
-  actionDisplayName: string;
-  scope: string;
-  scopeDisplayName: string;
-  description: string;
+  code?: string | null;
+  resource?: string | null;
+  resourceDisplayName?: string | null;
+  action?: string | null;
+  actionDisplayName?: string | null;
+  scope?: string | null;
+  scopeDisplayName?: string | null;
+  description?: string | null;
 }
 
 export interface Role {

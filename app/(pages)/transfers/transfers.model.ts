@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
@@ -7,6 +8,7 @@ import { TransferStatus, TransfersPageResponse } from "./transfers.types";
 export function useTransfersModel() {
   const [activeTab, setActiveTab] = useState<"outgoing" | "incoming">("outgoing");
   const { warehouseId } = useSelectedWarehouse();
+  const router = useRouter();
 
   const { data, isLoading, error, mutate } = useSWR<TransfersPageResponse>(
     warehouseId ? "transfers" : null,
@@ -62,5 +64,6 @@ export function useTransfersModel() {
     onTabChange: setActiveTab,
     stats,
     onRetry: () => mutate(),
+    onNewTransfer: () => router.push("/transfers/new"),
   };
 }

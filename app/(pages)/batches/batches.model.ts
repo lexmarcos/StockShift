@@ -116,8 +116,6 @@ export const useBatchesModel = () => {
     lowStockThreshold: 10,
   });
 
-  console.log(filters.warehouseId);
-
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "createdAt",
     direction: "desc",

@@ -54,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface BrandsViewProps {
   brands: Brand[];
@@ -130,14 +131,16 @@ export const BrandsView = ({
           <div className="flex flex-col gap-4">
             {/* Top Row: Brand & Action */}
             <div className="flex items-center justify-end">
-              <Button
-                onClick={openCreateModal}
-                className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Nova Marca</span>
-                <span className="sm:hidden">Nova</span>
-              </Button>
+              <PermissionGate permission="brands:create">
+                <Button
+                  onClick={openCreateModal}
+                  className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Nova Marca</span>
+                  <span className="sm:hidden">Nova</span>
+                </Button>
+              </PermissionGate>
             </div>
 
             {/* Bottom Row: Search & Filters */}
@@ -261,12 +264,14 @@ export const BrandsView = ({
                 Limpar Busca
               </Button>
             ) : (
-              <Button
-                onClick={openCreateModal}
-                className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white"
-              >
-                <Plus className="mr-2 h-3.5 w-3.5" /> Registrar Marca
-              </Button>
+              <PermissionGate permission="brands:create">
+                <Button
+                  onClick={openCreateModal}
+                  className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white"
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" /> Registrar Marca
+                </Button>
+              </PermissionGate>
             )}
           </div>
         )}
@@ -336,22 +341,26 @@ export const BrandsView = ({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditModal(brand)}
-                            className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openDeleteDialog(brand)}
-                            className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <PermissionGate permission="brands:update">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditModal(brand)}
+                              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </PermissionGate>
+                          <PermissionGate permission="brands:delete">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openDeleteDialog(brand)}
+                              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGate>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -409,18 +418,22 @@ export const BrandsView = ({
                       align="end"
                       className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200"
                     >
-                      <DropdownMenuItem
-                        onClick={() => openEditModal(brand)}
-                        className="focus:bg-neutral-800"
-                      >
-                        <Pencil className="mr-2 h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openDeleteDialog(brand)}
-                        className="text-rose-500 focus:bg-rose-950/20"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                      </DropdownMenuItem>
+                      <PermissionGate permission="brands:update">
+                        <DropdownMenuItem
+                          onClick={() => openEditModal(brand)}
+                          className="focus:bg-neutral-800"
+                        >
+                          <Pencil className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                      </PermissionGate>
+                      <PermissionGate permission="brands:delete">
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(brand)}
+                          className="text-rose-500 focus:bg-rose-950/20"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </PermissionGate>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -431,13 +444,15 @@ export const BrandsView = ({
       </main>
 
       {/* Mobile Floating Action Button */}
-      <Button
-        onClick={openCreateModal}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:bg-blue-700 active:scale-95 transition-all md:hidden z-40"
-        size="icon"
-      >
-        <Plus className="h-7 w-7" />
-      </Button>
+      <PermissionGate permission="brands:create">
+        <Button
+          onClick={openCreateModal}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:bg-blue-700 active:scale-95 transition-all md:hidden z-40"
+          size="icon"
+        >
+          <Plus className="h-7 w-7" />
+        </Button>
+      </PermissionGate>
 
       {/* Modals */}
       <ResponsiveModal

@@ -8,6 +8,7 @@ import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Header } from "@/components/header/header";
 import { BreadcrumbProvider, Breadcrumb } from "@/components/breadcrumb";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
+import { useAuth } from "@/lib/contexts/auth-context";
 
 export default function PagesLayout({
   children,
@@ -16,13 +17,19 @@ export default function PagesLayout({
 }) {
   const { isOpen, closeMenu } = useMobileMenu();
   const { warehouseId } = useSelectedWarehouse();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (user?.mustChangePassword) {
+      router.replace("/change-password");
+      return;
+    }
+
     if (warehouseId === null) {
       router.replace("/warehouses");
     }
-  }, [warehouseId, router]);
+  }, [warehouseId, user, router]);
 
   // Show loading while checking warehouse
   if (warehouseId === null) {
@@ -33,7 +40,9 @@ export default function PagesLayout({
         </div>
         <div className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-          <span className="text-sm text-neutral-400">Redirecionando para seleção de armazém...</span>
+          <span className="text-sm text-neutral-400">
+            Redirecionando para seleção de armazém...
+          </span>
         </div>
       </div>
     );

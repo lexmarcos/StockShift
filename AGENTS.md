@@ -86,5 +86,5 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 ## Browser Automation
 
 ### Usuário de teste para automação:
-email: test@test.com
+email: pass@pass.com
 senha: test123

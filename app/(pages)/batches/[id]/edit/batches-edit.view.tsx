@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchEditViewProps {
   form: UseFormReturn<BatchEditFormData>;
@@ -251,10 +252,12 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
             </Card>
 
             <div className="flex justify-end">
-              <Button type="submit" className="rounded-sm bg-foreground text-background">
-                <Save className="mr-2 h-3.5 w-3.5" />
-                Salvar alterações
-              </Button>
+              <PermissionGate permission="batches:update">
+                <Button type="submit" className="rounded-sm bg-foreground text-background">
+                  <Save className="mr-2 h-3.5 w-3.5" />
+                  Salvar alterações
+                </Button>
+              </PermissionGate>
             </div>
           </form>
         </Form>

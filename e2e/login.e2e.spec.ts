@@ -10,6 +10,20 @@ const credentials = {
 };
 
 test.describe("Login E2E", () => {
+  test("deve exibir alerta de erro com credenciais invalidas", async ({ page }) => {
+    await page.goto("/login");
+
+    await page.locator('input[name="email"]').fill("pass@pass.com");
+    await page.locator('input[name="password"]').fill("wrong_password");
+    await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+
+    const alertTitle = page.locator('text=Erro de Acesso');
+    await expect(alertTitle).toBeVisible();
+
+    const alertMessage = page.locator('text=Falha no login. Verifique suas credenciais.');
+    await expect(alertMessage).toBeVisible();
+  });
+
   test("deve autenticar com credenciais validas e salvar sessao para os demais testes", async ({ page }) => {
     await page.goto("/login");
 

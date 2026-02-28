@@ -36,6 +36,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SectionLabel } from "@/components/ui/section-label";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { NewTransferViewProps } from "./new-transfer.types";
+import { PermissionGate } from "@/components/permission-gate";
 
 export function NewTransferView({
   form,
@@ -448,14 +449,16 @@ export function NewTransferView({
                 >
                   CANCELAR
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || isLoading}
-                  className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-                >
-                  <Save className="mr-2 h-4 w-4" strokeWidth={2} />
-                  {isSubmitting ? "CRIANDO..." : "CRIAR TRANSFERÊNCIA"}
-                </Button>
+                <PermissionGate permission="transfers:create">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || isLoading}
+                    className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                  >
+                    <Save className="mr-2 h-4 w-4" strokeWidth={2} />
+                    {isSubmitting ? "CRIANDO..." : "CRIAR TRANSFERÊNCIA"}
+                  </Button>
+                </PermissionGate>
               </div>
             </div>
           </FixedBottomBar>

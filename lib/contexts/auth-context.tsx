@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
@@ -55,15 +63,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   // Fetch complete user data with roles/permissions
-  const { data: meData, isLoading: isMeLoading, mutate: mutateMe } = useSWR<MeResponse>(
-    baseUser ? "auth/me" : null,
-    fetcher,
-    {
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-      dedupingInterval: 60000,
-    }
-  );
+  const {
+    data: meData,
+    isLoading: isMeLoading,
+    mutate: mutateMe,
+  } = useSWR<MeResponse>(baseUser ? "auth/me" : null, fetcher, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000,
+    onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
+      // Não retenta em erros de autenticação (403) para evitar loop
+      if (error?.response?.status === 403) return;
+      // Para outros erros, retry com backoff (max 3 tentativas)
+      if (retryCount >= 3) return;
+      setTimeout(() => revalidate({ retryCount }), 5000 * (retryCount + 1));
+    },
+  });
 
   // Initialize from localStorage
   useEffect(() => {
@@ -115,16 +130,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const hasPermission = useCallback((permission: string): boolean => {
-    if (!fullUser?.permissions) return false;
-    if (fullUser.permissions.includes("*")) return true;
-    return fullUser.permissions.includes(permission);
-  }, [fullUser?.permissions]);
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      if (!fullUser?.permissions) return false;
+      if (fullUser.permissions.includes("*")) return true;
+      return fullUser.permissions.includes(permission);
+    },
+    [fullUser?.permissions],
+  );
 
-  const hasRole = useCallback((role: string): boolean => {
-    if (!fullUser?.roles) return false;
-    return fullUser.roles.includes(role);
-  }, [fullUser?.roles]);
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      if (!fullUser?.roles) return false;
+      return fullUser.roles.includes(role);
+    },
+    [fullUser?.roles],
+  );
 
   const isAdmin = useMemo(() => {
     return fullUser?.roles?.includes("ADMIN") ?? false;
@@ -133,21 +154,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isLoading = isInitializing || (!!baseUser && isMeLoading);
   const isAuthenticated = !!baseUser;
 
-  const contextValue = useMemo<AuthContextValue>(() => ({
-    user: fullUser,
-    isLoading,
-    isAuthenticated,
-    setUser,
-    logout,
-    hasPermission,
-    hasRole,
-    isAdmin,
-  }), [fullUser, isLoading, isAuthenticated, hasPermission, hasRole, isAdmin]);
+  const contextValue = useMemo<AuthContextValue>(
+    () => ({
+      user: fullUser,
+      isLoading,
+      isAuthenticated,
+      setUser,
+      logout,
+      hasPermission,
+      hasRole,
+      isAdmin,
+    }),
+    [fullUser, isLoading, isAuthenticated, hasPermission, hasRole, isAdmin],
+  );
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

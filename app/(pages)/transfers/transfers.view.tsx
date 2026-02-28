@@ -20,6 +20,8 @@ import { StatusCard } from "@/components/ui/status-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { PermissionGate } from "@/components/permission-gate";
+import { usePermission } from "@/hooks/use-permission";
 import { SectionLabel } from "@/components/ui/section-label";
 import { Transfer, TransferStatus } from "./transfers.types";
 import { cn } from "@/lib/utils";
@@ -37,6 +39,7 @@ interface TransfersViewProps {
     completed: number;
   };
   onRetry: () => void;
+  onNewTransfer: () => void;
 }
 
 const statusConfig: Record<
@@ -74,7 +77,10 @@ export function TransfersView({
   onTabChange,
   stats,
   onRetry,
+  onNewTransfer,
 }: TransfersViewProps) {
+  const { can } = usePermission();
+
   return (
     <PageContainer>
       <PageHeader
@@ -82,15 +88,17 @@ export function TransfersView({
         subtitle="Gerenciamento"
         actions={
           activeTab === "outgoing" ? (
-            <Button
-              asChild
-              className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
-            >
-              <Link href="/transfers/new">
-                <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
-                Nova Transferência
-              </Link>
-            </Button>
+            <PermissionGate permission="transfers:create">
+              <Button
+                asChild
+                className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+              >
+                <Link href="/transfers/new">
+                  <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+                  Nova Transferência
+                </Link>
+              </Button>
+            </PermissionGate>
           ) : undefined
         }
       />
@@ -222,8 +230,8 @@ export function TransfersView({
               : "Nenhuma transferência recebida neste depósito."
           }
           action={
-            activeTab === "outgoing"
-              ? { label: "NOVA TRANSFERÊNCIA", onClick: () => {} }
+            activeTab === "outgoing" && can("transfers:create")
+              ? { label: "NOVA TRANSFERÊNCIA", onClick: onNewTransfer }
               : undefined
           }
         />

@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Páginas públicas que não precisam de autenticação
-  const publicPaths = ["/login", "/register"];
+  const publicPaths = ["/login", "/register", "/change-password"];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
   // Se for uma página pública, permite o acesso

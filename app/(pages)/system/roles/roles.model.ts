@@ -10,10 +10,12 @@ import {
   Role,
   RolesResponse,
   RoleResponse,
-  Permission,
   PermissionsResponse,
   DeleteRoleResponse,
 } from "./roles.types";
+import {
+  groupPermissionsByResource,
+} from "./roles-permissions";
 
 export const useRolesModel = () => {
   const { isAdmin, isLoading: isLoadingAdmin } = useAuth();
@@ -27,8 +29,6 @@ export const useRolesModel = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editFormPopulated, setEditFormPopulated] = useState(false);
-
-  console.log(isAdmin, isLoadingAdmin);
 
   // Fetch roles
   const {
@@ -52,8 +52,11 @@ export const useRolesModel = () => {
       },
     );
 
-  const roles = rolesData?.data || [];
-  const permissions = permissionsData?.data || [];
+  const roles = useMemo(() => rolesData?.data || [], [rolesData?.data]);
+  const permissions = useMemo(
+    () => permissionsData?.data || [],
+    [permissionsData?.data],
+  );
 
   // Filter roles by search query
   const filteredRoles = useMemo(() => {
@@ -67,16 +70,10 @@ export const useRolesModel = () => {
     );
   }, [roles, searchQuery]);
 
-  // Group permissions by resourceDisplayName
-  const groupedPermissions = useMemo(() => {
-    const map = new Map<string, Permission[]>();
-    permissions.forEach((permission) => {
-      const key = permission.resourceDisplayName || permission.resource;
-      const existing = map.get(key) || [];
-      map.set(key, [...existing, permission]);
-    });
-    return map;
-  }, [permissions]);
+  const groupedPermissions = useMemo(
+    () => groupPermissionsByResource(permissions),
+    [permissions],
+  );
 
   // Create form
   const createForm = useForm<RoleFormData>({
@@ -133,7 +130,13 @@ export const useRolesModel = () => {
       });
       setEditFormPopulated(true);
     }
-  }, [selectedRole, isEditModalOpen, permissions, editFormPopulated]);
+  }, [
+    selectedRole,
+    isEditModalOpen,
+    permissions,
+    editFormPopulated,
+    editForm,
+  ]);
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
