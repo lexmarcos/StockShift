@@ -6,7 +6,9 @@ import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { TransferStatus, TransfersPageResponse } from "./transfers.types";
 
 export function useTransfersModel() {
-  const [activeTab, setActiveTab] = useState<"outgoing" | "incoming">("outgoing");
+  const [activeTab, setActiveTab] = useState<"outgoing" | "incoming">(
+    "outgoing",
+  );
   const { warehouseId } = useSelectedWarehouse();
   const router = useRouter();
 
@@ -14,7 +16,7 @@ export function useTransfersModel() {
     warehouseId ? "transfers" : null,
     async (url: string) => {
       return await api.get(url).json<TransfersPageResponse>();
-    }
+    },
   );
 
   const allTransfers = useMemo(() => data?.data?.content || [], [data]);
@@ -30,29 +32,33 @@ export function useTransfersModel() {
     });
 
     return [...filtered].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }, [allTransfers, warehouseId, activeTab]);
 
   const stats = useMemo(() => {
-    if (!warehouseId) return { total: 0, inTransit: 0, pending: 0, completed: 0 };
+    if (!warehouseId)
+      return { total: 0, inTransit: 0, pending: 0, completed: 0 };
 
     const relevant = allTransfers.filter((t) =>
       activeTab === "outgoing"
         ? t.sourceWarehouseId === warehouseId
-        : t.destinationWarehouseId === warehouseId
+        : t.destinationWarehouseId === warehouseId,
     );
 
     return {
       total: relevant.length,
-      inTransit: relevant.filter((t) => t.status === TransferStatus.IN_TRANSIT).length,
+      inTransit: relevant.filter((t) => t.status === TransferStatus.IN_TRANSIT)
+        .length,
       pending: relevant.filter(
         (t) =>
           t.status === TransferStatus.PENDING_VALIDATION ||
           t.status === TransferStatus.IN_VALIDATION ||
-          t.status === TransferStatus.DRAFT
+          t.status === TransferStatus.DRAFT,
       ).length,
-      completed: relevant.filter((t) => t.status === TransferStatus.COMPLETED).length,
+      completed: relevant.filter((t) => t.status === TransferStatus.COMPLETED)
+        .length,
     };
   }, [allTransfers, warehouseId, activeTab]);
 

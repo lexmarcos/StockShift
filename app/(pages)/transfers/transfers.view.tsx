@@ -44,7 +44,10 @@ interface TransfersViewProps {
 
 const statusConfig: Record<
   TransferStatus,
-  { cardStatus: "info" | "success" | "warning" | "error" | "neutral"; label: string }
+  {
+    cardStatus: "info" | "success" | "warning" | "error" | "neutral";
+    label: string;
+  }
 > = {
   [TransferStatus.DRAFT]: { cardStatus: "info", label: "Rascunho" },
   [TransferStatus.IN_TRANSIT]: { cardStatus: "warning", label: "Em Trânsito" },
@@ -111,7 +114,7 @@ export function TransfersView({
             "group relative flex items-center gap-3 rounded-[4px] border px-5 py-4",
             activeTab === "outgoing"
               ? "border-blue-600 bg-blue-600/5"
-              : "border-neutral-800 bg-[#171717] hover:border-neutral-700"
+              : "border-neutral-800 bg-[#171717] hover:border-neutral-700",
           )}
         >
           <div
@@ -119,7 +122,7 @@ export function TransfersView({
               "flex h-10 w-10 items-center justify-center rounded-[4px]",
               activeTab === "outgoing"
                 ? "bg-blue-600/20 text-blue-400"
-                : "bg-neutral-800 text-neutral-500"
+                : "bg-neutral-800 text-neutral-500",
             )}
           >
             <Send className="h-5 w-5" strokeWidth={2} />
@@ -128,7 +131,7 @@ export function TransfersView({
             <p
               className={cn(
                 "text-sm font-bold",
-                activeTab === "outgoing" ? "text-white" : "text-neutral-400"
+                activeTab === "outgoing" ? "text-white" : "text-neutral-400",
               )}
             >
               Enviadas
@@ -148,7 +151,7 @@ export function TransfersView({
             "group relative flex items-center gap-3 rounded-[4px] border px-5 py-4",
             activeTab === "incoming"
               ? "border-blue-600 bg-blue-600/5"
-              : "border-neutral-800 bg-[#171717] hover:border-neutral-700"
+              : "border-neutral-800 bg-[#171717] hover:border-neutral-700",
           )}
         >
           <div
@@ -156,7 +159,7 @@ export function TransfersView({
               "flex h-10 w-10 items-center justify-center rounded-[4px]",
               activeTab === "incoming"
                 ? "bg-blue-600/20 text-blue-400"
-                : "bg-neutral-800 text-neutral-500"
+                : "bg-neutral-800 text-neutral-500",
             )}
           >
             <Inbox className="h-5 w-5" strokeWidth={2} />
@@ -165,7 +168,7 @@ export function TransfersView({
             <p
               className={cn(
                 "text-sm font-bold",
-                activeTab === "incoming" ? "text-white" : "text-neutral-400"
+                activeTab === "incoming" ? "text-white" : "text-neutral-400",
               )}
             >
               Recebidas
@@ -208,8 +211,13 @@ export function TransfersView({
         />
       </div>
 
-      <SectionLabel icon={activeTab === "outgoing" ? ArrowUpRight : ArrowDownLeft} className="mb-4">
-        {activeTab === "outgoing" ? "Transferências Enviadas" : "Transferências Recebidas"}
+      <SectionLabel
+        icon={activeTab === "outgoing" ? ArrowUpRight : ArrowDownLeft}
+        className="mb-4"
+      >
+        {activeTab === "outgoing"
+          ? "Transferências Enviadas"
+          : "Transferências Recebidas"}
       </SectionLabel>
 
       {isLoading ? (
@@ -242,7 +250,8 @@ export function TransfersView({
               cardStatus: "neutral" as const,
               label: transfer.status,
             };
-            const dotColor = statusDotColor[transfer.status] || "bg-neutral-500";
+            const dotColor =
+              statusDotColor[transfer.status] || "bg-neutral-500";
 
             return (
               <Link
@@ -262,7 +271,9 @@ export function TransfersView({
                           {transfer.code}
                         </span>
                         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-                          <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
+                          <span
+                            className={cn("h-1.5 w-1.5 rounded-full", dotColor)}
+                          />
                           {config.label}
                         </span>
                       </div>

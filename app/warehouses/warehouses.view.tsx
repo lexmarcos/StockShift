@@ -146,10 +146,14 @@ export const WarehousesView = ({
                       "h-8 rounded-[4px] px-3 text-xs font-bold uppercase tracking-wide border",
                       statusFilter === status
                         ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-                        : "border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:border-neutral-600"
+                        : "border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:border-neutral-600",
                     )}
                   >
-                    {status === "all" ? "Todos" : status === "active" ? "Ativos" : "Inativos"}
+                    {status === "all"
+                      ? "Todos"
+                      : status === "active"
+                        ? "Ativos"
+                        : "Inativos"}
                   </Button>
                 ))}
               </div>
@@ -195,7 +199,9 @@ export const WarehousesView = ({
                 </div>
                 <div className="text-center">
                   <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
-                    {searchQuery || statusFilter !== "all" ? "Nenhum resultado" : "Nenhum armazém"}
+                    {searchQuery || statusFilter !== "all"
+                      ? "Nenhum resultado"
+                      : "Nenhum armazém"}
                   </h3>
                   <p className="mt-1 max-w-xs text-xs text-neutral-500">
                     {searchQuery || statusFilter !== "all"
@@ -232,11 +238,10 @@ export const WarehousesView = ({
                         isSelected
                           ? "border-blue-600 ring-1 ring-blue-600"
                           : warehouse.isActive
-                          ? "border-neutral-800 hover:border-neutral-700"
-                          : "border-neutral-800/50 opacity-75 hover:opacity-100"
+                            ? "border-neutral-800 hover:border-neutral-700"
+                            : "border-neutral-800/50 opacity-75 hover:opacity-100",
                       )}
                     >
-
                       {/* Card Header */}
                       <div className="flex items-start justify-between p-4 pb-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -246,13 +251,15 @@ export const WarehousesView = ({
                               "flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border",
                               warehouse.isActive
                                 ? "bg-blue-600/10 border-blue-600/30"
-                                : "bg-neutral-800/50 border-neutral-700"
+                                : "bg-neutral-800/50 border-neutral-700",
                             )}
                           >
                             <Building2
                               className={cn(
                                 "h-5 w-5",
-                                warehouse.isActive ? "text-blue-500" : "text-neutral-500"
+                                warehouse.isActive
+                                  ? "text-blue-500"
+                                  : "text-neutral-500",
                               )}
                             />
                           </div>
@@ -265,7 +272,7 @@ export const WarehousesView = ({
                                   "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] border",
                                   warehouse.isActive
                                     ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                    : "bg-neutral-800 text-neutral-500 border-neutral-700"
+                                    : "bg-neutral-800 text-neutral-500 border-neutral-700",
                                 )}
                               >
                                 {warehouse.code}
@@ -339,13 +346,15 @@ export const WarehousesView = ({
                             "inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px] border",
                             warehouse.isActive
                               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : "bg-neutral-800 text-neutral-500 border-neutral-700"
+                              : "bg-neutral-800 text-neutral-500 border-neutral-700",
                           )}
                         >
                           <span
                             className={cn(
                               "h-1.5 w-1.5 rounded-full",
-                              warehouse.isActive ? "bg-emerald-500" : "bg-neutral-600"
+                              warehouse.isActive
+                                ? "bg-emerald-500"
+                                : "bg-neutral-600",
                             )}
                           />
                           {warehouse.isActive ? "Operacional" : "Inativo"}
@@ -415,7 +424,11 @@ export const WarehousesView = ({
         }
       >
         <Form {...form}>
-          <form id="warehouse-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
+          <form
+            id="warehouse-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-5 py-2"
+          >
             {/* Identification */}
             <FormField
               control={form.control}

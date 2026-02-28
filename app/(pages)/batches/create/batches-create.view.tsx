@@ -266,24 +266,37 @@ export const BatchCreateView = ({
                     </div>
 
                     {/* Profitability Indicator */}
-                    <div className={cn(
-                      "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
-                      isProfitable ? "border-emerald-900/30 bg-emerald-950/10" : "border-rose-900/30 bg-rose-950/10"
-                    )}>
+                    <div
+                      className={cn(
+                        "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                        isProfitable
+                          ? "border-emerald-900/30 bg-emerald-950/10"
+                          : "border-rose-900/30 bg-rose-950/10",
+                      )}
+                    >
                       <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
                         Lucro Estimado
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "text-sm font-bold font-mono",
-                          isProfitable ? "text-emerald-500" : "text-rose-500"
-                        )}>
-                          {(profit / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        <span
+                          className={cn(
+                            "text-sm font-bold font-mono",
+                            isProfitable ? "text-emerald-500" : "text-rose-500",
+                          )}
+                        >
+                          {(profit / 100).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
                         </span>
-                        <div className={cn(
-                          "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
-                          isProfitable ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-rose-500/30 bg-rose-500/10 text-rose-500"
-                        )}>
+                        <div
+                          className={cn(
+                            "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
+                            isProfitable
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                              : "border-rose-500/30 bg-rose-500/10 text-rose-500",
+                          )}
+                        >
                           {margin.toFixed(1)}%
                         </div>
                       </div>

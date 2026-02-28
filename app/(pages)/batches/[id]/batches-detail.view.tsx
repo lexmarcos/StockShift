@@ -134,7 +134,7 @@ export const BatchesDetailView = ({
               "rounded-[4px] px-1.5 py-0 text-[10px] font-medium border uppercase tracking-wider",
               statusBg,
               statusColor,
-              statusBorder
+              statusBorder,
             )}
           >
             {isExpired ? "Expirado" : "Ativo"}
@@ -278,7 +278,7 @@ export const BatchesDetailView = ({
                         {Math.round(
                           ((batch.sellingPrice - batch.costPrice) /
                             batch.costPrice) *
-                            100
+                            100,
                         )}
                         %
                       </span>
@@ -376,13 +376,15 @@ export const BatchesDetailView = ({
                   <div
                     className={cn(
                       "absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-[#171717]",
-                      isExpired ? "bg-rose-500" : "bg-neutral-600"
+                      isExpired ? "bg-rose-500" : "bg-neutral-600",
                     )}
                   />
                   <p
                     className={cn(
                       "text-[10px] uppercase tracking-wider mb-0.5",
-                      isExpired ? "text-rose-500 font-bold" : "text-neutral-500"
+                      isExpired
+                        ? "text-rose-500 font-bold"
+                        : "text-neutral-500",
                     )}
                   >
                     Validade
@@ -391,7 +393,7 @@ export const BatchesDetailView = ({
                     <p
                       className={cn(
                         "text-sm font-medium",
-                        isExpired ? "text-rose-400" : "text-white"
+                        isExpired ? "text-rose-400" : "text-white",
                       )}
                     >
                       {formatDate(batch.expirationDate)}

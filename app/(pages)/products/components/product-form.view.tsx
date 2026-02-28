@@ -109,7 +109,9 @@ export const ProductForm = ({
   const isProfitable = profit > 0;
 
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
-  const getCategoryParentName = (category: ProductFormProps["categories"][number]) => {
+  const getCategoryParentName = (
+    category: ProductFormProps["categories"][number],
+  ) => {
     return category.parentCategoryName ?? category.parentCategory?.name ?? null;
   };
 
@@ -326,93 +328,95 @@ export const ProductForm = ({
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6 space-y-6">
-                    {/* Pricing Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <FormField
-                        control={form.control}
-                        name="costPrice"
-                        render={({ field }) => {
-                          const { onChange, value, ...rest } = field;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Preço de Custo
-                              </FormLabel>
-                              <FormControl>
-                                <CurrencyInput
-                                  {...rest}
-                                  value={value}
-                                  onValueChange={onChange}
-                                  placeholder="0,00"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 text-white"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          );
-                        }}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="sellingPrice"
-                        render={({ field }) => {
-                          const { onChange, value, ...rest } = field;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Preço de Venda
-                              </FormLabel>
-                              <FormControl>
-                                <CurrencyInput
-                                  {...rest}
-                                  value={value}
-                                  onValueChange={onChange}
-                                  placeholder="0,00"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </div>
+                      {/* Pricing Row */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <FormField
+                          control={form.control}
+                          name="costPrice"
+                          render={({ field }) => {
+                            const { onChange, value, ...rest } = field;
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Preço de Custo
+                                </FormLabel>
+                                <FormControl>
+                                  <CurrencyInput
+                                    {...rest}
+                                    value={value}
+                                    onValueChange={onChange}
+                                    placeholder="0,00"
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 text-white"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="sellingPrice"
+                          render={({ field }) => {
+                            const { onChange, value, ...rest } = field;
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Preço de Venda
+                                </FormLabel>
+                                <FormControl>
+                                  <CurrencyInput
+                                    {...rest}
+                                    value={value}
+                                    onValueChange={onChange}
+                                    placeholder="0,00"
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
 
-                    <div
-                      className={cn(
-                        "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
-                        isProfitable
-                          ? "border-emerald-900/30 bg-emerald-950/10"
-                          : "border-rose-900/30 bg-rose-950/10",
-                      )}
-                    >
-                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                        Lucro Estimado
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-sm font-bold font-mono",
-                            isProfitable ? "text-emerald-500" : "text-rose-500",
-                          )}
-                        >
-                          {(profit / 100).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
+                      <div
+                        className={cn(
+                          "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
+                          isProfitable
+                            ? "border-emerald-900/30 bg-emerald-950/10"
+                            : "border-rose-900/30 bg-rose-950/10",
+                        )}
+                      >
+                        <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                          Lucro Estimado
                         </span>
-                        <div
-                          className={cn(
-                            "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
-                            isProfitable
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-                              : "border-rose-500/30 bg-rose-500/10 text-rose-500",
-                          )}
-                        >
-                          {margin.toFixed(1)}%
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "text-sm font-bold font-mono",
+                              isProfitable
+                                ? "text-emerald-500"
+                                : "text-rose-500",
+                            )}
+                          >
+                            {(profit / 100).toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </span>
+                          <div
+                            className={cn(
+                              "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
+                              isProfitable
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                                : "border-rose-500/30 bg-rose-500/10 text-rose-500",
+                            )}
+                          >
+                            {margin.toFixed(1)}%
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <FormField
@@ -558,7 +562,8 @@ export const ProductForm = ({
                                   </>
                                 ) : (
                                   categories.map((category) => {
-                                    const parentName = getCategoryParentName(category);
+                                    const parentName =
+                                      getCategoryParentName(category);
 
                                     return (
                                       <SelectItem
@@ -570,8 +575,12 @@ export const ProductForm = ({
                                           <div className="h-2 w-2 rounded-full bg-amber-500/50" />
                                           {parentName ? (
                                             <span className="inline-flex items-center gap-1">
-                                              <span className="text-neutral-500">{parentName}</span>
-                                              <span className="text-neutral-600">/</span>
+                                              <span className="text-neutral-500">
+                                                {parentName}
+                                              </span>
+                                              <span className="text-neutral-600">
+                                                /
+                                              </span>
                                               <span>{category.name}</span>
                                             </span>
                                           ) : (

@@ -17,12 +17,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchEditViewProps {
@@ -31,7 +26,11 @@ interface BatchEditViewProps {
   isLoading: boolean;
 }
 
-export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps) => {
+export const BatchEditView = ({
+  form,
+  onSubmit,
+  isLoading,
+}: BatchEditViewProps) => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background px-4 py-10 text-xs text-muted-foreground">
@@ -53,7 +52,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card className="border border-border/50 bg-card/80 rounded-sm">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wide">Identificação</CardTitle>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                  Identificação
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <FormField
@@ -61,9 +62,15 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="productId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Produto</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Produto
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} disabled className="h-9 rounded-sm border-border/40 text-xs" />
+                        <Input
+                          {...field}
+                          disabled
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -73,9 +80,15 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="warehouseId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Warehouse</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Warehouse
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} disabled className="h-9 rounded-sm border-border/40 text-xs" />
+                        <Input
+                          {...field}
+                          disabled
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -85,9 +98,14 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="batchCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Código do Batch</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Código do Batch
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-9 rounded-sm border-border/40 text-xs" />
+                        <Input
+                          {...field}
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -98,7 +116,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
 
             <Card className="border border-border/50 bg-card/80 rounded-sm">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wide">Estoque</CardTitle>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                  Estoque
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
                 <FormField
@@ -106,7 +126,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Quantidade</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Quantidade
+                      </FormLabel>
                       <FormControl>
                         <NumberInput
                           {...field}
@@ -125,7 +147,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                     const { onChange, value, ...rest } = field;
                     return (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">Custo</FormLabel>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                          Custo
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             {...rest}
@@ -147,7 +171,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                     const { onChange, value, ...rest } = field;
                     return (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">Venda</FormLabel>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                          Venda
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             {...rest}
@@ -167,7 +193,7 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                     "md:col-span-3 mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
                     isProfitable
                       ? "border-emerald-900/30 bg-emerald-950/10"
-                      : "border-rose-900/30 bg-rose-950/10"
+                      : "border-rose-900/30 bg-rose-950/10",
                   )}
                 >
                   <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
@@ -177,17 +203,20 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                     <span
                       className={cn(
                         "text-sm font-bold font-mono",
-                        isProfitable ? "text-emerald-500" : "text-rose-500"
+                        isProfitable ? "text-emerald-500" : "text-rose-500",
                       )}
                     >
-                      {(profit / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {(profit / 100).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
                     </span>
                     <div
                       className={cn(
                         "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
                         isProfitable
                           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-                          : "border-rose-500/30 bg-rose-500/10 text-rose-500"
+                          : "border-rose-500/30 bg-rose-500/10 text-rose-500",
                       )}
                     >
                       {margin.toFixed(1)}%
@@ -199,7 +228,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
 
             <Card className="border border-border/50 bg-card/80 rounded-sm">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wide">Datas</CardTitle>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                  Datas
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <FormField
@@ -207,9 +238,15 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="manufacturedDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Fabricação</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Fabricação
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} className="h-9 rounded-sm border-border/40 text-xs" />
+                        <Input
+                          type="date"
+                          {...field}
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,9 +257,15 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   name="expirationDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">Validade</FormLabel>
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                        Validade
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} className="h-9 rounded-sm border-border/40 text-xs" />
+                        <Input
+                          type="date"
+                          {...field}
+                          className="h-9 rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -233,7 +276,9 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
 
             <Card className="border border-border/50 bg-card/80 rounded-sm">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wide">Notas</CardTitle>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+                  Notas
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <FormField
@@ -242,7 +287,10 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Textarea {...field} className="min-h-[80px] rounded-sm border-border/40 text-xs" />
+                        <Textarea
+                          {...field}
+                          className="min-h-[80px] rounded-sm border-border/40 text-xs"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -253,7 +301,10 @@ export const BatchEditView = ({ form, onSubmit, isLoading }: BatchEditViewProps)
 
             <div className="flex justify-end">
               <PermissionGate permission="batches:update">
-                <Button type="submit" className="rounded-sm bg-foreground text-background">
+                <Button
+                  type="submit"
+                  className="rounded-sm bg-foreground text-background"
+                >
                   <Save className="mr-2 h-3.5 w-3.5" />
                   Salvar alterações
                 </Button>

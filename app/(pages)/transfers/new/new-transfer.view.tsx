@@ -114,7 +114,10 @@ export function NewTransferView({
             <div className="ml-5 flex flex-col items-center py-2">
               <div className="h-5 w-px border-l border-dashed border-neutral-700" />
               <div className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800/50">
-                <ArrowRight className="h-3 w-3 rotate-90 text-neutral-500" strokeWidth={2.5} />
+                <ArrowRight
+                  className="h-3 w-3 rotate-90 text-neutral-500"
+                  strokeWidth={2.5}
+                />
               </div>
               <div className="h-5 w-px border-l border-dashed border-neutral-700" />
             </div>
@@ -261,7 +264,9 @@ export function NewTransferView({
                 <div className="flex items-center gap-3">
                   <NumberInput
                     value={itemQuantity ? Number(itemQuantity) : undefined}
-                    onValueChange={(val) => onQuantityChange(val !== undefined ? String(val) : "")}
+                    onValueChange={(val) =>
+                      onQuantityChange(val !== undefined ? String(val) : "")
+                    }
                     className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 font-mono text-sm tracking-tighter text-white focus:border-blue-600"
                     placeholder="0"
                   />

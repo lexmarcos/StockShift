@@ -91,8 +91,13 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
     return (
       <PageContainer>
         <div className="flex flex-col items-center justify-center py-32">
-          <Package className="mb-4 h-10 w-10 text-neutral-600" strokeWidth={2} />
-          <p className="text-sm font-bold text-white">Transferência não encontrada</p>
+          <Package
+            className="mb-4 h-10 w-10 text-neutral-600"
+            strokeWidth={2}
+          />
+          <p className="text-sm font-bold text-white">
+            Transferência não encontrada
+          </p>
           <p className="mt-1 text-xs text-neutral-500">
             Verifique o ID e tente novamente.
           </p>
@@ -101,10 +106,14 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
     );
   }
 
-  const status = statusConfig[transfer.status] || statusConfig[TransferStatus.DRAFT];
+  const status =
+    statusConfig[transfer.status] || statusConfig[TransferStatus.DRAFT];
   const getItemQty = (item: { quantity?: number; quantitySent?: number }) =>
     item.quantity ?? item.quantitySent ?? 0;
-  const totalQuantity = transfer.items.reduce((acc, item) => acc + getItemQty(item), 0);
+  const totalQuantity = transfer.items.reduce(
+    (acc, item) => acc + getItemQty(item),
+    0,
+  );
   const hasActions =
     (isSource && transfer.status === TransferStatus.DRAFT) ||
     (isSource && transfer.status === TransferStatus.IN_TRANSIT) ||
@@ -126,7 +135,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
               className={cn(
                 "flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest",
                 status.bg,
-                status.text
+                status.text,
               )}
             >
               <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
@@ -148,7 +157,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                   "flex h-12 w-12 items-center justify-center rounded-[4px] border",
                   isSource
                     ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
-                    : "border-neutral-700 bg-neutral-800 text-neutral-400"
+                    : "border-neutral-700 bg-neutral-800 text-neutral-400",
                 )}
               >
                 <Warehouse className="h-5 w-5" strokeWidth={2} />
@@ -183,7 +192,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                     ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
                     : transfer.status === TransferStatus.COMPLETED
                       ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500"
+                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500",
                 )}
               >
                 {transfer.status === TransferStatus.COMPLETED ? (
@@ -206,7 +215,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                     ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
                     : transfer.status === TransferStatus.COMPLETED
                       ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500"
+                      : "border-neutral-700 bg-neutral-800/50 text-neutral-500",
                 )}
               >
                 {transfer.status === TransferStatus.COMPLETED ? (
@@ -214,7 +223,10 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 ) : transfer.status === TransferStatus.CANCELLED ? (
                   <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ) : (
-                  <ArrowRight className="h-3.5 w-3.5 rotate-90" strokeWidth={2.5} />
+                  <ArrowRight
+                    className="h-3.5 w-3.5 rotate-90"
+                    strokeWidth={2.5}
+                  />
                 )}
               </div>
               <div className="h-6 w-px bg-neutral-700" />
@@ -241,7 +253,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 "order-0 flex h-12 w-12 items-center justify-center rounded-[4px] border sm:order-none",
                 isDestination
                   ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
-                  : "border-neutral-700 bg-neutral-800 text-neutral-400"
+                  : "border-neutral-700 bg-neutral-800 text-neutral-400",
               )}
             >
               <MapPin className="h-5 w-5" strokeWidth={2} />
@@ -421,13 +433,13 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                     <td className="px-5 py-3 text-right font-mono text-sm tracking-tighter text-neutral-400">
                       {transfer.items.reduce(
                         (acc, i) => acc + (i.quantitySent ?? 0),
-                        0
+                        0,
                       ) || "—"}
                     </td>
                     <td className="px-5 py-3 text-right font-mono text-sm font-bold tracking-tighter text-emerald-400">
                       {transfer.items.reduce(
                         (acc, i) => acc + (i.quantityReceived ?? 0),
-                        0
+                        0,
                       ) || "—"}
                     </td>
                   </>
