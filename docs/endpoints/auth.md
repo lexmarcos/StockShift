@@ -293,11 +293,11 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
       "ESTOQUISTA"
     ],
     "permissions": [
-      "PRODUCT:READ:ALL",
-      "PRODUCT:UPDATE:ALL",
-      "WAREHOUSE:READ:ALL",
-      "SALE:READ:ALL",
-      "SALE:CREATE:ALL"
+      "products:read",
+      "products:update",
+      "warehouses:read",
+      "stock_movements:read",
+      "stock_movements:create"
     ]
   }
 }
@@ -318,10 +318,9 @@ Roles are tenant-specific groups that bundle permissions. Common roles include:
 - Custom roles created by the tenant (e.g., `VENDEDOR`, `GERENTE`, `ESTOQUISTA`)
 
 ### Permission Format
-Permissions follow the format `RESOURCE:ACTION:SCOPE`:
-- **RESOURCE**: The entity type (e.g., `PRODUCT`, `STOCK`, `SALE`, `USER`, `WAREHOUSE`, `REPORT`)
-- **ACTION**: The operation (e.g., `CREATE`, `READ`, `UPDATE`, `DELETE`, `APPROVE`)
-- **SCOPE**: The access scope (e.g., `ALL`, `OWN_WAREHOUSE`, `OWN`)
+Permissions follow the format `resource:action`:
+- **resource**: The entity type (e.g., `users`, `products`, `batches`, `warehouses`, `transfers`, `stock_movements`, `brands`, `categories`, `reports`, `roles`, `permissions`)
+- **action**: The operation (e.g., `create`, `read`, `update`, `delete`, `execute`, `validate`, `analyze_image`)
 
 **Special Permission**:
 - `*` (wildcard): Grants full access to all resources. Only assigned to users with the ADMIN role.
@@ -429,9 +428,11 @@ The access token is a JWT (JSON Web Token) signed with HS256. Below is the decod
     "ESTOQUISTA"
   ],
   "permissions": [
-    "PRODUCT:READ:ALL",
-    "PRODUCT:UPDATE:ALL",
-    "WAREHOUSE:READ:ALL"
+    "products:read",
+    "products:update",
+    "warehouses:read",
+    "stock_movements:read",
+    "stock_movements:create"
   ],
   "iat": 1706097600,
   "exp": 1706101200

@@ -20,6 +20,7 @@ Frontend de gerenciamento de estoque construído com Next.js 15, TypeScript, Tai
 ## 📱 Design Responsivo
 
 **OBRIGATÓRIO: Mobile First**
+
 1. 📱 **Mobile** (Padrão inicial)
 2. 📱 **iPad/Tablet** (Ajuste de grids)
 3. 💻 **Desktop** (Ajuste final em `max-w-7xl`)
@@ -45,9 +46,11 @@ O sidebar tem largura fixa de **240px** em desktop (variável CSS: `--sidebar-wi
 ## 🎨 Filosofia do Design: "Corporate Solid Dark (Vivid)"
 
 ### 1. Estética: Brutalismo Corporativo de Alto Contraste
+
 O design une a seriedade do ambiente corporativo monocromático com o uso estratégico de **cores vivas** (Vivid Accents) para guiar o olhar do usuário e indicar funções críticas.
 
 **Paleta de Cores:**
+
 - **Background Principal:** `#0A0A0A` (Preto Sólido)
 - **Superfícies (Cards/Modais):** `#171717` ou `neutral-900`
 - **Bordas:** `#262626` ou `neutral-800`
@@ -57,11 +60,13 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
   - Erro: Rose-600 (`#E11D48`)
 
 ### 2. Geometria e Solidez
+
 - **Bordas (Radius):** Absolutamente fixas em **4px** para tudo (botões, inputs, cards). Evite `rounded-full` ou arredondamentos suaves.
 - **Hierarquia Visual:** Use `border-l-4` com cores vivid em cards para indicar status sem precisar de textos explicativos longos.
 - **Inputs:** Devem ter fundos escuros (`neutral-900`), bordas de 2px e foco com a cor primária vivid.
 
 ### 3. Comportamento e Interação
+
 - **Sem Animações:** A interface deve ser instantânea. Não utilize transições de `hover` suaves ou `fades`. O estado de hover deve ser uma mudança abrupta de cor de fundo ou borda.
 - **Tipografia:** Sans-serif (Inter ou System Sans). Títulos em **Bold**. Use `tracking-tighter` para números e valores financeiros para passar sensação de precisão técnica.
 - **Sombras:** Praticamente inexistentes. A profundidade é dada pelo contraste de cores de superfície e bordas sutis.
@@ -78,6 +83,7 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 - **Feedback:** Erros e sucessos usam cores de fundo em opacidade 10% com bordas e ícones na cor pura (Ex: `bg-rose-500/10 text-rose-500`).
 
 ## Instruções Detalhadas
+
 - [Arquitetura MVVM](.claude/architecture.md) - Estrutura de páginas e validação
 - [Componentes](.claude/components.md) - UI, breadcrumb, responsivo
 - [Data Fetching](.claude/data-fetching.md) - SWR e ky
@@ -86,5 +92,6 @@ O design une a seriedade do ambiente corporativo monocromático com o uso estrat
 ## Browser Automation
 
 ### Usuário de teste para automação:
+
 email: pass@pass.com
 senha: test123

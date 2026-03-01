@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Settings,
   ArrowLeftRight,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth-context";
@@ -35,6 +36,12 @@ const navItems: NavItem[] = [
     label: "Lotes",
     Icon: Layers,
     requiredPermission: "batches:read",
+  },
+  {
+    href: "/stock-movements",
+    label: "Movimentações",
+    Icon: Activity,
+    requiredPermission: "stock_movements:read",
   },
   {
     href: "/transfers",
