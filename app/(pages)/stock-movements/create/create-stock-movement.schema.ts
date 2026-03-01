@@ -21,9 +21,9 @@ export const createStockMovementSchema = z.object({
     required_error: "Selecione o tipo de movimentação",
   }),
   notes: z.string().optional(),
-  items: z
-    .array(movementItemSchema)
-    .min(1, "Adicione pelo menos um item"),
+  items: z.array(movementItemSchema).min(1, "Adicione pelo menos um item"),
 });
 
-export type CreateStockMovementSchema = z.infer<typeof createStockMovementSchema>;
+export type CreateStockMovementSchema = z.infer<
+  typeof createStockMovementSchema
+>;

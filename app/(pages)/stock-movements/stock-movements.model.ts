@@ -62,7 +62,7 @@ export const useStockMovementsModel = () => {
         toast.error("Erro ao carregar movimentações");
         throw err;
       }
-    }
+    },
   );
 
   const movements = data?.data.content || [];

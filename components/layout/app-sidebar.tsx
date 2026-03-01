@@ -24,7 +24,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard, adminOnly: true },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    Icon: LayoutDashboard,
+    adminOnly: true,
+  },
   {
     href: "/products",
     label: "Produtos",
@@ -106,7 +111,9 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   return (
     <nav className="flex flex-col flex-1">
       {/* Main navigation */}
-      <div className="space-y-2 flex-1">{visibleNavItems.map(renderNavLink)}</div>
+      <div className="space-y-2 flex-1">
+        {visibleNavItems.map(renderNavLink)}
+      </div>
 
       {/* System section - bottom */}
       {canAccessSystem && (

@@ -97,7 +97,10 @@ export function CreateStockMovementView({
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
             <div className="mb-5 flex items-center justify-between border-b border-neutral-800 pb-4">
               <div className="flex items-center gap-3">
-                <TrendingDown className="h-5 w-5 text-blue-400" strokeWidth={2} />
+                <TrendingDown
+                  className="h-5 w-5 text-blue-400"
+                  strokeWidth={2}
+                />
                 <div>
                   <p className="text-sm font-bold text-white">
                     Tipo de Movimentação
@@ -131,7 +134,10 @@ export function CreateStockMovementView({
                   {/* OUT group */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <ArrowUpRight className="h-3.5 w-3.5 text-rose-500" strokeWidth={2.5} />
+                      <ArrowUpRight
+                        className="h-3.5 w-3.5 text-rose-500"
+                        strokeWidth={2.5}
+                      />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500">
                         Saída
                       </span>
@@ -159,7 +165,10 @@ export function CreateStockMovementView({
                   {/* IN group */}
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center gap-2">
-                      <ArrowDownRight className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.5} />
+                      <ArrowDownRight
+                        className="h-3.5 w-3.5 text-emerald-500"
+                        strokeWidth={2.5}
+                      />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">
                         Entrada
                       </span>
@@ -425,7 +434,7 @@ export function CreateStockMovementView({
               }`}
             >
               {OUT_TYPES.includes(
-                selectedType as (typeof OUT_TYPES)[number]
+                selectedType as (typeof OUT_TYPES)[number],
               ) ? (
                 <TrendingDown
                   className="h-4 w-4 flex-shrink-0 text-rose-500"
@@ -439,9 +448,7 @@ export function CreateStockMovementView({
               )}
               <p
                 className={`text-xs font-medium ${
-                  OUT_TYPES.includes(
-                    selectedType as (typeof OUT_TYPES)[number]
-                  )
+                  OUT_TYPES.includes(selectedType as (typeof OUT_TYPES)[number])
                     ? "text-rose-400"
                     : "text-emerald-400"
                 }`}

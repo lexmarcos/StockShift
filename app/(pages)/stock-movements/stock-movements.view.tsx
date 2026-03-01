@@ -29,7 +29,7 @@ import {
   ArrowDown,
   ArrowUp,
   Warehouse,
-  MoreHorizontal
+  MoreHorizontal,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -74,7 +74,6 @@ export const StockMovementsView = ({
   onFilterChange,
   onSortChange,
 }: StockMovementsViewProps) => {
-
   const getDirectionStatus = (direction: "IN" | "OUT") => {
     if (direction === "IN") {
       return {
@@ -133,7 +132,9 @@ export const StockMovementsView = ({
             {/* Actions Bar */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">Movimentações</h1>
+                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  Movimentações
+                </h1>
                 <p className="text-sm text-neutral-500 mt-1">
                   Gerencie as entradas e saídas de estoque
                 </p>
@@ -164,21 +165,33 @@ export const StockMovementsView = ({
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                    <SelectItem value="ALL" className="text-[12px] font-bold uppercase focus:bg-neutral-800">
+                    <SelectItem
+                      value="ALL"
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
                       Todos os Tipos
                     </SelectItem>
-                    {Object.entries(MOVEMENT_TYPE_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key} className="text-[12px] font-bold uppercase focus:bg-neutral-800">
-                        {label}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(MOVEMENT_TYPE_LABELS).map(
+                      ([key, label]) => (
+                        <SelectItem
+                          key={key}
+                          value={key}
+                          className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                        >
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
 
                 <Select
                   value={`${filters.sortBy}-${filters.sortOrder}`}
                   onValueChange={(value) => {
-                    const [field, order] = value.split("-") as [SortField, SortOrder];
+                    const [field, order] = value.split("-") as [
+                      SortField,
+                      SortOrder,
+                    ];
                     onSortChange(field, order);
                   }}
                 >
@@ -189,16 +202,28 @@ export const StockMovementsView = ({
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                    <SelectItem value="createdAt-desc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">
+                    <SelectItem
+                      value="createdAt-desc"
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
                       Data (Mais Novo)
                     </SelectItem>
-                    <SelectItem value="createdAt-asc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">
+                    <SelectItem
+                      value="createdAt-asc"
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
                       Data (Mais Antigo)
                     </SelectItem>
-                    <SelectItem value="type-asc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">
+                    <SelectItem
+                      value="type-asc"
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
                       Tipo (A-Z)
                     </SelectItem>
-                    <SelectItem value="direction-asc" className="text-[12px] font-bold uppercase focus:bg-neutral-800">
+                    <SelectItem
+                      value="direction-asc"
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
                       Direção (In-Out)
                     </SelectItem>
                   </SelectContent>
@@ -236,19 +261,29 @@ export const StockMovementsView = ({
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-48 text-center text-neutral-500">
+                      <TableCell
+                        colSpan={6}
+                        className="h-48 text-center text-neutral-500"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2">
                           <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
-                          <span className="text-[10px] uppercase font-bold tracking-widest">Carregando movimentações...</span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest">
+                            Carregando movimentações...
+                          </span>
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : movements.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-48 text-center text-neutral-500">
+                      <TableCell
+                        colSpan={6}
+                        className="h-48 text-center text-neutral-500"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Layers className="h-8 w-8 text-neutral-700" />
-                          <span className="text-[10px] uppercase font-bold tracking-widest">Nenhuma movimentação encontrada</span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest">
+                            Nenhuma movimentação encontrada
+                          </span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -268,25 +303,36 @@ export const StockMovementsView = ({
                           <TableCell className="py-4">
                             <div className="flex items-center text-sm text-neutral-400">
                               <Calendar className="mr-2 h-3.5 w-3.5" />
-                              {format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", {
-                                locale: ptBR,
-                              })}
+                              {format(
+                                new Date(movement.createdAt),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: ptBR,
+                                },
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="py-4">
                             <span className="text-sm font-medium text-neutral-300">
-                              {MOVEMENT_TYPE_LABELS[movement.type] || movement.type}
+                              {MOVEMENT_TYPE_LABELS[movement.type] ||
+                                movement.type}
                             </span>
                           </TableCell>
                           <TableCell className="py-4">
-                            <span className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}>
+                            <span
+                              className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}
+                            >
                               {dirStatus.icon}
                               {dirStatus.label}
                             </span>
                           </TableCell>
                           <TableCell className="py-4">
                             <span className="text-sm font-medium text-neutral-300">
-                              {movement.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} un. ({movement.items?.length || 0} prod.)
+                              {movement.items?.reduce(
+                                (acc, item) => acc + item.quantity,
+                                0,
+                              ) || 0}{" "}
+                              un. ({movement.items?.length || 0} prod.)
                             </span>
                           </TableCell>
                           <TableCell className="py-4 text-right">
@@ -339,7 +385,9 @@ export const StockMovementsView = ({
                           Data
                         </span>
                         <span className="text-sm text-neutral-300 mt-0.5">
-                          {format(new Date(movement.createdAt), "dd/MM/yyyy", { locale: ptBR })}
+                          {format(new Date(movement.createdAt), "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })}
                         </span>
                       </div>
                       <div className="flex flex-col">
@@ -347,7 +395,11 @@ export const StockMovementsView = ({
                           Quantidade
                         </span>
                         <span className="text-sm text-neutral-300 mt-0.5">
-                          {movement.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} un.
+                          {movement.items?.reduce(
+                            (acc, item) => acc + item.quantity,
+                            0,
+                          ) || 0}{" "}
+                          un.
                         </span>
                       </div>
                     </div>
@@ -356,7 +408,9 @@ export const StockMovementsView = ({
                       <span className="text-xs font-medium text-neutral-400">
                         {MOVEMENT_TYPE_LABELS[movement.type] || movement.type}
                       </span>
-                      <span className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}>
+                      <span
+                        className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}
+                      >
                         {dirStatus.icon}
                         {dirStatus.label}
                       </span>
@@ -369,7 +423,8 @@ export const StockMovementsView = ({
 
           <div className="flex items-center justify-between pt-4">
             <p className="text-sm text-neutral-500">
-              Página {pagination.page + 1} de {Math.max(1, pagination.totalPages)}
+              Página {pagination.page + 1} de{" "}
+              {Math.max(1, pagination.totalPages)}
             </p>
             <div className="flex gap-2">
               <Button

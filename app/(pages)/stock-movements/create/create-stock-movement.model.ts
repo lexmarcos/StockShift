@@ -49,7 +49,7 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
 
   const { data: productsData, isLoading: isLoadingProducts } =
     useSWR<ProductListResponse>("products", (url: string) =>
-      api.get(url).json<ProductListResponse>()
+      api.get(url).json<ProductListResponse>(),
     );
 
   const rawProducts = productsData?.data;
@@ -78,7 +78,9 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
 
     const alreadyAdded = fields.find((f) => f.productId === selectedProductId);
     if (alreadyAdded) {
-      setAddItemError("Este produto já foi adicionado. Remova-o para alterar a quantidade.");
+      setAddItemError(
+        "Este produto já foi adicionado. Remova-o para alterar a quantidade.",
+      );
       return;
     }
 
