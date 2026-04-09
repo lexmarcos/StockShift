@@ -61,7 +61,6 @@ describe("AppSidebar", () => {
 
     render(<AppSidebar />);
 
-    expect(screen.queryByRole("link", { name: /dashboard/i })).toBeNull();
     expect(screen.getByRole("link", { name: /produtos/i })).toBeTruthy();
     expect(
       screen.queryByRole("link", { name: /lotes/i }),
@@ -87,17 +86,21 @@ describe("AppSidebar", () => {
     ).toBeTruthy();
   });
 
-  it("shows dashboard only for admin", () => {
-    authMockState.permissions = ["*"];
+  it("shows system link only for admin", () => {
+    authMockState.permissions = [];
     authMockState.isAdmin = false;
 
     const { rerender } = render(<AppSidebar />);
 
-    expect(screen.queryByRole("link", { name: /dashboard/i })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /gerenciamento do sistema/i }),
+    ).toBeNull();
 
     authMockState.isAdmin = true;
     rerender(<AppSidebar />);
 
-    expect(screen.getByRole("link", { name: /dashboard/i })).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /gerenciamento do sistema/i }),
+    ).toBeTruthy();
   });
 });

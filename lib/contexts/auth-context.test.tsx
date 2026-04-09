@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
   }),
-  usePathname: () => "/dashboard",
+  usePathname: () => "/products",
 }));
 
 // Mock SWR

@@ -7,7 +7,6 @@ import {
   Layers,
   Tag,
   Folder,
-  LayoutDashboard,
   Settings,
   ArrowLeftRight,
   Activity,
@@ -24,12 +23,6 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    Icon: LayoutDashboard,
-    adminOnly: true,
-  },
   {
     href: "/products",
     label: "Produtos",
