@@ -9,9 +9,11 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
+
+const PUBLIC_PATHS = ["/login", "/register", "/change-password"];
 
 interface BaseUser {
   userId: string;
@@ -61,13 +63,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [baseUser, setBaseUserState] = useState<BaseUser | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const shouldFetchMe = baseUser && !isPublicPath;
 
   // Fetch complete user data with roles/permissions
   const {
     data: meData,
     isLoading: isMeLoading,
     mutate: mutateMe,
-  } = useSWR<MeResponse>(baseUser ? "auth/me" : null, fetcher, {
+  } = useSWR<MeResponse>(shouldFetchMe ? "auth/me" : null, fetcher, {
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
     dedupingInterval: 60000,
