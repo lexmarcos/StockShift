@@ -40,6 +40,19 @@ export interface SwitchWarehouseResponse {
   data: null;
 }
 
+export interface WarehouseStockSummary {
+  warehouseId: string;
+  productCount: number;
+  batchCount: number;
+  totalQuantity: number;
+}
+
+export interface WarehouseStockSummariesResponse {
+  success: boolean;
+  message: string | null;
+  data: WarehouseStockSummary[];
+}
+
 export type SortKey = 'name' | 'createdAt';
 
 export interface SortConfig {

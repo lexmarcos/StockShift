@@ -35,6 +35,7 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { WarehouseFormData } from "./warehouses.schema";
 import { Warehouse, SortConfig, StatusFilter } from "./warehouses.types";
+import type { WarehouseStockSummary } from "./warehouses.types";
 import { WarehouseStockInfo } from "./warehouse-stock-info";
 import { cn } from "@/lib/utils";
 import { PermissionGate } from "@/components/permission-gate";
@@ -63,6 +64,8 @@ interface WarehousesViewProps {
   isDeleting: boolean;
   onSelectWarehouse: (id: string) => void;
   selectedWarehouseId: string | null;
+  stockSummariesByWarehouseId: Record<string, WarehouseStockSummary>;
+  isStockSummaryLoading: boolean;
 }
 
 export const WarehousesView = ({
@@ -87,6 +90,8 @@ export const WarehousesView = ({
   isDeleting,
   onSelectWarehouse,
   selectedWarehouseId,
+  stockSummariesByWarehouseId,
+  isStockSummaryLoading,
 }: WarehousesViewProps) => {
   const isSubmitting = form.formState.isSubmitting;
 
@@ -363,7 +368,10 @@ export const WarehousesView = ({
 
                       {/* Stock Info Footer */}
                       <div className="mt-auto border-t border-neutral-800 bg-[#0f0f0f]">
-                        <WarehouseStockInfo warehouseId={warehouse.id} />
+                        <WarehouseStockInfo
+                          summary={stockSummariesByWarehouseId[warehouse.id]}
+                          isLoading={isStockSummaryLoading}
+                        />
                       </div>
                     </div>
                   );

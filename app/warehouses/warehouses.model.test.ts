@@ -1,48 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useWarehousesModel } from "./warehouses.model";
+import useSWR from "swr";
 
-// Mock SWR
 vi.mock("swr", () => ({
-  default: vi.fn(() => ({
-    data: {
-      success: true,
-      message: null,
-      data: [
-        {
-          id: "1",
-          code: "WH-001",
-          name: "Main Warehouse",
-          description: "Primary storage",
-          address: "123 Main St",
-          city: "São Paulo",
-          state: "SP",
-          phone: "(11) 98765-4321",
-          email: "main@warehouse.com",
-          isActive: true,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-        {
-          id: "2",
-          code: "WH-002",
-          name: "Secondary Warehouse",
-          description: "Secondary storage",
-          address: "456 Secondary St",
-          city: "Rio de Janeiro",
-          state: "RJ",
-          phone: "(11) 99876-5432",
-          email: "secondary@warehouse.com",
-          isActive: false,
-          createdAt: "2025-01-02T00:00:00Z",
-          updatedAt: "2025-01-02T00:00:00Z",
-        },
-      ],
-    },
-    error: null,
-    isLoading: false,
-    mutate: vi.fn(),
-  })),
+  default: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-selected-warehouse", () => ({
@@ -95,8 +57,74 @@ vi.mock("sonner", () => ({
 }));
 
 describe("useWarehousesModel", () => {
+  const useSWRMock = vi.mocked(useSWR);
+
   beforeEach(() => {
     vi.clearAllMocks();
+
+    useSWRMock.mockImplementation(((key: unknown) => {
+      const swrKey = typeof key === "string" ? key : "";
+
+      if (swrKey === "warehouses-stock-summary") {
+        return {
+          data: {
+            success: true,
+            message: null,
+            data: [
+              {
+                warehouseId: "1",
+                productCount: 3,
+                batchCount: 5,
+                totalQuantity: 120,
+              },
+            ],
+          },
+          error: null,
+          isLoading: false,
+          mutate: vi.fn(),
+        };
+      }
+
+      return {
+        data: {
+          success: true,
+          message: null,
+          data: [
+            {
+              id: "1",
+              code: "WH-001",
+              name: "Main Warehouse",
+              description: "Primary storage",
+              address: "123 Main St",
+              city: "São Paulo",
+              state: "SP",
+              phone: "(11) 98765-4321",
+              email: "main@warehouse.com",
+              isActive: true,
+              createdAt: "2025-01-01T00:00:00Z",
+              updatedAt: "2025-01-01T00:00:00Z",
+            },
+            {
+              id: "2",
+              code: "WH-002",
+              name: "Secondary Warehouse",
+              description: "Secondary storage",
+              address: "456 Secondary St",
+              city: "Rio de Janeiro",
+              state: "RJ",
+              phone: "(11) 99876-5432",
+              email: "secondary@warehouse.com",
+              isActive: false,
+              createdAt: "2025-01-02T00:00:00Z",
+              updatedAt: "2025-01-02T00:00:00Z",
+            },
+          ],
+        },
+        error: null,
+        isLoading: false,
+        mutate: vi.fn(),
+      };
+    }) as unknown as typeof useSWR);
   });
 
   it("should initialize with empty state", () => {
@@ -106,6 +134,12 @@ describe("useWarehousesModel", () => {
     expect(result.current.statusFilter).toBe("all");
     expect(result.current.isModalOpen).toBe(false);
     expect(result.current.selectedWarehouse).toBeNull();
+    expect(result.current.stockSummariesByWarehouseId["1"]).toEqual({
+      warehouseId: "1",
+      productCount: 3,
+      batchCount: 5,
+      totalQuantity: 120,
+    });
   });
 
   it("should filter warehouses by status", () => {

@@ -46,8 +46,7 @@ vi.mock(
       closeMenu: vi.fn(),
       toggleMenu: toggleMenuMock,
     }),
-  }),
-  { virtual: true }
+  })
 );
 
 describe("useHeaderModel", () => {

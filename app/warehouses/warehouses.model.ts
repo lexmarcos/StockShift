@@ -13,6 +13,8 @@ import {
   UpdateWarehouseResponse,
   DeleteWarehouseResponse,
   SwitchWarehouseResponse,
+  WarehouseStockSummary,
+  WarehouseStockSummariesResponse,
   SortConfig,
   StatusFilter,
 } from "./warehouses.types";
@@ -41,7 +43,31 @@ export const useWarehousesModel = () => {
     }
   );
 
-  const warehouses = data?.data || [];
+  const { data: stockSummaryData, isLoading: isStockSummaryLoading } =
+    useSWR<WarehouseStockSummariesResponse>(
+      "warehouses-stock-summary",
+      async () => {
+        return await api
+          .get("warehouses/stock-summary")
+          .json<WarehouseStockSummariesResponse>();
+      },
+      {
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        dedupingInterval: 60000,
+      }
+    );
+
+  const stockSummariesByWarehouseId = useMemo<Record<string, WarehouseStockSummary>>(
+    () =>
+      Object.fromEntries(
+        (stockSummaryData?.data || []).map((summary) => [
+          summary.warehouseId,
+          summary,
+        ])
+      ),
+    [stockSummaryData]
+  );
 
   // Form
   const form = useForm<WarehouseFormData>({
@@ -57,6 +83,7 @@ export const useWarehousesModel = () => {
 
   // Filtered and sorted warehouses
   const filteredAndSortedWarehouses = useMemo(() => {
+    const warehouses = data?.data ?? [];
     let filtered = warehouses;
 
     // Status filter
@@ -93,7 +120,7 @@ export const useWarehousesModel = () => {
     });
 
     return sorted;
-  }, [warehouses, searchQuery, statusFilter, sortConfig]);
+  }, [data, searchQuery, statusFilter, sortConfig]);
 
   // Modal handlers
   const openCreateModal = () => {
@@ -164,7 +191,6 @@ export const useWarehousesModel = () => {
   // Submit handler
   const onSubmit = async (data: WarehouseFormData) => {
     try {
-
       if (selectedWarehouse) {
         // Update
         const response = await api
@@ -275,5 +301,7 @@ export const useWarehousesModel = () => {
     // Warehouse selection
     onSelectWarehouse: handleSelectWarehouse,
     selectedWarehouseId,
+    stockSummariesByWarehouseId,
+    isStockSummaryLoading,
   };
 };
