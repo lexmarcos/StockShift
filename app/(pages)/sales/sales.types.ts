@@ -7,7 +7,7 @@ export type PaymentMethod =
   | "BANK_TRANSFER"
   | "OTHER";
 
-export type SaleStatus = "COMPLETED" | "CANCELLED";
+export type SaleStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 
 export interface SaleItem {
   id: string;
@@ -92,6 +92,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
+  PENDING: "Pendente",
   COMPLETED: "Concluída",
   CANCELLED: "Cancelada",
 };
