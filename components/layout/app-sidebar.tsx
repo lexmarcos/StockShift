@@ -10,6 +10,7 @@ import {
   Settings,
   ArrowLeftRight,
   Activity,
+  ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth-context";
@@ -34,6 +35,12 @@ const navItems: NavItem[] = [
     label: "Lotes",
     Icon: Layers,
     requiredPermission: "batches:read",
+  },
+  {
+    href: "/sales",
+    label: "Vendas",
+    Icon: ShoppingCart,
+    requiredPermission: "sales:read",
   },
   {
     href: "/stock-movements",
