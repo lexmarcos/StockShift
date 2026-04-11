@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { pdvSchema, PdvSchema, METHODS_WITH_INSTALLMENTS } from "./pdv.schema";
 import { CartItem, BatchOption, ProductWithStock, PdvViewProps } from "./pdv.types";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  buildInfinitePayDeeplink,
+  INFINITEPAY_PAYMENT_METHODS,
+  mapPaymentMethodToInfinitePay,
+} from "@/lib/infinitepay";
 
 interface WarehouseResponse {
   success: boolean;
@@ -28,14 +35,27 @@ interface ProductsResponse {
   data: { content: ProductWithStock[] };
 }
 
+interface InfinitePayConfigResponse {
+  success: boolean;
+  data: { handle: string | null; docNumber: string | null; configured: boolean };
+}
+
 export function usePdvModel(): PdvViewProps {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [batchPopoverOpen, setBatchPopoverOpen] = useState<number | null>(null);
+  const isMobile = useIsMobile();
+  const { warehouseId: globalWarehouseId } = useSelectedWarehouse();
 
   const form = useForm<PdvSchema>({
     resolver: zodResolver(pdvSchema),
-    defaultValues: { warehouseId: "", paymentMethod: "CASH", installments: null, discountPercentage: null },
+    defaultValues: {
+      warehouseId: globalWarehouseId || "",
+      paymentMethod: "CASH",
+      installments: null,
+      discountPercentage: null,
+    },
   });
 
   const selectedWarehouseId = form.watch("warehouseId");
@@ -45,6 +65,11 @@ export function usePdvModel(): PdvViewProps {
     async (url: string) => await api.get(url).json<WarehouseResponse>(),
   );
   const warehouses = warehousesData?.data || [];
+
+  const { data: infinitepayConfig } = useSWR<InfinitePayConfigResponse>(
+    isMobile ? "tenants/me/infinitepay" : null,
+    async (url: string) => await api.get(url).json<InfinitePayConfigResponse>(),
+  );
 
   const searchUrl = useMemo(() => {
     if (!selectedWarehouseId || !searchQuery.trim()) return null;
@@ -157,27 +182,75 @@ export function usePdvModel(): PdvViewProps {
 
   const onSubmit = useCallback(
     async (data: PdvSchema) => {
-      if (cart.length === 0) { toast.error("Adicione pelo menos um produto ao carrinho"); return; }
+      if (cart.length === 0) {
+        toast.error("Adicione pelo menos um produto ao carrinho");
+        return;
+      }
       setIsSubmitting(true);
+
+      const shouldUseInfinitePay =
+        isMobile &&
+        INFINITEPAY_PAYMENT_METHODS.has(data.paymentMethod) &&
+        infinitepayConfig?.data?.configured === true;
+
+      const salePayload = {
+        warehouseId: data.warehouseId,
+        paymentMethod: data.paymentMethod,
+        installments:
+          data.installments && METHODS_WITH_INSTALLMENTS.includes(data.paymentMethod)
+            ? data.installments
+            : null,
+        discountPercentage: data.discountPercentage || null,
+        items: cart.map((item) => ({
+          productId: item.productId,
+          batchId: item.batchId,
+          quantity: item.quantity,
+        })),
+        useInfinitePay: shouldUseInfinitePay,
+      };
+
       try {
-        await api.post("sales", {
-          json: {
-            warehouseId: data.warehouseId,
-            paymentMethod: data.paymentMethod,
-            installments: data.installments && METHODS_WITH_INSTALLMENTS.includes(data.paymentMethod) ? data.installments : null,
-            discountPercentage: data.discountPercentage || null,
-            items: cart.map((item) => ({ productId: item.productId, batchId: item.batchId, quantity: item.quantity })),
-          },
-        }).json();
+        const res = await api
+          .post("sales", { json: salePayload })
+          .json<{ success: boolean; data: { id: string } }>();
+
+        if (shouldUseInfinitePay) {
+          const saleId = res.data.id;
+          const config = infinitepayConfig!.data;
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
+          const backendCallbackUrl = `${apiBaseUrl}/api/sales/infinitepay/callback`;
+
+          const deeplink = buildInfinitePayDeeplink({
+            amount: total,
+            paymentMethod: mapPaymentMethodToInfinitePay(data.paymentMethod),
+            installments: data.installments || 1,
+            orderId: saleId,
+            handle: config.handle!,
+            docNumber: config.docNumber!,
+            resultUrl: backendCallbackUrl,
+          });
+
+          toast.info("Abrindo InfinitePay para pagamento...");
+          window.location.href = deeplink;
+          return;
+        }
+
         toast.success("Venda realizada com sucesso!");
         setCart([]);
-        form.reset({ warehouseId: data.warehouseId, paymentMethod: "CASH", installments: null, discountPercentage: null });
+        form.reset({
+          warehouseId: data.warehouseId,
+          paymentMethod: "CASH",
+          installments: null,
+          discountPercentage: null,
+        });
       } catch (err: unknown) {
         const error = err as { message?: string };
         toast.error(error.message || "Erro ao registrar venda.");
-      } finally { setIsSubmitting(false); }
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    [cart, form],
+    [cart, form, isMobile, infinitepayConfig, total],
   );
 
   return {
@@ -185,5 +258,7 @@ export function usePdvModel(): PdvViewProps {
     onAddProduct, onRemoveItem, onUpdateQuantity, onChangeBatch,
     subtotal, discountAmount, total, isSubmitting, onSubmit,
     warehouses, isLoadingWarehouses,
+    batchPopoverOpen, onBatchPopoverChange: setBatchPopoverOpen,
+    isMobile,
   };
 }

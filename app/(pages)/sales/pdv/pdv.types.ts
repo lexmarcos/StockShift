@@ -47,4 +47,7 @@ export interface PdvViewProps {
   onSubmit: (data: PdvSchema) => void;
   warehouses: { id: string; name: string }[];
   isLoadingWarehouses: boolean;
+  batchPopoverOpen: number | null;
+  onBatchPopoverChange: (index: number | null) => void;
+  isMobile: boolean;
 }
