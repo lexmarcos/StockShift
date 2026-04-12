@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Shield, ShieldAlert, ArrowRight } from "lucide-react";
+import { Users, Shield, ShieldAlert, ArrowRight, Building2 } from "lucide-react";
 import { SystemViewProps } from "./system.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,7 @@ export const SystemView = ({
           </div>
 
           {/* Cards Grid */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {/* Users Card */}
             <Link
               href="/system/users"
@@ -117,6 +117,35 @@ export const SystemView = ({
                   </span>
                 )}
                 <span className="text-xs text-neutral-500">roles cadastradas</span>
+              </div>
+            </Link>
+
+            {/* Company Config Card */}
+            <Link
+              href="/system/company"
+              className={cn(
+                "group relative flex flex-col gap-4 rounded-[4px] border border-neutral-800 bg-[#171717] p-6",
+                "transition-all hover:border-blue-600/50 hover:shadow-[0_0_30px_-10px_rgba(37,99,235,0.3)]"
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-purple-600/10 ring-1 ring-purple-600/20">
+                  <Building2 className="h-6 w-6 text-purple-500" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-neutral-600 transition-transform group-hover:translate-x-1 group-hover:text-blue-500" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wide text-white">
+                  Empresa
+                </h2>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Configure os dados da empresa e integrações
+                </p>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-purple-400">
+                  Configurar
+                </span>
               </div>
             </Link>
           </div>

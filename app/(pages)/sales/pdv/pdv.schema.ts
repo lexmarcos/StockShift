@@ -10,7 +10,7 @@ export const METHODS_WITH_INSTALLMENTS: PaymentMethod[] = ["CREDIT_CARD", "INSTA
 
 export const pdvSchema = z.object({
   warehouseId: z.string().uuid("Selecione um armazém"),
-  paymentMethod: z.enum(paymentMethods, { required_error: "Selecione a forma de pagamento" }),
+  paymentMethod: z.enum(paymentMethods, { message: "Selecione a forma de pagamento" }),
   installments: z.number().min(1).optional().nullable(),
   discountPercentage: z.number().min(0).max(100).optional().nullable(),
 });

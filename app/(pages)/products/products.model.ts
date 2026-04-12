@@ -49,9 +49,12 @@ export const useProductsModel = () => {
     params.append("page", filters.page.toString());
     params.append("size", filters.pageSize.toString());
     params.append("sort", `${filters.sortBy},${filters.sortOrder}`);
+    if (filters.searchQuery.trim()) {
+      params.append("search", filters.searchQuery.trim());
+    }
 
     return `warehouses/${warehouseId}/products?${params.toString()}`;
-  }, [warehouseId, filters.page, filters.pageSize, filters.sortBy, filters.sortOrder]);
+  }, [warehouseId, filters.page, filters.pageSize, filters.sortBy, filters.sortOrder, filters.searchQuery]);
 
   // Fetch products from warehouse
   const { data, error, isLoading, mutate } = useSWR<ProductsResponse>(
@@ -82,19 +85,6 @@ export const useProductsModel = () => {
         totalElements: 0,
       };
 
-  // Filter products by search query (client-side for better UX)
-  const filteredProducts = useMemo(() => {
-    if (!filters.searchQuery.trim()) return products;
-
-    const query = filters.searchQuery.toLowerCase();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query) ||
-        product.sku?.toLowerCase().includes(query) ||
-        product.barcode?.toLowerCase().includes(query)
-    );
-  }, [products, filters.searchQuery]);
-
   const onPageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, page }));
   };
@@ -104,7 +94,7 @@ export const useProductsModel = () => {
   };
 
   const onSearchChange = (searchQuery: string) => {
-    setFilters((prev) => ({ ...prev, searchQuery }));
+    setFilters((prev) => ({ ...prev, searchQuery, page: 0 }));
   };
 
   const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
@@ -191,7 +181,7 @@ export const useProductsModel = () => {
   };
 
   return {
-    products: filteredProducts,
+    products,
     isLoading,
     error: error || null,
     requiresWarehouse: !warehouseId,

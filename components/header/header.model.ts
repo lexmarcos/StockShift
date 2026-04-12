@@ -35,8 +35,15 @@ export const useHeaderModel = (): HeaderViewProps => {
 
   const isWarehousesPage = pathname.startsWith("/warehouses");
 
-  const handleWarehouseChange = (id: string) => {
-    setSelectedWarehouseId(id);
+  const handleWarehouseChange = async (id: string) => {
+    try {
+      await api
+        .post("auth/switch-warehouse", { json: { warehouseId: id } })
+        .json<{ success: boolean; message: string }>();
+      setSelectedWarehouseId(id);
+    } catch {
+      // silently ignore - the warehouse context won't update
+    }
   };
 
   const handleLogout = async () => {
