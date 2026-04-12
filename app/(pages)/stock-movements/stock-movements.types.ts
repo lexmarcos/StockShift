@@ -86,6 +86,6 @@ export interface StockMovementsViewProps {
   };
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  onFilterChange: (key: keyof StockMovementFilters, value: any) => void;
+  onFilterChange: (key: keyof StockMovementFilters, value: unknown) => void;
   onSortChange: (sortBy: SortField, sortOrder: SortOrder) => void;
 }

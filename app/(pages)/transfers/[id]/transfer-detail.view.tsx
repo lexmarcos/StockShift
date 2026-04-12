@@ -45,12 +45,6 @@ const statusConfig: Record<
     dot: "bg-purple-500",
     bg: "bg-purple-500/10 border-purple-500/30",
     text: "text-purple-400",
-    label: "AGUARDANDO VALIDAÇÃO",
-  },
-  [TransferStatus.IN_VALIDATION]: {
-    dot: "bg-purple-500",
-    bg: "bg-purple-500/10 border-purple-500/30",
-    text: "text-purple-400",
     label: "EM VALIDAÇÃO",
   },
   [TransferStatus.COMPLETED]: {
@@ -58,6 +52,12 @@ const statusConfig: Record<
     bg: "bg-emerald-500/10 border-emerald-500/30",
     text: "text-emerald-400",
     label: "CONCLUÍDA",
+  },
+  [TransferStatus.COMPLETED_WITH_DISCREPANCY]: {
+    dot: "bg-amber-500",
+    bg: "bg-amber-500/10 border-amber-500/30",
+    text: "text-amber-400",
+    label: "CONCLUÍDA C/ DIVERGÊNCIA",
   },
   [TransferStatus.CANCELLED]: {
     dot: "bg-rose-500",
@@ -118,10 +118,9 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
     (isSource && transfer.status === TransferStatus.DRAFT) ||
     (isSource && transfer.status === TransferStatus.IN_TRANSIT) ||
     (isDestination && transfer.status === TransferStatus.IN_TRANSIT) ||
-    (isDestination &&
-      (transfer.status === TransferStatus.PENDING_VALIDATION ||
-        transfer.status === TransferStatus.IN_VALIDATION)) ||
+    (isDestination && transfer.status === TransferStatus.PENDING_VALIDATION) ||
     transfer.status === TransferStatus.COMPLETED ||
+    transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY ||
     transfer.status === TransferStatus.CANCELLED;
 
   return (
@@ -373,7 +372,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                   Quantidade
                 </th>
-                {(transfer.status === TransferStatus.IN_VALIDATION ||
+                {(transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY ||
                   transfer.status === TransferStatus.PENDING_VALIDATION ||
                   transfer.status === TransferStatus.COMPLETED) && (
                   <>
@@ -402,7 +401,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                   <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
                     {getItemQty(item)}
                   </td>
-                  {(transfer.status === TransferStatus.IN_VALIDATION ||
+                  {(transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY ||
                     transfer.status === TransferStatus.PENDING_VALIDATION ||
                     transfer.status === TransferStatus.COMPLETED) && (
                     <>
@@ -426,7 +425,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <td className="px-5 py-3 text-right font-mono text-sm font-bold tracking-tighter text-white">
                   {totalQuantity}
                 </td>
-                {(transfer.status === TransferStatus.IN_VALIDATION ||
+                {(transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY ||
                   transfer.status === TransferStatus.PENDING_VALIDATION ||
                   transfer.status === TransferStatus.COMPLETED) && (
                   <>
@@ -518,10 +517,9 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
               </PermissionGate>
             )}
 
-            {/* Destination PENDING / IN_VALIDATION */}
+            {/* Destination PENDING_VALIDATION */}
             {isDestination &&
-              (transfer.status === TransferStatus.PENDING_VALIDATION ||
-                transfer.status === TransferStatus.IN_VALIDATION) && (
+              transfer.status === TransferStatus.PENDING_VALIDATION && (
                 <PermissionGate permission="transfers:update">
                   <Link href={`/transfers/${transfer.id}/validate`}>
                     <Button className="h-10 rounded-[4px] bg-amber-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
@@ -538,6 +536,24 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <div className="flex items-center gap-2 px-4 text-sm font-medium text-emerald-500">
                   <CheckCircle className="h-5 w-5" strokeWidth={2} />
                   Transferência Concluída
+                </div>
+                {isDestination && (
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:text-white"
+                  >
+                    VER RELATÓRIO
+                  </Button>
+                )}
+              </>
+            )}
+
+            {/* Completed with Discrepancy */}
+            {transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY && (
+              <>
+                <div className="flex items-center gap-2 px-4 text-sm font-medium text-amber-500">
+                  <CheckCircle className="h-5 w-5" strokeWidth={2} />
+                  Concluída com Divergência
                 </div>
                 {isDestination && (
                   <Button

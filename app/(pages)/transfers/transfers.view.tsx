@@ -55,9 +55,9 @@ const statusConfig: Record<
     cardStatus: "info",
     label: "Aguardando Validação",
   },
-  [TransferStatus.IN_VALIDATION]: {
-    cardStatus: "info",
-    label: "Em Validação",
+  [TransferStatus.COMPLETED_WITH_DISCREPANCY]: {
+    cardStatus: "warning",
+    label: "Concluído c/ Divergência",
   },
   [TransferStatus.COMPLETED]: { cardStatus: "success", label: "Concluído" },
   [TransferStatus.CANCELLED]: { cardStatus: "neutral", label: "Cancelado" },
@@ -67,7 +67,7 @@ const statusDotColor: Record<TransferStatus, string> = {
   [TransferStatus.DRAFT]: "bg-blue-500",
   [TransferStatus.IN_TRANSIT]: "bg-amber-500",
   [TransferStatus.PENDING_VALIDATION]: "bg-purple-500",
-  [TransferStatus.IN_VALIDATION]: "bg-purple-500",
+  [TransferStatus.COMPLETED_WITH_DISCREPANCY]: "bg-amber-500",
   [TransferStatus.COMPLETED]: "bg-emerald-500",
   [TransferStatus.CANCELLED]: "bg-neutral-500",
 };

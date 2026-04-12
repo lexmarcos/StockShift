@@ -88,7 +88,7 @@ export const useStockMovementsModel = () => {
     setFilters((prev) => ({ ...prev, pageSize, page: 0 }));
   };
 
-  const onFilterChange = (key: keyof StockMovementFilters, value: any) => {
+  const onFilterChange = (key: keyof StockMovementFilters, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 0 }));
   };
 

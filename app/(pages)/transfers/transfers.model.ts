@@ -54,7 +54,6 @@ export function useTransfersModel() {
       pending: relevant.filter(
         (t) =>
           t.status === TransferStatus.PENDING_VALIDATION ||
-          t.status === TransferStatus.IN_VALIDATION ||
           t.status === TransferStatus.DRAFT,
       ).length,
       completed: relevant.filter((t) => t.status === TransferStatus.COMPLETED)

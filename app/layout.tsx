@@ -5,6 +5,7 @@ import { WarehouseProvider } from "@/lib/contexts/warehouse-context";
 import { AuthProvider } from "@/lib/contexts/auth-context";
 import { LayoutContent } from "@/components/layout/layout-content";
 import { MobileMenuProvider } from "@/components/layout/mobile-menu-context";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -94,6 +95,7 @@ export default function RootLayout({
             </MobileMenuProvider>
           </WarehouseProvider>
         </AuthProvider>
+        <Toaster />
       </body>
     </html>
   );

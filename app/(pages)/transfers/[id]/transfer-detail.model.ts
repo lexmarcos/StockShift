@@ -75,7 +75,7 @@ export const useTransferDetailModel = (transferId: string) => {
       // Handle idempotency: if validation was already started, refetch and continue
       const freshData = await mutate();
       const currentStatus = freshData?.data?.status;
-      if (currentStatus === "PENDING_VALIDATION" || currentStatus === "IN_VALIDATION") {
+      if (currentStatus === "PENDING_VALIDATION") {
         toast.info("Validação já iniciada. Continuando...");
         router.push(`/transfers/${transferId}/validate`);
       } else {
