@@ -50,6 +50,34 @@ export interface SaleSummary {
   total: number;
   status: SaleStatus;
   createdAt: string;
+  createdByUserName: string;
+}
+
+export interface KpiPeriod {
+  count: number;
+  revenue: number;
+  avgTicket: number;
+}
+
+export interface DailyChartEntry {
+  date: string;
+  count: number;
+  revenue: number;
+}
+
+export interface SalesDashboardData {
+  kpis: {
+    today: KpiPeriod;
+    week: KpiPeriod;
+    month: KpiPeriod;
+  };
+  dailyChart: DailyChartEntry[];
+}
+
+export interface SalesDashboardResponse {
+  success: boolean;
+  message: string;
+  data: SalesDashboardData;
 }
 
 export interface SalesResponse {
