@@ -3,7 +3,7 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
-import { SalesResponse, SaleFilters } from "./sales.types";
+import { SalesResponse, SaleFilters, SalesDashboardResponse } from "./sales.types";
 
 export const useSalesModel = () => {
   const { warehouseId } = useSelectedWarehouse();
@@ -48,6 +48,20 @@ export const useSalesModel = () => {
     }
   });
 
+  const dashboardUrl = warehouseId ? `sales/dashboard?warehouseId=${warehouseId}` : null;
+
+  const { data: dashboardData, isLoading: dashboardLoading } = useSWR<SalesDashboardResponse | undefined>(
+    dashboardUrl,
+    async (url: string) => {
+      try {
+        return await api.get(url).json<SalesDashboardResponse>();
+      } catch (err) {
+        console.error("Erro ao carregar dashboard:", err);
+        return undefined;
+      }
+    }
+  );
+
   const sales = data?.data.content || [];
   const pagination = data?.data
     ? {
@@ -74,5 +88,7 @@ export const useSalesModel = () => {
     pagination,
     onPageChange,
     onFilterChange,
+    dashboardData: dashboardData?.data || null,
+    dashboardLoading,
   };
 };
