@@ -19,7 +19,7 @@ import {
   ResponsiveContainer, Legend,
 } from "recharts";
 import {
-  SaleSummary, SaleStatus, SalesDashboardData, PAYMENT_METHOD_LABELS,
+  SaleSummary, SaleStatus, SalesDashboardData, SaleFilters, PAYMENT_METHOD_LABELS,
   SALE_STATUS_LABELS, formatCents,
 } from "./sales.types";
 import { format } from "date-fns";
@@ -33,7 +33,7 @@ interface SalesViewProps {
   sales: SaleSummary[];
   isLoading: boolean;
   error: Error | null;
-  filters: { status: string; paymentMethod: string };
+  filters: { status?: string; paymentMethod?: string };
   pagination: {
     page: number;
     pageSize: number;
@@ -43,7 +43,7 @@ interface SalesViewProps {
   dashboardData: SalesDashboardData | null;
   dashboardLoading: boolean;
   onPageChange: (page: number) => void;
-  onFilterChange: (key: string, value: string) => void;
+  onFilterChange: (key: keyof SaleFilters, value: string) => void;
 }
 
 const getStatusStyle = (status: SaleStatus) =>
