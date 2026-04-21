@@ -28,6 +28,12 @@ import {
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Drawer,
   DrawerContent,
   DrawerHeader,
@@ -39,19 +45,25 @@ import {
   Banknote,
   Calendar,
   CheckCircle2,
+  Copy,
   CreditCard,
+  ExternalLink,
+  Link2,
   Loader2,
   Package,
   QrCode,
   Search,
   ShoppingCart,
+  Smartphone,
   Trash2,
   Wallet,
+  X,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { PAYMENT_METHOD_LABELS, formatCents } from "../sales.types";
 import { PdvViewProps } from "./pdv.types";
-import { METHODS_WITH_INSTALLMENTS, paymentMethods } from "./pdv.schema";
+import { METHODS_WITH_INSTALLMENTS, METHODS_WITH_PAYMENT_MODE, paymentMethods } from "./pdv.schema";
 import type { PaymentMethod } from "./pdv.schema";
 
 const PAYMENT_METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
@@ -62,6 +74,16 @@ const PAYMENT_METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
   PIX: QrCode,
   BANK_TRANSFER: ArrowLeftRight,
   OTHER: Wallet,
+};
+
+const PAYMENT_MODE_LABELS: Record<"TAP" | "LINK", string> = {
+  TAP: "Presencial",
+  LINK: "Link de Pagamento",
+};
+
+const PAYMENT_MODE_ICONS: Record<"TAP" | "LINK", React.ElementType> = {
+  TAP: Smartphone,
+  LINK: Link2,
 };
 
 export const PdvView = ({
@@ -85,6 +107,9 @@ export const PdvView = ({
   batchPopoverOpen,
   onBatchPopoverChange,
   isMobile,
+  shareDialogOpen,
+  shareDialogData,
+  onShareDialogClose,
 }: PdvViewProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -324,6 +349,113 @@ export const PdvView = ({
     />
   );
 
+  const showPaymentMode = selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment);
+
+  const paymentModeCards = showPaymentMode && (
+    <FormField
+      control={form.control}
+      name="paymentMode"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-3 block">
+            Modo de Pagamento
+          </FormLabel>
+          <div className="grid grid-cols-2 gap-2">
+            {(["TAP", "LINK"] as const).map((mode) => {
+              const Icon = PAYMENT_MODE_ICONS[mode];
+              const isSelected = field.value === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => field.onChange(mode)}
+                  className={`flex flex-col items-center gap-1.5 rounded-[4px] border p-3 transition-colors ${
+                    isSelected
+                      ? "border-blue-600 bg-blue-600/10 text-blue-400"
+                      : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center">
+                    {PAYMENT_MODE_LABELS[mode]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <FormControl>
+            <input type="hidden" />
+          </FormControl>
+          <FormMessage className="text-xs text-rose-500" />
+        </FormItem>
+      )}
+    />
+  );
+
+  const shareDialog = shareDialogData && (
+    <Dialog open={shareDialogOpen} onOpenChange={(open) => !open && onShareDialogClose()}>
+      <DialogContent className="bg-[#171717] border-neutral-800 rounded-[4px] max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-bold uppercase tracking-wide text-white flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            Link de pagamento gerado!
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+            <p className="text-sm font-bold text-white">{shareDialogData.saleCode}</p>
+            <p className="text-lg font-bold font-mono text-blue-400">{formatCents(shareDialogData.total)}</p>
+          </div>
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">Link</p>
+            <p className="text-xs text-neutral-300 break-all">{shareDialogData.paymentLink}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(shareDialogData.paymentLink);
+                toast.success("Link copiado!");
+              }}
+              className="h-10 rounded-[4px] bg-neutral-800 text-xs font-bold uppercase tracking-wide text-white hover:bg-neutral-700"
+            >
+              <Copy className="mr-1.5 h-3.5 w-3.5" />
+              Copiar
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                const msg = encodeURIComponent(
+                  `Pagamento StockShift\n${shareDialogData.saleCode} — ${formatCents(shareDialogData.total)}\n${shareDialogData.paymentLink}`
+                );
+                window.open(`https://wa.me/?text=${msg}`, "_blank");
+              }}
+              className="h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700"
+            >
+              WhatsApp
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                const subject = encodeURIComponent(`Pagamento StockShift - ${shareDialogData.saleCode}`);
+                const body = encodeURIComponent(shareDialogData.paymentLink);
+                window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+              }}
+              className="h-10 rounded-[4px] bg-neutral-800 text-xs font-bold uppercase tracking-wide text-white hover:bg-neutral-700"
+            >
+              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+              Email
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 pt-2 border-t border-neutral-800">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
+            <span className="text-xs text-neutral-400">Aguardando pagamento...</span>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const checkoutActions = (
     <div className="space-y-2 pt-3">
       <Button
@@ -531,6 +663,7 @@ export const PdvView = ({
                         ) : (
                           <>
                             {paymentCards}
+                            {paymentModeCards}
                             {installmentsField}
                             {checkoutActions}
                           </>
@@ -602,6 +735,7 @@ export const PdvView = ({
                     ) : (
                       <>
                         {paymentCards}
+                        {paymentModeCards}
                         {installmentsField}
                         {checkoutActions}
                       </>
@@ -675,6 +809,7 @@ export const PdvView = ({
           </form>
         </Form>
       </main>
+      {shareDialog}
     </div>
   );
 };
