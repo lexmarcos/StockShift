@@ -45,6 +45,8 @@ export function usePdvModel(): PdvViewProps {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [batchPopoverOpen, setBatchPopoverOpen] = useState<number | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareDialogData, setShareDialogData] = useState<{ saleCode: string; total: number; paymentLink: string } | null>(null);
   const isMobile = useIsMobile();
   const { warehouseId: globalWarehouseId } = useSelectedWarehouse();
 
@@ -53,6 +55,7 @@ export function usePdvModel(): PdvViewProps {
     defaultValues: {
       warehouseId: globalWarehouseId || "",
       paymentMethod: "CASH",
+      paymentMode: "DIRECT" as const,
       installments: null,
       discountPercentage: null,
     },
@@ -196,6 +199,7 @@ export function usePdvModel(): PdvViewProps {
       const salePayload = {
         warehouseId: data.warehouseId,
         paymentMethod: data.paymentMethod,
+        paymentMode: data.paymentMode,
         installments:
           data.installments && METHODS_WITH_INSTALLMENTS.includes(data.paymentMethod)
             ? data.installments
@@ -240,6 +244,7 @@ export function usePdvModel(): PdvViewProps {
         form.reset({
           warehouseId: data.warehouseId,
           paymentMethod: "CASH",
+          paymentMode: "DIRECT" as const,
           installments: null,
           discountPercentage: null,
         });
@@ -260,5 +265,7 @@ export function usePdvModel(): PdvViewProps {
     warehouses, isLoadingWarehouses,
     batchPopoverOpen, onBatchPopoverChange: setBatchPopoverOpen,
     isMobile,
+    shareDialogOpen, shareDialogData,
+    onShareDialogClose: () => { setShareDialogOpen(false); setShareDialogData(null); },
   };
 }

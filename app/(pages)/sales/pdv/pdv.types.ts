@@ -50,4 +50,7 @@ export interface PdvViewProps {
   batchPopoverOpen: number | null;
   onBatchPopoverChange: (index: number | null) => void;
   isMobile: boolean;
+  shareDialogOpen: boolean;
+  shareDialogData: { saleCode: string; total: number; paymentLink: string } | null;
+  onShareDialogClose: () => void;
 }

@@ -7,6 +7,8 @@ export type PaymentMethod =
   | "BANK_TRANSFER"
   | "OTHER";
 
+export type PaymentMode = "DIRECT" | "TAP" | "LINK";
+
 export type SaleStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 
 export interface SaleItem {
@@ -39,6 +41,8 @@ export interface Sale {
   createdByUserId: string;
   createdAt: string;
   items: SaleItem[];
+  paymentMode: PaymentMode;
+  paymentLink: string | null;
 }
 
 export interface SaleSummary {

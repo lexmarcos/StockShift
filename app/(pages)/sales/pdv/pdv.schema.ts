@@ -8,9 +8,15 @@ export type PaymentMethod = (typeof paymentMethods)[number];
 
 export const METHODS_WITH_INSTALLMENTS: PaymentMethod[] = ["CREDIT_CARD", "INSTALLMENT"];
 
+export const METHODS_WITH_PAYMENT_MODE: PaymentMethod[] = ["DEBIT_CARD", "CREDIT_CARD", "INSTALLMENT"];
+
+export const paymentModes = ["DIRECT", "TAP", "LINK"] as const;
+export type PaymentMode = (typeof paymentModes)[number];
+
 export const pdvSchema = z.object({
   warehouseId: z.string().uuid("Selecione um armazém"),
   paymentMethod: z.enum(paymentMethods, { message: "Selecione a forma de pagamento" }),
+  paymentMode: z.enum(paymentModes),
   installments: z.number().min(1).optional().nullable(),
   discountPercentage: z.number().min(0).max(100).optional().nullable(),
 });
