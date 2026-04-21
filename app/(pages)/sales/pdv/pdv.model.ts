@@ -4,13 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { pdvSchema, PdvSchema, METHODS_WITH_INSTALLMENTS } from "./pdv.schema";
+import { pdvSchema, PdvSchema, METHODS_WITH_INSTALLMENTS, METHODS_WITH_PAYMENT_MODE } from "./pdv.schema";
 import { CartItem, BatchOption, ProductWithStock, PdvViewProps } from "./pdv.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   buildInfinitePayDeeplink,
-  INFINITEPAY_PAYMENT_METHODS,
   mapPaymentMethodToInfinitePay,
 } from "@/lib/infinitepay";
 
@@ -40,6 +39,11 @@ interface InfinitePayConfigResponse {
   data: { handle: string | null; docNumber: string | null; configured: boolean };
 }
 
+interface SaleCreateResponse {
+  success: boolean;
+  data: { id: string; code: string; paymentLink: string | null };
+}
+
 export function usePdvModel(): PdvViewProps {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,6 +66,17 @@ export function usePdvModel(): PdvViewProps {
   });
 
   const selectedWarehouseId = form.watch("warehouseId");
+  const selectedPayment = form.watch("paymentMethod");
+
+  // Auto-set paymentMode when payment method changes
+  if (selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment)) {
+    const currentMode = form.getValues("paymentMode");
+    if (currentMode === "DIRECT") {
+      form.setValue("paymentMode", isMobile ? "TAP" : "LINK");
+    }
+  } else if (selectedPayment) {
+    form.setValue("paymentMode", "DIRECT");
+  }
 
   const { data: warehousesData, isLoading: isLoadingWarehouses } = useSWR<WarehouseResponse>(
     "warehouses",
@@ -183,6 +198,11 @@ export function usePdvModel(): PdvViewProps {
   const discountAmount = Math.round((subtotal * discountPercentage) / 100);
   const total = subtotal - discountAmount;
 
+  const resolvePaymentMode = (data: PdvSchema): "DIRECT" | "TAP" | "LINK" => {
+    if (!METHODS_WITH_PAYMENT_MODE.includes(data.paymentMethod)) return "DIRECT";
+    return data.paymentMode;
+  };
+
   const onSubmit = useCallback(
     async (data: PdvSchema) => {
       if (cart.length === 0) {
@@ -191,15 +211,12 @@ export function usePdvModel(): PdvViewProps {
       }
       setIsSubmitting(true);
 
-      const shouldUseInfinitePay =
-        isMobile &&
-        INFINITEPAY_PAYMENT_METHODS.has(data.paymentMethod) &&
-        infinitepayConfig?.data?.configured === true;
+      const paymentMode = resolvePaymentMode(data);
 
       const salePayload = {
         warehouseId: data.warehouseId,
         paymentMethod: data.paymentMethod,
-        paymentMode: data.paymentMode,
+        paymentMode,
         installments:
           data.installments && METHODS_WITH_INSTALLMENTS.includes(data.paymentMethod)
             ? data.installments
@@ -210,15 +227,15 @@ export function usePdvModel(): PdvViewProps {
           batchId: item.batchId,
           quantity: item.quantity,
         })),
-        useInfinitePay: shouldUseInfinitePay,
+        useInfinitePay: paymentMode === "TAP",
       };
 
       try {
         const res = await api
           .post("sales", { json: salePayload })
-          .json<{ success: boolean; data: { id: string } }>();
+          .json<SaleCreateResponse>();
 
-        if (shouldUseInfinitePay) {
+        if (paymentMode === "TAP") {
           const saleId = res.data.id;
           const config = infinitepayConfig!.data;
           const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
@@ -236,6 +253,24 @@ export function usePdvModel(): PdvViewProps {
 
           toast.info("Abrindo InfinitePay para pagamento...");
           window.location.href = deeplink;
+          return;
+        }
+
+        if (paymentMode === "LINK" && res.data.paymentLink) {
+          setShareDialogData({
+            saleCode: res.data.code,
+            total,
+            paymentLink: res.data.paymentLink,
+          });
+          setShareDialogOpen(true);
+          setCart([]);
+          form.reset({
+            warehouseId: data.warehouseId,
+            paymentMethod: "CASH",
+            paymentMode: "DIRECT" as const,
+            installments: null,
+            discountPercentage: null,
+          });
           return;
         }
 
