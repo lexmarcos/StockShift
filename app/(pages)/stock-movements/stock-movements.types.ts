@@ -1,5 +1,6 @@
 export type StockMovementType =
   | "USAGE"
+  | "SALE"
   | "GIFT"
   | "LOSS"
   | "DAMAGE"

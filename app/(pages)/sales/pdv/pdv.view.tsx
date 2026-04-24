@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -63,7 +63,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PAYMENT_METHOD_LABELS, formatCents } from "../sales.types";
 import { PdvViewProps } from "./pdv.types";
-import { METHODS_WITH_INSTALLMENTS, METHODS_WITH_PAYMENT_MODE, paymentMethods } from "./pdv.schema";
+import { METHODS_WITH_INSTALLMENTS, paymentMethods } from "./pdv.schema";
 import type { PaymentMethod } from "./pdv.schema";
 
 const PAYMENT_METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
@@ -76,15 +76,6 @@ const PAYMENT_METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
   OTHER: Wallet,
 };
 
-const PAYMENT_MODE_LABELS: Record<"TAP" | "LINK", string> = {
-  TAP: "Presencial",
-  LINK: "Link de Pagamento",
-};
-
-const PAYMENT_MODE_ICONS: Record<"TAP" | "LINK", React.ElementType> = {
-  TAP: Smartphone,
-  LINK: Link2,
-};
 
 export const PdvView = ({
   form,
@@ -107,19 +98,29 @@ export const PdvView = ({
   batchPopoverOpen,
   onBatchPopoverChange,
   isMobile,
+  meetsMinimumForPaymentLink,
   shareDialogOpen,
   shareDialogData,
   onShareDialogClose,
 }: PdvViewProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [cartStep, setCartStep] = useState<"cart" | "checkout">("cart");
+  const [cartStep, setCartStep] = useState<"cart" | "sale-type" | "checkout">("cart");
+
+  useEffect(() => {
+    if (cart.length === 0) {
+      setCartStep("cart");
+      setDrawerOpen(false);
+    }
+  }, [cart.length]);
 
   const selectedPayment = form.watch("paymentMethod");
   const selectedWarehouseId = form.watch("warehouseId");
+  const selectedMode = form.watch("paymentMode");
   const showInstallments =
-    selectedPayment && METHODS_WITH_INSTALLMENTS.includes(selectedPayment);
+    selectedPayment && METHODS_WITH_INSTALLMENTS.includes(selectedPayment) && selectedMode !== "LINK";
 
+  const goSaleType = () => setCartStep("sale-type");
   const goCheckout = () => setCartStep("checkout");
   const goCart = () => setCartStep("cart");
 
@@ -349,47 +350,62 @@ export const PdvView = ({
     />
   );
 
-  const showPaymentMode = selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment);
+  const linkPaymentInfo = (
+    <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
+      <p className="text-xs text-neutral-400">
+        A forma de pagamento será escolhida pelo cliente no checkout.
+      </p>
+    </div>
+  );
 
-  const paymentModeCards = showPaymentMode && (
-    <FormField
-      control={form.control}
-      name="paymentMode"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-3 block">
-            Modo de Pagamento
-          </FormLabel>
-          <div className="grid grid-cols-2 gap-2">
-            {(["TAP", "LINK"] as const).map((mode) => {
-              const Icon = PAYMENT_MODE_ICONS[mode];
-              const isSelected = field.value === mode;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => field.onChange(mode)}
-                  className={`flex flex-col items-center gap-1.5 rounded-[4px] border p-3 transition-colors ${
-                    isSelected
-                      ? "border-blue-600 bg-blue-600/10 text-blue-400"
-                      : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-[10px] font-bold uppercase tracking-wide leading-tight text-center">
-                    {PAYMENT_MODE_LABELS[mode]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <FormControl>
-            <input type="hidden" />
-          </FormControl>
-          <FormMessage className="text-xs text-rose-500" />
-        </FormItem>
+  const saleTypeStep = (
+    <div className="space-y-4">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+        Como será a venda?
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            form.setValue("paymentMode", "DIRECT");
+            goCheckout();
+          }}
+          className="flex flex-col items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-4 hover:border-blue-600 transition-colors"
+        >
+          <Smartphone className="h-5 w-5 text-blue-400" />
+          <span className="text-xs font-bold uppercase tracking-wide">Presencial</span>
+          <span className="text-[10px] text-neutral-500 text-center">Cliente presente</span>
+        </button>
+        <button
+          type="button"
+          disabled={!meetsMinimumForPaymentLink}
+          onClick={() => {
+            form.setValue("paymentMode", "LINK");
+            form.setValue("paymentMethod", "CREDIT_CARD");
+            goCheckout();
+          }}
+          className="flex flex-col items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-4 hover:border-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Link2 className="h-5 w-5 text-blue-400" />
+          <span className="text-xs font-bold uppercase tracking-wide">Link</span>
+          <span className="text-[10px] text-neutral-500 text-center">Enviar ao cliente</span>
+        </button>
+      </div>
+      {!meetsMinimumForPaymentLink && (
+        <p className="text-[10px] text-amber-500">
+          Mínimo R$ 1,00 para pagamento via link
+        </p>
       )}
-    />
+      <Button
+        variant="outline"
+        type="button"
+        onClick={goCart}
+        className="w-full h-10 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+      >
+        <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+        Voltar ao Carrinho
+      </Button>
+    </div>
   );
 
   const shareDialog = shareDialogData && (
@@ -479,17 +495,17 @@ export const PdvView = ({
       <Button
         variant="outline"
         type="button"
-        onClick={goCart}
+        onClick={goSaleType}
         className="w-full h-10 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
       >
         <ArrowLeft className="mr-2 h-3.5 w-3.5" />
-        Voltar ao Carrinho
+        Voltar
       </Button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pb-28 font-sans text-neutral-200">
+    <div className="min-h-screen bg-[#0A0A0A] pb-28 lg:pb-8 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
         <Form {...form}>
           <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
@@ -624,12 +640,12 @@ export const PdvView = ({
                     <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                       <CardHeader className="border-b border-neutral-800 pb-4">
                         <div className="flex items-center gap-2">
-                          {cartStep === "checkout" ? (
+                          {cartStep !== "cart" ? (
                             <Button
                               type="button"
                               variant="ghost"
                               size="icon"
-                              onClick={goCart}
+                              onClick={cartStep === "checkout" ? goSaleType : goCart}
                               className="h-6 w-6 mr-1 rounded-[4px] text-neutral-400 hover:text-white"
                             >
                               <ArrowLeft className="h-3.5 w-3.5" />
@@ -640,7 +656,9 @@ export const PdvView = ({
                           <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                             {cartStep === "cart"
                               ? `Carrinho (${cart.length})`
-                              : "Finalizar Venda"}
+                              : cartStep === "sale-type"
+                                ? "Tipo de Venda"
+                                : "Forma de Pagamento"}
                           </CardTitle>
                         </div>
                       </CardHeader>
@@ -652,7 +670,7 @@ export const PdvView = ({
                             {cart.length > 0 && (
                               <Button
                                 type="button"
-                                onClick={goCheckout}
+                                onClick={goSaleType}
                                 className="w-full h-11 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
                               >
                                 <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
@@ -660,10 +678,16 @@ export const PdvView = ({
                               </Button>
                             )}
                           </>
+                        ) : cartStep === "sale-type" ? (
+                          saleTypeStep
+                        ) : selectedMode === "LINK" ? (
+                          <>
+                            {linkPaymentInfo}
+                            {checkoutActions}
+                          </>
                         ) : (
                           <>
                             {paymentCards}
-                            {paymentModeCards}
                             {installmentsField}
                             {checkoutActions}
                           </>
@@ -687,12 +711,12 @@ export const PdvView = ({
                 <DrawerContent className="bg-[#171717] border-neutral-800 max-h-[85vh]">
                   <DrawerHeader className="border-b border-neutral-800 pb-4">
                     <DrawerTitle className="text-sm font-bold uppercase tracking-wide text-white flex items-center gap-2">
-                      {cartStep === "checkout" && (
+                      {cartStep !== "cart" && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={goCart}
+                          onClick={cartStep === "checkout" ? goSaleType : goCart}
                           className="h-6 w-6 mr-1 rounded-[4px] text-neutral-400 hover:text-white"
                         >
                           <ArrowLeft className="h-3.5 w-3.5" />
@@ -703,8 +727,10 @@ export const PdvView = ({
                           <ShoppingCart className="h-4 w-4 text-blue-500" />
                           Carrinho ({cart.length})
                         </>
+                      ) : cartStep === "sale-type" ? (
+                        "Tipo de Venda"
                       ) : (
-                        "Finalizar Venda"
+                        "Forma de Pagamento"
                       )}
                     </DrawerTitle>
                   </DrawerHeader>
@@ -716,7 +742,7 @@ export const PdvView = ({
                         {cart.length > 0 && (
                           <Button
                             type="button"
-                            onClick={goCheckout}
+                            onClick={goSaleType}
                             className="w-full h-11 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
                           >
                             <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
@@ -732,10 +758,16 @@ export const PdvView = ({
                           <Link href="/sales">Cancelar</Link>
                         </Button>
                       </>
+                    ) : cartStep === "sale-type" ? (
+                      saleTypeStep
+                    ) : selectedMode === "LINK" ? (
+                      <>
+                        {linkPaymentInfo}
+                        {checkoutActions}
+                      </>
                     ) : (
                       <>
                         {paymentCards}
-                        {paymentModeCards}
                         {installmentsField}
                         {checkoutActions}
                       </>
@@ -745,8 +777,8 @@ export const PdvView = ({
               </Drawer>
             )}
 
-            {/* Fixed Bottom Bar */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 md:ml-[var(--sidebar-width)]">
+            {/* Fixed Bottom Bar — mobile/tablet only */}
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 md:ml-[var(--sidebar-width)] lg:hidden">
               {isMobile ? (
                 <div className="flex w-full items-center justify-between">
                   <div className="flex items-center gap-4">

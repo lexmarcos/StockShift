@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
@@ -68,15 +68,23 @@ export function usePdvModel(): PdvViewProps {
   const selectedWarehouseId = form.watch("warehouseId");
   const selectedPayment = form.watch("paymentMethod");
 
+  // Compute cart total early for payment mode validation
+  const cartSubtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+  const meetsMinimumForPaymentLink = cartSubtotal >= 100;
+
   // Auto-set paymentMode when payment method changes
-  if (selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment)) {
-    const currentMode = form.getValues("paymentMode");
-    if (currentMode === "DIRECT") {
-      form.setValue("paymentMode", isMobile ? "TAP" : "LINK");
+  useEffect(() => {
+    if (selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment)) {
+      const currentMode = form.getValues("paymentMode");
+      if (currentMode === "DIRECT" && meetsMinimumForPaymentLink) {
+        form.setValue("paymentMode", isMobile ? "TAP" : "LINK");
+      } else if ((currentMode === "TAP" || currentMode === "LINK") && !meetsMinimumForPaymentLink) {
+        form.setValue("paymentMode", "DIRECT");
+      }
+    } else if (selectedPayment) {
+      form.setValue("paymentMode", "DIRECT");
     }
-  } else if (selectedPayment) {
-    form.setValue("paymentMode", "DIRECT");
-  }
+  }, [selectedPayment, meetsMinimumForPaymentLink, isMobile, form]);
 
   const { data: warehousesData, isLoading: isLoadingWarehouses } = useSWR<WarehouseResponse>(
     "warehouses",
@@ -105,7 +113,7 @@ export function usePdvModel(): PdvViewProps {
       if (!selectedWarehouseId) return [];
       try {
         const res = await api
-          .get(`batches?productId=${productId}&warehouseId=${selectedWarehouseId}`)
+          .get(`batches/warehouses/${selectedWarehouseId}/products/${productId}/batches`)
           .json<BatchesResponse>();
         return (res.data || [])
           .filter((b) => b.quantity > 0)
@@ -299,7 +307,7 @@ export function usePdvModel(): PdvViewProps {
     subtotal, discountAmount, total, isSubmitting, onSubmit,
     warehouses, isLoadingWarehouses,
     batchPopoverOpen, onBatchPopoverChange: setBatchPopoverOpen,
-    isMobile,
+    isMobile, meetsMinimumForPaymentLink,
     shareDialogOpen, shareDialogData,
     onShareDialogClose: () => { setShareDialogOpen(false); setShareDialogData(null); },
   };

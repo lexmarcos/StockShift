@@ -53,6 +53,7 @@ import {
 
 const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
   USAGE: "Uso",
+  SALE: "Venda",
   GIFT: "Presente",
   LOSS: "Perda",
   DAMAGE: "Dano",
