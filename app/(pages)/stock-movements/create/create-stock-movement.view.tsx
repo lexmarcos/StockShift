@@ -10,8 +10,6 @@ import {
   Hash,
   TrendingDown,
   TrendingUp,
-  ArrowDownRight,
-  ArrowUpRight,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +30,6 @@ import {
 import { NumberInput } from "@/components/ui/number-input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/ui/page-header";
 import { FormSection } from "@/components/ui/form-section";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -40,28 +37,10 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { PermissionGate } from "@/components/permission-gate";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
-import { MANUAL_MOVEMENT_TYPES } from "./create-stock-movement.schema";
-
-type ManualType = (typeof MANUAL_MOVEMENT_TYPES)[number];
-
-const MOVEMENT_TYPE_LABELS: Record<ManualType, string> = {
-  USAGE: "Uso",
-  GIFT: "Presente",
-  LOSS: "Perda",
-  DAMAGE: "Dano",
-  ADJUSTMENT_OUT: "Ajuste Saída",
-  PURCHASE_IN: "Compra",
-  ADJUSTMENT_IN: "Ajuste Entrada",
-};
-
-const OUT_TYPES: ManualType[] = [
-  "USAGE",
-  "GIFT",
-  "LOSS",
-  "DAMAGE",
-  "ADJUSTMENT_OUT",
-];
-const IN_TYPES: ManualType[] = ["PURCHASE_IN", "ADJUSTMENT_IN"];
+import {
+  MANUAL_MOVEMENT_TYPE_LABELS,
+  MANUAL_OUT_MOVEMENT_TYPES,
+} from "../stock-movements.constants";
 
 export function CreateStockMovementView({
   form,
@@ -86,119 +65,25 @@ export function CreateStockMovementView({
 
   return (
     <PageContainer bottomPadding="fixed-bar">
-      <PageHeader
-        title="Nova Movimentação"
-        subtitle="Registrar Movimentação de Estoque"
-      />
+      <div className="mb-6 flex justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsNotesOpen(true)}
+          className={`h-8 gap-2 rounded-[4px] border text-[10px] font-bold uppercase tracking-wide ${
+            notesValue
+              ? "border-blue-900/30 bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
+              : "border-neutral-800 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300"
+          }`}
+        >
+          <FileText className="h-3.5 w-3.5" />
+          {notesValue ? "Editar Obs." : "Observações"}
+        </Button>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* ── Type Selection Card ── */}
-          <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
-            <div className="mb-5 flex items-center justify-between border-b border-neutral-800 pb-4">
-              <div className="flex items-center gap-3">
-                <TrendingDown
-                  className="h-5 w-5 text-blue-400"
-                  strokeWidth={2}
-                />
-                <div>
-                  <p className="text-sm font-bold text-white">
-                    Tipo de Movimentação
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    Define a direção e o motivo do lançamento
-                  </p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsNotesOpen(true)}
-                className={`h-8 gap-2 rounded-[4px] border text-[10px] font-bold uppercase tracking-wide ${
-                  notesValue
-                    ? "border-blue-900/30 bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
-                    : "border-neutral-800 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300"
-                }`}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                {notesValue ? "Editar Obs." : "Observações"}
-              </Button>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  {/* OUT group */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <ArrowUpRight
-                        className="h-3.5 w-3.5 text-rose-500"
-                        strokeWidth={2.5}
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500">
-                        Saída
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-                      {OUT_TYPES.map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => field.onChange(type)}
-                          className={`flex flex-col items-start rounded-[4px] border-2 px-3 py-2.5 text-left transition-none ${
-                            field.value === type
-                              ? "border-rose-600 bg-rose-600/10 text-rose-400"
-                              : "border-neutral-800 bg-neutral-900 text-neutral-500 hover:border-neutral-700 hover:text-neutral-300"
-                          }`}
-                        >
-                          <span className="text-[11px] font-bold uppercase tracking-wide leading-tight">
-                            {MOVEMENT_TYPE_LABELS[type]}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* IN group */}
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <ArrowDownRight
-                        className="h-3.5 w-3.5 text-emerald-500"
-                        strokeWidth={2.5}
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">
-                        Entrada
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-                      {IN_TYPES.map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => field.onChange(type)}
-                          className={`flex flex-col items-start rounded-[4px] border-2 px-3 py-2.5 text-left transition-none ${
-                            field.value === type
-                              ? "border-emerald-600 bg-emerald-600/10 text-emerald-400"
-                              : "border-neutral-800 bg-neutral-900 text-neutral-500 hover:border-neutral-700 hover:text-neutral-300"
-                          }`}
-                        >
-                          <span className="text-[11px] font-bold uppercase tracking-wide leading-tight">
-                            {MOVEMENT_TYPE_LABELS[type]}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <FormMessage className="mt-2 text-xs text-rose-500" />
-                </FormItem>
-              )}
-            />
-          </div>
-
           {/* ── Notes Modal ── */}
           <ResponsiveModal
             open={isNotesOpen}
@@ -234,6 +119,52 @@ export function CreateStockMovementView({
               />
             </div>
           </ResponsiveModal>
+
+          {/* ── Selected type indicator ── */}
+          {selectedType && (
+            <div
+              className={`flex items-center gap-3 rounded-[4px] border px-4 py-3 ${
+                MANUAL_OUT_MOVEMENT_TYPES.includes(
+                  selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
+                )
+                  ? "border-rose-900/30 bg-rose-950/10"
+                  : "border-emerald-900/30 bg-emerald-950/10"
+              }`}
+            >
+              {MANUAL_OUT_MOVEMENT_TYPES.includes(
+                selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
+              ) ? (
+                <TrendingDown
+                  className="h-4 w-4 flex-shrink-0 text-rose-500"
+                  strokeWidth={2}
+                />
+              ) : (
+                <TrendingUp
+                  className="h-4 w-4 flex-shrink-0 text-emerald-500"
+                  strokeWidth={2}
+                />
+              )}
+              <p
+                className={`text-xs font-medium ${
+                  MANUAL_OUT_MOVEMENT_TYPES.includes(
+                    selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
+                  )
+                    ? "text-rose-400"
+                    : "text-emerald-400"
+                }`}
+              >
+                <span className="font-bold uppercase">
+                  {MANUAL_MOVEMENT_TYPE_LABELS[selectedType]}
+                </span>{" "}
+                -{" "}
+                {MANUAL_OUT_MOVEMENT_TYPES.includes(
+                  selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
+                )
+                  ? "As quantidades serão deduzidas do estoque usando FIFO (lote mais antigo primeiro)."
+                  : "Um novo lote será criado ou adicionado para o produto no warehouse atual."}
+              </p>
+            </div>
+          )}
 
           {/* ── Item Builder ── */}
           <FormSection
@@ -310,7 +241,6 @@ export function CreateStockMovementView({
               )}
             </div>
           </FormSection>
-
           {/* ── Items List ── */}
           <div>
             <SectionLabel icon={Hash} className="mb-4">
@@ -424,46 +354,6 @@ export function CreateStockMovementView({
             )}
           </div>
 
-          {/* ── Selected type indicator ── */}
-          {selectedType && (
-            <div
-              className={`flex items-center gap-3 rounded-[4px] border px-4 py-3 ${
-                OUT_TYPES.includes(selectedType as (typeof OUT_TYPES)[number])
-                  ? "border-rose-900/30 bg-rose-950/10"
-                  : "border-emerald-900/30 bg-emerald-950/10"
-              }`}
-            >
-              {OUT_TYPES.includes(
-                selectedType as (typeof OUT_TYPES)[number],
-              ) ? (
-                <TrendingDown
-                  className="h-4 w-4 flex-shrink-0 text-rose-500"
-                  strokeWidth={2}
-                />
-              ) : (
-                <TrendingUp
-                  className="h-4 w-4 flex-shrink-0 text-emerald-500"
-                  strokeWidth={2}
-                />
-              )}
-              <p
-                className={`text-xs font-medium ${
-                  OUT_TYPES.includes(selectedType as (typeof OUT_TYPES)[number])
-                    ? "text-rose-400"
-                    : "text-emerald-400"
-                }`}
-              >
-                <span className="font-bold uppercase">
-                  {MOVEMENT_TYPE_LABELS[selectedType]}
-                </span>{" "}
-                —{" "}
-                {OUT_TYPES.includes(selectedType as (typeof OUT_TYPES)[number])
-                  ? "As quantidades serão deduzidas do estoque usando FIFO (lote mais antigo primeiro)."
-                  : "Um novo lote será criado ou adicionado para o produto no warehouse atual."}
-              </p>
-            </div>
-          )}
-
           {/* ── Fixed Bottom Bar ── */}
           <FixedBottomBar>
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
@@ -485,7 +375,7 @@ export function CreateStockMovementView({
                 )}
                 {selectedType && (
                   <span className="font-bold uppercase tracking-widest text-neutral-400">
-                    {MOVEMENT_TYPE_LABELS[selectedType]}
+                    {MANUAL_MOVEMENT_TYPE_LABELS[selectedType]}
                   </span>
                 )}
               </div>

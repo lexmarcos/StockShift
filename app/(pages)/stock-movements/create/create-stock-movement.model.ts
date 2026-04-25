@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
@@ -12,6 +12,7 @@ import {
 } from "./create-stock-movement.schema";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
+import { isManualMovementType } from "../stock-movements.constants";
 
 interface ProductListResponse {
   success: boolean;
@@ -22,10 +23,15 @@ interface ProductListResponse {
 
 export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
+  const typeParam = searchParams.get("type");
+  const selectedMovementType = isManualMovementType(typeParam)
+    ? typeParam
+    : undefined;
 
   useBreadcrumb({
     title: "Nova Movimentação",
@@ -37,10 +43,21 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const form = useForm<CreateStockMovementSchema>({
     resolver: zodResolver(createStockMovementSchema),
     defaultValues: {
+      type: selectedMovementType,
       items: [],
       notes: "",
     },
   });
+
+  useEffect(() => {
+    if (!selectedMovementType) {
+      toast.error("Selecione o tipo de movimentação antes de continuar.");
+      router.replace("/stock-movements");
+      return;
+    }
+
+    form.setValue("type", selectedMovementType, { shouldValidate: true });
+  }, [form, router, selectedMovementType]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -97,11 +114,17 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   };
 
   const onSubmit = async (data: CreateStockMovementSchema) => {
+    if (!selectedMovementType) {
+      toast.error("Selecione o tipo de movimentação antes de continuar.");
+      router.replace("/stock-movements");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await api.post("stock-movements", {
         json: {
-          type: data.type,
+          type: selectedMovementType,
           notes: data.notes || undefined,
           items: data.items.map((item) => ({
             productId: item.productId,

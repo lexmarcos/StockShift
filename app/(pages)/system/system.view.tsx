@@ -143,8 +143,9 @@ export const SystemView = ({
                 </p>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-purple-400">
-                  Configurar
+                <span className="text-3xl font-bold text-white">1</span>
+                <span className="text-xs text-neutral-500">
+                  empresa configurada
                 </span>
               </div>
             </Link>

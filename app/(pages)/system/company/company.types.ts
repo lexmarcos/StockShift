@@ -18,9 +18,11 @@ export interface CompanyViewProps {
   isLoadingCompany: boolean;
   isLoadingInfinitePay: boolean;
   isUpdating: boolean;
+  isEditingInfinitePay: boolean;
   error: Error | null;
   onUpdateCompany: (data: UpdateCompanyData) => void;
   onUpdateInfinitePay: (data: UpdateInfinitePayData) => void;
+  onEditInfinitePay: () => void;
 }
 
 export interface UpdateCompanyData {

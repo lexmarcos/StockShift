@@ -727,8 +727,6 @@ export const BatchesView = ({
                           key={batch.id}
                           className={cn(
                             "flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4",
-                            "border-l-4",
-                            style.indicator.replace("bg-", "border-"),
                           )}
                         >
                           <div className="flex items-start justify-between">

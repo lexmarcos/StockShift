@@ -124,21 +124,26 @@ export const BatchEditView = ({
                 <FormField
                   control={form.control}
                   name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-wide">
-                        Quantidade
-                      </FormLabel>
-                      <FormControl>
-                        <NumberInput
-                          {...field}
-                          mode="integer"
-                          className="h-9 rounded-sm border-border/40 text-xs"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const { onChange, value, ...rest } = field;
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wide">
+                          Quantidade
+                        </FormLabel>
+                        <FormControl>
+                          <NumberInput
+                            {...rest}
+                            value={value}
+                            onValueChange={onChange}
+                            mode="integer"
+                            className="h-9 rounded-sm border-border/40 text-xs"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}

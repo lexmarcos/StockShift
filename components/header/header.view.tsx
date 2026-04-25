@@ -32,9 +32,9 @@ export const HeaderView = ({
   return (
     <header className="sticky top-0 z-50 w-full border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
-        {/* Left Section */}
+        {/* Left Section - mobile: only menu button */}
         <div className="flex items-center gap-3 md:gap-4">
-          {/* Mobile Menu Button (Placeholder) */}
+          {/* Mobile Menu Button */}
           <Button
             variant="outline"
             size="icon"
@@ -44,19 +44,19 @@ export const HeaderView = ({
             <Menu className="h-10 w-10 text" strokeWidth={2.5}/>
           </Button>
 
-          {/* Logo */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
+          {/* Logo - desktop only */}
+          <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
             <Package2 className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
 
-          {/* App Name */}
-          <h1 className="hidden text-base font-bold uppercase tracking-tight text-white sm:block md:text-lg">
+          {/* App Name - desktop only */}
+          <h1 className="hidden text-base font-bold uppercase tracking-tight text-white md:block md:text-lg">
             Stockshift
           </h1>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-2 md:gap-3">
+        {/* Right Section - desktop only: warehouse selector + profile */}
+        <div className="hidden md:flex items-center gap-2 md:gap-3">
           {/* Warehouse Selector */}
           {showWarehouseSelect && (
             <Select
@@ -64,7 +64,7 @@ export const HeaderView = ({
               onValueChange={onWarehouseChange}
               disabled={isLoadingWarehouses || warehouses.length === 0}
             >
-              <SelectTrigger className="!h-9 w-[140px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 md:w-[180px]">
+              <SelectTrigger className="!h-9 w-[180px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                 <div className="flex items-center gap-2">
                   <Warehouse className="h-4 w-4 text-neutral-500" />
                   <SelectValue placeholder="Armazém" />
@@ -101,7 +101,6 @@ export const HeaderView = ({
               align="end"
               className="min-w-[200px] rounded-[4px] border border-neutral-800 bg-[#171717]"
             >
-              {/* User Info Section */}
               {user && (
                 <>
                   <div className="border-b border-neutral-800 p-3">
@@ -112,7 +111,6 @@ export const HeaderView = ({
                 </>
               )}
 
-              {/* Menu Items */}
               <DropdownMenuItem asChild className="text-xs uppercase tracking-wide focus:bg-neutral-800">
                 <Link href="/profile" className="flex cursor-pointer items-center gap-2 text-neutral-300">
                   <User className="h-4 w-4" />

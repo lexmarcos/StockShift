@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, type MouseEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -40,9 +41,11 @@ export const CompanyView = ({
   isLoadingCompany,
   isLoadingInfinitePay,
   isUpdating,
+  isEditingInfinitePay,
   error,
   onUpdateCompany,
   onUpdateInfinitePay,
+  onEditInfinitePay,
 }: CompanyViewProps) => {
   const companyForm = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
@@ -61,6 +64,41 @@ export const CompanyView = ({
       docNumber: infinitePayConfig?.docNumber || "",
     },
   });
+
+  const isInfinitePayConfigured = Boolean(infinitePayConfig?.configured);
+  const isInfinitePayReadOnly =
+    isInfinitePayConfigured && !isEditingInfinitePay;
+
+  useEffect(() => {
+    companyForm.reset({
+      businessName: companyConfig?.businessName || "",
+      document: companyConfig?.document || "",
+      email: companyConfig?.email || "",
+      phone: companyConfig?.phone || "",
+    });
+  }, [companyConfig, companyForm]);
+
+  useEffect(() => {
+    if (isEditingInfinitePay) {
+      return;
+    }
+
+    infinitePayForm.reset({
+      handle: infinitePayConfig?.handle || "",
+      docNumber: infinitePayConfig?.docNumber || "",
+    });
+  }, [infinitePayConfig, infinitePayForm, isEditingInfinitePay]);
+
+  const handleInfinitePayButtonClick = (
+    event: MouseEvent<HTMLButtonElement>
+  ) => {
+    if (!isInfinitePayReadOnly) {
+      return;
+    }
+
+    event.preventDefault();
+    onEditInfinitePay();
+  };
 
   const onCompanySubmit = (data: z.infer<typeof companySchema>) => {
     onUpdateCompany({
@@ -270,6 +308,7 @@ export const CompanyView = ({
                             <FormControl>
                               <Input
                                 {...field}
+                                readOnly={isInfinitePayReadOnly}
                                 className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
                                 placeholder="sua-empresa"
                               />
@@ -290,6 +329,7 @@ export const CompanyView = ({
                             <FormControl>
                               <Input
                                 {...field}
+                                readOnly={isInfinitePayReadOnly}
                                 className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
                                 placeholder="00000000000000"
                               />
@@ -310,20 +350,31 @@ export const CompanyView = ({
                         </div>
                       )}
 
-                      <Button
-                        type="submit"
-                        disabled={isUpdating}
-                        className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
-                      >
-                        {isUpdating ? (
-                          <>
-                            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                            Salvando...
-                          </>
-                        ) : (
-                          "Salvar Configuração"
-                        )}
-                      </Button>
+                      {isInfinitePayReadOnly ? (
+                        <Button
+                          type="button"
+                          onClick={handleInfinitePayButtonClick}
+                          disabled={isUpdating}
+                          className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                        >
+                          Editar Configuração
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          disabled={isUpdating}
+                          className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                        >
+                          {isUpdating ? (
+                            <>
+                              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                              Salvando...
+                            </>
+                          ) : (
+                            "Salvar Configuração"
+                          )}
+                        </Button>
+                      )}
                     </form>
                   </Form>
                 )}

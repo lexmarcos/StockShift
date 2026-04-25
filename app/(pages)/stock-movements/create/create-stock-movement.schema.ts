@@ -1,14 +1,5 @@
 import { z } from "zod";
-
-export const MANUAL_MOVEMENT_TYPES = [
-  "USAGE",
-  "GIFT",
-  "LOSS",
-  "DAMAGE",
-  "ADJUSTMENT_OUT",
-  "PURCHASE_IN",
-  "ADJUSTMENT_IN",
-] as const;
+import { MANUAL_MOVEMENT_TYPES } from "../stock-movements.constants";
 
 export const movementItemSchema = z.object({
   productId: z.string().uuid("Produto inválido"),
@@ -18,7 +9,7 @@ export const movementItemSchema = z.object({
 
 export const createStockMovementSchema = z.object({
   type: z.enum(MANUAL_MOVEMENT_TYPES, {
-    required_error: "Selecione o tipo de movimentação",
+    message: "Selecione o tipo de movimentação",
   }),
   notes: z.string().optional(),
   items: z.array(movementItemSchema).min(1, "Adicione pelo menos um item"),

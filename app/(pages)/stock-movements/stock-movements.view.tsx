@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -17,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -25,11 +23,8 @@ import {
   Layers,
   Calendar,
   Eye,
-  Plus,
-  ArrowDown,
-  ArrowUp,
-  Warehouse,
   MoreHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -40,6 +35,11 @@ import {
   SortOrder,
   StockMovementType,
 } from "./stock-movements.types";
+import {
+  MANUAL_IN_MOVEMENT_TYPES,
+  MANUAL_MOVEMENT_TYPE_LABELS,
+  MANUAL_OUT_MOVEMENT_TYPES,
+} from "./stock-movements.constants";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -52,14 +52,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
-  USAGE: "Uso",
+  ...MANUAL_MOVEMENT_TYPE_LABELS,
   SALE: "Venda",
-  GIFT: "Presente",
-  LOSS: "Perda",
-  DAMAGE: "Dano",
-  ADJUSTMENT_OUT: "Ajuste Saída",
-  PURCHASE_IN: "Compra",
-  ADJUSTMENT_IN: "Ajuste Entrada",
   TRANSFER_IN: "Transf. Entrada",
   TRANSFER_OUT: "Transf. Saída",
 };
@@ -67,11 +61,9 @@ const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
 export const StockMovementsView = ({
   movements,
   isLoading,
-  error,
   filters,
   pagination,
   onPageChange,
-  onPageSizeChange,
   onFilterChange,
   onSortChange,
 }: StockMovementsViewProps) => {
@@ -125,13 +117,71 @@ export const StockMovementsView = ({
     </DropdownMenu>
   );
 
+  const CreateMovementDropdown = ({
+    label,
+    direction,
+    types,
+  }: {
+    label: string;
+    direction: "IN" | "OUT";
+    types: readonly (keyof typeof MANUAL_MOVEMENT_TYPE_LABELS)[];
+  }) => {
+    const isIn = direction === "IN";
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className={`h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] ${
+              isIn
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-rose-600 hover:bg-rose-700"
+            }`}
+          >
+            {isIn ? (
+              <ArrowDownRight className="mr-2 h-4 w-4" />
+            ) : (
+              <ArrowUpRight className="mr-2 h-4 w-4" />
+            )}
+            {label}
+            <ChevronDown className="ml-2 h-3.5 w-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="w-56 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+        >
+          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+            Tipo de movimentação
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-neutral-800" />
+          {types.map((type) => (
+            <DropdownMenuItem key={type} asChild>
+              <Link
+                href={`/stock-movements/create?type=${type}`}
+                className="flex w-full cursor-pointer items-center focus:bg-neutral-800 focus:text-white"
+              >
+                {isIn ? (
+                  <ArrowDownRight className="mr-2 h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <ArrowUpRight className="mr-2 h-3.5 w-3.5 text-rose-500" />
+                )}
+                {MANUAL_MOVEMENT_TYPE_LABELS[type]}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-5">
             {/* Actions Bar */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-2xl font-bold tracking-tighter text-white">
                   Movimentações
@@ -140,14 +190,18 @@ export const StockMovementsView = ({
                   Gerencie as entradas e saídas de estoque
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <PermissionGate permission="stock_movements:create">
-                  <Link href="/stock-movements/create">
-                    <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nova Movimentação
-                    </Button>
-                  </Link>
+                  <CreateMovementDropdown
+                    label="Movimentação de Entrada"
+                    direction="IN"
+                    types={MANUAL_IN_MOVEMENT_TYPES}
+                  />
+                  <CreateMovementDropdown
+                    label="Movimentação de Saída"
+                    direction="OUT"
+                    types={MANUAL_OUT_MOVEMENT_TYPES}
+                  />
                 </PermissionGate>
               </div>
             </div>
@@ -196,7 +250,7 @@ export const StockMovementsView = ({
                     onSortChange(field, order);
                   }}
                 >
-                  <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                  <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
                       <Filter className="h-3.5 w-3.5 text-neutral-500" />
                       <SelectValue />
@@ -234,7 +288,7 @@ export const StockMovementsView = ({
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-[4px] border-l-4 border-l-blue-600 border border-neutral-800 bg-[#171717] overflow-hidden">
+          <div className="hidden md:block rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -369,7 +423,7 @@ export const StockMovementsView = ({
                 return (
                   <div
                     key={movement.id}
-                    className="flex flex-col gap-3 rounded-[4px] border-l-4 border-l-neutral-700 border-y border-r border-y-neutral-800 border-r-neutral-800 bg-[#171717] p-4"
+                    className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

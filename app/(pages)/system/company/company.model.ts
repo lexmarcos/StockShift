@@ -47,13 +47,13 @@ export const useCompanyModel = () => {
 
   const updateCompany = async (data: UpdateCompanyData) => {
     const response = await api.put("tenants/me", { json: data }).json<ApiResponseData<CompanyConfigData>>();
-    mutate("tenants/me");
+    await mutate("tenants/me", response, false);
     return response;
   };
 
   const updateInfinitePay = async (data: UpdateInfinitePayData) => {
     const response = await api.put("tenants/me/infinitepay", { json: data }).json<ApiResponseData<InfinitePayConfigData>>();
-    mutate("tenants/me/infinitepay");
+    await mutate("tenants/me/infinitepay", response, false);
     return response;
   };
 

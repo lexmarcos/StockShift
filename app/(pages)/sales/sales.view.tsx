@@ -188,7 +188,7 @@ export const SalesView = ({
           )}
 
           {/* Desktop Table */}
-          <div className="hidden md:block rounded-[4px] border-l-4 border-l-blue-600 border border-neutral-800 bg-[#171717] overflow-hidden">
+          <div className="hidden md:block rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
