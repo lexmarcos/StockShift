@@ -689,7 +689,7 @@ export const CategoriesView = ({
                     value={field.value || "root"}
                   >
                     <FormControl>
-                      <SelectTrigger className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
+                      <SelectTrigger className="w-full md:w-auto rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                     </FormControl>

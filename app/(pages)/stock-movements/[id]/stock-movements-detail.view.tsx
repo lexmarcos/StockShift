@@ -309,7 +309,7 @@ const FinancialCard = ({
       <div className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <DollarSign className="h-4 w-4 text-emerald-500" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-500">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-white">
             {isPurchase ? "Resumo Financeiro da Compra" : "Resumo Financeiro"}
           </h3>
         </div>
@@ -431,10 +431,10 @@ const ProductGroup = ({
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center gap-2 md:w-auto">
         <Link
           href={`/products/${product.productId}`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 hover:bg-[#262626] transition-colors"
+          className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:bg-[#262626] md:flex-none md:w-auto"
         >
           <Package className="h-3.5 w-3.5" />
           Ver produto
@@ -442,15 +442,12 @@ const ProductGroup = ({
         {product.items[0]?.batchId && (
           <Link
             href={`/batches/${product.items[0].batchId}`}
-            className="inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 hover:bg-[#262626] transition-colors"
+            className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:bg-[#262626] md:flex-none md:w-auto"
           >
             <Layers className="h-3.5 w-3.5" />
             Ver lote
           </Link>
         )}
-        <span className="inline-flex w-fit items-center rounded-[4px] border border-neutral-700 bg-[#0A0A0A] px-2 py-1 font-mono text-xs font-bold text-white md:border-0 md:bg-transparent md:p-0 md:text-sm">
-          {product.totalQuantity} un.
-        </span>
       </div>
     </div>
 
@@ -540,7 +537,7 @@ const InfoCard = ({
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5 space-y-4">
     <div className="flex items-center gap-2 mb-2 text-white">
       <Warehouse className="h-4 w-4 text-neutral-500" />
-      <h3 className="text-xs font-bold uppercase tracking-widest">Informações</h3>
+      <h3 className="text-xs font-bold uppercase tracking-widest text-white">Informações</h3>
     </div>
 
     <div className="space-y-3">
@@ -591,8 +588,8 @@ const ReferenceCard = ({
   return (
     <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
       <div className="flex items-center gap-2 mb-3 text-purple-500">
-        <Link2 className="h-4 w-4" />
-        <h3 className="text-xs font-bold uppercase tracking-widest">Referência</h3>
+        <Link2 className="h-4 w-4 text-purple-500" />
+        <h3 className="text-xs font-bold uppercase tracking-widest text-white">Referência</h3>
       </div>
       <div className="space-y-2">
         <div className="flex justify-between items-center">
@@ -623,9 +620,9 @@ const ReferenceCard = ({
 
 const NotesCard = ({ notes }: { notes: string }) => (
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
-    <div className="flex items-center gap-2 mb-3 text-amber-500">
-      <FileText className="h-4 w-4" />
-      <h3 className="text-xs font-bold uppercase tracking-widest">Observações</h3>
+    <div className="flex items-center gap-2 mb-3">
+      <FileText className="h-4 w-4 text-amber-500" />
+      <h3 className="text-xs font-bold uppercase tracking-widest text-white">Observações</h3>
     </div>
     <p className="text-sm text-neutral-300 leading-relaxed">{notes}</p>
   </div>

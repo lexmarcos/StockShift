@@ -248,7 +248,7 @@ export const SalesView = ({
               sales.map((sale) => {
                 const s = getStatusStyle(sale.status);
                 return (
-                  <div key={sale.id} className="flex flex-col gap-3 rounded-[4px] border-l-4 border-l-blue-600 border-y border-r border-y-neutral-800 border-r-neutral-800 bg-[#171717] p-4">
+                  <div key={sale.id} className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
                     <div className="flex items-center justify-between">
                       <Link href={`/sales/${sale.id}`} className="font-mono text-base font-bold text-white hover:text-blue-400">{sale.code}</Link>
                       <SaleActions sale={sale} />
