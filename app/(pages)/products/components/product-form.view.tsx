@@ -47,13 +47,11 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft,
   Calendar,
   CheckCircle2,
   DollarSign,
   Layers,
   Loader2,
-  Package,
   Ruler,
   Scale,
   Settings2,
@@ -63,7 +61,6 @@ import {
   Scan,
   Box,
   Barcode,
-  Info,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -99,6 +96,7 @@ export const ProductForm = ({
   openAiModal,
   closeAiModal,
   handleAiFill,
+  cancelHref,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
 
@@ -109,6 +107,14 @@ export const ProductForm = ({
   const isProfitable = profit > 0;
 
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
+  const isInlineMode = mode === "inline";
+  const showPricingCard = mode === "create" || isInlineMode;
+  const productCancelHref = cancelHref || "/products";
+  const submitLabel = isInlineMode
+    ? "Adicionar Produto"
+    : mode === "create"
+      ? "Salvar Produto"
+      : "Atualizar Produto";
   const getCategoryParentName = (
     category: ProductFormProps["categories"][number],
   ) => {
@@ -313,7 +319,7 @@ export const ProductForm = ({
                 </Card>
 
                 {/* Inventory & Pricing Card */}
-                {mode === "create" && (
+                {showPricingCard && (
                   <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                     <CardHeader className="border-b border-neutral-800 pb-4">
                       <div className="flex items-center gap-2">
@@ -323,8 +329,9 @@ export const ProductForm = ({
                         </CardTitle>
                       </div>
                       <CardDescription className="mt-2 text-xs text-neutral-500">
-                        Ao salvar, o primeiro lote do produto será criado
-                        automaticamente com os dados informados nesta seção.
+                        {isInlineMode
+                          ? "Os preços serão aplicados ao primeiro lote criado pela movimentação."
+                          : "Ao salvar, o primeiro lote do produto será criado automaticamente com os dados informados nesta seção."}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6 space-y-6">
@@ -418,7 +425,8 @@ export const ProductForm = ({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {mode === "create" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <FormField
                           control={form.control}
                           name="quantity"
@@ -487,7 +495,8 @@ export const ProductForm = ({
                             </FormItem>
                           )}
                         />
-                      </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -495,12 +504,16 @@ export const ProductForm = ({
 
               {/* Right Column - Sidebar */}
               <div className="space-y-6">
-                {/* Image Upload */}
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                       Imagem do Produto
                     </CardTitle>
+                    {isInlineMode && (
+                      <CardDescription className="mt-2 text-xs text-neutral-500">
+                        A imagem será enviada somente ao registrar a movimentação.
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="pt-6">
                     <ImageDropzone
@@ -509,6 +522,7 @@ export const ProductForm = ({
                       onImageSelect={handleImageSelect}
                       onRemoveImage={handleImageRemove}
                       disabled={isSubmitting}
+                      text={isInlineMode ? "Adicionar imagem temporária" : undefined}
                     />
                   </CardContent>
                 </Card>
@@ -782,12 +796,12 @@ export const ProductForm = ({
                   className="h-10 w-full md:w-auto rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   asChild
                 >
-                  <Link href="/products">Cancelar</Link>
+                  <Link href={productCancelHref}>Cancelar</Link>
                 </Button>
                 <Button
                   type="submit"
                   className="h-10 w-full md:w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-                  disabled={isSubmitting || !warehouseId}
+                  disabled={isSubmitting || (!isInlineMode && !warehouseId)}
                 >
                   {isSubmitting ? (
                     <>
@@ -797,9 +811,7 @@ export const ProductForm = ({
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                      {mode === "create"
-                        ? "Salvar Produto"
-                        : "Atualizar Produto"}
+                      {submitLabel}
                     </>
                   )}
                 </Button>

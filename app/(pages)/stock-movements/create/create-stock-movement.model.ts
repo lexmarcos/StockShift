@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
@@ -12,13 +12,87 @@ import {
 } from "./create-stock-movement.schema";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
-import { isManualMovementType } from "../stock-movements.constants";
+import {
+  isManualMovementType,
+  MANUAL_IN_MOVEMENT_TYPES,
+} from "../stock-movements.constants";
+import {
+  clearInlineProduct,
+  clearStockMovementDraft,
+  inlineProductImageToFile,
+  readInlineProduct,
+  readStockMovementDraft,
+  writeStockMovementDraft,
+} from "./create-stock-movement.storage";
+
+const buildMovementItemPayload = (
+  item: CreateStockMovementSchema["items"][number],
+) => {
+  if (!item.newProductData) {
+    return { productId: item.productId, quantity: item.quantity };
+  }
+
+  const newProduct = {
+    name: item.newProductData.name,
+    description: item.newProductData.description,
+    barcode: item.newProductData.barcode,
+    categoryId: item.newProductData.categoryId,
+    brandId: item.newProductData.brandId,
+    isKit: item.newProductData.isKit,
+    hasExpiration: item.newProductData.hasExpiration,
+    active: item.newProductData.active,
+    attributes: item.newProductData.attributes,
+  };
+  return {
+    quantity: item.quantity,
+    newProduct,
+    costPrice: item.newProductData.costPrice,
+    sellingPrice: item.newProductData.sellingPrice,
+  };
+};
+
+const hasInlineProductImages = (items: CreateStockMovementSchema["items"]): boolean => {
+  return items.some((item) => Boolean(item.newProductData?.image));
+};
+
+const buildMovementPayload = (
+  selectedMovementType: NonNullable<CreateStockMovementSchema["type"]>,
+  data: CreateStockMovementSchema,
+) => ({
+  type: selectedMovementType,
+  notes: data.notes || undefined,
+  items: data.items.map(buildMovementItemPayload),
+});
+
+const buildMovementFormData = (
+  payload: ReturnType<typeof buildMovementPayload>,
+  items: CreateStockMovementSchema["items"],
+): FormData => {
+  const formData = new FormData();
+  const movementBlob = new Blob([JSON.stringify(payload)], {
+    type: "application/json",
+  });
+  formData.append("movement", movementBlob);
+  items.forEach((item) => {
+    if (!item.newProductData) return;
+    const imageFile = item.newProductData.image
+      ? inlineProductImageToFile(item.newProductData.image)
+      : new File([], "empty-inline-product-image");
+    formData.append("inlineProductImages", imageFile);
+  });
+  return formData;
+};
 
 interface ProductListResponse {
   success: boolean;
   data:
     | { content: Array<{ id: string; name: string }> }
     | Array<{ id: string; name: string }>;
+}
+
+interface ProductByBarcodeResponse {
+  success: boolean;
+  data: { id: string; name: string };
 }
 
 export function useCreateStockMovementModel(): CreateStockMovementViewProps {
@@ -28,6 +102,8 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const lastScannedBarcodeRef = useRef<string | null>(null);
   const typeParam = searchParams.get("type");
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
@@ -63,6 +139,41 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     control: form.control,
     name: "items",
   });
+
+  useEffect(() => {
+    const draft = readStockMovementDraft();
+    if (!draft) return;
+
+    form.reset({
+      type: draft.type,
+      notes: draft.notes,
+      items: draft.items,
+    });
+    setSelectedProductId(draft.selectedProductId);
+    setItemQuantity(draft.itemQuantity);
+
+    const inlineProduct = readInlineProduct();
+    if (!inlineProduct) {
+      clearStockMovementDraft();
+      return;
+    }
+
+    const duplicate = draft.items.some((item) => {
+      return item.newProductData?.name.toLowerCase() === inlineProduct.name.toLowerCase();
+    });
+    if (!duplicate) {
+      append({
+        quantity: draft.inlineProductQuantity,
+        productName: inlineProduct.name,
+        newProductData: inlineProduct,
+      });
+      setSelectedProductId("");
+      setItemQuantity("");
+    }
+
+    clearInlineProduct();
+    clearStockMovementDraft();
+  }, [append, form]);
 
   const { data: productsData, isLoading: isLoadingProducts } =
     useSWR<ProductListResponse>("products", (url: string) =>
@@ -113,6 +224,118 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     setItemQuantity("");
   };
 
+  const handleCreateNewProduct = () => {
+    setAddItemError(null);
+
+    const qty = Number(itemQuantity);
+    if (!qty || qty <= 0) {
+      setAddItemError("Informe uma quantidade antes de criar o produto.");
+      return;
+    }
+
+    if (!selectedMovementType) {
+      toast.error("Selecione o tipo de movimentação antes de continuar.");
+      router.replace("/stock-movements");
+      return;
+    }
+
+    if (
+      !MANUAL_IN_MOVEMENT_TYPES.includes(
+        selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
+      )
+    ) {
+      setAddItemError("Novos produtos só podem ser criados em movimentações de entrada.");
+      return;
+    }
+
+    writeStockMovementDraft({
+      type: selectedMovementType,
+      notes: form.getValues("notes") || "",
+      items: form.getValues("items"),
+      selectedProductId,
+      itemQuantity,
+      inlineProductQuantity: qty,
+    });
+    router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
+  };
+
+  const navigateToInlineProductWithBarcode = (barcode: string) => {
+    if (!selectedMovementType) return;
+
+    writeStockMovementDraft({
+      type: selectedMovementType,
+      notes: form.getValues("notes") || "",
+      items: form.getValues("items"),
+      selectedProductId,
+      itemQuantity,
+      inlineProductQuantity: resolveScannerQuantity(),
+      inlineProductBarcode: barcode,
+    });
+    setIsScannerOpen(false);
+    router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
+  };
+
+  const resolveScannerQuantity = () => {
+    const qty = Number(itemQuantity);
+    return qty > 0 ? qty : 1;
+  };
+
+  const appendScannedProduct = (product: { id: string; name: string }) => {
+    const alreadyAdded = form.getValues("items").some((item) => {
+      return item.productId === product.id;
+    });
+    if (alreadyAdded) {
+      toast.error(`${product.name} já está na movimentação.`);
+      return;
+    }
+
+    append({
+      productId: product.id,
+      productName: product.name,
+      quantity: resolveScannerQuantity(),
+    });
+    toast.success(`${product.name} foi adicionado.`);
+  };
+
+  const handleBarcodeScan = async (barcode: string) => {
+    if (lastScannedBarcodeRef.current === barcode) return;
+    lastScannedBarcodeRef.current = barcode;
+    window.setTimeout(() => {
+      lastScannedBarcodeRef.current = null;
+    }, 1500);
+
+    try {
+      const response = await api
+        .get(`products/barcode/${encodeURIComponent(barcode)}`)
+        .json<ProductByBarcodeResponse>();
+      appendScannedProduct(response.data);
+    } catch {
+      showMissingProductToast(barcode);
+    }
+  };
+
+  const showMissingProductToast = (barcode: string) => {
+    if (!selectedMovementType) {
+      toast.error(`Produto com código ${barcode} não existe.`);
+      return;
+    }
+
+    const canCreateInline = MANUAL_IN_MOVEMENT_TYPES.includes(
+      selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
+    );
+    if (!canCreateInline) {
+      toast.error(`Produto com código ${barcode} não existe.`);
+      return;
+    }
+
+    toast.error(`Produto com código ${barcode} não existe.`, {
+      action: {
+        label: "Criar Produto",
+        onClick: () => navigateToInlineProductWithBarcode(barcode),
+      },
+    });
+  };
+
   const onSubmit = async (data: CreateStockMovementSchema) => {
     if (!selectedMovementType) {
       toast.error("Selecione o tipo de movimentação antes de continuar.");
@@ -122,16 +345,11 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
 
     setIsSubmitting(true);
     try {
-      await api.post("stock-movements", {
-        json: {
-          type: selectedMovementType,
-          notes: data.notes || undefined,
-          items: data.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-        },
-      });
+      const payload = buildMovementPayload(selectedMovementType, data);
+      const postOptions = hasInlineProductImages(data.items)
+        ? { body: buildMovementFormData(payload, data.items) }
+        : { json: payload };
+      await api.post("stock-movements", postOptions);
 
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");
@@ -152,9 +370,13 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     selectedProductId,
     itemQuantity,
     addItemError,
+    isScannerOpen,
     onProductChange: handleProductChange,
     onQuantityChange: setItemQuantity,
     onAddItem: handleAddItem,
+    onCreateNewProduct: handleCreateNewProduct,
+    onScannerOpenChange: setIsScannerOpen,
+    onBarcodeScan: handleBarcodeScan,
     onRemoveItem: remove,
     items: fields,
   };

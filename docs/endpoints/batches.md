@@ -331,6 +331,9 @@ This endpoint atomically creates a new product and its first batch in a single t
       "warehouseId": "660e8400-e29b-41d4-a716-446655440001",
       "warehouseName": "Main Warehouse",
       "warehouseCode": "WH-001",
+      "originStockMovementItemId": "990e8400-e29b-41d4-a716-446655440000",
+      "originStockMovementId": "880e8400-e29b-41d4-a716-446655440000",
+      "originStockMovementCode": "MOV-2026-0001",
       "quantity": 100,
       "batchCode": "BATCH-2025-001",
       "manufacturedDate": "2026-01-01",
@@ -343,6 +346,8 @@ This endpoint atomically creates a new product and its first batch in a single t
   ]
 }
 ```
+
+Origin fields are nullable. They are filled when the batch was created by a stock movement entry and point to the movement item that created the batch.
 
 ### Frontend Implementation Guide
 1. **Table View**: Display batches in data table

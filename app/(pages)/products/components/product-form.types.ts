@@ -59,7 +59,7 @@ export interface BatchesDrawerProps {
  * - Barcode scanner integration
  */
 export interface ProductFormProps {
-  mode: 'create' | 'edit';
+  mode: 'create' | 'edit' | 'inline';
   onSubmit: (data: ProductCreateFormData) => void;
   isSubmitting: boolean;
   form: UseFormReturn<ProductCreateFormData>;
@@ -101,6 +101,7 @@ export interface ProductFormProps {
   // Outros
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   warehouseId: string | null;
+  cancelHref?: string;
   isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
   batchesDrawer?: BatchesDrawerProps;
 }

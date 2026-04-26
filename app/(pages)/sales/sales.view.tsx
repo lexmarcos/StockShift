@@ -78,14 +78,14 @@ export const SalesView = ({
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-2xl font-bold tracking-tighter text-white">Vendas</h1>
                 <p className="text-sm text-neutral-500 mt-1">Histórico de vendas realizadas</p>
               </div>
               <PermissionGate permission="sales:create">
-                <Link href="/sales/pdv">
-                  <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                <Link href="/sales/pdv" className="w-full md:w-auto">
+                  <Button className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto">
                     <Plus className="mr-2 h-4 w-4" /> Nova Venda
                   </Button>
                 </Link>

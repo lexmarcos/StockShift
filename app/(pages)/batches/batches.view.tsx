@@ -39,7 +39,6 @@ import {
   XCircle,
   ArrowUp,
   ArrowDown,
-  Warehouse,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -47,7 +46,6 @@ import type { Batch, BatchFilters, SortConfig } from "./batches.types";
 import { deriveBatchStatus } from "./batches.model";
 
 import { cn } from "@/lib/utils";
-import { Warehouse as WarehouseType } from "@/app/warehouses/warehouses.types";
 import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchesViewProps {
@@ -56,10 +54,8 @@ interface BatchesViewProps {
   error: Error | null;
   filters: BatchFilters;
   sortConfig: SortConfig;
-  warehouses: WarehouseType[];
   statusCounts: { expired: number; expiring: number; low: number };
   setSearchQuery: (value: string) => void;
-  setWarehouseId: (value: string) => void;
   setStatus: (value: BatchFilters["status"]) => void;
   setSortConfig: (value: SortConfig) => void;
   onClearFilters: () => void;
@@ -126,10 +122,8 @@ export const BatchesView = ({
   error,
   filters,
   sortConfig,
-  warehouses,
   statusCounts,
   setSearchQuery,
-  setWarehouseId,
   setStatus,
   setSortConfig,
   onClearFilters,
@@ -299,39 +293,6 @@ export const BatchesView = ({
               </div>
 
               <div className="flex flex-col md:flex-row items-center gap-2 h-auto md:h-12">
-                <Select
-                  value={filters.warehouseId || "all"}
-                  onValueChange={(value) =>
-                    setWarehouseId(value === "all" ? "" : value)
-                  }
-                >
-                  <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
-                    <div className="flex items-center gap-2 truncate">
-                      <Warehouse className="h-3.5 w-3.5 text-neutral-500" />
-                      <span className="truncate">
-                        {warehouses.find((w) => w.id === filters.warehouseId)
-                          ?.name || "Todos Armazéns"}
-                      </span>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                    <SelectItem
-                      value="all"
-                      className="text-[9px] font-bold uppercase focus:bg-neutral-800"
-                    >
-                      Todos Armazéns
-                    </SelectItem>
-                    {warehouses.map((warehouse) => (
-                      <SelectItem
-                        key={warehouse.id}
-                        value={warehouse.id}
-                        className="text-[9px] font-bold uppercase focus:bg-neutral-800"
-                      >
-                        {warehouse.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
 
                 <Select
                   value={filters.status}
@@ -397,7 +358,6 @@ export const BatchesView = ({
                 </Button>
 
                 {(filters.searchQuery ||
-                  filters.warehouseId ||
                   filters.status !== "all") && (
                   <Button
                     variant="outline"

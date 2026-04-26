@@ -37,7 +37,7 @@ Autenticacao: obrigatoria (JWT em cookie `accessToken` ou header `Authorization`
 
 ### POST /api/stock-movements
 
-Cria uma movimentacao de estoque manual.
+Cria uma movimentacao de estoque manual. Use `application/json` quando nao houver imagem de produto inline. Use `multipart/form-data` quando algum produto inline tiver imagem.
 
 Request:
 
@@ -53,6 +53,24 @@ Request:
     {
       "productId": "660e8400-e29b-41d4-a716-446655440001",
       "quantity": 2.5
+    },
+    {
+      "quantity": 4,
+      "costPrice": 1290,
+      "sellingPrice": 2490,
+      "newProduct": {
+        "name": "Produto configurado durante a compra",
+        "description": "Criado somente ao registrar a movimentacao",
+        "barcode": "ABC-123",
+        "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+        "brandId": "660e8400-e29b-41d4-a716-446655440002",
+        "isKit": false,
+        "hasExpiration": false,
+        "active": true,
+        "attributes": {
+          "weight": "1kg"
+        }
+      }
     }
   ]
 }
@@ -63,7 +81,16 @@ Regras:
 - `type` obrigatorio. Valores permitidos: `USAGE`, `GIFT`, `LOSS`, `DAMAGE`, `ADJUSTMENT_OUT`, `PURCHASE_IN`, `ADJUSTMENT_IN`.
 - `type` **nao** pode ser `TRANSFER_IN` ou `TRANSFER_OUT` (retorna `400`).
 - `items` obrigatorio e nao vazio.
-- Cada item precisa de `productId` (UUID) e `quantity` (positivo).
+- Cada item precisa de `quantity` positivo e deve conter **um** destes formatos:
+  - Produto existente: `productId` (UUID).
+  - Produto novo: `newProduct` com o mesmo formato JSON de `POST /api/products`.
+- Produtos em `newProduct` sao persistidos dentro da mesma transacao da movimentacao.
+- `costPrice` e `sellingPrice` sao opcionais, enviados em centavos no item da movimentacao, e aplicados ao batch criado para o produto novo.
+- Para imagem de produto novo, envie multipart com:
+  - `movement`: Blob JSON do request acima (`application/json`).
+  - `inlineProductImages`: uma parte de arquivo para cada produto novo, na mesma ordem em que esses produtos aparecem em `items`; quando um produto novo nao tiver imagem, envie uma parte vazia para preservar o pareamento.
+- Se a criacao de qualquer produto, batch, ledger ou item falhar, toda a movimentacao faz rollback.
+- Produtos novos inline sao aceitos somente para movimentacoes de entrada (`PURCHASE_IN`, `ADJUSTMENT_IN`).
 - Para movimentos `OUT`, o sistema deduz automaticamente dos batches usando FIFO (batch mais antigo primeiro).
 - Se a quantidade total disponivel no warehouse for insuficiente, retorna `400` com mensagem de estoque insuficiente.
 - Para movimentos `IN`, o sistema cria um novo batch ou adiciona ao batch existente do produto.

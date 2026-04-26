@@ -8,7 +8,6 @@ import type {
   SortConfig,
   BatchesResponse,
 } from "./batches.types";
-import type { Warehouse } from "@/app/warehouses/warehouses.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
 export type { Batch, BatchFilters, BatchStatus, SortConfig };
@@ -111,7 +110,7 @@ export const useBatchesModel = () => {
 
   const [filters, setFilters] = useState<BatchFilters>({
     searchQuery: "",
-    warehouseId: "",
+    warehouseId: selectedWarehouseId ?? "",
     status: "all",
     lowStockThreshold: 10,
   });
@@ -122,10 +121,10 @@ export const useBatchesModel = () => {
   });
 
   useEffect(() => {
-    if (selectedWarehouseId && !filters.warehouseId) {
+    if (selectedWarehouseId) {
       setFilters((prev) => ({ ...prev, warehouseId: selectedWarehouseId }));
     }
-  }, [filters.warehouseId, selectedWarehouseId]);
+  }, [selectedWarehouseId]);
 
   const { data, error, isLoading, mutate } = useSWR<BatchesResponse>(
     "batches",
@@ -134,16 +133,6 @@ export const useBatchesModel = () => {
       return await api.get("batches").json<BatchesResponse>();
     },
   );
-
-  const { data: warehousesData } = useSWR<{
-    success: boolean;
-    data: Warehouse[];
-  }>("warehouses", async () => {
-    const { api } = await import("@/lib/api");
-    return await api
-      .get("warehouses")
-      .json<{ success: boolean; data: Warehouse[] }>();
-  });
 
   const rawBatches = data?.data || [];
 
@@ -178,12 +167,9 @@ export const useBatchesModel = () => {
     error,
     filters,
     sortConfig,
-    warehouses: warehousesData?.data || [],
     statusCounts,
     setSearchQuery: (searchQuery: string) =>
       setFilters((prev) => ({ ...prev, searchQuery })),
-    setWarehouseId: (warehouseId: string) =>
-      setFilters((prev) => ({ ...prev, warehouseId })),
     setStatus: (status: BatchFilters["status"]) =>
       setFilters((prev) => ({ ...prev, status })),
     setSortConfig,
@@ -191,7 +177,6 @@ export const useBatchesModel = () => {
       setFilters((prev) => ({
         ...prev,
         searchQuery: "",
-        warehouseId: "",
         status: "all",
       })),
     refresh: mutate,

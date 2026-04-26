@@ -94,7 +94,7 @@ export function TransfersView({
             <PermissionGate permission="transfers:create">
               <Button
                 asChild
-                className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
               >
                 <Link href="/transfers/new">
                   <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />

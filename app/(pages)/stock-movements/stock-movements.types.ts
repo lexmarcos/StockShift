@@ -20,6 +20,7 @@ export interface StockMovementItem {
   batchId: string;
   batchCode: string;
   quantity: number;
+  productImageUrl?: string | null;
 }
 
 export interface StockMovement {

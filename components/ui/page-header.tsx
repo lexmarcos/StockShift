@@ -14,7 +14,7 @@ function PageHeader({
   return (
     <div
       data-slot="page-header"
-      className={cn("mb-8 flex items-center justify-between", className)}
+      className={cn("mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between", className)}
       {...props}
     >
       <div>
@@ -27,7 +27,7 @@ function PageHeader({
           {title}
         </h1>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex w-full items-center gap-2 md:w-auto">{actions}</div>}
     </div>
   )
 }

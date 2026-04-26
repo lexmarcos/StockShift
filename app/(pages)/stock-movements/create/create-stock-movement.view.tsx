@@ -10,6 +10,7 @@ import {
   Hash,
   TrendingDown,
   TrendingUp,
+  ScanLine,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { PermissionGate } from "@/components/permission-gate";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
+import { StockMovementScanner } from "./stock-movement-scanner.view";
 import {
   MANUAL_MOVEMENT_TYPE_LABELS,
   MANUAL_OUT_MOVEMENT_TYPES,
@@ -51,9 +53,13 @@ export function CreateStockMovementView({
   selectedProductId,
   itemQuantity,
   addItemError,
+  isScannerOpen,
   onProductChange,
   onQuantityChange,
   onAddItem,
+  onCreateNewProduct,
+  onScannerOpenChange,
+  onBarcodeScan,
   onRemoveItem,
   items,
 }: CreateStockMovementViewProps) {
@@ -62,9 +68,20 @@ export function CreateStockMovementView({
   const selectedType = form.watch("type");
   const notesValue = form.watch("notes");
   const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+  const isOutMovement = selectedType
+    ? MANUAL_OUT_MOVEMENT_TYPES.includes(
+        selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
+      )
+    : false;
 
   return (
     <PageContainer bottomPadding="fixed-bar">
+      <StockMovementScanner
+        open={isScannerOpen}
+        onOpenChange={onScannerOpenChange}
+        onScan={onBarcodeScan}
+      />
+
       <div className="mb-6 flex justify-end">
         <Button
           type="button"
@@ -124,16 +141,12 @@ export function CreateStockMovementView({
           {selectedType && (
             <div
               className={`flex items-center gap-3 rounded-[4px] border px-4 py-3 ${
-                MANUAL_OUT_MOVEMENT_TYPES.includes(
-                  selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
-                )
+                isOutMovement
                   ? "border-rose-900/30 bg-rose-950/10"
                   : "border-emerald-900/30 bg-emerald-950/10"
               }`}
             >
-              {MANUAL_OUT_MOVEMENT_TYPES.includes(
-                selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
-              ) ? (
+              {isOutMovement ? (
                 <TrendingDown
                   className="h-4 w-4 flex-shrink-0 text-rose-500"
                   strokeWidth={2}
@@ -146,9 +159,7 @@ export function CreateStockMovementView({
               )}
               <p
                 className={`text-xs font-medium ${
-                  MANUAL_OUT_MOVEMENT_TYPES.includes(
-                    selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
-                  )
+                  isOutMovement
                     ? "text-rose-400"
                     : "text-emerald-400"
                 }`}
@@ -157,9 +168,7 @@ export function CreateStockMovementView({
                   {MANUAL_MOVEMENT_TYPE_LABELS[selectedType]}
                 </span>{" "}
                 -{" "}
-                {MANUAL_OUT_MOVEMENT_TYPES.includes(
-                  selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
-                )
+                {isOutMovement
                   ? "As quantidades serão deduzidas do estoque usando FIFO (lote mais antigo primeiro)."
                   : "Um novo lote será criado ou adicionado para o produto no warehouse atual."}
               </p>
@@ -227,6 +236,30 @@ export function CreateStockMovementView({
                   </div>
                 </div>
               </div>
+              <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onScannerOpenChange(true)}
+                  className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                >
+                  <ScanLine className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
+                  Escanear Código
+                </Button>
+                {!isOutMovement && (
+                  <PermissionGate permission="products:create">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onCreateNewProduct}
+                      className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    >
+                      <Plus className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
+                      Criar Novo Produto
+                    </Button>
+                  </PermissionGate>
+                )}
+              </div>
 
               {addItemError && (
                 <div className="flex items-center gap-2 rounded-[4px] border border-rose-900/30 bg-rose-950/10 px-4 py-3">
@@ -263,9 +296,16 @@ export function CreateStockMovementView({
                       className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-white">
-                          {item.productName || "Produto"}
-                        </p>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <p className="truncate text-sm font-bold text-white">
+                            {item.productName || "Produto"}
+                          </p>
+                          {item.newProductData && (
+                            <span className="rounded-[2px] border border-blue-500/30 bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-400">
+                              Novo
+                            </span>
+                          )}
+                        </div>
                         <p className="mt-1 text-xs text-neutral-500">
                           Qtd:{" "}
                           <span className="font-mono font-bold tracking-tighter text-white">
@@ -308,7 +348,14 @@ export function CreateStockMovementView({
                             className="border-b border-neutral-800 last:border-0"
                           >
                             <td className="px-5 py-3.5 text-sm font-medium text-white">
-                              {item.productName || "Produto"}
+                              <div className="flex items-center gap-2">
+                                <span>{item.productName || "Produto"}</span>
+                                {item.newProductData && (
+                                  <span className="rounded-[2px] border border-blue-500/30 bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-400">
+                                    Novo
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
                               {item.quantity}
