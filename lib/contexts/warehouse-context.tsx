@@ -29,8 +29,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     setSelectedWarehouseIdState(id);
     if (typeof window !== "undefined") {
       localStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
-      // Redirecionar para /products após selecionar warehouse
-      router.push("/products");
+      // Redirecionar para /sales após selecionar warehouse
+      router.push("/sales");
     }
   };
 

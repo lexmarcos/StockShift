@@ -282,7 +282,7 @@ export function usePdvModel(): PdvViewProps {
 
         if (paymentMode === "TAP") {
           const saleId = res.data.id;
-          const config = infinitepayConfig!.data;
+          const config = infinitepayConfig?.data;
           const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
           const backendCallbackUrl = `${apiBaseUrl}/api/sales/infinitepay/callback`;
 
@@ -291,8 +291,8 @@ export function usePdvModel(): PdvViewProps {
             paymentMethod: mapPaymentMethodToInfinitePay(data.paymentMethod),
             installments: data.installments || 1,
             orderId: saleId,
-            handle: config.handle!,
-            docNumber: config.docNumber!,
+            handle: config?.handle,
+            docNumber: config?.docNumber,
             resultUrl: backendCallbackUrl,
           });
 

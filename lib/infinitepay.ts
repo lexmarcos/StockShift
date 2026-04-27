@@ -5,23 +5,42 @@ export interface InfinitePayParams {
   paymentMethod: "credit" | "debit";
   installments: number;
   orderId: string;
-  handle: string;
-  docNumber: string;
+  handle: string | null | undefined;
+  docNumber: string | null | undefined;
   resultUrl: string;
+}
+
+function normalizeInfinitePayHandle(handle: string | null | undefined): string {
+  return handle?.trim().replace(/^\$+/, "") ?? "";
+}
+
+function normalizeInfinitePayDocNumber(docNumber: string | null | undefined): string {
+  return docNumber?.replace(/\D/g, "") ?? "";
 }
 
 export function buildInfinitePayDeeplink(params: InfinitePayParams): string {
   const queryParams = new URLSearchParams({
     amount: String(params.amount),
     payment_method: params.paymentMethod,
-    installments: String(params.installments),
     order_id: params.orderId,
     result_url: params.resultUrl,
     app_client_referrer: "StockShift",
-    handle: params.handle,
-    doc_number: params.docNumber,
     af_force_deeplink: "true",
   });
+
+  if (params.paymentMethod === "credit") {
+    queryParams.set("installments", String(params.installments));
+  }
+
+  const handle = normalizeInfinitePayHandle(params.handle);
+  if (handle) {
+    queryParams.set("handle", handle);
+  }
+
+  const docNumber = normalizeInfinitePayDocNumber(params.docNumber);
+  if (docNumber) {
+    queryParams.set("doc_number", docNumber);
+  }
 
   return `${INFINITEPAY_DEEPLINK_BASE}?${queryParams.toString()}`;
 }
