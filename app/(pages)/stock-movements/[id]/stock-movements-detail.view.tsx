@@ -20,10 +20,11 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import type { StockMovementItem, StockMovementType } from "../stock-movements.types";
-import {
-  MANUAL_MOVEMENT_TYPE_LABELS,
-} from "../stock-movements.constants";
+import type {
+  StockMovementItem,
+  StockMovementType,
+} from "../stock-movements.types";
+import { MANUAL_MOVEMENT_TYPE_LABELS } from "../stock-movements.constants";
 import type {
   StockMovementDetailViewProps,
   BatchPriceInfo,
@@ -92,7 +93,12 @@ const computeFinancialSummary = (
   const averageProfitMargin =
     totalPurchaseCost > 0 ? (totalProfit / totalPurchaseCost) * 100 : 0;
 
-  return { totalPurchaseCost, totalExpectedSale, totalProfit, averageProfitMargin };
+  return {
+    totalPurchaseCost,
+    totalExpectedSale,
+    totalProfit,
+    averageProfitMargin,
+  };
 };
 
 const groupItemsByProduct = (items: StockMovementItem[]): GroupedProduct[] => {
@@ -247,7 +253,12 @@ const HeaderSection = ({
   direction,
   totalQuantity,
 }: {
-  movement: { code: string; type: StockMovementType; createdAt: string; items: StockMovementItem[] };
+  movement: {
+    code: string;
+    type: StockMovementType;
+    createdAt: string;
+    items: StockMovementItem[];
+  };
   direction: ReturnType<typeof getDirectionConfig>;
   totalQuantity: number;
 }) => (
@@ -328,12 +339,18 @@ const FinancialCard = ({
           <MetricBox
             label="Lucro Esperado"
             value={formatCurrency(financial.totalProfit)}
-            color={financial.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"}
+            color={
+              financial.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"
+            }
           />
           <MetricBox
             label="Margem Média"
             value={`${financial.averageProfitMargin.toFixed(1)}%`}
-            color={financial.averageProfitMargin >= 0 ? "text-emerald-500" : "text-rose-500"}
+            color={
+              financial.averageProfitMargin >= 0
+                ? "text-emerald-500"
+                : "text-rose-500"
+            }
           />
         </div>
       </div>
@@ -341,10 +358,22 @@ const FinancialCard = ({
   );
 };
 
-const MetricBox = ({ label, value, color }: { label: string; value: string; color: string }) => (
+const MetricBox = ({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: string;
+}) => (
   <div className="rounded-[4px] border border-[#262626] bg-neutral-900/50 p-3">
-    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">{label}</p>
-    <p className={cn("text-lg font-bold tracking-tight font-mono", color)}>{value}</p>
+    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">
+      {label}
+    </p>
+    <p className={cn("text-lg font-bold tracking-tight font-mono", color)}>
+      {value}
+    </p>
   </div>
 );
 
@@ -407,7 +436,11 @@ const ProductGroup = ({
       <div className="flex min-w-0 items-start gap-3 md:items-center">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-neutral-800 overflow-hidden">
           {product.productImageUrl ? (
-            <img src={product.productImageUrl} alt={product.productName} className="h-full w-full object-cover" />
+            <img
+              src={product.productImageUrl}
+              alt={product.productName}
+              className="h-full w-full object-cover"
+            />
           ) : (
             <Package className="h-5 w-5 text-blue-500" />
           )}
@@ -509,7 +542,9 @@ const BatchRow = ({
               <span
                 className={cn(
                   "font-mono font-bold",
-                  totalSale - totalCost >= 0 ? "text-emerald-500" : "text-rose-500",
+                  totalSale - totalCost >= 0
+                    ? "text-emerald-500"
+                    : "text-rose-500",
                 )}
               >
                 {formatCurrency(totalSale - totalCost)}
@@ -537,7 +572,9 @@ const InfoCard = ({
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5 space-y-4">
     <div className="flex items-center gap-2 mb-2 text-white">
       <Warehouse className="h-4 w-4 text-neutral-500" />
-      <h3 className="text-xs font-bold uppercase tracking-widest text-white">Informações</h3>
+      <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+        Informações
+      </h3>
     </div>
 
     <div className="space-y-3">
@@ -562,13 +599,17 @@ const InfoCard = ({
       <div className="flex justify-between items-center pb-3 border-b border-[#262626]">
         <span className="text-xs text-neutral-500">Criado em</span>
         <span className="text-xs font-mono text-neutral-300">
-          {format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+          {format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", {
+            locale: ptBR,
+          })}
         </span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-xs text-neutral-500">Atualizado em</span>
         <span className="text-xs font-mono text-neutral-300">
-          {format(new Date(movement.updatedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+          {format(new Date(movement.updatedAt), "dd/MM/yyyy HH:mm", {
+            locale: ptBR,
+          })}
         </span>
       </div>
     </div>
@@ -589,12 +630,16 @@ const ReferenceCard = ({
     <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
       <div className="flex items-center gap-2 mb-3 text-purple-500">
         <Link2 className="h-4 w-4 text-purple-500" />
-        <h3 className="text-xs font-bold uppercase tracking-widest text-white">Referência</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+          Referência
+        </h3>
       </div>
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-xs text-neutral-500">Tipo</span>
-          <span className="text-xs font-medium text-white">{referenceType}</span>
+          <span className="text-xs font-medium text-white">
+            {referenceType}
+          </span>
         </div>
         {referenceId && (
           <div className="flex justify-between items-center">
@@ -622,7 +667,9 @@ const NotesCard = ({ notes }: { notes: string }) => (
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
     <div className="flex items-center gap-2 mb-3">
       <FileText className="h-4 w-4 text-amber-500" />
-      <h3 className="text-xs font-bold uppercase tracking-widest text-white">Observações</h3>
+      <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+        Observações
+      </h3>
     </div>
     <p className="text-sm text-neutral-300 leading-relaxed">{notes}</p>
   </div>

@@ -2,31 +2,61 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  ShoppingCart, Plus, Calendar, Eye, MoreHorizontal, Filter,
-  DollarSign, TrendingUp,
+  ShoppingCart,
+  Plus,
+  Calendar,
+  Eye,
+  MoreHorizontal,
+  Filter,
+  DollarSign,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
 import { InsightCard } from "@/components/ui/insight-card";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from "recharts";
 import {
-  SaleSummary, SaleStatus, SalesDashboardData, SaleFilters, PAYMENT_METHOD_LABELS,
-  SALE_STATUS_LABELS, formatCents,
+  SaleSummary,
+  SaleStatus,
+  SalesDashboardData,
+  SaleFilters,
+  PAYMENT_METHOD_LABELS,
+  SALE_STATUS_LABELS,
+  formatCents,
 } from "./sales.types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 interface SalesViewProps {
@@ -48,24 +78,51 @@ interface SalesViewProps {
 
 const getStatusStyle = (status: SaleStatus) =>
   status === "COMPLETED"
-    ? { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" }
-    : { color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" };
+    ? {
+        color: "text-emerald-500",
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/20",
+      }
+    : {
+        color: "text-rose-500",
+        bg: "bg-rose-500/10",
+        border: "border-rose-500/20",
+      };
 
 export const SalesView = ({
-  sales, isLoading, filters, pagination, dashboardData, dashboardLoading, onPageChange, onFilterChange,
+  sales,
+  isLoading,
+  filters,
+  pagination,
+  dashboardData,
+  dashboardLoading,
+  onPageChange,
+  onFilterChange,
 }: SalesViewProps) => {
   const SaleActions = ({ sale }: { sale: SaleSummary }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl">
-        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Ações</DropdownMenuLabel>
+      <DropdownMenuContent
+        align="end"
+        className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+      >
+        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          Ações
+        </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-neutral-800" />
         <DropdownMenuItem asChild>
-          <Link href={`/sales/${sale.id}`} className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full">
+          <Link
+            href={`/sales/${sale.id}`}
+            className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
+          >
             <Eye className="mr-2 h-3.5 w-3.5" /> Ver Detalhes
           </Link>
         </DropdownMenuItem>
@@ -80,8 +137,12 @@ export const SalesView = ({
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">Vendas</h1>
-                <p className="text-sm text-neutral-500 mt-1">Histórico de vendas realizadas</p>
+                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  Vendas
+                </h1>
+                <p className="text-sm text-neutral-500 mt-1">
+                  Histórico de vendas realizadas
+                </p>
               </div>
               <PermissionGate permission="sales:create">
                 <Link href="/sales/pdv" className="w-full md:w-auto">
@@ -93,25 +154,65 @@ export const SalesView = ({
             </div>
 
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
-              <Select value={filters.status || "ALL"} onValueChange={(value) => onFilterChange("status", value)}>
+              <Select
+                value={filters.status || "ALL"}
+                onValueChange={(value) => onFilterChange("status", value)}
+              >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
-                  <div className="flex items-center gap-2"><Filter className="h-3.5 w-3.5 text-neutral-500" /><SelectValue placeholder="Status" /></div>
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                    <SelectValue placeholder="Status" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                  <SelectItem value="ALL" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Todos</SelectItem>
-                  <SelectItem value="COMPLETED" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Concluída</SelectItem>
-                  <SelectItem value="CANCELLED" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Cancelada</SelectItem>
+                  <SelectItem
+                    value="ALL"
+                    className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                  >
+                    Todos
+                  </SelectItem>
+                  <SelectItem
+                    value="COMPLETED"
+                    className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                  >
+                    Concluída
+                  </SelectItem>
+                  <SelectItem
+                    value="CANCELLED"
+                    className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                  >
+                    Cancelada
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={filters.paymentMethod || "ALL"} onValueChange={(value) => onFilterChange("paymentMethod", value)}>
+              <Select
+                value={filters.paymentMethod || "ALL"}
+                onValueChange={(value) =>
+                  onFilterChange("paymentMethod", value)
+                }
+              >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
-                  <div className="flex items-center gap-2"><Filter className="h-3.5 w-3.5 text-neutral-500" /><SelectValue placeholder="Pagamento" /></div>
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                    <SelectValue placeholder="Pagamento" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                  <SelectItem value="ALL" className="text-[12px] font-bold uppercase focus:bg-neutral-800">Todos</SelectItem>
+                  <SelectItem
+                    value="ALL"
+                    className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                  >
+                    Todos
+                  </SelectItem>
                   {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key} className="text-[12px] font-bold uppercase focus:bg-neutral-800">{label}</SelectItem>
+                    <SelectItem
+                      key={key}
+                      value={key}
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
+                      {label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -124,33 +225,90 @@ export const SalesView = ({
               <div className="col-span-3 flex items-center justify-center py-6">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
               </div>
-            ) : dashboardData && (
-              <>
-                <InsightCard icon={ShoppingCart} color="blue" label="Vendas Hoje" value={dashboardData.kpis.today.count} suffix="vendas" />
-                <InsightCard icon={DollarSign} color="emerald" label="Faturamento Hoje" value={formatCents(dashboardData.kpis.today.revenue)} />
-                <InsightCard icon={TrendingUp} color="amber" label="Ticket Médio Hoje" value={formatCents(dashboardData.kpis.today.avgTicket)} />
-                <InsightCard icon={ShoppingCart} color="blue" label="Vendas Semana" value={dashboardData.kpis.week.count} suffix="vendas" />
-                <InsightCard icon={DollarSign} color="emerald" label="Faturamento Semana" value={formatCents(dashboardData.kpis.week.revenue)} />
-                <InsightCard icon={TrendingUp} color="amber" label="Ticket Médio Semana" value={formatCents(dashboardData.kpis.week.avgTicket)} />
-                <InsightCard icon={ShoppingCart} color="blue" label="Vendas Mês" value={dashboardData.kpis.month.count} suffix="vendas" />
-                <InsightCard icon={DollarSign} color="emerald" label="Faturamento Mês" value={formatCents(dashboardData.kpis.month.revenue)} />
-                <InsightCard icon={TrendingUp} color="amber" label="Ticket Médio Mês" value={formatCents(dashboardData.kpis.month.avgTicket)} />
-              </>
+            ) : (
+              dashboardData && (
+                <>
+                  <InsightCard
+                    icon={ShoppingCart}
+                    color="blue"
+                    label="Vendas Hoje"
+                    value={dashboardData.kpis.today.count}
+                    suffix="vendas"
+                  />
+                  <InsightCard
+                    icon={DollarSign}
+                    color="emerald"
+                    label="Faturamento Hoje"
+                    value={formatCents(dashboardData.kpis.today.revenue)}
+                  />
+                  <InsightCard
+                    icon={TrendingUp}
+                    color="amber"
+                    label="Ticket Médio Hoje"
+                    value={formatCents(dashboardData.kpis.today.avgTicket)}
+                  />
+                  <InsightCard
+                    icon={ShoppingCart}
+                    color="blue"
+                    label="Vendas Semana"
+                    value={dashboardData.kpis.week.count}
+                    suffix="vendas"
+                  />
+                  <InsightCard
+                    icon={DollarSign}
+                    color="emerald"
+                    label="Faturamento Semana"
+                    value={formatCents(dashboardData.kpis.week.revenue)}
+                  />
+                  <InsightCard
+                    icon={TrendingUp}
+                    color="amber"
+                    label="Ticket Médio Semana"
+                    value={formatCents(dashboardData.kpis.week.avgTicket)}
+                  />
+                  <InsightCard
+                    icon={ShoppingCart}
+                    color="blue"
+                    label="Vendas Mês"
+                    value={dashboardData.kpis.month.count}
+                    suffix="vendas"
+                  />
+                  <InsightCard
+                    icon={DollarSign}
+                    color="emerald"
+                    label="Faturamento Mês"
+                    value={formatCents(dashboardData.kpis.month.revenue)}
+                  />
+                  <InsightCard
+                    icon={TrendingUp}
+                    color="amber"
+                    label="Ticket Médio Mês"
+                    value={formatCents(dashboardData.kpis.month.avgTicket)}
+                  />
+                </>
+              )
             )}
           </div>
 
           {/* Monthly Chart */}
           {dashboardData && dashboardData.dailyChart.length > 0 && (
             <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
-              <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Vendas do Mês</h3>
+              <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Vendas do Mês
+              </h3>
               <div className="h-64 md:h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dashboardData.dailyChart} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <LineChart
+                    data={dashboardData.dailyChart}
+                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                     <XAxis
                       dataKey="date"
                       tick={{ fill: "#737373", fontSize: 10 }}
-                      tickFormatter={(v: string) => v.split("-").slice(1).join("/")}
+                      tickFormatter={(v: string) =>
+                        v.split("-").slice(1).join("/")
+                      }
                       stroke="#262626"
                     />
                     <YAxis
@@ -168,19 +326,46 @@ export const SalesView = ({
                       width={70}
                     />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#171717", border: "1px solid #262626", borderRadius: "4px", color: "#e5e5e5", fontSize: 12 }}
-                      labelFormatter={(v: string) => v.split("-").reverse().join("/")}
+                      contentStyle={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #262626",
+                        borderRadius: "4px",
+                        color: "#e5e5e5",
+                        fontSize: 12,
+                      }}
+                      labelFormatter={(v: string) =>
+                        v.split("-").reverse().join("/")
+                      }
                       formatter={(value: number, name: string) => {
-                        if (name === "revenue") return [formatCents(value), "Faturamento"];
+                        if (name === "revenue")
+                          return [formatCents(value), "Faturamento"];
                         return [value, "Vendas"];
                       }}
                     />
                     <Legend
-                      formatter={(value: string) => value === "count" ? "Vendas" : "Faturamento"}
+                      formatter={(value: string) =>
+                        value === "count" ? "Vendas" : "Faturamento"
+                      }
                       wrapperStyle={{ fontSize: 10, color: "#737373" }}
                     />
-                    <Line yAxisId="count" type="monotone" dataKey="count" stroke="#2563EB" strokeWidth={2} dot={false} name="count" />
-                    <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#059669" strokeWidth={2} dot={false} name="revenue" />
+                    <Line
+                      yAxisId="count"
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#2563EB"
+                      strokeWidth={2}
+                      dot={false}
+                      name="count"
+                    />
+                    <Line
+                      yAxisId="revenue"
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#059669"
+                      strokeWidth={2}
+                      dot={false}
+                      name="revenue"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -193,42 +378,109 @@ export const SalesView = ({
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900/50">
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Código</TableHead>
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Data</TableHead>
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Vendedor</TableHead>
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Pagamento</TableHead>
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Total</TableHead>
-                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Status</TableHead>
-                    <TableHead className="py-4 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">Ações</TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Código
+                    </TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Data
+                    </TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Vendedor
+                    </TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Pagamento
+                    </TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Total
+                    </TableHead>
+                    <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Status
+                    </TableHead>
+                    <TableHead className="py-4 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                      Ações
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={7} className="h-48 text-center text-neutral-500">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
-                        <span className="text-[10px] uppercase font-bold tracking-widest">Carregando vendas...</span>
-                      </div>
-                    </TableCell></TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="h-48 text-center text-neutral-500"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                          <span className="text-[10px] uppercase font-bold tracking-widest">
+                            Carregando vendas...
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ) : sales.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="h-48 text-center text-neutral-500">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <ShoppingCart className="h-8 w-8 text-neutral-700" />
-                        <span className="text-[10px] uppercase font-bold tracking-widest">Nenhuma venda encontrada</span>
-                      </div>
-                    </TableCell></TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="h-48 text-center text-neutral-500"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <ShoppingCart className="h-8 w-8 text-neutral-700" />
+                          <span className="text-[10px] uppercase font-bold tracking-widest">
+                            Nenhuma venda encontrada
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     sales.map((sale) => {
                       const s = getStatusStyle(sale.status);
                       return (
-                        <TableRow key={sale.id} className="border-b border-neutral-800 transition-colors hover:bg-neutral-800/50">
-                          <TableCell className="py-4"><Link href={`/sales/${sale.id}`} className="font-mono text-sm font-bold text-white hover:text-blue-400">{sale.code}</Link></TableCell>
-                          <TableCell className="py-4"><div className="flex items-center text-sm text-neutral-400"><Calendar className="mr-2 h-3.5 w-3.5" />{format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}</div></TableCell>
-                          <TableCell className="py-4"><span className="text-sm text-neutral-300">{sale.createdByUserName || "—"}</span></TableCell>
-                          <TableCell className="py-4"><span className="text-sm font-medium text-neutral-300">{PAYMENT_METHOD_LABELS[sale.paymentMethod]}</span></TableCell>
-                          <TableCell className="py-4"><span className="font-mono text-sm font-bold text-white">{formatCents(sale.total)}</span></TableCell>
-                          <TableCell className="py-4"><span className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} ${s.border}`}>{SALE_STATUS_LABELS[sale.status]}</span></TableCell>
-                          <TableCell className="py-4 text-right"><SaleActions sale={sale} /></TableCell>
+                        <TableRow
+                          key={sale.id}
+                          className="border-b border-neutral-800 transition-colors hover:bg-neutral-800/50"
+                        >
+                          <TableCell className="py-4">
+                            <Link
+                              href={`/sales/${sale.id}`}
+                              className="font-mono text-sm font-bold text-white hover:text-blue-400"
+                            >
+                              {sale.code}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="flex items-center text-sm text-neutral-400">
+                              <Calendar className="mr-2 h-3.5 w-3.5" />
+                              {format(
+                                new Date(sale.createdAt),
+                                "dd/MM/yyyy HH:mm",
+                                { locale: ptBR },
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="text-sm text-neutral-300">
+                              {sale.createdByUserName || "—"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="text-sm font-medium text-neutral-300">
+                              {PAYMENT_METHOD_LABELS[sale.paymentMethod]}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="font-mono text-sm font-bold text-white">
+                              {formatCents(sale.total)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span
+                              className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} ${s.border}`}
+                            >
+                              {SALE_STATUS_LABELS[sale.status]}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4 text-right">
+                            <SaleActions sale={sale} />
+                          </TableCell>
                         </TableRow>
                       );
                     })
@@ -241,26 +493,72 @@ export const SalesView = ({
           {/* Mobile Cards */}
           <div className="md:hidden space-y-4">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center p-8 gap-2"><div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" /><span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">Carregando...</span></div>
+              <div className="flex flex-col items-center justify-center p-8 gap-2">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">
+                  Carregando...
+                </span>
+              </div>
             ) : sales.length === 0 ? (
-              <div className="p-8 text-center bg-[#171717] rounded-[4px] border border-neutral-800"><span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">Nenhuma venda encontrada</span></div>
+              <div className="p-8 text-center bg-[#171717] rounded-[4px] border border-neutral-800">
+                <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">
+                  Nenhuma venda encontrada
+                </span>
+              </div>
             ) : (
               sales.map((sale) => {
                 const s = getStatusStyle(sale.status);
                 return (
-                  <div key={sale.id} className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
+                  <div
+                    key={sale.id}
+                    className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
+                  >
                     <div className="flex items-center justify-between">
-                      <Link href={`/sales/${sale.id}`} className="font-mono text-base font-bold text-white hover:text-blue-400">{sale.code}</Link>
+                      <Link
+                        href={`/sales/${sale.id}`}
+                        className="font-mono text-base font-bold text-white hover:text-blue-400"
+                      >
+                        {sale.code}
+                      </Link>
                       <SaleActions sale={sale} />
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div className="flex flex-col"><span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Data</span><span className="text-sm text-neutral-300 mt-0.5">{format(new Date(sale.createdAt), "dd/MM/yyyy", { locale: ptBR })}</span></div>
-                      <div className="flex flex-col"><span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Total</span><span className="text-sm font-bold text-white mt-0.5">{formatCents(sale.total)}</span></div>
-                      <div className="flex flex-col"><span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Vendedor</span><span className="text-sm text-neutral-300 mt-0.5">{sale.createdByUserName || "—"}</span></div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                          Data
+                        </span>
+                        <span className="text-sm text-neutral-300 mt-0.5">
+                          {format(new Date(sale.createdAt), "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                          Total
+                        </span>
+                        <span className="text-sm font-bold text-white mt-0.5">
+                          {formatCents(sale.total)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                          Vendedor
+                        </span>
+                        <span className="text-sm text-neutral-300 mt-0.5">
+                          {sale.createdByUserName || "—"}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mt-2 pt-3 border-t border-neutral-800">
-                      <span className="text-xs font-medium text-neutral-400">{PAYMENT_METHOD_LABELS[sale.paymentMethod]}</span>
-                      <span className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} ${s.border}`}>{SALE_STATUS_LABELS[sale.status]}</span>
+                      <span className="text-xs font-medium text-neutral-400">
+                        {PAYMENT_METHOD_LABELS[sale.paymentMethod]}
+                      </span>
+                      <span
+                        className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} ${s.border}`}
+                      >
+                        {SALE_STATUS_LABELS[sale.status]}
+                      </span>
                     </div>
                   </div>
                 );
@@ -270,10 +568,27 @@ export const SalesView = ({
 
           {/* Pagination */}
           <div className="flex items-center justify-between pt-4">
-            <p className="text-sm text-neutral-500">Página {pagination.page + 1} de {Math.max(1, pagination.totalPages)}</p>
+            <p className="text-sm text-neutral-500">
+              Página {pagination.page + 1} de{" "}
+              {Math.max(1, pagination.totalPages)}
+            </p>
             <div className="flex gap-2">
-              <Button variant="outline" disabled={pagination.page === 0} onClick={() => onPageChange(pagination.page - 1)} className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white">Anterior</Button>
-              <Button variant="outline" disabled={pagination.page >= pagination.totalPages - 1} onClick={() => onPageChange(pagination.page + 1)} className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white">Próxima</Button>
+              <Button
+                variant="outline"
+                disabled={pagination.page === 0}
+                onClick={() => onPageChange(pagination.page - 1)}
+                className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                disabled={pagination.page >= pagination.totalPages - 1}
+                onClick={() => onPageChange(pagination.page + 1)}
+                className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              >
+                Próxima
+              </Button>
             </div>
           </div>
         </div>

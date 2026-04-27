@@ -14,7 +14,6 @@ export const paymentModes = ["DIRECT", "TAP", "LINK"] as const;
 export type PaymentMode = (typeof paymentModes)[number];
 
 export const pdvSchema = z.object({
-  warehouseId: z.string().uuid("Selecione um armazém"),
   paymentMethod: z.enum(paymentMethods, { message: "Selecione a forma de pagamento" }),
   paymentMode: z.enum(paymentModes),
   installments: z.number().min(1).optional().nullable(),

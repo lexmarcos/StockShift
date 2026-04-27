@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, CreditCard } from "lucide-react";
+import { CompanyLogoUpload } from "./company-logo-upload";
 import { CompanyViewProps } from "./company.types";
 
 const companySchema = z.object({
@@ -47,6 +48,8 @@ export const CompanyView = ({
   onUpdateInfinitePay,
   onEditInfinitePay,
 }: CompanyViewProps) => {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+
   const companyForm = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -76,6 +79,7 @@ export const CompanyView = ({
       email: companyConfig?.email || "",
       phone: companyConfig?.phone || "",
     });
+    setLogoFile(null);
   }, [companyConfig, companyForm]);
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export const CompanyView = ({
       document: data.document,
       email: data.email,
       phone: data.phone,
+      logo: logoFile,
     });
   };
 
@@ -175,6 +180,13 @@ export const CompanyView = ({
                       onSubmit={companyForm.handleSubmit(onCompanySubmit)}
                       className="space-y-4"
                     >
+                      <CompanyLogoUpload
+                        currentLogoUrl={companyConfig?.logoUrl}
+                        logoFile={logoFile}
+                        disabled={isUpdating}
+                        onLogoSelect={setLogoFile}
+                      />
+
                       <FormField
                         control={companyForm.control}
                         name="businessName"

@@ -3,6 +3,7 @@ export interface CompanyConfigData {
   document: string | null;
   email: string;
   phone: string | null;
+  logoUrl: string | null;
   isActive: boolean;
 }
 
@@ -30,6 +31,7 @@ export interface UpdateCompanyData {
   document?: string;
   email: string;
   phone?: string;
+  logo?: File | null;
 }
 
 export interface UpdateInfinitePayData {

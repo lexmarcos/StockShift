@@ -46,7 +46,10 @@ export const useCompanyModel = () => {
   const error = companyError || infinitePayError || null;
 
   const updateCompany = async (data: UpdateCompanyData) => {
-    const response = await api.put("tenants/me", { json: data }).json<ApiResponseData<CompanyConfigData>>();
+    const requestOptions = data.logo
+      ? { body: buildCompanyConfigFormData(data) }
+      : { json: buildCompanyConfigPayload(data) };
+    const response = await api.put("tenants/me", requestOptions).json<ApiResponseData<CompanyConfigData>>();
     await mutate("tenants/me", response, false);
     return response;
   };
@@ -67,4 +70,23 @@ export const useCompanyModel = () => {
     updateCompany,
     updateInfinitePay,
   };
+};
+
+export const buildCompanyConfigPayload = (data: UpdateCompanyData) => ({
+  businessName: data.businessName,
+  document: data.document,
+  email: data.email,
+  phone: data.phone,
+});
+
+export const buildCompanyConfigFormData = (data: UpdateCompanyData): FormData => {
+  const formData = new FormData();
+  const companyBlob = new Blob([JSON.stringify(buildCompanyConfigPayload(data))], {
+    type: "application/json",
+  });
+  formData.append("company", companyBlob);
+  if (data.logo) {
+    formData.append("logo", data.logo);
+  }
+  return formData;
 };

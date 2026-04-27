@@ -5,6 +5,7 @@ export interface CartItem {
   productId: string;
   productName: string;
   productSku: string | null;
+  productImageUrl: string | null;
   batchId: string;
   batchCode: string;
   quantity: number;
@@ -26,8 +27,11 @@ export interface ProductWithStock {
   name: string;
   sku: string | null;
   barcode: string | null;
+  imageUrl: string | null;
   totalQuantity: number;
 }
+
+export type SaleDrawerStep = "sale-type" | "link-payment" | "in-person";
 
 export interface PdvViewProps {
   form: import("react-hook-form").UseFormReturn<PdvSchema>;
@@ -45,13 +49,21 @@ export interface PdvViewProps {
   total: number;
   isSubmitting: boolean;
   onSubmit: (data: PdvSchema) => void;
-  warehouses: { id: string; name: string }[];
-  isLoadingWarehouses: boolean;
   batchPopoverOpen: number | null;
   onBatchPopoverChange: (index: number | null) => void;
-  isMobile: boolean;
   meetsMinimumForPaymentLink: boolean;
-  shareDialogOpen: boolean;
-  shareDialogData: { saleCode: string; total: number; paymentLink: string } | null;
-  onShareDialogClose: () => void;
+  saleDrawerOpen: boolean;
+  saleDrawerStep: SaleDrawerStep;
+  saleDrawerData: { saleCode: string; total: number; paymentLink: string } | null;
+  onOpenSaleDrawer: () => void;
+  onCloseSaleDrawer: () => void;
+  onCheckPaymentLater: () => void;
+  onGoToLinkPayment: () => void;
+  onGoToInPerson: () => void;
+  barcodeDrawerOpen: boolean;
+  onOpenBarcodeDrawer: () => void;
+  onCloseBarcodeDrawer: () => void;
+  onBarcodeScanned: (barcode: string) => void;
+  favorites: ProductWithStock[];
+  isMobile: boolean;
 }

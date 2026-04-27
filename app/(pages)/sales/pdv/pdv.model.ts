@@ -1,22 +1,18 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { pdvSchema, PdvSchema, METHODS_WITH_INSTALLMENTS, METHODS_WITH_PAYMENT_MODE } from "./pdv.schema";
-import { CartItem, BatchOption, ProductWithStock, PdvViewProps } from "./pdv.types";
+import { CartItem, BatchOption, ProductWithStock, PdvViewProps, SaleDrawerStep } from "./pdv.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   buildInfinitePayDeeplink,
   mapPaymentMethodToInfinitePay,
 } from "@/lib/infinitepay";
-
-interface WarehouseResponse {
-  success: boolean;
-  data: Array<{ id: string; name: string }>;
-}
 
 interface BatchesResponse {
   success: boolean;
@@ -34,6 +30,11 @@ interface ProductsResponse {
   data: { content: ProductWithStock[] };
 }
 
+interface ProductImageResponse {
+  success: boolean;
+  data: { id: string; imageUrl: string | null };
+}
+
 interface InfinitePayConfigResponse {
   success: boolean;
   data: { handle: string | null; docNumber: string | null; configured: boolean };
@@ -45,19 +46,21 @@ interface SaleCreateResponse {
 }
 
 export function usePdvModel(): PdvViewProps {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [batchPopoverOpen, setBatchPopoverOpen] = useState<number | null>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [shareDialogData, setShareDialogData] = useState<{ saleCode: string; total: number; paymentLink: string } | null>(null);
+  const [saleDrawerOpen, setSaleDrawerOpen] = useState(false);
+  const [saleDrawerStep, setSaleDrawerStep] = useState<SaleDrawerStep>("sale-type");
+  const [saleDrawerData, setSaleDrawerData] = useState<{ saleCode: string; total: number; paymentLink: string } | null>(null);
+  const [barcodeDrawerOpen, setBarcodeDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { warehouseId: globalWarehouseId } = useSelectedWarehouse();
+  const { warehouseId } = useSelectedWarehouse();
 
   const form = useForm<PdvSchema>({
     resolver: zodResolver(pdvSchema),
     defaultValues: {
-      warehouseId: globalWarehouseId || "",
       paymentMethod: "CASH",
       paymentMode: "DIRECT" as const,
       installments: null,
@@ -65,14 +68,10 @@ export function usePdvModel(): PdvViewProps {
     },
   });
 
-  const selectedWarehouseId = form.watch("warehouseId");
   const selectedPayment = form.watch("paymentMethod");
-
-  // Compute cart total early for payment mode validation
   const cartSubtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
   const meetsMinimumForPaymentLink = cartSubtotal >= 100;
 
-  // Auto-set paymentMode when payment method changes
   useEffect(() => {
     if (selectedPayment && METHODS_WITH_PAYMENT_MODE.includes(selectedPayment)) {
       const currentMode = form.getValues("paymentMode");
@@ -86,34 +85,69 @@ export function usePdvModel(): PdvViewProps {
     }
   }, [selectedPayment, meetsMinimumForPaymentLink, isMobile, form]);
 
-  const { data: warehousesData, isLoading: isLoadingWarehouses } = useSWR<WarehouseResponse>(
-    "warehouses",
-    async (url: string) => await api.get(url).json<WarehouseResponse>(),
-  );
-  const warehouses = warehousesData?.data || [];
-
   const { data: infinitepayConfig } = useSWR<InfinitePayConfigResponse>(
     isMobile ? "tenants/me/infinitepay" : null,
     async (url: string) => await api.get(url).json<InfinitePayConfigResponse>(),
   );
 
   const searchUrl = useMemo(() => {
-    if (!selectedWarehouseId || !searchQuery.trim()) return null;
-    return `warehouses/${selectedWarehouseId}/products?search=${encodeURIComponent(searchQuery)}&page=0&size=20`;
-  }, [selectedWarehouseId, searchQuery]);
+    if (!warehouseId || !searchQuery.trim()) return null;
+    return `warehouses/${warehouseId}/products?search=${encodeURIComponent(searchQuery)}&page=0&size=20`;
+  }, [warehouseId, searchQuery]);
 
   const { data: searchData, isLoading: isSearching } = useSWR<ProductsResponse>(
     searchUrl,
     async (url: string) => await api.get(url).json<ProductsResponse>(),
   );
-  const searchResults = searchData?.data?.content || [];
+  const rawSearchResults = useMemo(
+    () => searchData?.data?.content ?? [],
+    [searchData],
+  );
+  const searchImageIds = useMemo(
+    () => getPdvProductsMissingImages(rawSearchResults),
+    [rawSearchResults],
+  );
+  const { data: searchProductImages } = useSWR<Map<string, string | null>>(
+    buildPdvImageCacheKey("search", searchImageIds),
+    () => fetchPdvProductImages(searchImageIds),
+  );
+  const searchResults = useMemo(
+    () => mergePdvProductImages(rawSearchResults, searchProductImages),
+    [rawSearchResults, searchProductImages],
+  );
+
+  const favoritesUrl = useMemo(() => {
+    if (!warehouseId) return null;
+    return `warehouses/${warehouseId}/products?search=&page=0&size=8`;
+  }, [warehouseId]);
+
+  const { data: favoritesData } = useSWR<ProductsResponse>(
+    favoritesUrl,
+    async (url: string) => await api.get(url).json<ProductsResponse>(),
+  );
+  const rawFavorites = useMemo(
+    () => favoritesData?.data?.content ?? [],
+    [favoritesData],
+  );
+  const favoriteImageIds = useMemo(
+    () => getPdvProductsMissingImages(rawFavorites),
+    [rawFavorites],
+  );
+  const { data: favoriteProductImages } = useSWR<Map<string, string | null>>(
+    buildPdvImageCacheKey("favorites", favoriteImageIds),
+    () => fetchPdvProductImages(favoriteImageIds),
+  );
+  const favorites = useMemo(
+    () => mergePdvProductImages(rawFavorites, favoriteProductImages),
+    [rawFavorites, favoriteProductImages],
+  );
 
   const fetchBatches = useCallback(
     async (productId: string): Promise<BatchOption[]> => {
-      if (!selectedWarehouseId) return [];
+      if (!warehouseId) return [];
       try {
         const res = await api
-          .get(`batches/warehouses/${selectedWarehouseId}/products/${productId}/batches`)
+          .get(`batches/warehouses/${warehouseId}/products/${productId}/batches`)
           .json<BatchesResponse>();
         return (res.data || [])
           .filter((b) => b.quantity > 0)
@@ -126,10 +160,10 @@ export function usePdvModel(): PdvViewProps {
           }));
       } catch { return []; }
     },
-    [selectedWarehouseId],
+    [warehouseId],
   );
 
-  const onAddProduct = useCallback(
+  const addProductToCart = useCallback(
     async (product: ProductWithStock) => {
       const batches = await fetchBatches(product.id);
       if (batches.length === 0) {
@@ -140,65 +174,68 @@ export function usePdvModel(): PdvViewProps {
       const unitPrice = batch.sellingPrice || 0;
       const quantity = 1;
       const totalPrice = quantity * unitPrice;
+      const productImageUrl = await resolvePdvProductImageUrl(product);
 
-      const existingIndex = cart.findIndex(
-        (item) => item.productId === product.id && item.batchId === batch.batchId,
-      );
-
-      if (existingIndex >= 0) {
-        const updated = [...cart];
-        const existing = updated[existingIndex];
-        const newQty = existing.quantity + quantity;
-        updated[existingIndex] = { ...existing, quantity: newQty, totalPrice: newQty * existing.unitPrice };
-        setCart(updated);
-      } else {
-        setCart([
-          ...cart,
-          {
-            id: crypto.randomUUID(),
-            productId: product.id,
-            productName: product.name,
-            productSku: product.sku,
-            batchId: batch.batchId,
-            batchCode: batch.batchCode,
-            quantity,
-            unitPrice,
-            totalPrice,
-            availableBatches: batches,
-          },
-        ]);
-      }
+      setCart((prev) => {
+        const existingIndex = prev.findIndex(
+          (item) => item.productId === product.id && item.batchId === batch.batchId,
+        );
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          const existing = updated[existingIndex];
+          const newQty = existing.quantity + quantity;
+          updated[existingIndex] = { ...existing, quantity: newQty, totalPrice: newQty * existing.unitPrice };
+          return updated;
+        }
+        return [...prev, {
+          id: crypto.randomUUID(),
+          productId: product.id,
+          productName: product.name,
+          productSku: product.sku,
+          productImageUrl,
+          batchId: batch.batchId,
+          batchCode: batch.batchCode,
+          quantity,
+          unitPrice,
+          totalPrice,
+          availableBatches: batches,
+        }];
+      });
       setSearchQuery("");
     },
-    [cart, fetchBatches],
+    [fetchBatches],
   );
 
   const onRemoveItem = useCallback(
-    (index: number) => { setCart(cart.filter((_, i) => i !== index)); },
-    [cart],
+    (index: number) => { setCart((prev) => prev.filter((_, i) => i !== index)); },
+    [],
   );
 
   const onUpdateQuantity = useCallback(
     (index: number, quantity: number) => {
       if (quantity <= 0) { onRemoveItem(index); return; }
-      const updated = [...cart];
-      updated[index] = { ...updated[index], quantity, totalPrice: quantity * updated[index].unitPrice };
-      setCart(updated);
+      setCart((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], quantity, totalPrice: quantity * updated[index].unitPrice };
+        return updated;
+      });
     },
-    [cart, onRemoveItem],
+    [onRemoveItem],
   );
 
   const onChangeBatch = useCallback(
     (itemIndex: number, batchId: string) => {
-      const updated = [...cart];
-      const item = updated[itemIndex];
-      const batch = item.availableBatches.find((b) => b.batchId === batchId);
-      if (!batch) return;
-      const unitPrice = batch.sellingPrice || 0;
-      updated[itemIndex] = { ...item, batchId: batch.batchId, batchCode: batch.batchCode, unitPrice, totalPrice: item.quantity * unitPrice };
-      setCart(updated);
+      setCart((prev) => {
+        const updated = [...prev];
+        const item = updated[itemIndex];
+        const batch = item.availableBatches.find((b) => b.batchId === batchId);
+        if (!batch) return prev;
+        const unitPrice = batch.sellingPrice || 0;
+        updated[itemIndex] = { ...item, batchId: batch.batchId, batchCode: batch.batchCode, unitPrice, totalPrice: item.quantity * unitPrice };
+        return updated;
+      });
     },
-    [cart],
+    [],
   );
 
   const subtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
@@ -213,7 +250,7 @@ export function usePdvModel(): PdvViewProps {
 
   const onSubmit = useCallback(
     async (data: PdvSchema) => {
-      if (cart.length === 0) {
+      if (cart.length === 0 || !warehouseId) {
         toast.error("Adicione pelo menos um produto ao carrinho");
         return;
       }
@@ -222,7 +259,7 @@ export function usePdvModel(): PdvViewProps {
       const paymentMode = resolvePaymentMode(data);
 
       const salePayload = {
-        warehouseId: data.warehouseId,
+        warehouseId,
         paymentMethod: data.paymentMethod,
         paymentMode,
         installments:
@@ -265,15 +302,14 @@ export function usePdvModel(): PdvViewProps {
         }
 
         if (paymentMode === "LINK" && res.data.paymentLink) {
-          setShareDialogData({
+          setSaleDrawerData({
             saleCode: res.data.code,
             total,
             paymentLink: res.data.paymentLink,
           });
-          setShareDialogOpen(true);
+          setSaleDrawerStep("link-payment");
           setCart([]);
           form.reset({
-            warehouseId: data.warehouseId,
             paymentMethod: "CASH",
             paymentMode: "DIRECT" as const,
             installments: null,
@@ -284,8 +320,8 @@ export function usePdvModel(): PdvViewProps {
 
         toast.success("Venda realizada com sucesso!");
         setCart([]);
+        setSaleDrawerOpen(false);
         form.reset({
-          warehouseId: data.warehouseId,
           paymentMethod: "CASH",
           paymentMode: "DIRECT" as const,
           installments: null,
@@ -298,17 +334,136 @@ export function usePdvModel(): PdvViewProps {
         setIsSubmitting(false);
       }
     },
-    [cart, form, isMobile, infinitepayConfig, total],
+    [cart, form, infinitepayConfig, total, warehouseId],
   );
+
+  const onBarcodeScanned = useCallback(
+    async (barcode: string) => {
+      if (!warehouseId) {
+        toast.error("Nenhum armazém selecionado");
+        return;
+      }
+
+      try {
+        const res = await api
+          .get(`warehouses/${warehouseId}/products?search=${encodeURIComponent(barcode)}&page=0&size=1`)
+          .json<ProductsResponse>();
+
+        const products = res.data?.content || [];
+        const product = products.find(
+          (p) => p.barcode === barcode || p.sku === barcode,
+        ) || products[0];
+
+        if (product) {
+          await addProductToCart(product);
+          toast.success(`${product.name} adicionado`);
+        } else {
+          toast.error("Produto não encontrado: " + barcode);
+        }
+      } catch {
+        toast.error("Erro ao buscar produto");
+      }
+    },
+    [warehouseId, addProductToCart],
+  );
+
+  const onOpenSaleDrawer = useCallback(() => {
+    setSaleDrawerStep("sale-type");
+    setSaleDrawerOpen(true);
+  }, []);
+
+  const onCloseSaleDrawer = useCallback(() => {
+    setSaleDrawerOpen(false);
+    setSaleDrawerData(null);
+  }, []);
+
+  const onCheckPaymentLater = useCallback(() => {
+    setCart([]);
+    setSaleDrawerOpen(false);
+    setSaleDrawerStep("sale-type");
+    setSaleDrawerData(null);
+    form.reset({
+      paymentMethod: "CASH",
+      paymentMode: "DIRECT" as const,
+      installments: null,
+      discountPercentage: null,
+    });
+    router.push("/sales");
+  }, [form, router]);
+
+  const onGoToLinkPayment = useCallback(() => {
+    form.setValue("paymentMode", "LINK");
+    form.setValue("paymentMethod", "CREDIT_CARD");
+    setSaleDrawerStep("link-payment");
+    form.handleSubmit(onSubmit)();
+  }, [form, onSubmit]);
+
+  const onGoToInPerson = useCallback(() => {
+    form.setValue("paymentMode", "DIRECT");
+    setSaleDrawerStep("in-person");
+  }, [form]);
 
   return {
     form, cart, searchQuery, onSearchChange: setSearchQuery, searchResults, isSearching,
-    onAddProduct, onRemoveItem, onUpdateQuantity, onChangeBatch,
+    onAddProduct: addProductToCart, onRemoveItem, onUpdateQuantity, onChangeBatch,
     subtotal, discountAmount, total, isSubmitting, onSubmit,
-    warehouses, isLoadingWarehouses,
     batchPopoverOpen, onBatchPopoverChange: setBatchPopoverOpen,
-    isMobile, meetsMinimumForPaymentLink,
-    shareDialogOpen, shareDialogData,
-    onShareDialogClose: () => { setShareDialogOpen(false); setShareDialogData(null); },
+    isMobile, meetsMinimumForPaymentLink, favorites,
+    saleDrawerOpen, saleDrawerStep, saleDrawerData,
+    onOpenSaleDrawer, onCloseSaleDrawer, onCheckPaymentLater, onGoToLinkPayment, onGoToInPerson,
+    barcodeDrawerOpen, onOpenBarcodeDrawer: () => setBarcodeDrawerOpen(true),
+    onCloseBarcodeDrawer: () => setBarcodeDrawerOpen(false),
+    onBarcodeScanned,
   };
 }
+
+const getPdvProductsMissingImages = (products: ProductWithStock[]): string[] => {
+  return [...new Set(
+    products.filter((product) => !product.imageUrl).map((product) => product.id),
+  )];
+};
+
+const buildPdvImageCacheKey = (
+  listName: string,
+  productIds: string[],
+): string | null => {
+  if (productIds.length === 0) return null;
+  return `pdv-product-images-${listName}-${productIds.join(",")}`;
+};
+
+const mergePdvProductImages = (
+  products: ProductWithStock[],
+  images?: Map<string, string | null>,
+): ProductWithStock[] => {
+  if (!images) return products;
+  return products.map((product) => ({
+    ...product,
+    imageUrl: product.imageUrl ?? images.get(product.id) ?? null,
+  }));
+};
+
+const fetchPdvProductImages = async (
+  productIds: string[],
+): Promise<Map<string, string | null>> => {
+  const results = await Promise.all(productIds.map(fetchPdvProductImage));
+  return new Map(results.map((result) => [result.id, result.imageUrl]));
+};
+
+const resolvePdvProductImageUrl = async (
+  product: ProductWithStock,
+): Promise<string | null> => {
+  if (product.imageUrl) return product.imageUrl;
+  const result = await fetchPdvProductImage(product.id);
+  return result.imageUrl;
+};
+
+const fetchPdvProductImage = async (
+  id: string,
+): Promise<{ id: string; imageUrl: string | null }> => {
+  try {
+    const res = await api.get(`products/${id}`).json<ProductImageResponse>();
+    return { id, imageUrl: res.data.imageUrl ?? null };
+  } catch {
+    return { id, imageUrl: null };
+  }
+};

@@ -3,18 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { useBreadcrumb } from "@/components/breadcrumb/use-breadcrumb";
 import { usePdvModel } from "./pdv.model";
 import { PdvView } from "./pdv.view";
 
 export default function PdvPage() {
-  useBreadcrumb({
-    title: "Ponto de Venda",
-    backUrl: "/sales",
-    section: "Vendas",
-    subsection: "PDV",
-  });
-
   const searchParams = useSearchParams();
 
   useEffect(() => {
