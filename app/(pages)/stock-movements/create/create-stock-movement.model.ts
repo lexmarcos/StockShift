@@ -17,10 +17,10 @@ import {
   MANUAL_IN_MOVEMENT_TYPES,
 } from "../stock-movements.constants";
 import {
-  clearInlineProduct,
+  clearInlineProductItems,
   clearStockMovementDraft,
   inlineProductImageToFile,
-  readInlineProduct,
+  readInlineProductItems,
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
@@ -154,26 +154,32 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     setSelectedProductId(draft.selectedProductId);
     setItemQuantity(draft.itemQuantity);
 
-    const inlineProduct = readInlineProduct();
-    if (!inlineProduct) {
+    const inlineProductItems = readInlineProductItems();
+    if (inlineProductItems.length === 0) {
       clearStockMovementDraft();
       return;
     }
 
-    const duplicate = draft.items.some((item) => {
-      return item.newProductData?.name.toLowerCase() === inlineProduct.name.toLowerCase();
-    });
-    if (!duplicate) {
-      append({
-        quantity: draft.inlineProductQuantity,
-        productName: inlineProduct.name,
-        newProductData: inlineProduct,
-      });
-      setSelectedProductId("");
-      setItemQuantity("");
-    }
+    const productNames = new Set(
+      draft.items
+        .map((item) => item.newProductData?.name.toLowerCase())
+        .filter((name): name is string => Boolean(name)),
+    );
+    inlineProductItems.forEach((inlineItem) => {
+      const productName = inlineItem.product.name.toLowerCase();
+      if (productNames.has(productName)) return;
 
-    clearInlineProduct();
+      append({
+        quantity: inlineItem.quantity,
+        productName: inlineItem.product.name,
+        newProductData: inlineItem.product,
+      });
+      productNames.add(productName);
+    });
+    setSelectedProductId("");
+    setItemQuantity("");
+
+    clearInlineProductItems();
     clearStockMovementDraft();
   }, [append, form]);
 
@@ -229,12 +235,6 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const handleCreateNewProduct = () => {
     setAddItemError(null);
 
-    const qty = Number(itemQuantity);
-    if (!qty || qty <= 0) {
-      setAddItemError("Informe uma quantidade antes de criar o produto.");
-      return;
-    }
-
     if (!selectedMovementType) {
       toast.error("Selecione o tipo de movimentação antes de continuar.");
       router.replace("/stock-movements");
@@ -256,7 +256,6 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
       items: form.getValues("items"),
       selectedProductId,
       itemQuantity,
-      inlineProductQuantity: qty,
     });
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
   };
@@ -270,7 +269,6 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
       items: form.getValues("items"),
       selectedProductId,
       itemQuantity,
-      inlineProductQuantity: resolveScannerQuantity(),
       inlineProductBarcode: barcode,
     });
     setIsScannerOpen(false);

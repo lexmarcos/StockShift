@@ -67,7 +67,12 @@ const baseProps = {
   },
 };
 
-const Wrapper = (props: typeof baseProps & { defaultValues?: Record<string, unknown> }) => {
+const Wrapper = (
+  props: typeof baseProps & {
+    defaultValues?: Record<string, unknown>;
+    onCancel?: () => void;
+  },
+) => {
   const {
     batchesDrawer: batchesDrawerOverride,
     defaultValues,
@@ -173,8 +178,8 @@ describe("ProductForm batches drawer", () => {
   });
 });
 
-describe("ProductForm price formatting", () => {
-  it("renders batch date fields in inline mode", () => {
+describe("ProductForm inline stock movement mode", () => {
+  it("renders quantity, batch date fields, and batch mode toggle", () => {
     render(
       <Wrapper
         {...baseProps}
@@ -183,6 +188,7 @@ describe("ProductForm price formatting", () => {
         defaultValues={{ hasExpiration: true }}
       />
     );
+    expect(screen.getByText(/^Quantidade$/i)).toBeTruthy();
     expect(screen.getByText(/fabrica..o/i)).toBeTruthy();
     expect(
       screen.getByText((_, element) => {
@@ -191,8 +197,25 @@ describe("ProductForm price formatting", () => {
       }),
     ).toBeTruthy();
     expect(screen.queryByText(/qtd. inicial/i)).toBeNull();
+    expect(screen.getByText(/modo em lote/i)).toBeTruthy();
   });
 
+  it("calls inline cancel cleanup before returning", () => {
+    const onCancel = vi.fn();
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="inline"
+        batchesDrawer={undefined}
+        onCancel={onCancel}
+      />
+    );
+    fireEvent.click(screen.getByRole("link", { name: /cancelar/i }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ProductForm price formatting", () => {
   it("renders main prices as BRL", () => {
     render(
       <Wrapper

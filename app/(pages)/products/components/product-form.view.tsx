@@ -97,11 +97,13 @@ export const ProductForm = ({
   closeAiModal,
   handleAiFill,
   cancelHref,
+  onCancel,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
 
   const costPrice = form.watch("costPrice") || 0;
   const sellingPrice = form.watch("sellingPrice") || 0;
+  const continuousMode = form.watch("continuousMode");
   const profit = sellingPrice - costPrice;
   const margin = costPrice > 0 ? (profit / costPrice) * 100 : 0;
   const isProfitable = profit > 0;
@@ -109,11 +111,14 @@ export const ProductForm = ({
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
   const isInlineMode = mode === "inline";
   const showPricingCard = mode === "create" || isInlineMode;
-  const showInitialQuantityField = mode === "create";
+  const showQuantityField = mode === "create" || isInlineMode;
   const showBatchDateFields = mode === "create" || isInlineMode;
+  const showContinuousMode = mode === "create" || isInlineMode;
   const productCancelHref = cancelHref || "/products";
   const submitLabel = isInlineMode
-    ? "Adicionar Produto"
+    ? continuousMode
+      ? "Adicionar e continuar"
+      : "Adicionar e voltar"
     : mode === "create"
       ? "Salvar Produto"
       : "Atualizar Produto";
@@ -431,12 +436,12 @@ export const ProductForm = ({
                         <div
                           className={cn(
                             "grid grid-cols-1 gap-5",
-                            showInitialQuantityField
+                            showQuantityField
                               ? "md:grid-cols-3"
                               : "md:grid-cols-2",
                           )}
                         >
-                          {showInitialQuantityField && (
+                          {showQuantityField && (
                             <FormField
                               control={form.control}
                               name="quantity"
@@ -445,7 +450,7 @@ export const ProductForm = ({
                                 return (
                                   <FormItem>
                                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                      Qtd. Inicial{" "}
+                                      {isInlineMode ? "Quantidade" : "Qtd. Inicial"}{" "}
                                       <span className="text-rose-500">*</span>
                                     </FormLabel>
                                     <FormControl>
@@ -727,7 +732,7 @@ export const ProductForm = ({
                       )}
                     />
 
-                    {mode === "create" && (
+                    {showContinuousMode && (
                       <FormField
                         control={form.control}
                         name="continuousMode"
@@ -736,10 +741,12 @@ export const ProductForm = ({
                             <div className="space-y-0.5">
                               <FormLabel className="text-xs font-bold uppercase tracking-wide text-white flex items-center gap-2">
                                 <Zap className="h-3 w-3 text-amber-500" />
-                                Modo Contínuo
+                                {isInlineMode ? "Modo em lote" : "Modo Contínuo"}
                               </FormLabel>
                               <FormDescription className="text-[10px] text-neutral-500">
-                                Manter na tela após salvar
+                                {isInlineMode
+                                  ? "Adicionar vários produtos antes de voltar"
+                                  : "Manter na tela após salvar"}
                               </FormDescription>
                             </div>
                             <FormControl>
@@ -807,7 +814,9 @@ export const ProductForm = ({
                   className="h-10 w-full md:w-auto rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
                   asChild
                 >
-                  <Link href={productCancelHref}>Cancelar</Link>
+                  <Link href={productCancelHref} onClick={onCancel}>
+                    Cancelar
+                  </Link>
                 </Button>
                 <Button
                   type="submit"

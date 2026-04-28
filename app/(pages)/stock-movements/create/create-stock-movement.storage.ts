@@ -6,7 +6,7 @@ import {
 import { ManualMovementType } from "../stock-movements.constants";
 
 const DRAFT_STORAGE_KEY = "stockMovementCreate:draft";
-const INLINE_PRODUCT_STORAGE_KEY = "stockMovementCreate:inlineProduct";
+const INLINE_PRODUCT_ITEMS_STORAGE_KEY = "stockMovementCreate:inlineProductItems";
 
 export interface StockMovementDraft {
   type: ManualMovementType;
@@ -14,8 +14,12 @@ export interface StockMovementDraft {
   items: StockMovementDraftItem[];
   selectedProductId: string;
   itemQuantity: string;
-  inlineProductQuantity: number;
   inlineProductBarcode?: string;
+}
+
+export interface InlineProductDraftItem {
+  product: InlineProductData;
+  quantity: number;
 }
 
 export const readStockMovementDraft = (): StockMovementDraft | null => {
@@ -35,24 +39,27 @@ export const clearStockMovementDraft = (): void => {
   window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
 };
 
-export const readInlineProduct = (): InlineProductData | null => {
-  if (typeof window === "undefined") return null;
-  const rawProduct = window.sessionStorage.getItem(INLINE_PRODUCT_STORAGE_KEY);
-  if (!rawProduct) return null;
-  return JSON.parse(rawProduct) as InlineProductData;
+export const readInlineProductItems = (): InlineProductDraftItem[] => {
+  if (typeof window === "undefined") return [];
+  const rawItems = window.sessionStorage.getItem(INLINE_PRODUCT_ITEMS_STORAGE_KEY);
+  if (!rawItems) return [];
+  return JSON.parse(rawItems) as InlineProductDraftItem[];
 };
 
-export const writeInlineProduct = (product: InlineProductData): void => {
+export const appendInlineProductItem = (
+  item: InlineProductDraftItem,
+): void => {
   if (typeof window === "undefined") return;
+  const items = readInlineProductItems();
   window.sessionStorage.setItem(
-    INLINE_PRODUCT_STORAGE_KEY,
-    JSON.stringify(product),
+    INLINE_PRODUCT_ITEMS_STORAGE_KEY,
+    JSON.stringify([...items, item]),
   );
 };
 
-export const clearInlineProduct = (): void => {
+export const clearInlineProductItems = (): void => {
   if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(INLINE_PRODUCT_STORAGE_KEY);
+  window.sessionStorage.removeItem(INLINE_PRODUCT_ITEMS_STORAGE_KEY);
 };
 
 export const fileToInlineProductImage = (

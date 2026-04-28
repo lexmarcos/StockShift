@@ -36,6 +36,14 @@ describe("productCreateSchema price validation", () => {
 });
 
 describe("productInlineSchema expiration validation", () => {
+  it("requires positive quantity", () => {
+    const result = productInlineSchema.safeParse({
+      ...baseData,
+      quantity: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("requires expiration date when expiration control is enabled", () => {
     const result = productInlineSchema.safeParse({
       ...baseData,

@@ -17,16 +17,54 @@ import {
 } from "../../../products/create/products-create.types";
 import { productInlineSchema } from "../../../products/create/products-create.schema";
 import { ProductFormProps } from "../../../products/components/product-form.types";
+import type { InlineProductData } from "../create-stock-movement.types";
 import { isManualMovementType } from "../../stock-movements.constants";
 import {
+  appendInlineProductItem,
+  clearInlineProductItems,
   fileToInlineProductImage,
   readStockMovementDraft,
-  writeInlineProduct,
+  readInlineProductItems,
 } from "../create-stock-movement.storage";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
   return `/stock-movements/create?type=${type}`;
+};
+
+const buildInlineProductData = async (
+  data: ProductCreateFormData,
+  attributes: Record<string, string> | undefined,
+  image: File | null,
+): Promise<InlineProductData> => ({
+  name: data.name,
+  description: data.description || undefined,
+  barcode: data.barcode || undefined,
+  categoryId: data.categoryId || undefined,
+  brandId: data.brandId || undefined,
+  isKit: data.isKit,
+  hasExpiration: data.hasExpiration,
+  active: data.active,
+  attributes,
+  manufacturedDate: data.manufacturedDate || undefined,
+  expirationDate: data.expirationDate || undefined,
+  costPrice: data.costPrice,
+  sellingPrice: data.sellingPrice,
+  image: image ? await fileToInlineProductImage(image) : undefined,
+});
+
+const hasDuplicateInlineProductName = (
+  productName: string,
+  draft: ReturnType<typeof readStockMovementDraft>,
+): boolean => {
+  const normalizedName = productName.toLowerCase();
+  const duplicateInDraft = draft?.items.some((item) => {
+    return item.newProductData?.name.toLowerCase() === normalizedName;
+  });
+  const duplicateInPending = readInlineProductItems().some((item) => {
+    return item.product.name.toLowerCase() === normalizedName;
+  });
+  return Boolean(duplicateInDraft || duplicateInPending);
 };
 
 export const useNewProductInlineModel = (): ProductFormProps => {
@@ -138,41 +176,54 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     return Object.keys(merged).length > 0 ? merged : undefined;
   };
 
-  const resolveInlineImage = async () => {
-    if (!productImage) return undefined;
-    return fileToInlineProductImage(productImage);
+  const resetInlineFormForNextProduct = (): void => {
+    form.reset({
+      name: "",
+      description: "",
+      barcode: "",
+      isKit: false,
+      hasExpiration: false,
+      active: true,
+      continuousMode: true,
+      categoryId: "",
+      brandId: "",
+      attributes: { weight: "", dimensions: "" },
+      quantity: 0,
+      manufacturedDate: "",
+      expirationDate: "",
+      costPrice: undefined,
+      sellingPrice: undefined,
+    });
+    setCustomAttributes([]);
+    setProductImage(null);
+    window.setTimeout(() => nameInputRef.current?.focus(), 100);
   };
 
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
-    const draft = readStockMovementDraft();
-    const duplicate = draft?.items.some((item) => {
-      return item.newProductData?.name.toLowerCase() === data.name.toLowerCase();
-    });
-    if (duplicate) {
+    if (hasDuplicateInlineProductName(data.name, readStockMovementDraft())) {
       toast.error(`O produto "${data.name}" já foi adicionado nesta movimentação.`);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      writeInlineProduct({
-        name: data.name,
-        description: data.description || undefined,
-        barcode: data.barcode || undefined,
-        categoryId: data.categoryId || undefined,
-        brandId: data.brandId || undefined,
-        isKit: data.isKit,
-        hasExpiration: data.hasExpiration,
-        active: data.active,
-        attributes: mergeAttributes(data),
-        manufacturedDate: data.manufacturedDate || undefined,
-        expirationDate: data.expirationDate || undefined,
-        costPrice: data.costPrice,
-        sellingPrice: data.sellingPrice,
-        image: await resolveInlineImage(),
+      const product = await buildInlineProductData(
+        data,
+        mergeAttributes(data),
+        productImage,
+      );
+      appendInlineProductItem({
+        product,
+        quantity: data.quantity,
       });
+      if (data.continuousMode) {
+        toast.success(`${data.name} adicionado ao lote.`);
+        resetInlineFormForNextProduct();
+        return;
+      }
+
       router.push(cancelHref);
     } catch {
       toast.error("Não foi possível preparar a imagem do produto.");
@@ -203,5 +254,6 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     nameInputRef,
     warehouseId: null,
     cancelHref,
+    onCancel: clearInlineProductItems,
   };
 };

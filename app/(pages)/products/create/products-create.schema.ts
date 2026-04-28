@@ -31,6 +31,12 @@ const hasRequiredExpirationDate = (
   return !data.hasExpiration || Boolean(data.expirationDate);
 };
 
+const hasPositiveQuantity = (
+  data: z.infer<typeof productBaseSchema>,
+): boolean => {
+  return data.quantity > 0;
+};
+
 export const productCreateSchema = productBaseSchema
   .refine(hasRequiredExpirationDate, {
     message:
@@ -39,6 +45,10 @@ export const productCreateSchema = productBaseSchema
   });
 
 export const productInlineSchema = productBaseSchema
+  .refine(hasPositiveQuantity, {
+    message: "Quantidade deve ser maior que zero",
+    path: ["quantity"],
+  })
   .refine(hasRequiredExpirationDate, {
     message:
       "Data de validade é obrigatória para produtos com controle de validade",

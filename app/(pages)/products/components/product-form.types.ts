@@ -102,6 +102,7 @@ export interface ProductFormProps {
   nameInputRef: React.RefObject<HTMLInputElement | null>;
   warehouseId: string | null;
   cancelHref?: string;
+  onCancel?: () => void;
   isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
   batchesDrawer?: BatchesDrawerProps;
 }
