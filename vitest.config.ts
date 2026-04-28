@@ -14,6 +14,7 @@ export default defineConfig({
       "**/.{idea,git,cache,output,temp}/**",
       "**/.worktrees/**",
       "**/worktrees/**",
+      "**/e2e/**",
     ],
   },
   resolve: {

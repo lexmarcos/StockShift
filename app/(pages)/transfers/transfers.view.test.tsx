@@ -20,7 +20,6 @@ vi.mock("lucide-react", () => ({
   AlertTriangle: () => <span data-testid="icon-alert" />,
 }));
 
-// Mock Link
 vi.mock("next/link", () => ({
   default: ({
     children,
@@ -31,7 +30,29 @@ vi.mock("next/link", () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
-// Clean up after each test
+vi.mock("@/lib/contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { userId: "1", email: "test@test.com", fullName: "Test User" },
+    isLoading: false,
+    isAuthenticated: true,
+    logout: vi.fn(),
+    hasPermission: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
+vi.mock("@/hooks/use-permission", () => ({
+  usePermission: () => ({
+    can: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
+afterEach(() => {
+  cleanup();
+});
 afterEach(() => {
   cleanup();
 });

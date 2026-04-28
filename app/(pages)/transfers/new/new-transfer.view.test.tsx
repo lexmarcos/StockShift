@@ -14,6 +14,18 @@ vi.mock("@/components/ui/tooltip", () => ({
   TooltipContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock("@/lib/contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { userId: "1", email: "test@test.com", fullName: "Test User" },
+    isLoading: false,
+    isAuthenticated: true,
+    logout: vi.fn(),
+    hasPermission: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
 const TestWrapper = (props: Partial<NewTransferViewProps>) => {
   const form = useForm<NewTransferSchema>({
     resolver: zodResolver(newTransferSchema),

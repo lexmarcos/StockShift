@@ -14,6 +14,18 @@ vi.mock("next/link", () => ({
   }) => <a {...props}>{children}</a>,
 }));
 
+vi.mock("@/lib/contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { userId: "1", email: "test@test.com", fullName: "Test User" },
+    isLoading: false,
+    isAuthenticated: true,
+    logout: vi.fn(),
+    hasPermission: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
 const baseProduct: Product = {
   id: "prod-1",
   name: "Perfume Teste",
