@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { productCreateSchema } from "./products-create.schema";
+import { productCreateSchema, productInlineSchema } from "./products-create.schema";
 
 const baseData = {
   name: "Produto",
@@ -30,6 +30,17 @@ describe("productCreateSchema price validation", () => {
     const result = productCreateSchema.safeParse({
       ...baseData,
       sellingPrice: 19.9,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("productInlineSchema expiration validation", () => {
+  it("requires expiration date when expiration control is enabled", () => {
+    const result = productInlineSchema.safeParse({
+      ...baseData,
+      hasExpiration: true,
+      expirationDate: "",
     });
     expect(result.success).toBe(false);
   });

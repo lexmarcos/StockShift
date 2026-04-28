@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildInfinitePayDeeplink } from "./infinitepay";
+import {
+  buildInfinitePayCallbackUrl,
+  buildInfinitePayDeeplink,
+} from "./infinitepay";
 
 function getDeeplinkParams(deeplink: string): URLSearchParams {
   const query = deeplink.split("?")[1] || "";
@@ -44,5 +47,13 @@ describe("buildInfinitePayDeeplink", () => {
     expect(queryParams.has("installments")).toBe(false);
     expect(queryParams.has("handle")).toBe(false);
     expect(queryParams.has("doc_number")).toBe(false);
+  });
+});
+
+describe("buildInfinitePayCallbackUrl", () => {
+  it("builds the frontend callback URL from the current origin", () => {
+    expect(buildInfinitePayCallbackUrl("https://app.stockshift.com/")).toBe(
+      "https://app.stockshift.com/sales/infinitepay/callback",
+    );
   });
 });

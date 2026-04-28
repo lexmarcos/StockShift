@@ -58,6 +58,8 @@ Request:
       "quantity": 4,
       "costPrice": 1290,
       "sellingPrice": 2490,
+      "manufacturedDate": "2026-04-01",
+      "expirationDate": "2026-12-31",
       "newProduct": {
         "name": "Produto configurado durante a compra",
         "description": "Criado somente ao registrar a movimentacao",
@@ -86,6 +88,7 @@ Regras:
   - Produto novo: `newProduct` com o mesmo formato JSON de `POST /api/products`.
 - Produtos em `newProduct` sao persistidos dentro da mesma transacao da movimentacao.
 - `costPrice` e `sellingPrice` sao opcionais, enviados em centavos no item da movimentacao, e aplicados ao batch criado para o produto novo.
+- `manufacturedDate` e `expirationDate` sao opcionais, enviados no item da movimentacao, e aplicados ao batch criado em movimentos de entrada.
 - Para imagem de produto novo, envie multipart com:
   - `movement`: Blob JSON do request acima (`application/json`).
   - `inlineProductImages`: uma parte de arquivo para cada produto novo, na mesma ordem em que esses produtos aparecem em `items`; quando um produto novo nao tiver imagem, envie uma parte vazia para preservar o pareamento.

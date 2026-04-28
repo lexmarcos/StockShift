@@ -46,6 +46,8 @@ const buildMovementItemPayload = (
   return {
     quantity: item.quantity,
     newProduct,
+    manufacturedDate: item.newProductData.manufacturedDate,
+    expirationDate: item.newProductData.expirationDate,
     costPrice: item.newProductData.costPrice,
     sellingPrice: item.newProductData.sellingPrice,
   };

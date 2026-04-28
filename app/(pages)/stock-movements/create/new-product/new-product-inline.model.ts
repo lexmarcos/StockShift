@@ -167,6 +167,8 @@ export const useNewProductInlineModel = (): ProductFormProps => {
         hasExpiration: data.hasExpiration,
         active: data.active,
         attributes: mergeAttributes(data),
+        manufacturedDate: data.manufacturedDate || undefined,
+        expirationDate: data.expirationDate || undefined,
         costPrice: data.costPrice,
         sellingPrice: data.sellingPrice,
         image: await resolveInlineImage(),

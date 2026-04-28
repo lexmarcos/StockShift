@@ -174,6 +174,25 @@ describe("ProductForm batches drawer", () => {
 });
 
 describe("ProductForm price formatting", () => {
+  it("renders batch date fields in inline mode", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="inline"
+        batchesDrawer={undefined}
+        defaultValues={{ hasExpiration: true }}
+      />
+    );
+    expect(screen.getByText(/fabrica..o/i)).toBeTruthy();
+    expect(
+      screen.getByText((_, element) => {
+        return element?.tagName === "LABEL"
+          && element.textContent?.trim().startsWith("Validade") === true;
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/qtd. inicial/i)).toBeNull();
+  });
+
   it("renders main prices as BRL", () => {
     render(
       <Wrapper

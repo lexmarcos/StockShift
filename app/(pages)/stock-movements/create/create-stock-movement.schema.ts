@@ -17,6 +17,8 @@ export const inlineProductSchema = z.object({
   hasExpiration: z.boolean().optional(),
   active: z.boolean().optional(),
   attributes: z.record(z.string(), z.string()).optional(),
+  manufacturedDate: z.string().optional(),
+  expirationDate: z.string().optional(),
   costPrice: z.number().int().min(0).optional(),
   sellingPrice: z.number().int().min(0).optional(),
   image: inlineProductImageSchema.optional(),

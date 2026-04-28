@@ -109,6 +109,8 @@ export const ProductForm = ({
   const batchesDrawerState = mode === "edit" ? batchesDrawer : undefined;
   const isInlineMode = mode === "inline";
   const showPricingCard = mode === "create" || isInlineMode;
+  const showInitialQuantityField = mode === "create";
+  const showBatchDateFields = mode === "create" || isInlineMode;
   const productCancelHref = cancelHref || "/products";
   const submitLabel = isInlineMode
     ? "Adicionar Produto"
@@ -425,76 +427,85 @@ export const ProductForm = ({
                         </div>
                       </div>
 
-                      {mode === "create" && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <FormField
-                          control={form.control}
-                          name="quantity"
-                          render={({ field }) => {
-                            const { onChange, value, ...rest } = field;
-                            return (
+                      {showBatchDateFields && (
+                        <div
+                          className={cn(
+                            "grid grid-cols-1 gap-5",
+                            showInitialQuantityField
+                              ? "md:grid-cols-3"
+                              : "md:grid-cols-2",
+                          )}
+                        >
+                          {showInitialQuantityField && (
+                            <FormField
+                              control={form.control}
+                              name="quantity"
+                              render={({ field }) => {
+                                const { onChange, value, ...rest } = field;
+                                return (
+                                  <FormItem>
+                                    <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                      Qtd. Inicial{" "}
+                                      <span className="text-rose-500">*</span>
+                                    </FormLabel>
+                                    <FormControl>
+                                      <NumberInput
+                                        {...rest}
+                                        value={value}
+                                        onValueChange={onChange}
+                                        mode="integer"
+                                        placeholder="0"
+                                        className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                      />
+                                    </FormControl>
+                                    <FormMessage className="text-xs text-rose-500" />
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          )}
+                          <FormField
+                            control={form.control}
+                            name="manufacturedDate"
+                            render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                  Qtd. Inicial{" "}
-                                  <span className="text-rose-500">*</span>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                                  <Calendar className="h-3 w-3" /> Fabricação
                                 </FormLabel>
                                 <FormControl>
-                                  <NumberInput
-                                    {...rest}
-                                    value={value}
-                                    onValueChange={onChange}
-                                    mode="integer"
-                                    placeholder="0"
+                                  <Input
+                                    type="date"
                                     className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                    {...field}
                                   />
                                 </FormControl>
                                 <FormMessage className="text-xs text-rose-500" />
                               </FormItem>
-                            );
-                          }}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="manufacturedDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                                <Calendar className="h-3 w-3" /> Fabricação
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="date"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="expirationDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                                <Calendar className="h-3 w-3" /> Validade
-                                {hasExpiration && (
-                                  <span className="text-rose-500">*</span>
-                                )}
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="date"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 disabled:opacity-50"
-                                  disabled={!hasExpiration}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          )}
-                        />
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="expirationDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+                                  <Calendar className="h-3 w-3" /> Validade
+                                  {hasExpiration && (
+                                    <span className="text-rose-500">*</span>
+                                  )}
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 disabled:opacity-50"
+                                    disabled={!hasExpiration}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs text-rose-500" />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       )}
                     </CardContent>

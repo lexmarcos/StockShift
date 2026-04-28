@@ -7,6 +7,18 @@ vi.mock("next/link", () => ({
   default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
 }));
 
+vi.mock("@/lib/contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { userId: "1", email: "test@test.com", fullName: "Test User" },
+    isLoading: false,
+    isAuthenticated: true,
+    logout: vi.fn(),
+    hasPermission: () => true,
+    hasRole: () => false,
+    isAdmin: false,
+  }),
+}));
+
 vi.mock("@/components/product/scanner-drawer/scanner-drawer", () => ({
   ScannerDrawer: () => null,
 }));

@@ -11,6 +11,8 @@ export interface InlineProductData {
   hasExpiration?: boolean;
   active?: boolean;
   attributes?: Record<string, string>;
+  manufacturedDate?: string;
+  expirationDate?: string;
   costPrice?: number;
   sellingPrice?: number;
   image?: InlineProductImageData;

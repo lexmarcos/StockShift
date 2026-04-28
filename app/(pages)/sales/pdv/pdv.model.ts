@@ -10,6 +10,7 @@ import { CartItem, BatchOption, ProductWithStock, PdvViewProps, SaleDrawerStep }
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
+  buildInfinitePayCallbackUrl,
   buildInfinitePayDeeplink,
   mapPaymentMethodToInfinitePay,
 } from "@/lib/infinitepay";
@@ -283,8 +284,7 @@ export function usePdvModel(): PdvViewProps {
         if (paymentMode === "TAP") {
           const saleId = res.data.id;
           const config = infinitepayConfig?.data;
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
-          const backendCallbackUrl = `${apiBaseUrl}/api/sales/infinitepay/callback`;
+          const frontendCallbackUrl = buildInfinitePayCallbackUrl(window.location.origin);
 
           const deeplink = buildInfinitePayDeeplink({
             amount: total,
@@ -293,7 +293,7 @@ export function usePdvModel(): PdvViewProps {
             orderId: saleId,
             handle: config?.handle,
             docNumber: config?.docNumber,
-            resultUrl: backendCallbackUrl,
+            resultUrl: frontendCallbackUrl,
           });
 
           toast.info("Abrindo InfinitePay para pagamento...");

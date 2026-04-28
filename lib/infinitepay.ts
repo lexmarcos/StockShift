@@ -1,4 +1,5 @@
 const INFINITEPAY_DEEPLINK_BASE = "infinitepaydash://infinitetap-app";
+const INFINITEPAY_CALLBACK_PATH = "/sales/infinitepay/callback";
 
 export interface InfinitePayParams {
   amount: number;
@@ -43,6 +44,10 @@ export function buildInfinitePayDeeplink(params: InfinitePayParams): string {
   }
 
   return `${INFINITEPAY_DEEPLINK_BASE}?${queryParams.toString()}`;
+}
+
+export function buildInfinitePayCallbackUrl(origin: string): string {
+  return `${origin.replace(/\/+$/, "")}${INFINITEPAY_CALLBACK_PATH}`;
 }
 
 export const INFINITEPAY_PAYMENT_METHODS = new Set([
