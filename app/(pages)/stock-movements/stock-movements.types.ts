@@ -64,15 +64,31 @@ export interface StockMovementsResponse {
 
 export type SortField = "createdAt" | "type" | "code" | "direction";
 export type SortOrder = "asc" | "desc";
+export type DateFilterPreset =
+  | "ALL"
+  | "TODAY"
+  | "LAST_7_DAYS"
+  | "THIS_MONTH"
+  | "CUSTOM";
 
 export interface StockMovementFilters {
   type?: StockMovementType | "ALL";
   dateFrom?: string;
   dateTo?: string;
+  datePreset: DateFilterPreset;
   sortBy: SortField;
   sortOrder: SortOrder;
   page: number;
   pageSize: number;
+}
+
+export interface StockMovementFilterDraft {
+  type: StockMovementType | "ALL";
+  dateFrom?: string;
+  dateTo?: string;
+  datePreset: DateFilterPreset;
+  sortBy: SortField;
+  sortOrder: SortOrder;
 }
 
 export interface StockMovementsViewProps {
@@ -80,6 +96,8 @@ export interface StockMovementsViewProps {
   isLoading: boolean;
   error: Error | null;
   filters: StockMovementFilters;
+  mobileFiltersDraft: StockMovementFilterDraft;
+  isMobileFiltersOpen: boolean;
   pagination: {
     page: number;
     pageSize: number;
@@ -88,6 +106,21 @@ export interface StockMovementsViewProps {
   };
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  onFilterChange: (key: keyof StockMovementFilters, value: unknown) => void;
+  onFilterChange: <K extends keyof StockMovementFilters>(
+    key: K,
+    value: StockMovementFilters[K],
+  ) => void;
   onSortChange: (sortBy: SortField, sortOrder: SortOrder) => void;
+  onDatePresetChange: (preset: DateFilterPreset) => void;
+  onDateInputChange: (key: "dateFrom" | "dateTo", value: string) => void;
+  onOpenMobileFilters: () => void;
+  onCloseMobileFilters: () => void;
+  onApplyMobileFilters: () => void;
+  onClearMobileFilters: () => void;
+  onMobileDatePresetChange: (preset: DateFilterPreset) => void;
+  onMobileDateInputChange: (key: "dateFrom" | "dateTo", value: string) => void;
+  onMobileFilterDraftChange: <K extends keyof StockMovementFilterDraft>(
+    key: K,
+    value: StockMovementFilterDraft[K],
+  ) => void;
 }
