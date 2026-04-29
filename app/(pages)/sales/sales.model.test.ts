@@ -190,7 +190,7 @@ describe("useSalesModel", () => {
     });
 
     expect(salesRequest).toBe(
-      "sales?warehouseId=wh-1&page=0&size=20&paymentMethod=PIX&dateFrom=2026-01-01&dateTo=2026-01-31"
+      "sales?warehouseId=wh-1&page=0&size=20&paymentMethod=PIX&dateFrom=2026-01-01T00%3A00%3A00&dateTo=2026-01-31T23%3A59%3A59"
     );
   });
 

@@ -163,6 +163,9 @@ describe("useStockMovementsModel", () => {
     );
     expect(result.current.filters).toEqual({
       type: "ALL",
+      datePreset: "ALL",
+      dateFrom: undefined,
+      dateTo: undefined,
       sortBy: "createdAt",
       sortOrder: "desc",
       page: 0,
@@ -260,6 +263,7 @@ describe("useStockMovementsModel", () => {
 
     expect(result.current.filters).toEqual({
       type: "SALE",
+      datePreset: "ALL",
       sortBy: "code",
       sortOrder: "asc",
       page: 0,
@@ -268,7 +272,7 @@ describe("useStockMovementsModel", () => {
       dateTo: "2026-04-10",
     });
     expect(fakeSWR.hook).toHaveBeenLastCalledWith(
-      "stock-movements?warehouseId=wh-1&page=0&size=50&sort=code%2Casc&type=SALE&dateFrom=2026-04-01&dateTo=2026-04-10",
+      "stock-movements?warehouseId=wh-1&page=0&size=50&sort=code%2Casc&type=SALE&dateFrom=2026-04-01T00%3A00%3A00&dateTo=2026-04-10T23%3A59%3A59",
       expect.any(Function),
     );
   });

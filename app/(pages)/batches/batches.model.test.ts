@@ -215,11 +215,15 @@ describe("useBatchesModel", () => {
     act(() => {
       result.current.setSearchQuery("low");
       result.current.setStatus("low");
-      result.current.setSortConfig({ key: "quantity", direction: "asc" });
+      result.current.onSortChange("quantity");
     });
 
     expect(result.current.filters.searchQuery).toBe("low");
     expect(result.current.filters.status).toBe("low");
+    expect(result.current.sortConfig).toEqual({
+      key: "quantity",
+      direction: "asc",
+    });
 
     act(() => {
       result.current.onClearFilters();
