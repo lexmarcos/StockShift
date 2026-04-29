@@ -83,6 +83,7 @@ describe("loginSchema", () => {
 describe("useLoginModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it("should initialize with default form values and state", () => {
@@ -127,6 +128,24 @@ describe("useLoginModel", () => {
     expect(toast.success).toHaveBeenCalledWith("Login realizado com sucesso!");
     expect(mockPush).toHaveBeenCalledWith("/warehouses");
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it("should clear stale selected warehouse after successful login", async () => {
+    localStorage.setItem("selected-warehouse-id", "old-warehouse");
+    mockApiPost.mockReturnValue({
+      json: () => Promise.resolve(successfulLoginResponse),
+    });
+
+    const { result } = renderHook(() => useLoginModel());
+
+    await act(async () => {
+      await result.current.onSubmit({
+        email: "user@example.com",
+        password: "123456",
+      });
+    });
+
+    expect(localStorage.getItem("selected-warehouse-id")).toBeNull();
   });
 
   it("should redirect to /change-password when mustChangePassword is true", async () => {

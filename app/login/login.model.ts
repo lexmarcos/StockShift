@@ -10,6 +10,8 @@ import { useAuth } from "@/lib/contexts/auth-context";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { HTTPError } from "ky";
 
+const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
+
 export const useLoginModel = () => {
   const router = useRouter();
   const { setUser } = useAuth();
@@ -59,6 +61,7 @@ export const useLoginModel = () => {
 
       if (response.success) {
         setRequiresCaptcha(response.data.requiresCaptcha);
+        localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
         setUser({
           userId: response.data.userId,
           email: response.data.email,

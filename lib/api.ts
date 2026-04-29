@@ -26,6 +26,27 @@ const processQueue = (error: Error | null = null) => {
   failedQueue = [];
 };
 
+interface ApiErrorBody {
+  error?: string;
+}
+
+export const shouldRefreshAccessToken = async (response: Response) => {
+  if (response.status === 401) {
+    return true;
+  }
+
+  if (response.status !== 403) {
+    return false;
+  }
+
+  try {
+    const body = (await response.clone().json()) as ApiErrorBody;
+    return body.error !== "Forbidden";
+  } catch {
+    return true;
+  }
+};
+
 const redirectToLogin = () => {
   if (typeof window === "undefined" || isRedirectingToLogin) return;
   isRedirectingToLogin = true;
@@ -65,8 +86,7 @@ export const api = ky.create({
         // Se já estamos redirecionando, não processa mais nada
         if (isRedirectingToLogin) return response;
 
-        // Se receber 403, tenta refresh automaticamente
-        if (response.status === 403) {
+        if (await shouldRefreshAccessToken(response)) {
           if (!isRefreshing) {
             isRefreshing = true;
 
