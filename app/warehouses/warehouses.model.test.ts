@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useWarehousesModel } from "./warehouses.model";
 import useSWR from "swr";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 vi.mock("swr", () => ({
   default: vi.fn(),
@@ -284,5 +286,134 @@ describe("useWarehousesModel", () => {
     });
 
     expect(result.current.warehouses).toHaveLength(2);
+  });
+
+  it("should sort by created date and search by code", () => {
+    const { result } = renderHook(() => useWarehousesModel());
+
+    act(() => {
+      result.current.setSearchQuery("WH-002");
+      result.current.handleSort("createdAt");
+    });
+
+    expect(result.current.warehouses).toHaveLength(1);
+    expect(result.current.warehouses[0].code).toBe("WH-002");
+    expect(result.current.sortConfig).toEqual({
+      key: "createdAt",
+      direction: "asc",
+    });
+  });
+
+  it("should create and update warehouse successfully", async () => {
+    const { result } = renderHook(() => useWarehousesModel());
+    const payload = {
+      name: "Novo",
+      address: "",
+      city: "São Paulo",
+      state: "SP",
+      isActive: true,
+    };
+
+    act(() => {
+      result.current.openCreateModal();
+    });
+
+    await act(async () => {
+      await result.current.onSubmit(payload);
+    });
+
+    expect(api.post).toHaveBeenCalledWith("warehouses", { json: payload });
+    expect(toast.success).toHaveBeenCalledWith("Warehouse created successfully");
+
+    act(() => {
+      result.current.openEditModal(result.current.warehouses[0]);
+    });
+
+    await act(async () => {
+      await result.current.onSubmit(payload);
+    });
+
+    expect(api.put).toHaveBeenCalledWith("warehouses/1", { json: payload });
+    expect(toast.success).toHaveBeenCalledWith("Warehouse updated successfully");
+  });
+
+  it("should show save fallback error when submit fails", async () => {
+    vi.mocked(api.post).mockImplementationOnce(() => {
+      throw {};
+    });
+    const { result } = renderHook(() => useWarehousesModel());
+
+    await act(async () => {
+      await result.current.onSubmit({
+        name: "Novo",
+        address: "",
+        city: "São Paulo",
+        state: "SP",
+        isActive: true,
+      });
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Erro ao salvar armazém. Tente novamente.");
+  });
+
+  it("should select warehouse and handle selection errors", async () => {
+    const { result } = renderHook(() => useWarehousesModel());
+
+    await act(async () => {
+      await result.current.onSelectWarehouse("2");
+    });
+
+    expect(api.post).toHaveBeenCalledWith("auth/switch-warehouse", {
+      json: { warehouseId: "2" },
+    });
+    expect(toast.success).toHaveBeenCalledWith("Warehouse created successfully");
+
+    vi.mocked(api.post).mockImplementationOnce(() => {
+      throw { response: { data: { message: "Sem acesso" } } };
+    });
+
+    await act(async () => {
+      await result.current.onSelectWarehouse("blocked");
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Sem acesso");
+  });
+
+  it("should delete warehouse and handle blocked stock error", async () => {
+    const { result } = renderHook(() => useWarehousesModel());
+
+    act(() => {
+      result.current.openDeleteDialog(result.current.warehouses[0]);
+    });
+
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+
+    expect(api.delete).toHaveBeenCalledWith("warehouses/1");
+    expect(toast.success).toHaveBeenCalledWith("Warehouse deleted successfully");
+    expect(result.current.isDeleting).toBe(false);
+
+    vi.mocked(api.delete).mockImplementationOnce(() => {
+      throw {
+        response: {
+          status: 400,
+          data: { message: "warehouse has stock" },
+        },
+      };
+    });
+
+    act(() => {
+      result.current.openDeleteDialog(result.current.warehouses[1]);
+    });
+
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+
+    expect(toast.error).toHaveBeenCalledWith(
+      "warehouse has stock. Desative o armazém ou transfira o estoque primeiro.",
+    );
+    expect(result.current.isDeleting).toBe(false);
   });
 });

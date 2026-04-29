@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useProductsModel } from "./products.model";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const mockMutate = vi.fn();
 const mockGet = vi.fn();
@@ -179,6 +181,10 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
     });
 
+    await waitFor(() => {
+      expect(result.current.deleteProduct?.id).toBe("prod-1");
+    });
+
     await act(async () => {
       await result.current.onConfirmDelete();
     });
@@ -233,5 +239,120 @@ describe("useProductsModel - delete flow", () => {
     expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
     expect(result.current.secondConfirmOpen).toBe(false);
     expect(result.current.deleteDialogOpen).toBe(false);
+  });
+
+  it("updates pagination, search and sort filters", () => {
+    const { result } = renderHook(() => useProductsModel());
+
+    act(() => {
+      result.current.onPageChange(2);
+      result.current.onPageSizeChange(50);
+      result.current.onSearchChange("cafe");
+      result.current.onSortChange("createdAt", "desc");
+    });
+
+    expect(result.current.filters).toMatchObject({
+      page: 0,
+      pageSize: 50,
+      searchQuery: "cafe",
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
+    expect(result.current.pagination.totalElements).toBe(1);
+  });
+
+  it("closes both delete dialogs and clears transient state", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({
+        success: true,
+        data: [
+          {
+            id: "b1",
+            productId: "prod-1",
+            productName: "Produto Teste",
+            warehouseId: "wh-1",
+            quantity: 1,
+            batchNumber: "L1",
+            expirationDate: null,
+          },
+        ],
+      })),
+    });
+
+    const { result } = renderHook(() => useProductsModel());
+
+    await act(async () => {
+      await result.current.onOpenDeleteDialog(result.current.products[0]);
+    });
+
+    await act(async () => {
+      await result.current.onConfirmDelete();
+    });
+
+    act(() => {
+      result.current.onCloseSecondConfirm();
+    });
+
+    expect(result.current.deleteDialogOpen).toBe(false);
+    expect(result.current.secondConfirmOpen).toBe(false);
+    expect(result.current.deleteProduct).toBeNull();
+    expect(result.current.deleteBatches).toEqual([]);
+  });
+
+  it("shows API message when checking batches fails", async () => {
+    mockGet.mockImplementationOnce(() => {
+      throw { response: { data: { message: "Falha ao verificar" } } };
+    });
+
+    const { result } = renderHook(() => useProductsModel());
+
+    await act(async () => {
+      await result.current.onOpenDeleteDialog(result.current.products[0]);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Falha ao verificar");
+    expect(result.current.isCheckingDeleteBatches).toBe(false);
+  });
+
+  it("shows fallback message when second confirm delete request fails", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({
+        success: true,
+        data: [
+          {
+            id: "b1",
+            productId: "prod-1",
+            productName: "Produto Teste",
+            warehouseId: "wh-1",
+            quantity: 1,
+            batchNumber: "L1",
+            expirationDate: null,
+          },
+        ],
+      })),
+    });
+    mockDelete.mockImplementationOnce(() => {
+      throw {};
+    });
+
+    const { result } = renderHook(() => useProductsModel());
+
+    await act(async () => {
+      await result.current.onOpenDeleteDialog(result.current.products[0]);
+    });
+
+    await act(async () => {
+      await result.current.onConfirmDelete();
+    });
+
+    expect(result.current.secondConfirmOpen).toBe(true);
+
+    await act(async () => {
+      await result.current.onSecondConfirmDelete();
+    });
+
+    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
+    expect(toast.error).toHaveBeenCalledWith("Erro ao remover produto do armazém");
+    expect(result.current.isDeletingProduct).toBe(false);
   });
 });
