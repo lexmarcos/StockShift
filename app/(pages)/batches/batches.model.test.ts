@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   deriveBatchStatus,
   filterBatches,
@@ -80,6 +80,26 @@ describe("batches model helpers", () => {
     expect(status.kind).toBe("expiring");
   });
 
+  it("marks low stock when quantity is below threshold and no valid expiration exists", () => {
+    const status = deriveBatchStatus(
+      { ...baseBatch, quantity: 3, expirationDate: "" },
+      { today: new Date("2026-01-10"), lowStockThreshold: 10 }
+    );
+
+    expect(status.kind).toBe("low");
+    expect(status.label).toBe("Baixo");
+  });
+
+  it("marks ok when quantity is above threshold and expiration is invalid", () => {
+    const status = deriveBatchStatus(
+      { ...baseBatch, quantity: 20, expirationDate: "not-a-date" },
+      { today: new Date("2026-01-10"), lowStockThreshold: 10 }
+    );
+
+    expect(status.kind).toBe("ok");
+    expect(status.label).toBe("OK");
+  });
+
   it("filters by search and warehouse", () => {
     const batches: Batch[] = [
       baseBatch,
@@ -97,6 +117,24 @@ describe("batches model helpers", () => {
     expect(filtered[0].id).toBe("b2");
   });
 
+  it("filters by derived status and rejects unmatched warehouse/search", () => {
+    const batches: Batch[] = [
+      { ...baseBatch, id: "expired", expirationDate: "2020-01-01" },
+      { ...baseBatch, id: "low", quantity: 2, expirationDate: "" },
+      { ...baseBatch, id: "other-wh", warehouseId: "w2", quantity: 2 },
+      { ...baseBatch, id: "other-search", productName: "Outro" },
+    ];
+
+    const filtered = filterBatches(batches, {
+      searchQuery: "produto",
+      warehouseId: "w1",
+      status: "low",
+      lowStockThreshold: 10,
+    });
+
+    expect(filtered.map((batch) => batch.id)).toEqual(["low"]);
+  });
+
   it("sorts by quantity desc", () => {
     const batches: Batch[] = [
       { ...baseBatch, id: "b1", quantity: 5 },
@@ -105,6 +143,29 @@ describe("batches model helpers", () => {
 
     const sorted = sortBatches(batches, { key: "quantity", direction: "desc" });
     expect(sorted[0].id).toBe("b2");
+  });
+
+  it("sorts by product, expiration and createdAt", () => {
+    const batches: Batch[] = [
+      {
+        ...baseBatch,
+        id: "b1",
+        productName: "Zeta",
+        expirationDate: "",
+        createdAt: "2026-01-03T00:00:00Z",
+      },
+      {
+        ...baseBatch,
+        id: "b2",
+        productName: "Alfa",
+        expirationDate: "2026-01-02",
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+    ];
+
+    expect(sortBatches(batches, { key: "product", direction: "asc" })[0].id).toBe("b2");
+    expect(sortBatches(batches, { key: "expiration", direction: "asc" })[0].id).toBe("b1");
+    expect(sortBatches(batches, { key: "createdAt", direction: "desc" })[0].id).toBe("b1");
   });
 });
 
@@ -121,5 +182,53 @@ describe("useBatchesModel", () => {
     await waitFor(() => {
       expect(result.current.filters.warehouseId).toBe("wh-1");
     });
+  });
+
+  it("updates search, status, sort, counts statuses and clears filters", async () => {
+    const { useSelectedWarehouse } = await import("@/hooks/use-selected-warehouse");
+    vi.mocked(useSelectedWarehouse).mockReturnValue({
+      warehouseId: "w1",
+      setWarehouseId: vi.fn(),
+    });
+    const refresh = vi.fn();
+    swrMock.mockReturnValue({
+      data: {
+        data: [
+          { ...baseBatch, id: "expired", expirationDate: "2020-01-01" },
+          { ...baseBatch, id: "expiring", expirationDate: "2026-05-10" },
+          { ...baseBatch, id: "low", quantity: 2, expirationDate: "" },
+        ],
+      },
+      error: null,
+      isLoading: false,
+      mutate: refresh,
+    });
+
+    const { result } = renderHook(() => useBatchesModel());
+
+    expect(result.current.statusCounts).toEqual({
+      expired: 1,
+      expiring: 1,
+      low: 1,
+    });
+
+    act(() => {
+      result.current.setSearchQuery("low");
+      result.current.setStatus("low");
+      result.current.setSortConfig({ key: "quantity", direction: "asc" });
+    });
+
+    expect(result.current.filters.searchQuery).toBe("low");
+    expect(result.current.filters.status).toBe("low");
+
+    act(() => {
+      result.current.onClearFilters();
+    });
+
+    expect(result.current.filters.searchQuery).toBe("");
+    expect(result.current.filters.status).toBe("all");
+
+    result.current.refresh();
+    expect(refresh).toHaveBeenCalled();
   });
 });

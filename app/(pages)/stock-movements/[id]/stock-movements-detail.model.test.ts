@@ -43,7 +43,7 @@ const fakeSWR = vi.hoisted(() => {
 
 const fakeApi = vi.hoisted(() => {
   class FakeApi {
-    public readonly get = vi.fn<(url: string) => Promise<{ json: () => Promise<unknown> }>>();
+    public readonly get = vi.fn<(url: string) => { json: () => Promise<unknown> }>();
   }
 
   return new FakeApi();
@@ -139,7 +139,7 @@ beforeEach(() => {
   fakeSWR.reset();
   fakeApi.get.mockReset();
   fakeBreadcrumb.useBreadcrumb.mockClear();
-  fakeApi.get.mockResolvedValue({
+  fakeApi.get.mockReturnValue({
     json: vi.fn(async () => undefined),
   });
 });
@@ -264,5 +264,57 @@ describe("useStockMovementDetailModel", () => {
       null,
       null,
     ]);
+  });
+
+  it("executa fetchers de detalhe, preços e imagens com ids únicos", async () => {
+    fakeApi.get.mockImplementation((url: string) => ({
+      json: vi.fn(async () => {
+        if (url === "stock-movements/mv-100") return movementDetailResponse;
+        if (url === "batches/batch-1") {
+          return { success: true, data: { costPrice: 3.5, sellingPrice: 5.5 } };
+        }
+        if (url === "batches/batch-2") {
+          return { success: true, data: { costPrice: null, sellingPrice: 9.9 } };
+        }
+        if (url === "products/prod-1") {
+          return { success: true, data: { id: "prod-1", imageUrl: "cafe.png" } };
+        }
+        if (url === "products/prod-2") {
+          return { success: true, data: { id: "prod-2", imageUrl: null } };
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      }),
+    }));
+
+    renderHook(() => useStockMovementDetailModel("mv-100"));
+
+    const detailFetcher = fakeSWR.hook.mock.calls[0][1] as (url: string) => Promise<StockMovementDetailResponse>;
+    const detail = await detailFetcher("stock-movements/mv-100");
+    expect(detail.data.code).toBe("MV-100");
+
+    fakeSWR.setState("stock-movements/mv-100", {
+      data: movementDetailResponse,
+      error: null,
+      isLoading: false,
+      mutate: vi.fn(),
+    });
+
+    renderHook(() => useStockMovementDetailModel("mv-100"));
+
+    const priceFetcher = fakeSWR.hook.mock.calls[4][1] as () => Promise<BatchPriceInfo[]>;
+    const imageFetcher = fakeSWR.hook.mock.calls[5][1] as () => Promise<Map<string, string | null>>;
+
+    await expect(priceFetcher()).resolves.toEqual([
+      { batchId: "batch-1", costPrice: 3.5, sellingPrice: 5.5 },
+      { batchId: "batch-2", costPrice: null, sellingPrice: 9.9 },
+    ]);
+    await expect(imageFetcher()).resolves.toEqual(
+      new Map([
+        ["prod-1", "cafe.png"],
+        ["prod-2", null],
+      ]),
+    );
+    expect(fakeApi.get).toHaveBeenCalledWith("batches/batch-1");
+    expect(fakeApi.get).toHaveBeenCalledWith("products/prod-2");
   });
 });
