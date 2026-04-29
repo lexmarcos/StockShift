@@ -12,6 +12,9 @@ import {
   TrendingUp,
   ScanLine,
   Pencil,
+  Search,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,13 +25,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageContainer } from "@/components/ui/page-container";
@@ -48,14 +45,20 @@ import {
 export function CreateStockMovementView({
   form,
   onSubmit,
-  products,
   isLoadingProducts,
   isSubmitting,
-  selectedProductId,
   itemQuantity,
+  productSearchQuery,
+  productOptions,
+  isProductOptionsOpen,
+  isProductSearchLoading,
   addItemError,
   isScannerOpen,
-  onProductChange,
+  onProductSearchChange,
+  onProductSearchFocus,
+  onProductSearchBlur,
+  onProductSelect,
+  onProductClear,
   onQuantityChange,
   onAddItem,
   onCreateNewProduct,
@@ -190,28 +193,101 @@ export function CreateStockMovementView({
                   <label className="text-xs font-bold text-neutral-400">
                     PRODUTO
                   </label>
-                  <Select
-                    value={selectedProductId}
-                    onValueChange={onProductChange}
-                    disabled={isLoadingProducts}
-                  >
-                    <SelectTrigger className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600 disabled:opacity-40">
-                      <SelectValue
-                        placeholder={
-                          isLoadingProducts
-                            ? "Carregando produtos..."
-                            : "Selecione um produto..."
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-[4px] border-neutral-800 bg-neutral-900">
-                      {products.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                        <Input
+                          value={productSearchQuery}
+                          onChange={(event) =>
+                            onProductSearchChange(event.target.value)
+                          }
+                          onFocus={onProductSearchFocus}
+                          onBlur={onProductSearchBlur}
+                          disabled={isLoadingProducts}
+                          placeholder={
+                            isLoadingProducts
+                              ? "Carregando produtos..."
+                              : "Pesquisar produto por nome, SKU ou código"
+                          }
+                          className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 pl-9 pr-9 text-sm text-white focus:border-blue-600 disabled:opacity-40"
+                        />
+                        {productSearchQuery && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={onProductClear}
+                            className="absolute right-1 top-1 h-8 w-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                            aria-label="Limpar produto"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onScannerOpenChange(true)}
+                        className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                        aria-label="Ler código de barras"
+                      >
+                        <ScanLine className="h-4 w-4" strokeWidth={2.5} />
+                      </Button>
+                    </div>
+
+                    {isProductOptionsOpen &&
+                      (isProductSearchLoading || productOptions.length > 0) && (
+                        <div className="absolute left-0 right-12 top-12 z-30 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
+                          {isProductSearchLoading && (
+                            <div className="flex h-10 items-center gap-2 px-3 text-xs text-neutral-500">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Buscando produtos...
+                            </div>
+                          )}
+                          {!isProductSearchLoading &&
+                            productOptions.map((product) => (
+                              <Button
+                                key={product.id}
+                                type="button"
+                                variant="ghost"
+                                onMouseDown={(event) => event.preventDefault()}
+                                onClick={() => onProductSelect(product)}
+                                className="flex h-auto w-full items-center justify-start gap-3 rounded-none border-b border-neutral-800 px-3 py-2 text-left hover:bg-neutral-800 hover:text-white last:border-b-0"
+                              >
+                                {product.imageUrl ? (
+                                  <span
+                                    role="img"
+                                    aria-label={`Foto de ${product.name}`}
+                                    className="h-10 w-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
+                                    style={{
+                                      backgroundImage: `url("${product.imageUrl}")`,
+                                    }}
+                                  />
+                                ) : (
+                                  <span
+                                    role="img"
+                                    aria-label="Produto sem foto"
+                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
+                                  >
+                                    <Package className="h-4 w-4" />
+                                  </span>
+                                )}
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-semibold text-white">
+                                    {product.name}
+                                  </span>
+                                  <span className="mt-0.5 block truncate text-[10px] font-mono uppercase tracking-wide text-neutral-500">
+                                    {product.sku || "SEM SKU"}
+                                    {product.barcode
+                                      ? ` - ${product.barcode}`
+                                      : ""}
+                                  </span>
+                                </span>
+                              </Button>
+                            ))}
+                        </div>
+                      )}
+                  </div>
                 </div>
 
                 <div className="space-y-2 md:w-48">
@@ -239,15 +315,6 @@ export function CreateStockMovementView({
                 </div>
               </div>
               <div className="flex flex-col justify-end gap-2 sm:flex-row">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onScannerOpenChange(true)}
-                  className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                >
-                  <ScanLine className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
-                  Escanear Código
-                </Button>
                 {!isOutMovement && (
                   <PermissionGate permission="products:create">
                     <Button

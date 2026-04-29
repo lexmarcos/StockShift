@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { UseFormReturn } from "react-hook-form";
 import { LoginFormData } from "./login.schema";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Info, Lock, Mail, Box, AlertCircle } from "lucide-react";
+import { Loader2, Info, Lock, Mail, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
@@ -53,16 +54,18 @@ export const LoginView = ({
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-blue-500/30">
 
       {/* Brand / Logo Area */}
-      <div className="mb-8 flex flex-col items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)]">
-          <Box className="h-8 w-8" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight uppercase text-white">StockShift</h1>
-          <div className="mt-1 flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Sistema de Gestão
-          </div>
+      <div className="mb-8 flex flex-col items-center gap-3">
+        <Image
+          src="/logos/logo-dark.svg"
+          alt="StockShift"
+          width={231}
+          height={100}
+          priority
+          className="h-auto w-[210px]"
+        />
+        <div className="flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-widest text-neutral-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Sistema de Gestão
         </div>
       </div>
 

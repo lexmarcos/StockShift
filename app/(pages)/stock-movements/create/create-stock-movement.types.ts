@@ -31,19 +31,35 @@ export interface StockMovementDraftItem {
   newProductData?: InlineProductData;
 }
 
+export interface StockMovementProductOption {
+  id: string;
+  name: string;
+  sku?: string | null;
+  barcode?: string | null;
+  imageUrl?: string | null;
+}
+
 export interface CreateStockMovementViewProps {
   form: UseFormReturn<CreateStockMovementSchema>;
   onSubmit: (data: CreateStockMovementSchema) => void;
-  products: { id: string; name: string }[];
+  products: StockMovementProductOption[];
   isLoadingProducts: boolean;
   isSubmitting: boolean;
 
   // Item builder state
   selectedProductId: string;
+  productSearchQuery: string;
+  productOptions: StockMovementProductOption[];
+  isProductOptionsOpen: boolean;
+  isProductSearchLoading: boolean;
   itemQuantity: string;
   addItemError: string | null;
   isScannerOpen: boolean;
-  onProductChange: (productId: string) => void;
+  onProductSearchChange: (query: string) => void;
+  onProductSearchFocus: () => void;
+  onProductSearchBlur: () => void;
+  onProductSelect: (product: StockMovementProductOption) => void;
+  onProductClear: () => void;
   onQuantityChange: (value: string) => void;
   onAddItem: () => void;
   onCreateNewProduct: () => void;

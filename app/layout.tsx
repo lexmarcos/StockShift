@@ -19,6 +19,94 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+type AppleStartupImage = {
+  url: string;
+  media?: string;
+};
+
+type AppleStartupScreen = {
+  fileName: string;
+  width: number;
+  height: number;
+  pixelRatio: number;
+  orientation: "portrait" | "landscape";
+};
+
+const SPLASH_SCREEN_BASE_PATH = "/splash_screens";
+
+const appleStartupImageFallbacks: AppleStartupImage[] = [
+  {
+    url: `${SPLASH_SCREEN_BASE_PATH}/iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png`,
+    media: "(orientation: portrait)",
+  },
+  {
+    url: `${SPLASH_SCREEN_BASE_PATH}/iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png`,
+    media: "(orientation: landscape)",
+  },
+];
+
+const appleStartupScreens: AppleStartupScreen[] = [
+  { fileName: "10.2__iPad_landscape.png", width: 2160, height: 1620, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "10.2__iPad_portrait.png", width: 1620, height: 2160, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "10.5__iPad_Air_landscape.png", width: 2224, height: 1668, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "10.5__iPad_Air_portrait.png", width: 1668, height: 2224, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "10.9__iPad_Air_landscape.png", width: 2360, height: 1640, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "10.9__iPad_Air_portrait.png", width: 1640, height: 2360, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "11__iPad_Pro_M4_landscape.png", width: 2420, height: 1668, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "11__iPad_Pro_M4_portrait.png", width: 1668, height: 2420, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "11__iPad_Pro__10.5__iPad_Pro_landscape.png", width: 2388, height: 1668, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "11__iPad_Pro__10.5__iPad_Pro_portrait.png", width: 1668, height: 2388, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "12.9__iPad_Pro_landscape.png", width: 2732, height: 2048, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "12.9__iPad_Pro_portrait.png", width: 2048, height: 2732, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "13__iPad_Pro_M4_landscape.png", width: 2752, height: 2064, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "13__iPad_Pro_M4_portrait.png", width: 2064, height: 2752, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png", width: 1136, height: 640, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "4__iPhone_SE__iPod_touch_5th_generation_and_later_portrait.png", width: 640, height: 1136, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "8.3__iPad_Mini_landscape.png", width: 2266, height: 1488, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "8.3__iPad_Mini_portrait.png", width: 1488, height: 2266, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_landscape.png", width: 2048, height: 1536, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png", width: 1536, height: 2048, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png", width: 2688, height: 1242, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_11_Pro_Max__iPhone_XS_Max_portrait.png", width: 1242, height: 2688, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_11__iPhone_XR_landscape.png", width: 1792, height: 828, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "iPhone_11__iPhone_XR_portrait.png", width: 828, height: 1792, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png", width: 2436, height: 1125, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png", width: 1125, height: 2436, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png", width: 2778, height: 1284, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png", width: 1284, height: 2778, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png", width: 2796, height: 1290, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_portrait.png", width: 1290, height: 2796, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_landscape.png", width: 2556, height: 1179, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png", width: 1179, height: 2556, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png", width: 2868, height: 1320, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_17_Pro_Max__iPhone_16_Pro_Max_portrait.png", width: 1320, height: 2868, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_17_Pro__iPhone_17__iPhone_16_Pro_landscape.png", width: 2622, height: 1206, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_17_Pro__iPhone_17__iPhone_16_Pro_portrait.png", width: 1206, height: 2622, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png", width: 2532, height: 1170, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png", width: 1170, height: 2532, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png", width: 2208, height: 1242, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_portrait.png", width: 1242, height: 2208, pixelRatio: 3, orientation: "portrait" },
+  { fileName: "iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png", width: 1334, height: 750, pixelRatio: 2, orientation: "landscape" },
+  { fileName: "iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png", width: 750, height: 1334, pixelRatio: 2, orientation: "portrait" },
+  { fileName: "iPhone_Air_landscape.png", width: 2736, height: 1260, pixelRatio: 3, orientation: "landscape" },
+  { fileName: "iPhone_Air_portrait.png", width: 1260, height: 2736, pixelRatio: 3, orientation: "portrait" },
+];
+
+function createAppleStartupImage(screen: AppleStartupScreen): AppleStartupImage {
+  const deviceWidth = screen.width / screen.pixelRatio;
+  const deviceHeight = screen.height / screen.pixelRatio;
+
+  return {
+    url: `${SPLASH_SCREEN_BASE_PATH}/${screen.fileName}`,
+    media: `(device-width: ${deviceWidth}px) and (device-height: ${deviceHeight}px) and (-webkit-device-pixel-ratio: ${screen.pixelRatio}) and (orientation: ${screen.orientation})`,
+  };
+}
+
+const appleStartupImages: AppleStartupImage[] = [
+  ...appleStartupImageFallbacks,
+  ...appleStartupScreens.map(createAppleStartupImage),
+];
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -45,6 +133,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
+    startupImage: appleStartupImages,
     title: "StockShift",
   },
   formatDetection: {

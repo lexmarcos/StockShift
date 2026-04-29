@@ -2,9 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
-import { X, Building2, Loader2, Package2, Warehouse, User, LogOut } from "lucide-react";
+import { X, Building2, Loader2, Warehouse, User, LogOut } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { useMobileMenuEdgeSwipe } from "@/components/layout/mobile-menu-edge-swipe";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Header } from "@/components/header/header";
 import { BreadcrumbProvider, Breadcrumb } from "@/components/breadcrumb";
@@ -27,7 +29,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 type WarehouseData = {
   id: string;
@@ -49,7 +50,7 @@ export default function PagesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isOpen, closeMenu } = useMobileMenu();
+  const { isOpen, openMenu, closeMenu } = useMobileMenu();
   const { warehouseId } = useSelectedWarehouse();
   const { user, logout } = useAuth();
   const { selectedWarehouseId, setSelectedWarehouseId } = useWarehouse();
@@ -62,6 +63,8 @@ export default function PagesLayout({
   );
 
   const activeWarehouses = warehouses.filter((w) => w.isActive);
+
+  useMobileMenuEdgeSwipe({ isOpen, openMenu });
 
   useEffect(() => {
     if (user?.mustChangePassword) {
@@ -132,14 +135,14 @@ export default function PagesLayout({
           <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
             {/* Logo + close button */}
             <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-blue-600 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
-                  <Package2 className="h-4 w-4 text-white" strokeWidth={2.5} />
-                </div>
-                <h1 className="text-sm font-bold uppercase tracking-tight text-white">
-                  Stockshift
-                </h1>
-              </div>
+              <Image
+                src="/logos/logo-dark.svg"
+                alt="StockShift"
+                width={139}
+                height={60}
+                priority
+                className="h-auto w-[106px]"
+              />
               <button
                 type="button"
                 onClick={closeMenu}

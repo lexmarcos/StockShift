@@ -9,10 +9,15 @@ import {
   DollarSign,
   AlertCircle,
   Loader2,
-  Barcode,
+  Scan,
+  Search,
+  X,
+  Minus,
+  Plus,
 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchCreateFormData } from "./batches-create.schema";
+import type { ProductSearchOption } from "./batches-create.types";
 import { cn } from "@/lib/utils";
 import {
   Form,
@@ -24,37 +29,55 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PermissionGate } from "@/components/permission-gate";
+import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 
 interface BatchCreateViewProps {
   form: UseFormReturn<BatchCreateFormData>;
   onSubmit: (data: BatchCreateFormData) => void;
-  products: Array<{
-    id: string;
-    name: string;
-    sku?: string | null;
-    hasExpiration: boolean;
-  }>;
-  warehouses: Array<{ id: string; name: string }>;
-  selectedProduct?: { hasExpiration: boolean } | undefined;
+  productSearchQuery: string;
+  productOptions: ProductSearchOption[];
+  isProductSearchLoading: boolean;
+  isProductOptionsOpen: boolean;
+  onProductSearchChange: (query: string) => void;
+  onProductSearchFocus: () => void;
+  onProductSearchBlur: () => void;
+  onProductSelect: (product: ProductSearchOption) => void;
+  onProductClear: () => void;
+  openScanner: () => void;
+  closeScanner: () => void;
+  isScannerOpen: boolean;
+  handleBarcodeScan: (barcode: string) => void;
+  selectedWarehouseId: string | null;
+  onQuantityIncrement: () => void;
+  onQuantityDecrement: () => void;
+  selectedProduct?: { hasExpiration: boolean } | null;
 }
 
 export const BatchCreateView = ({
   form,
   onSubmit,
-  products,
-  warehouses,
+  productSearchQuery,
+  productOptions,
+  isProductSearchLoading,
+  isProductOptionsOpen,
+  onProductSearchChange,
+  onProductSearchFocus,
+  onProductSearchBlur,
+  onProductSelect,
+  onProductClear,
+  openScanner,
+  closeScanner,
+  isScannerOpen,
+  handleBarcodeScan,
+  selectedWarehouseId,
+  onQuantityIncrement,
+  onQuantityDecrement,
   selectedProduct,
 }: BatchCreateViewProps) => {
   const { isSubmitting } = form.formState;
@@ -68,6 +91,12 @@ export const BatchCreateView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
+      <BarcodeScannerModal
+        open={isScannerOpen}
+        onClose={closeScanner}
+        onScan={handleBarcodeScan}
+      />
+
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -85,97 +114,113 @@ export const BatchCreateView = ({
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-5">
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="productId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Produto <span className="text-rose-500">*</span>
-                            </FormLabel>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="w-full h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                                  <SelectValue placeholder="Selecione o produto..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                                {products.map((product) => (
-                                  <SelectItem
-                                    key={product.id}
-                                    value={product.id}
-                                    className="text-xs focus:bg-neutral-800 focus:text-white"
-                                  >
-                                    {product.name}{" "}
-                                    {product.sku ? `(${product.sku})` : ""}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="warehouseId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Armazém de Destino{" "}
-                              <span className="text-rose-500">*</span>
-                            </FormLabel>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="w-full h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                                  <SelectValue placeholder="Selecione o armazém..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                                {warehouses.map((warehouse) => (
-                                  <SelectItem
-                                    key={warehouse.id}
-                                    value={warehouse.id}
-                                    className="text-xs focus:bg-neutral-800 focus:text-white"
-                                  >
-                                    {warehouse.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
                     <FormField
                       control={form.control}
-                      name="batchCode"
+                      name="productId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                            <Barcode className="h-3 w-3" /> Código do Lote
-                            (Batch Code)
+                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Produto <span className="text-rose-500">*</span>
                           </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="EX: LT-2024-001"
-                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 font-mono"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription className="text-[10px] text-neutral-500">
-                            Opcional. Se vazio, será gerado automaticamente.
-                          </FormDescription>
+                          <input type="hidden" {...field} />
+                          <div className="relative">
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                                <FormControl>
+                                  <Input
+                                    value={productSearchQuery}
+                                    onChange={(event) =>
+                                      onProductSearchChange(event.target.value)
+                                    }
+                                    onFocus={onProductSearchFocus}
+                                    onBlur={() => {
+                                      field.onBlur();
+                                      onProductSearchBlur();
+                                    }}
+                                    placeholder="Pesquisar por nome, SKU ou código de barras"
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 pl-9 pr-9 text-sm focus:border-blue-600 focus:ring-0"
+                                  />
+                                </FormControl>
+                                {productSearchQuery && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={onProductClear}
+                                    className="absolute right-1 top-1 h-8 w-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                    aria-label="Limpar produto"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={openScanner}
+                                className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                aria-label="Ler código de barras"
+                              >
+                                <Scan className="h-4 w-4" />
+                              </Button>
+                            </div>
+
+                            {isProductOptionsOpen &&
+                              (isProductSearchLoading ||
+                                productOptions.length > 0) && (
+                                <div className="absolute left-0 right-12 top-12 z-30 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
+                                  {isProductSearchLoading && (
+                                    <div className="flex h-10 items-center gap-2 px-3 text-xs text-neutral-500">
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      Buscando produtos...
+                                    </div>
+                                  )}
+                                  {!isProductSearchLoading &&
+                                    productOptions.map((product) => (
+                                      <Button
+                                        key={product.id}
+                                        type="button"
+                                        variant="ghost"
+                                        onMouseDown={(event) =>
+                                          event.preventDefault()
+                                        }
+                                        onClick={() => onProductSelect(product)}
+                                        className="flex h-auto w-full items-center justify-start gap-3 rounded-none border-b border-neutral-800 px-3 py-2 text-left hover:bg-neutral-800 hover:text-white last:border-b-0"
+                                      >
+                                        {product.imageUrl ? (
+                                          <span
+                                            role="img"
+                                            aria-label={`Foto de ${product.name}`}
+                                            className="h-10 w-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
+                                            style={{
+                                              backgroundImage: `url("${product.imageUrl}")`,
+                                            }}
+                                          />
+                                        ) : (
+                                          <span
+                                            role="img"
+                                            aria-label="Produto sem foto"
+                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
+                                          >
+                                            <Box className="h-4 w-4" />
+                                          </span>
+                                        )}
+                                        <span className="min-w-0">
+                                          <span className="block truncate text-sm font-semibold text-white">
+                                            {product.name}
+                                          </span>
+                                          <span className="mt-0.5 block truncate text-[10px] font-mono uppercase tracking-wide text-neutral-500">
+                                            {product.sku || "SEM SKU"}
+                                            {product.barcode
+                                              ? ` - ${product.barcode}`
+                                              : ""}
+                                          </span>
+                                        </span>
+                                      </Button>
+                                    ))}
+                                </div>
+                              )}
+                          </div>
                           <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}
@@ -198,22 +243,47 @@ export const BatchCreateView = ({
                       <FormField
                         control={form.control}
                         name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Quantidade{" "}
-                              <span className="text-rose-500">*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
+                        render={({ field }) => {
+                          const { onChange, value, ...rest } = field;
+                          return (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Quantidade{" "}
+                                <span className="text-rose-500">*</span>
+                              </FormLabel>
+                              <div className="flex">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={onQuantityDecrement}
+                                  className="h-10 w-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  aria-label="Diminuir quantidade"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <FormControl>
+                                  <NumberInput
+                                    {...rest}
+                                    value={value}
+                                    onValueChange={onChange}
+                                    mode="integer"
+                                    className="h-10 min-w-0 flex-1 rounded-none border-x-0 border-neutral-800 bg-neutral-900 text-center text-sm focus:border-blue-600 focus:ring-0"
+                                  />
+                                </FormControl>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={onQuantityIncrement}
+                                  className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  aria-label="Aumentar quantidade"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <FormMessage className="text-xs text-rose-500" />
+                            </FormItem>
+                          );
+                        }}
                       />
                       <FormField
                         control={form.control}
@@ -415,7 +485,7 @@ export const BatchCreateView = ({
                   <Button
                     type="submit"
                     className="h-10 w-full md:w-[160px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !selectedWarehouseId}
                   >
                     {isSubmitting ? (
                       <>

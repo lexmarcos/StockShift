@@ -16,10 +16,10 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { InsightCard } from "@/components/ui/insight-card";
-import { StatusCard } from "@/components/ui/status-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { Badge } from "@/components/ui/badge";
 import { PermissionGate } from "@/components/permission-gate";
 import { usePermission } from "@/hooks/use-permission";
 import { SectionLabel } from "@/components/ui/section-label";
@@ -45,31 +45,41 @@ interface TransfersViewProps {
 const statusConfig: Record<
   TransferStatus,
   {
-    cardStatus: "info" | "success" | "warning" | "error" | "neutral";
     label: string;
+    badgeClassName: string;
+    showCheckIcon: boolean;
   }
 > = {
-  [TransferStatus.DRAFT]: { cardStatus: "info", label: "Rascunho" },
-  [TransferStatus.IN_TRANSIT]: { cardStatus: "warning", label: "Em Trânsito" },
+  [TransferStatus.DRAFT]: {
+    label: "Rascunho",
+    badgeClassName: "border-blue-600/30 bg-blue-600/10 text-blue-400",
+    showCheckIcon: false,
+  },
+  [TransferStatus.IN_TRANSIT]: {
+    label: "Em Trânsito",
+    badgeClassName: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+    showCheckIcon: false,
+  },
   [TransferStatus.PENDING_VALIDATION]: {
-    cardStatus: "info",
     label: "Aguardando Validação",
+    badgeClassName: "border-blue-600/30 bg-blue-600/10 text-blue-400",
+    showCheckIcon: false,
   },
   [TransferStatus.COMPLETED_WITH_DISCREPANCY]: {
-    cardStatus: "warning",
     label: "Concluído c/ Divergência",
+    badgeClassName: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+    showCheckIcon: false,
   },
-  [TransferStatus.COMPLETED]: { cardStatus: "success", label: "Concluído" },
-  [TransferStatus.CANCELLED]: { cardStatus: "neutral", label: "Cancelado" },
-};
-
-const statusDotColor: Record<TransferStatus, string> = {
-  [TransferStatus.DRAFT]: "bg-blue-500",
-  [TransferStatus.IN_TRANSIT]: "bg-amber-500",
-  [TransferStatus.PENDING_VALIDATION]: "bg-purple-500",
-  [TransferStatus.COMPLETED_WITH_DISCREPANCY]: "bg-amber-500",
-  [TransferStatus.COMPLETED]: "bg-emerald-500",
-  [TransferStatus.CANCELLED]: "bg-neutral-500",
+  [TransferStatus.COMPLETED]: {
+    label: "Concluído",
+    badgeClassName: "border-emerald-600/30 bg-emerald-600/15 text-emerald-400",
+    showCheckIcon: true,
+  },
+  [TransferStatus.CANCELLED]: {
+    label: "Cancelado",
+    badgeClassName: "border-neutral-700 bg-neutral-800/70 text-neutral-400",
+    showCheckIcon: false,
+  },
 };
 
 export function TransfersView({
@@ -247,11 +257,11 @@ export function TransfersView({
         <div className="space-y-3">
           {transfers.map((transfer) => {
             const config = statusConfig[transfer.status] || {
-              cardStatus: "neutral" as const,
               label: transfer.status,
+              badgeClassName:
+                "border-neutral-700 bg-neutral-800/70 text-neutral-400",
+              showCheckIcon: false,
             };
-            const dotColor =
-              statusDotColor[transfer.status] || "bg-neutral-500";
 
             return (
               <Link
@@ -259,10 +269,7 @@ export function TransfersView({
                 href={`/transfers/${transfer.id}`}
                 className="block group"
               >
-                <StatusCard
-                  status={config.cardStatus}
-                  className="p-4 sm:p-5 cursor-pointer hover:bg-neutral-800/50"
-                >
+                <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4 cursor-pointer hover:bg-neutral-800/50 sm:p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-2">
                       {/* Code + Status badge */}
@@ -270,12 +277,20 @@ export function TransfersView({
                         <span className="font-mono text-sm font-bold tracking-tighter text-neutral-300 bg-neutral-800/60 px-2 py-0.5 rounded-[4px]">
                           {transfer.code}
                         </span>
-                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-                          <span
-                            className={cn("h-1.5 w-1.5 rounded-full", dotColor)}
-                          />
+                        <Badge
+                          className={cn(
+                            "rounded-[2px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+                            config.badgeClassName,
+                          )}
+                        >
+                          {config.showCheckIcon && (
+                            <CheckCircle2
+                              className="h-3 w-3"
+                              strokeWidth={2.5}
+                            />
+                          )}
                           {config.label}
-                        </span>
+                        </Badge>
                       </div>
 
                       {/* Warehouses */}
@@ -312,7 +327,7 @@ export function TransfersView({
                       <ArrowRight className="h-5 w-5" strokeWidth={2} />
                     </div>
                   </div>
-                </StatusCard>
+                </div>
               </Link>
             );
           })}

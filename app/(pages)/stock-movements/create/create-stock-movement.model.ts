@@ -10,7 +10,10 @@ import {
   createStockMovementSchema,
   CreateStockMovementSchema,
 } from "./create-stock-movement.schema";
-import { CreateStockMovementViewProps } from "./create-stock-movement.types";
+import {
+  CreateStockMovementViewProps,
+  StockMovementProductOption,
+} from "./create-stock-movement.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
 import {
   isManualMovementType,
@@ -51,7 +54,9 @@ const buildMovementItemPayload = (
   };
 };
 
-const hasInlineProductImages = (items: CreateStockMovementSchema["items"]): boolean => {
+const hasInlineProductImages = (
+  items: CreateStockMovementSchema["items"],
+): boolean => {
   return items.some((item) => Boolean(item.newProductData?.image));
 };
 
@@ -86,24 +91,59 @@ const buildMovementFormData = (
 interface ProductListResponse {
   success: boolean;
   data:
-    | { content: Array<{ id: string; name: string }> }
-    | Array<{ id: string; name: string }>;
+    | { content: StockMovementProductOption[] }
+    | StockMovementProductOption[];
 }
 
 interface ProductByBarcodeResponse {
   success: boolean;
-  data: { id: string; name: string };
+  data: StockMovementProductOption;
 }
+
+const PRODUCT_SEARCH_LIMIT = 5;
+
+export const formatStockMovementProductLabel = (
+  product: StockMovementProductOption,
+): string => (product.sku ? `${product.name} (${product.sku})` : product.name);
+
+export const filterStockMovementProductOptions = (
+  products: StockMovementProductOption[],
+  query: string,
+): StockMovementProductOption[] => {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery.length < 2) return [];
+
+  return products
+    .filter((product) => {
+      const searchText = [
+        product.name,
+        product.sku || "",
+        product.barcode || "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return searchText.includes(normalizedQuery);
+    })
+    .slice(0, PRODUCT_SEARCH_LIMIT);
+};
 
 export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [selectedProduct, setSelectedProduct] =
+    useState<StockMovementProductOption | null>(null);
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [debouncedProductSearchQuery, setDebouncedProductSearchQuery] =
+    useState("");
+  const [isProductOptionsOpen, setIsProductOptionsOpen] = useState(false);
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const lastScannedBarcodeRef = useRef<string | null>(null);
+  const productSearchBlurTimeoutRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
   const typeParam = searchParams.get("type");
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
@@ -166,10 +206,76 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const rawProducts = productsData?.data;
   const products = (
     Array.isArray(rawProducts) ? rawProducts : rawProducts?.content || []
-  ).map((p) => ({ id: p.id, name: p.name }));
+  ).map((p) => ({
+    id: p.id,
+    name: p.name,
+    sku: p.sku,
+    barcode: p.barcode,
+    imageUrl: p.imageUrl,
+  }));
 
-  const handleProductChange = (productId: string) => {
-    setSelectedProductId(productId);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedProductSearchQuery(productSearchQuery);
+    }, 350);
+
+    return () => clearTimeout(timeoutId);
+  }, [productSearchQuery]);
+
+  useEffect(() => {
+    return () => {
+      if (!productSearchBlurTimeoutRef.current) return;
+      clearTimeout(productSearchBlurTimeoutRef.current);
+    };
+  }, []);
+
+  const productOptions = filterStockMovementProductOptions(
+    products,
+    debouncedProductSearchQuery,
+  );
+
+  const clearProductSearchBlurTimeout = () => {
+    if (!productSearchBlurTimeoutRef.current) return;
+    clearTimeout(productSearchBlurTimeoutRef.current);
+    productSearchBlurTimeoutRef.current = null;
+  };
+
+  const handleProductSelect = (product: StockMovementProductOption) => {
+    setSelectedProduct(product);
+    setSelectedProductId(product.id);
+    setProductSearchQuery(formatStockMovementProductLabel(product));
+    setIsProductOptionsOpen(false);
+    setAddItemError(null);
+  };
+
+  const handleProductSearchFocus = () => {
+    clearProductSearchBlurTimeout();
+    setIsProductOptionsOpen(true);
+  };
+
+  const handleProductSearchBlur = () => {
+    productSearchBlurTimeoutRef.current = setTimeout(() => {
+      setIsProductOptionsOpen(false);
+    }, 120);
+  };
+
+  const handleProductSearchChange = (query: string) => {
+    setProductSearchQuery(query);
+    setIsProductOptionsOpen(true);
+    setAddItemError(null);
+
+    if (!selectedProduct) return;
+    if (query === formatStockMovementProductLabel(selectedProduct)) return;
+
+    setSelectedProduct(null);
+    setSelectedProductId("");
+  };
+
+  const handleProductClear = () => {
+    setSelectedProduct(null);
+    setSelectedProductId("");
+    setProductSearchQuery("");
+    setIsProductOptionsOpen(false);
     setAddItemError(null);
   };
 
@@ -195,7 +301,8 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
       return;
     }
 
-    const product = products.find((p) => p.id === selectedProductId);
+    const product =
+      selectedProduct || products.find((p) => p.id === selectedProductId);
 
     append({
       productId: selectedProductId,
@@ -204,6 +311,8 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     });
 
     setSelectedProductId("");
+    setSelectedProduct(null);
+    setProductSearchQuery("");
     setItemQuantity("");
   };
 
@@ -221,7 +330,9 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
         selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
       )
     ) {
-      setAddItemError("Novos produtos só podem ser criados em movimentações de entrada.");
+      setAddItemError(
+        "Novos produtos só podem ser criados em movimentações de entrada.",
+      );
       return;
     }
 
@@ -273,7 +384,7 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     return qty > 0 ? qty : 1;
   };
 
-  const appendScannedProduct = (product: { id: string; name: string }) => {
+  const appendScannedProduct = (product: StockMovementProductOption) => {
     const alreadyAdded = form.getValues("items").some((item) => {
       return item.productId === product.id;
     });
@@ -361,10 +472,19 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     isLoadingProducts,
     isSubmitting,
     selectedProductId,
+    productSearchQuery,
+    productOptions,
+    isProductOptionsOpen,
+    isProductSearchLoading:
+      isLoadingProducts && debouncedProductSearchQuery.trim().length >= 2,
     itemQuantity,
     addItemError,
     isScannerOpen,
-    onProductChange: handleProductChange,
+    onProductSearchChange: handleProductSearchChange,
+    onProductSearchFocus: handleProductSearchFocus,
+    onProductSearchBlur: handleProductSearchBlur,
+    onProductSelect: handleProductSelect,
+    onProductClear: handleProductClear,
     onQuantityChange: setItemQuantity,
     onAddItem: handleAddItem,
     onCreateNewProduct: handleCreateNewProduct,

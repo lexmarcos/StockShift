@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Package2, Warehouse, User, LogOut } from "lucide-react";
+import { Menu, Warehouse, User, LogOut } from "lucide-react";
 import { HeaderViewProps } from "./header.types";
 
 export const HeaderView = ({
@@ -44,15 +45,14 @@ export const HeaderView = ({
             <Menu className="h-10 w-10 text" strokeWidth={2.5}/>
           </Button>
 
-          {/* Logo - desktop only */}
-          <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-[4px] bg-blue-600 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]">
-            <Package2 className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-
-          {/* App Name - desktop only */}
-          <h1 className="hidden text-base font-bold uppercase tracking-tight text-white md:block md:text-lg">
-            Stockshift
-          </h1>
+          <Image
+            src="/logos/logo-dark.svg"
+            alt="StockShift"
+            width={139}
+            height={60}
+            priority
+            className="hidden h-auto w-[109px] md:block"
+          />
         </div>
 
         {/* Right Section - desktop only: warehouse selector + profile */}
