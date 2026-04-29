@@ -132,7 +132,7 @@ export const StockMovementsView = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] ${
+            className={`h-11 md:h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] ${
               isIn
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-rose-600 hover:bg-rose-700"
