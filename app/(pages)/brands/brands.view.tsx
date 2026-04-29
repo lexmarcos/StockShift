@@ -126,19 +126,25 @@ export const BrandsView = ({
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       {/* Sticky Header with Controls */}
-      <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
+      <header className="relative z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
         <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
           <div className="flex flex-col gap-4">
-            {/* Top Row: Brand & Action */}
-            <div className="flex items-center justify-end">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  Marcas
+                </h1>
+                <p className="text-sm text-neutral-500 mt-1">
+                  Gerencie as marcas dos produtos
+                </p>
+              </div>
               <PermissionGate permission="brands:create">
                 <Button
                   onClick={openCreateModal}
-                  className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+                  className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)] md:w-auto"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Nova Marca</span>
-                  <span className="sm:hidden">Nova</span>
+                  Nova Marca
                 </Button>
               </PermissionGate>
             </div>
@@ -151,7 +157,7 @@ export const BrandsView = ({
                   placeholder="Pesquisar marcas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                  className="pl-9 md:h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
                 />
               </div>
 
@@ -170,7 +176,7 @@ export const BrandsView = ({
                   }
                 }}
               >
-                <SelectTrigger className="h-9 w-[120px] sm:w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:ring-0">
+                <SelectTrigger className="w-[120px] sm:w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:ring-0">
                   <SelectValue placeholder="ORDENAR" />
                 </SelectTrigger>
                 <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
@@ -443,17 +449,6 @@ export const BrandsView = ({
         )}
       </main>
 
-      {/* Mobile Floating Action Button */}
-      <PermissionGate permission="brands:create">
-        <Button
-          onClick={openCreateModal}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:bg-blue-700 active:scale-95 transition-all md:hidden z-40"
-          size="icon"
-        >
-          <Plus className="h-7 w-7" />
-        </Button>
-      </PermissionGate>
-
       {/* Modals */}
       <ResponsiveModal
         open={isModalOpen}
@@ -505,7 +500,7 @@ export const BrandsView = ({
                     <Input
                       placeholder="EX: TECHNO SOLUTIONS"
                       {...field}
-                      className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 transition-all placeholder:text-neutral-800"
+                      className="h-11 md:h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 transition-all placeholder:text-neutral-800"
                     />
                   </FormControl>
                   <FormMessage className="text-[10px] font-bold text-rose-500 uppercase" />
@@ -525,7 +520,7 @@ export const BrandsView = ({
                     <Input
                       placeholder="https://assets.cdn.com/logo.png"
                       {...field}
-                      className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 transition-all placeholder:text-neutral-800"
+                      className="h-11 md:h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 transition-all placeholder:text-neutral-800"
                     />
                   </FormControl>
                   <FormMessage className="text-[10px] font-bold text-rose-500 uppercase" />

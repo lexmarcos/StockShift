@@ -31,7 +31,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/ui/page-header";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -299,7 +298,12 @@ export const UsersView = ({
   if (!isLoadingAdmin && !isAdmin) {
     return (
       <PageContainer>
-        <PageHeader title="Usuários" subtitle="Sistema" />
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold tracking-tighter text-white">
+            Usuários
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">Sistema</p>
+        </div>
         <ErrorState
           title="Acesso Negado"
           description="Você não tem permissão para acessar esta página."
@@ -311,19 +315,23 @@ export const UsersView = ({
   return (
     <>
       <PageContainer>
-        <PageHeader
-          title="Usuários"
-          subtitle="Sistema"
-          actions={
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tighter text-white">
+              Usuários
+            </h1>
+            <p className="mt-1 text-sm text-neutral-500">Sistema</p>
+          </div>
+          <div className="w-full md:w-auto">
             <Button
               onClick={openCreateModal}
-              className="hidden h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:flex"
+              className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
               NOVO USUÁRIO
             </Button>
-          }
-        />
+          </div>
+        </div>
 
         {/* Search */}
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
@@ -486,15 +494,6 @@ export const UsersView = ({
                 </>
               )}
       </PageContainer>
-
-      {/* FAB Mobile */}
-      <Button
-        onClick={openCreateModal}
-        className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-        size="icon"
-      >
-        <Plus className="h-6 w-6" strokeWidth={2.5} />
-      </Button>
 
       {/* Create User Modal */}
       <ResponsiveModal

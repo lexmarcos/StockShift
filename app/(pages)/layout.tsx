@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 type WarehouseData = {
   id: string;
@@ -126,116 +127,119 @@ export default function PagesLayout({
         </BreadcrumbProvider>
       </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={closeMenu} />
-          <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
-            {/* Logo + close button */}
-            <div className="mb-4 flex items-center justify-between">
-              <Image
-                src="/logos/logo-dark.svg"
-                alt="StockShift"
-                width={139}
-                height={60}
-                priority
-                className="h-auto w-[106px]"
-              />
-              <button
-                type="button"
-                onClick={closeMenu}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
-                aria-label="Fechar menu"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+      <div
+        data-slot="mobile-menu"
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        className={cn("fixed inset-0 z-50 md:hidden", !isOpen && "hidden")}
+      >
+        <div className="absolute inset-0 bg-black/60" onClick={closeMenu} />
+        <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
+          {/* Logo + close button */}
+          <div className="mb-4 flex items-center justify-between">
+            <Image
+              src="/logos/logo-dark.svg"
+              alt="StockShift"
+              width={139}
+              height={60}
+              priority
+              className="h-auto w-[106px]"
+            />
+            <button
+              type="button"
+              onClick={closeMenu}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
+              aria-label="Fechar menu"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-            {/* Warehouse selector */}
-            <div className="mb-4">
-              <Select
-                value={selectedWarehouseId || ""}
-                onValueChange={handleWarehouseChange}
-                disabled={activeWarehouses.length === 0}
-              >
-                <SelectTrigger className="!h-11 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
-                  <div className="flex items-center gap-2">
-                    <Warehouse className="h-4 w-4 text-neutral-500" />
-                    <SelectValue placeholder="Armazém" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  {activeWarehouses.map((warehouse) => (
-                    <SelectItem
-                      key={warehouse.id}
-                      value={warehouse.id}
-                      className="text-xs uppercase focus:bg-neutral-800"
-                    >
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium text-white">{warehouse.name}</span>
-                        <span className="text-[10px] text-neutral-500">{warehouse.code}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
-              Navegação
-            </div>
-
-            {/* Navigation */}
-            <div className="flex-1 overflow-y-auto">
-              <AppSidebar onNavigate={closeMenu} />
-            </div>
-
-            {/* Profile section at bottom */}
-            <div className="pt-4 mt-4 border-t border-border/40">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex w-full items-center gap-2 rounded-sm px-3 py-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
-                    <User className="h-4 w-4" />
-                    <span className="truncate">{user?.fullName || "Perfil"}</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  className="min-w-[200px] rounded-[4px] border border-neutral-800 bg-[#171717]"
-                >
-                  {user && (
-                    <>
-                      <div className="border-b border-neutral-800 p-3">
-                        <p className="text-sm font-bold text-white">{user.fullName}</p>
-                        <p className="text-xs text-neutral-500">{user.email}</p>
-                      </div>
-                      <DropdownMenuSeparator className="bg-neutral-800" />
-                    </>
-                  )}
-
-                  <DropdownMenuItem asChild className="text-xs uppercase tracking-wide focus:bg-neutral-800">
-                    <Link href="/profile" onClick={closeMenu} className="flex cursor-pointer items-center gap-2 text-neutral-300">
-                      <User className="h-4 w-4" />
-                      Perfil
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator className="bg-neutral-800" />
-
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer text-xs uppercase tracking-wide text-rose-500 focus:bg-rose-950/50 focus:text-rose-500"
+          {/* Warehouse selector */}
+          <div className="mb-4">
+            <Select
+              value={selectedWarehouseId || ""}
+              onValueChange={handleWarehouseChange}
+              disabled={activeWarehouses.length === 0}
+            >
+              <SelectTrigger className="!h-11 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
+                <div className="flex items-center gap-2">
+                  <Warehouse className="h-4 w-4 text-neutral-500" />
+                  <SelectValue placeholder="Armazém" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                {activeWarehouses.map((warehouse) => (
+                  <SelectItem
+                    key={warehouse.id}
+                    value={warehouse.id}
+                    className="text-xs uppercase focus:bg-neutral-800"
                   >
-                    <div className="flex items-center gap-2">
-                      <LogOut className="h-4 w-4" />
-                      Logout
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium text-white">{warehouse.name}</span>
+                      <span className="text-[10px] text-neutral-500">{warehouse.code}</span>
                     </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+            Navegação
+          </div>
+
+          {/* Navigation */}
+          <div className="flex-1 overflow-y-auto">
+            <AppSidebar onNavigate={closeMenu} />
+          </div>
+
+          {/* Profile section at bottom */}
+          <div className="pt-4 mt-4 border-t border-border/40">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex w-full items-center gap-2 rounded-sm px-3 py-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
+                  <User className="h-4 w-4" />
+                  <span className="truncate">{user?.fullName || "Perfil"}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="min-w-[200px] rounded-[4px] border border-neutral-800 bg-[#171717]"
+              >
+                {user && (
+                  <>
+                    <div className="border-b border-neutral-800 p-3">
+                      <p className="text-sm font-bold text-white">{user.fullName}</p>
+                      <p className="text-xs text-neutral-500">{user.email}</p>
+                    </div>
+                    <DropdownMenuSeparator className="bg-neutral-800" />
+                  </>
+                )}
+
+                <DropdownMenuItem asChild className="text-xs uppercase tracking-wide focus:bg-neutral-800">
+                  <Link href="/profile" onClick={closeMenu} className="flex cursor-pointer items-center gap-2 text-neutral-300">
+                    <User className="h-4 w-4" />
+                    Perfil
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="bg-neutral-800" />
+
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-xs uppercase tracking-wide text-rose-500 focus:bg-rose-950/50 focus:text-rose-500"
+                >
+                  <div className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

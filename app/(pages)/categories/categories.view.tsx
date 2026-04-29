@@ -158,7 +158,7 @@ export const CategoriesView = ({
               if (hasChildren) toggleNode(node.id);
             }}
             className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
+              "flex h-9 w-9 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
               hasChildren
                 ? "cursor-pointer bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-600 hover:text-white"
                 : "invisible",
@@ -251,7 +251,7 @@ export const CategoriesView = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
+                    className="rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">Ações</span>
@@ -387,7 +387,7 @@ export const CategoriesView = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                  className="rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                   <span className="sr-only">Ações</span>
@@ -433,41 +433,47 @@ export const CategoriesView = ({
       <div className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
         <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
           <div className="flex flex-col gap-4">
-            {/* Title & Main Action */}
-            <div className="flex items-center justify-end">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  Categorias
+                </h1>
+                <p className="text-sm text-neutral-500 mt-1">
+                  Organize os produtos por categoria
+                </p>
+              </div>
               <PermissionGate permission="categories:create">
                 <Button
                   onClick={openCreateModal}
-                  className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)]"
+                  className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Nova Categoria</span>
-                  <span className="sm:hidden">Nova</span>
+                  Nova Categoria
                 </Button>
               </PermissionGate>
             </div>
 
             {/* Filters Toolbar */}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
                 <Input
                   placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                  className="h-10 w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-9 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
                 />
               </div>
 
               {/* View Toggle Group */}
-              <div className="flex bg-[#171717] p-0.5 rounded-[4px] border border-neutral-800 shrink-0">
+              <div className="flex h-10 shrink-0 rounded-[4px] border border-neutral-800 bg-[#171717] p-0.5">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setViewMode("tree")}
                   title="Visualização em Árvore"
                   className={cn(
-                    "h-8 w-8 rounded-[2px]",
+                    "h-9 w-9 rounded-[2px]",
                     viewMode === "tree"
                       ? "bg-neutral-800 text-white shadow-sm"
                       : "text-neutral-500 hover:text-neutral-300",
@@ -481,7 +487,7 @@ export const CategoriesView = ({
                   onClick={() => setViewMode("flat")}
                   title="Visualização em Lista"
                   className={cn(
-                    "h-8 w-8 rounded-[2px]",
+                    "h-9 w-9 rounded-[2px]",
                     viewMode === "flat"
                       ? "bg-neutral-800 text-white shadow-sm"
                       : "text-neutral-500 hover:text-neutral-300",
