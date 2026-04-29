@@ -94,12 +94,12 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
         onClick={onNavigate}
         aria-current={isActive ? "page" : undefined}
         className={cn(
-          "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
+          "flex items-center gap-3 rounded-sm px-3 py-3 text-sm md:gap-2 md:py-2 md:text-xs font-semibold uppercase tracking-wide",
           "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
           isActive && "border-border/60 bg-foreground/10 text-foreground",
         )}
       >
-        <item.Icon className="h-3.5 w-3.5" />
+        <item.Icon className="h-4 w-4 md:h-3.5 md:w-3.5" />
         <span>{item.label}</span>
       </Link>
     );
@@ -123,13 +123,13 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
             onClick={onNavigate}
             aria-current={isSystemActive ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide",
+              "flex items-center gap-3 rounded-sm px-3 py-3 text-sm md:gap-2 md:py-2 md:text-xs font-semibold uppercase tracking-wide",
               "border border-transparent text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground",
               isSystemActive &&
                 "border-border/60 bg-foreground/10 text-foreground",
             )}
           >
-            <Settings className="h-3.5 w-3.5" />
+            <Settings className="h-4 w-4 md:h-3.5 md:w-3.5" />
             <span>Gerenciamento do sistema</span>
           </Link>
         </div>

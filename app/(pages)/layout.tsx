@@ -129,7 +129,7 @@ export default function PagesLayout({
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={closeMenu} />
-          <div className="absolute inset-y-0 left-0 w-64 border-r border-border/40 bg-card p-4 flex flex-col">
+          <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
             {/* Logo + close button */}
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -143,10 +143,10 @@ export default function PagesLayout({
               <button
                 type="button"
                 onClick={closeMenu}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
                 aria-label="Fechar menu"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -157,7 +157,7 @@ export default function PagesLayout({
                 onValueChange={handleWarehouseChange}
                 disabled={activeWarehouses.length === 0}
               >
-                <SelectTrigger className="!h-9 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
+                <SelectTrigger className="!h-11 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                   <div className="flex items-center gap-2">
                     <Warehouse className="h-4 w-4 text-neutral-500" />
                     <SelectValue placeholder="Armazém" />
@@ -180,7 +180,7 @@ export default function PagesLayout({
               </Select>
             </div>
 
-            <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+            <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
               Navegação
             </div>
 
@@ -193,8 +193,8 @@ export default function PagesLayout({
             <div className="pt-4 mt-4 border-t border-border/40">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
-                    <User className="h-3.5 w-3.5" />
+                  <button className="flex w-full items-center gap-2 rounded-sm px-3 py-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
+                    <User className="h-4 w-4" />
                     <span className="truncate">{user?.fullName || "Perfil"}</span>
                   </button>
                 </DropdownMenuTrigger>
