@@ -79,6 +79,32 @@ const logsData = {
   ],
 };
 
+const transferResponseWithZeroExpected = {
+  success: true,
+  message: null,
+  data: {
+    id: transferId,
+    code: "TR-002",
+    sourceWarehouseId: "wh-1",
+    sourceWarehouseName: "Almoxarifado Central",
+    destinationWarehouseId: "wh-2",
+    destinationWarehouseName: "Loja Matriz",
+    status: "PENDING_VALIDATION",
+    notes: null,
+    items: [
+      {
+        id: "item-3",
+        sourceBatchId: "batch-3",
+        quantitySent: 0,
+        quantity: 0,
+        productName: "",
+        batchCode: "",
+      },
+    ],
+    createdAt: "2025-01-01T00:00:00Z",
+  },
+};
+
 const toJson = <T,>(value: T) => ({
   json: vi.fn(async () => value),
 });
@@ -201,6 +227,51 @@ describe("useValidateTransferModel", () => {
 
     // progress = (2 + 0) / (5 + 3) * 100 = 25
     expect(result.current.progress).toBe(25);
+  });
+
+  it("calcula progresso como 100 quando o total esperado é zero", () => {
+    mockSWR.mockImplementation((key: string | null) => {
+      if (key === `transfers/${transferId}`) {
+        return {
+          data: transferResponseWithZeroExpected,
+          error: null,
+          isLoading: false,
+          mutate: vi.fn(),
+        };
+      }
+
+      if (key === `transfers/${transferId}/validation-logs`) {
+        return {
+          data: {
+            ...logsData,
+            data: [],
+          },
+          error: null,
+          isLoading: false,
+          mutate: mockMutateLogs,
+        };
+      }
+
+      return {
+        data: undefined,
+        error: null,
+        isLoading: false,
+        mutate: vi.fn(),
+      };
+    });
+
+    const { result } = renderHook(() => useValidateTransferModel(transferId));
+
+    expect(result.current.expectedItems).toEqual([
+      {
+        id: "item-3",
+        productName: "Produto desconhecido",
+        batchCode: "Sem lote",
+        expectedQuantity: 0,
+        scannedQuantity: 0,
+      },
+    ]);
+    expect(result.current.progress).toBe(100);
   });
 
   it("updates barcode with onBarcodeChange", () => {
