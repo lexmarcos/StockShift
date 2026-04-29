@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { X, Building2, Loader2, Warehouse, User, LogOut } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { useMobileMenuEdgeSwipe } from "@/components/layout/mobile-menu-edge-swipe";
 import { useMobileMenu } from "@/components/layout/mobile-menu-context";
 import { Header } from "@/components/header/header";
 import { BreadcrumbProvider, Breadcrumb } from "@/components/breadcrumb";
@@ -50,7 +49,7 @@ export default function PagesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isOpen, openMenu, closeMenu } = useMobileMenu();
+  const { isOpen, closeMenu } = useMobileMenu();
   const { warehouseId } = useSelectedWarehouse();
   const { user, logout } = useAuth();
   const { selectedWarehouseId, setSelectedWarehouseId } = useWarehouse();
@@ -63,8 +62,6 @@ export default function PagesLayout({
   );
 
   const activeWarehouses = warehouses.filter((w) => w.isActive);
-
-  useMobileMenuEdgeSwipe({ isOpen, openMenu });
 
   useEffect(() => {
     if (user?.mustChangePassword) {
