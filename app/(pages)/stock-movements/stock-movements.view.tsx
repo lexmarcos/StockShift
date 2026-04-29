@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 import {
   Table,
   TableBody,
@@ -16,6 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -25,6 +35,9 @@ import {
   Eye,
   MoreHorizontal,
   ChevronDown,
+  ArrowUpDown,
+  CalendarDays,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -34,6 +47,8 @@ import {
   SortField,
   SortOrder,
   StockMovementType,
+  StockMovementFilterDraft,
+  DateFilterPreset,
 } from "./stock-movements.types";
 import {
   MANUAL_IN_MOVEMENT_TYPES,
@@ -58,14 +73,92 @@ const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
   TRANSFER_OUT: "Transf. Saída",
 };
 
+const DATE_PRESET_LABELS: Record<DateFilterPreset, string> = {
+  ALL: "Todos períodos",
+  TODAY: "Hoje",
+  LAST_7_DAYS: "Últimos 7 dias",
+  THIS_MONTH: "Este mês",
+  CUSTOM: "Personalizado",
+};
+
+const SORT_OPTIONS: {
+  value: `${SortField}-${SortOrder}`;
+  label: string;
+}[] = [
+  { value: "createdAt-desc", label: "Mais recentes" },
+  { value: "createdAt-asc", label: "Mais antigos" },
+  { value: "type-asc", label: "Tipo A-Z" },
+  { value: "direction-asc", label: "Direção In-Out" },
+];
+
+const TYPE_FILTER_OPTIONS: {
+  value: StockMovementType | "ALL";
+  label: string;
+}[] = [
+  { value: "ALL", label: "Todos" },
+  ...Object.entries(MOVEMENT_TYPE_LABELS).map(([value, label]) => ({
+    value: value as StockMovementType,
+    label,
+  })),
+];
+
+const getSortLabel = (sortBy: SortField, sortOrder: SortOrder) => {
+  const option = SORT_OPTIONS.find(
+    (item) => item.value === `${sortBy}-${sortOrder}`,
+  );
+
+  return option?.label ?? "Ordenação";
+};
+
+const formatDateDisplay = (value?: string) => {
+  if (!value) return "";
+
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+const getDateSummary = (
+  datePreset: DateFilterPreset,
+  dateFrom?: string,
+  dateTo?: string,
+) => {
+  if (datePreset !== "CUSTOM") {
+    return DATE_PRESET_LABELS[datePreset];
+  }
+
+  if (dateFrom && dateTo) {
+    return `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo)}`;
+  }
+
+  return DATE_PRESET_LABELS.CUSTOM;
+};
+
+const getActiveFilterCount = (filters: StockMovementsViewProps["filters"]) => {
+  const hasType = filters.type && filters.type !== "ALL";
+  const hasDate = filters.datePreset !== "ALL";
+
+  return Number(hasType) + Number(hasDate);
+};
+
 export const StockMovementsView = ({
   movements,
   isLoading,
   filters,
+  mobileFiltersDraft,
+  isMobileFiltersOpen,
   pagination,
   onPageChange,
   onFilterChange,
   onSortChange,
+  onDatePresetChange,
+  onDateInputChange,
+  onOpenMobileFilters,
+  onCloseMobileFilters,
+  onApplyMobileFilters,
+  onClearMobileFilters,
+  onMobileDatePresetChange,
+  onMobileDateInputChange,
+  onMobileFilterDraftChange,
 }: StockMovementsViewProps) => {
   const getDirectionStatus = (direction: "IN" | "OUT") => {
     if (direction === "IN") {
@@ -132,7 +225,7 @@ export const StockMovementsView = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`h-11 md:h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] ${
+            className={`h-11 w-full justify-center rounded-[4px] text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:h-10 md:w-auto ${
               isIn
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-rose-600 hover:bg-rose-700"
@@ -175,6 +268,217 @@ export const StockMovementsView = ({
     );
   };
 
+  const CreateMovementActions = () => (
+    <PermissionGate permission="stock_movements:create">
+      <CreateMovementDropdown
+        label="Movimentação de Entrada"
+        direction="IN"
+        types={MANUAL_IN_MOVEMENT_TYPES}
+      />
+      <CreateMovementDropdown
+        label="Movimentação de Saída"
+        direction="OUT"
+        types={MANUAL_OUT_MOVEMENT_TYPES}
+      />
+    </PermissionGate>
+  );
+
+  const FilterToken = ({
+    icon,
+    label,
+    badge,
+    onClick,
+  }: {
+    icon: ReactNode;
+    label: string;
+    badge?: number;
+    onClick: () => void;
+  }) => (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      className="h-9 shrink-0 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-xs font-medium text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+    >
+      {icon}
+      <span className="ml-2 whitespace-nowrap">{label}</span>
+      {badge ? (
+        <span className="ml-2 rounded-[4px] bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+          {badge}
+        </span>
+      ) : null}
+    </Button>
+  );
+
+  const MobileFiltersPanel = ({
+    draft,
+  }: {
+    draft: StockMovementFilterDraft;
+  }) => {
+    return (
+      <Drawer
+        direction="bottom"
+        open={isMobileFiltersOpen}
+        onOpenChange={(open) => {
+          if (!open) onCloseMobileFilters();
+        }}
+      >
+        <DrawerContent className="max-h-[88vh] rounded-t-[4px] border-neutral-800 bg-[#0e0e0e] text-neutral-200 md:hidden">
+          <DrawerHeader className="px-5 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-bold tracking-tight text-white">
+              Filtros
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-[11px] text-neutral-500">
+              Refine a listagem de movimentações
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="overflow-y-auto px-5 pb-2 pt-2">
+            <div className="space-y-6">
+              <div>
+                <span className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Tipo de movimentação
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {TYPE_FILTER_OPTIONS.map((option) => {
+                    const isSelected = draft.type === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          onMobileFilterDraftChange("type", option.value)
+                        }
+                        className={`flex h-10 w-full items-center justify-center rounded-[4px] border text-xs font-semibold transition-colors ${
+                          isSelected
+                            ? "border-blue-600 bg-blue-600/15 text-blue-400"
+                            : "border-neutral-800 bg-[#171717] text-neutral-400 hover:border-neutral-700 hover:text-neutral-300"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <span className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Período
+                </span>
+                <Select
+                  value={draft.datePreset}
+                  onValueChange={(value) =>
+                    onMobileDatePresetChange(value as DateFilterPreset)
+                  }
+                >
+                  <SelectTrigger className="h-11 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-semibold text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                    {Object.entries(DATE_PRESET_LABELS).map(([value, label]) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="text-xs font-semibold focus:bg-neutral-800 focus:text-white"
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {draft.datePreset === "CUSTOM" ? (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <label className="space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                        Data inicial
+                      </span>
+                      <Input
+                        type="date"
+                        value={draft.dateFrom ?? ""}
+                        onChange={(event) =>
+                          onMobileDateInputChange("dateFrom", event.target.value)
+                        }
+                        className="h-11 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-semibold text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0 hover:border-neutral-700 transition-colors"
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                        Data final
+                      </span>
+                      <Input
+                        type="date"
+                        value={draft.dateTo ?? ""}
+                        onChange={(event) =>
+                          onMobileDateInputChange("dateTo", event.target.value)
+                        }
+                        className="h-11 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-semibold text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0 hover:border-neutral-700 transition-colors"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
+              <div>
+                <span className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Ordenar por
+                </span>
+                <Select
+                  value={`${draft.sortBy}-${draft.sortOrder}`}
+                  onValueChange={(value) => {
+                    const [field, order] = value.split("-") as [
+                      SortField,
+                      SortOrder,
+                    ];
+                    onMobileFilterDraftChange("sortBy", field);
+                    onMobileFilterDraftChange("sortOrder", order);
+                  }}
+                >
+                  <SelectTrigger className="h-11 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-semibold text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                    {SORT_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-xs font-semibold focus:bg-neutral-800 focus:text-white"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DrawerFooter className="flex-row gap-3 border-t border-neutral-800 px-5 pb-6 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClearMobileFilters}
+              className="h-12 flex-1 rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+            >
+              <Trash2 className="mr-2 h-3.5 w-3.5" />
+              Limpar
+            </Button>
+            <Button
+              type="button"
+              onClick={onApplyMobileFilters}
+              className="h-12 flex-[2] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-widest text-white hover:bg-blue-700 transition-colors"
+            >
+              Aplicar filtros
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  };
+
+  const activeFilterCount = getActiveFilterCount(filters);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
@@ -190,28 +494,48 @@ export const StockMovementsView = ({
                   Gerencie as entradas e saídas de estoque
                 </p>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <PermissionGate permission="stock_movements:create">
-                  <CreateMovementDropdown
-                    label="Movimentação de Entrada"
-                    direction="IN"
-                    types={MANUAL_IN_MOVEMENT_TYPES}
-                  />
-                  <CreateMovementDropdown
-                    label="Movimentação de Saída"
-                    direction="OUT"
-                    types={MANUAL_OUT_MOVEMENT_TYPES}
-                  />
-                </PermissionGate>
+              <div className="hidden flex-col gap-2 md:flex md:flex-row md:items-center">
+                <CreateMovementActions />
               </div>
             </div>
 
-            {/* Row 2: Search & Filters */}
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
-              <div className="flex flex-col md:flex-row items-center gap-2 h-auto md:h-12 w-full md:w-auto">
+            <div className="flex flex-col gap-2 md:hidden">
+              <CreateMovementActions />
+            </div>
+
+            <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max gap-2">
+                <FilterToken
+                  icon={<Filter className="h-3.5 w-3.5" />}
+                  label="Filtros"
+                  badge={activeFilterCount || undefined}
+                  onClick={onOpenMobileFilters}
+                />
+                <FilterToken
+                  icon={<CalendarDays className="h-3.5 w-3.5" />}
+                  label={getDateSummary(
+                    filters.datePreset,
+                    filters.dateFrom,
+                    filters.dateTo,
+                  )}
+                  onClick={onOpenMobileFilters}
+                />
+                <FilterToken
+                  icon={<ArrowUpDown className="h-3.5 w-3.5" />}
+                  label={getSortLabel(filters.sortBy, filters.sortOrder)}
+                  onClick={onOpenMobileFilters}
+                />
+              </div>
+            </div>
+
+            {/* Desktop Filters */}
+            <div className="hidden w-full gap-3 md:flex md:h-12 md:flex-row md:items-center">
+              <div className="flex h-12 w-full items-center gap-2">
                 <Select
                   value={filters.type || "ALL"}
-                  onValueChange={(value) => onFilterChange("type", value)}
+                  onValueChange={(value) =>
+                    onFilterChange("type", value as StockMovementType | "ALL")
+                  }
                 >
                   <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
@@ -241,6 +565,54 @@ export const StockMovementsView = ({
                 </Select>
 
                 <Select
+                  value={filters.datePreset}
+                  onValueChange={(value) =>
+                    onDatePresetChange(value as DateFilterPreset)
+                  }
+                >
+                  <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 transition-colors hover:border-neutral-700 focus:border-blue-600 focus:ring-0 md:w-[190px]">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-3.5 w-3.5 text-neutral-500" />
+                      <SelectValue />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                    {Object.entries(DATE_PRESET_LABELS).map(
+                      ([value, label]) => (
+                        <SelectItem
+                          key={value}
+                          value={value}
+                          className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                        >
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {filters.datePreset === "CUSTOM" ? (
+                  <>
+                    <Input
+                      type="date"
+                      value={filters.dateFrom ?? ""}
+                      onChange={(event) =>
+                        onDateInputChange("dateFrom", event.target.value)
+                      }
+                      className="h-12 w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                    />
+                    <Input
+                      type="date"
+                      value={filters.dateTo ?? ""}
+                      onChange={(event) =>
+                        onDateInputChange("dateTo", event.target.value)
+                      }
+                      className="h-12 w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                    />
+                  </>
+                ) : null}
+
+                <Select
                   value={`${filters.sortBy}-${filters.sortOrder}`}
                   onValueChange={(value) => {
                     const [field, order] = value.split("-") as [
@@ -252,35 +624,20 @@ export const StockMovementsView = ({
                 >
                   <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
-                      <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                      <ArrowUpDown className="h-3.5 w-3.5 text-neutral-500" />
                       <SelectValue />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
-                    <SelectItem
-                      value="createdAt-desc"
-                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
-                    >
-                      Data (Mais Novo)
-                    </SelectItem>
-                    <SelectItem
-                      value="createdAt-asc"
-                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
-                    >
-                      Data (Mais Antigo)
-                    </SelectItem>
-                    <SelectItem
-                      value="type-asc"
-                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
-                    >
-                      Tipo (A-Z)
-                    </SelectItem>
-                    <SelectItem
-                      value="direction-asc"
-                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
-                    >
-                      Direção (In-Out)
-                    </SelectItem>
+                    {SORT_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -502,6 +859,7 @@ export const StockMovementsView = ({
           </div>
         </div>
       </main>
+      <MobileFiltersPanel draft={mobileFiltersDraft} />
     </div>
   );
 };
