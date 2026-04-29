@@ -97,6 +97,13 @@ export interface SalesResponse {
   };
 }
 
+export type DateFilterPreset =
+  | "ALL"
+  | "TODAY"
+  | "LAST_7_DAYS"
+  | "THIS_MONTH"
+  | "CUSTOM";
+
 export interface SaleDetailResponse {
   success: boolean;
   message: string;
@@ -109,8 +116,17 @@ export interface SaleFilters {
   status?: SaleStatus | "ALL";
   dateFrom?: string;
   dateTo?: string;
+  datePreset: DateFilterPreset;
   page: number;
   pageSize: number;
+}
+
+export interface SaleFilterDraft {
+  paymentMethod?: PaymentMethod | "ALL";
+  status: SaleStatus | "ALL";
+  dateFrom?: string;
+  dateTo?: string;
+  datePreset: DateFilterPreset;
 }
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {

@@ -38,6 +38,23 @@ export interface SortConfig {
   direction: "asc" | "desc";
 }
 
+export interface BatchFilterDraft {
+  status: BatchFilters["status"];
+  lowStockThreshold: number;
+  sortKey: SortConfig["key"];
+  sortDirection: SortConfig["direction"];
+  isGroupedByProduct: boolean;
+}
+
+export interface ProductBatchesGroup {
+  key: string;
+  productId: string;
+  productName: string;
+  productSku?: string | null;
+  totalQuantity: number;
+  batches: Batch[];
+}
+
 export interface BatchesResponse {
   success: boolean;
   message?: string | null;

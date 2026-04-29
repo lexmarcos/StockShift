@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Accordion,
   AccordionContent,
@@ -29,20 +37,32 @@ import {
 import {
   AlertTriangle,
   Calendar,
+  CheckCircle2,
+  Clock,
   Eye,
   Filter,
   Layers,
+  LayoutList,
   Loader2,
   Package,
   Plus,
   Search,
+  SlidersHorizontal,
+  Trash2,
+  TrendingDown,
   XCircle,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { Batch, BatchFilters, SortConfig } from "./batches.types";
+import type {
+  Batch,
+  BatchFilterDraft,
+  BatchFilters,
+  ProductBatchesGroup,
+  SortConfig,
+} from "./batches.types";
 import { deriveBatchStatus } from "./batches.model";
 
 import { cn } from "@/lib/utils";
@@ -50,24 +70,25 @@ import { PermissionGate } from "@/components/permission-gate";
 
 interface BatchesViewProps {
   batches: Batch[];
+  groupedByProduct: ProductBatchesGroup[];
   isLoading: boolean;
   error: Error | null;
   filters: BatchFilters;
   sortConfig: SortConfig;
+  isGroupedByProduct: boolean;
+  isMobileFiltersOpen: boolean;
+  mobileFiltersDraft: BatchFilterDraft;
   statusCounts: { expired: number; expiring: number; low: number };
   setSearchQuery: (value: string) => void;
   setStatus: (value: BatchFilters["status"]) => void;
-  setSortConfig: (value: SortConfig) => void;
+  onGroupedByProductChange: (value: boolean) => void;
+  onSortChange: (value: SortConfig["key"]) => void;
+  onMobileFiltersOpenChange: (open: boolean) => void;
+  onOpenMobileFilters: () => void;
+  onApplyMobileFilters: () => void;
   onClearFilters: () => void;
-}
-
-interface ProductBatchesGroup {
-  key: string;
-  productId: string;
-  productName: string;
-  productSku?: string | null;
-  totalQuantity: number;
-  batches: Batch[];
+  onClearMobileFilters: () => void;
+  onMobileFilterDraftChange: (patch: Partial<BatchFilterDraft>) => void;
 }
 
 const getStatusStyle = (kind: string) => {
@@ -116,58 +137,137 @@ const formatDate = (value?: string | null) => {
   }
 };
 
+const DEFAULT_LOW_STOCK_THRESHOLD = 10;
+
+const STATUS_FILTER_OPTIONS: Array<{
+  value: BatchFilters["status"];
+  label: string;
+  tone: string;
+  icon: ReactNode;
+}> = [
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "expired", label: "Expirado", tone: "text-rose-400", icon: <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "expiring", label: "Expirando", tone: "text-amber-400", icon: <Clock className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "low", label: "Baixo estoque", tone: "text-blue-400", icon: <TrendingDown className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "ok", label: "Regular", tone: "text-emerald-400", icon: <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+];
+
+const SORT_FILTER_OPTIONS: Array<{
+  value: `${SortConfig["key"]}:${SortConfig["direction"]}`;
+  label: string;
+}> = [
+  { value: "createdAt:desc", label: "Mais recentes" },
+  { value: "createdAt:asc", label: "Mais antigos" },
+  { value: "expiration:asc", label: "Validade mais próxima" },
+  { value: "expiration:desc", label: "Validade mais distante" },
+  { value: "quantity:asc", label: "Menor quantidade" },
+  { value: "quantity:desc", label: "Maior quantidade" },
+  { value: "product:asc", label: "Produto A-Z" },
+  { value: "product:desc", label: "Produto Z-A" },
+];
+
+const getStatusFilterLabel = (status: BatchFilters["status"]) =>
+  STATUS_FILTER_OPTIONS.find((option) => option.value === status)?.label ??
+  "Todos";
+
+const getSortLabel = (sortConfig: SortConfig) =>
+  SORT_FILTER_OPTIONS.find(
+    (option) => option.value === `${sortConfig.key}:${sortConfig.direction}`,
+  )?.label ?? "Mais recentes";
+
+const getActiveFilterCount = (
+  filters: BatchFilters,
+  sortConfig: SortConfig,
+  isGroupedByProduct: boolean,
+) => {
+  let count = 0;
+
+  if (filters.status !== "all") count += 1;
+  if (filters.lowStockThreshold !== DEFAULT_LOW_STOCK_THRESHOLD) count += 1;
+  if (sortConfig.key !== "createdAt" || sortConfig.direction !== "desc") {
+    count += 1;
+  }
+  if (isGroupedByProduct) count += 1;
+
+  return count;
+};
+
+const preventDrawerDismissFromSelectPortal = (event: Event) => {
+  const target = event.target as HTMLElement | null;
+
+  if (
+    target?.closest("[data-radix-popper-content-wrapper]") ||
+    target?.closest("[data-radix-select-content]")
+  ) {
+    event.preventDefault();
+  }
+};
+
+const FilterToken = ({
+  active,
+  count,
+  icon,
+  label,
+  onClick,
+  value,
+}: {
+  active?: boolean;
+  count?: number;
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  value?: string;
+}) => (
+  <Button
+    type="button"
+    variant="outline"
+    onClick={onClick}
+    className={cn(
+      "h-9 shrink-0 gap-2 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+      active &&
+        "border-blue-500/50 bg-blue-500/10 text-blue-100 hover:border-blue-500/70 hover:bg-blue-500/15",
+    )}
+  >
+    {icon}
+    <span>{label}</span>
+    {value && (
+      <span className="max-w-[120px] truncate text-neutral-200">{value}</span>
+    )}
+    {Boolean(count) && (
+      <span className="min-w-5 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white">
+        {count}
+      </span>
+    )}
+  </Button>
+);
+
 export const BatchesView = ({
   batches,
+  groupedByProduct,
   isLoading,
   error,
   filters,
   sortConfig,
+  isGroupedByProduct,
+  isMobileFiltersOpen,
+  mobileFiltersDraft,
   statusCounts,
   setSearchQuery,
   setStatus,
-  setSortConfig,
+  onGroupedByProductChange,
+  onSortChange,
+  onMobileFiltersOpenChange,
+  onOpenMobileFilters,
+  onApplyMobileFilters,
   onClearFilters,
+  onClearMobileFilters,
+  onMobileFilterDraftChange,
 }: BatchesViewProps) => {
-  const [isGroupedByProduct, setIsGroupedByProduct] = useState(false);
-
-  const groupedByProduct = useMemo<ProductBatchesGroup[]>(() => {
-    if (!isGroupedByProduct) return [];
-
-    const groups = new Map<string, ProductBatchesGroup>();
-
-    for (const batch of batches) {
-      const groupKey = batch.productId || batch.productName;
-      const existing = groups.get(groupKey);
-
-      if (existing) {
-        existing.batches.push(batch);
-        existing.totalQuantity += batch.quantity ?? 0;
-        continue;
-      }
-
-      groups.set(groupKey, {
-        key: groupKey,
-        productId: batch.productId,
-        productName: batch.productName,
-        productSku: batch.productSku,
-        totalQuantity: batch.quantity ?? 0,
-        batches: [batch],
-      });
-    }
-
-    return Array.from(groups.values());
-  }, [batches, isGroupedByProduct]);
-
-  const handleSort = (key: SortConfig["key"]) => {
-    if (sortConfig.key === key) {
-      setSortConfig({
-        key,
-        direction: sortConfig.direction === "asc" ? "desc" : "asc",
-      });
-      return;
-    }
-    setSortConfig({ key, direction: "asc" });
-  };
+  const activeFilterCount = getActiveFilterCount(
+    filters,
+    sortConfig,
+    isGroupedByProduct,
+  );
 
   const SortIcon = ({ field }: { field: SortConfig["key"] }) => {
     if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
@@ -178,21 +278,267 @@ export const BatchesView = ({
     );
   };
 
+  const statusToneMap: Record<string, { activeBorder: string; activeBg: string; activeText: string }> = {
+    all: { activeBorder: "border-neutral-500/50", activeBg: "bg-neutral-500/10", activeText: "text-neutral-100" },
+    expired: { activeBorder: "border-rose-500/50", activeBg: "bg-rose-500/10", activeText: "text-rose-100" },
+    expiring: { activeBorder: "border-amber-500/50", activeBg: "bg-amber-500/10", activeText: "text-amber-100" },
+    low: { activeBorder: "border-blue-500/50", activeBg: "bg-blue-500/10", activeText: "text-blue-100" },
+    ok: { activeBorder: "border-emerald-500/50", activeBg: "bg-emerald-500/10", activeText: "text-emerald-100" },
+  };
+
+  const renderMobileFiltersPanel = (draft: BatchFilterDraft) => (
+    <Drawer open={isMobileFiltersOpen} onOpenChange={onMobileFiltersOpenChange}>
+      <DrawerContent
+        className="border-neutral-800 bg-[#171717] text-neutral-100"
+        onInteractOutside={preventDrawerDismissFromSelectPortal}
+        onPointerDownOutside={preventDrawerDismissFromSelectPortal}
+      >
+        <DrawerHeader className="px-5 pb-2 text-left">
+          <DrawerTitle className="text-lg font-black tracking-tight text-white">
+            Filtros
+          </DrawerTitle>
+          <DrawerDescription className="text-xs text-neutral-500">
+            Refine os lotes por status, agrupamento e regra de estoque.
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div className="max-h-[68vh] overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="space-y-6">
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Status do lote
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {STATUS_FILTER_OPTIONS.map((option) => {
+                  const tones = statusToneMap[option.value];
+                  const isActive = draft.status === option.value;
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        onMobileFilterDraftChange({ status: option.value })
+                      }
+                      className={cn(
+                        "h-10 w-full rounded-[4px] border text-xs font-bold transition-colors",
+                        isActive
+                          ? cn(tones.activeBorder, tones.activeBg, tones.activeText)
+                          : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+                      )}
+                    >
+                      {option.icon}
+                      {option.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <div className="h-px bg-neutral-800/60" />
+
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Baixo estoque
+                </h3>
+                <span className="rounded-[4px] border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 font-mono text-xs font-black text-blue-300">
+                  {draft.lowStockThreshold} un.
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-neutral-500">
+                Lotes com quantidade ≤ limite entram no status de baixo estoque.
+              </p>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                step={1}
+                value={draft.lowStockThreshold}
+                onChange={(event) =>
+                  onMobileFilterDraftChange({
+                    lowStockThreshold: Number(event.target.value),
+                  })
+                }
+                className="h-1.5 w-full cursor-pointer rounded-[4px] bg-neutral-800 accent-blue-500"
+              />
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+                <span>1 un.</span>
+                <span>100 un.</span>
+              </div>
+            </section>
+
+            <div className="h-px bg-neutral-800/60" />
+
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Visualização
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    onMobileFilterDraftChange({ isGroupedByProduct: false })
+                  }
+                  className={cn(
+                    "h-10 w-full rounded-[4px] border text-xs font-bold transition-colors",
+                    !draft.isGroupedByProduct
+                      ? "border-blue-500/50 bg-blue-500/10 text-blue-100"
+                      : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+                  )}
+                >
+                  <Layers className="mr-2 h-3.5 w-3.5" />
+                  Lista
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    onMobileFilterDraftChange({ isGroupedByProduct: true })
+                  }
+                  className={cn(
+                    "h-10 w-full rounded-[4px] border text-xs font-bold transition-colors",
+                    draft.isGroupedByProduct
+                      ? "border-blue-500/50 bg-blue-500/10 text-blue-100"
+                      : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+                  )}
+                >
+                  <Package className="mr-2 h-3.5 w-3.5" />
+                  Agrupar
+                </Button>
+              </div>
+            </section>
+
+            <div className="h-px bg-neutral-800/60" />
+
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Ordenar por
+              </h3>
+              <Select
+                value={`${draft.sortKey}:${draft.sortDirection}`}
+                onValueChange={(value) => {
+                  const [sortKey, sortDirection] = value.split(":") as [
+                    SortConfig["key"],
+                    SortConfig["direction"],
+                  ];
+                  onMobileFilterDraftChange({ sortKey, sortDirection });
+                }}
+              >
+                <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-950/50 text-xs text-neutral-300 focus:border-blue-600 focus:ring-0">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                  {SORT_FILTER_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-xs focus:bg-neutral-800"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </section>
+          </div>
+        </div>
+
+        <DrawerFooter className="flex-row gap-3 border-t border-neutral-800 px-5 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClearMobileFilters}
+            className="h-11 flex-1 rounded-[4px] border-neutral-700 bg-transparent text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          >
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            Limpar
+          </Button>
+          <Button
+            type="button"
+            onClick={onApplyMobileFilters}
+            className="h-11 flex-[2] rounded-[4px] bg-blue-600 text-[10px] font-black uppercase tracking-widest text-white hover:bg-blue-500"
+          >
+            Aplicar filtros
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-5">
-            {/* Actions Bar */}
-            <div className="flex items-center justify-end">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  Lotes
+                </h1>
+                <p className="text-sm text-neutral-500 mt-1">
+                  Controle lotes e validades
+                </p>
+              </div>
               <PermissionGate permission="batches:create">
-                <Link href="/batches/create">
-                  <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
+                <Link href="/batches/create" className="w-full md:w-auto">
+                  <Button className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Lote
                   </Button>
                 </Link>
               </PermissionGate>
+            </div>
+
+            <div className="md:hidden">
+              <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex min-w-max gap-2 pb-1">
+                  <FilterToken
+                    active={activeFilterCount > 0}
+                    count={activeFilterCount}
+                    icon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+                    label="Filtros"
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    active={filters.status !== "all"}
+                    icon={<Filter className="h-3.5 w-3.5" />}
+                    label="Status"
+                    value={getStatusFilterLabel(filters.status)}
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    active={
+                      sortConfig.key !== "createdAt" ||
+                      sortConfig.direction !== "desc"
+                    }
+                    icon={<ArrowDown className="h-3.5 w-3.5" />}
+                    label="Ordem"
+                    value={getSortLabel(sortConfig)}
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    active={isGroupedByProduct}
+                    icon={<Layers className="h-3.5 w-3.5" />}
+                    label="Visão"
+                    value={
+                      isGroupedByProduct ? "Agrupado" : "Lista completa"
+                    }
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    active={
+                      filters.lowStockThreshold !==
+                      DEFAULT_LOW_STOCK_THRESHOLD
+                    }
+                    icon={<Package className="h-3.5 w-3.5" />}
+                    label="Baixo"
+                    value={`<= ${filters.lowStockThreshold} un.`}
+                    onClick={onOpenMobileFilters}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Row 1: Insight Cards */}
@@ -292,8 +638,7 @@ export const BatchesView = ({
                 />
               </div>
 
-              <div className="flex flex-col md:flex-row items-center gap-2 h-auto md:h-12">
-
+              <div className="hidden flex-col items-center gap-2 h-auto md:flex md:h-12 md:flex-row">
                 <Select
                   value={filters.status}
                   onValueChange={(value) =>
@@ -343,7 +688,9 @@ export const BatchesView = ({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsGroupedByProduct((prev) => !prev)}
+                  onClick={() =>
+                    onGroupedByProductChange(!isGroupedByProduct)
+                  }
                   className={cn(
                     "w-full md:w-auto rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest",
                     isGroupedByProduct
@@ -358,7 +705,12 @@ export const BatchesView = ({
                 </Button>
 
                 {(filters.searchQuery ||
-                  filters.status !== "all") && (
+                  filters.status !== "all" ||
+                  filters.lowStockThreshold !==
+                    DEFAULT_LOW_STOCK_THRESHOLD ||
+                  isGroupedByProduct ||
+                  sortConfig.key !== "createdAt" ||
+                  sortConfig.direction !== "desc") && (
                   <Button
                     variant="outline"
                     onClick={onClearFilters}
@@ -552,7 +904,7 @@ export const BatchesView = ({
                         <TableRow className="border-b border-neutral-800 hover:bg-neutral-900">
                           <TableHead
                             className="h-10 cursor-pointer text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white"
-                            onClick={() => handleSort("product")}
+                            onClick={() => onSortChange("product")}
                           >
                             <div className="flex items-center gap-1">
                               Produto <SortIcon field="product" />
@@ -566,7 +918,7 @@ export const BatchesView = ({
                           </TableHead>
                           <TableHead
                             className="h-10 text-right cursor-pointer text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white"
-                            onClick={() => handleSort("quantity")}
+                            onClick={() => onSortChange("quantity")}
                           >
                             <div className="flex items-center justify-end gap-1">
                               Qtd. <SortIcon field="quantity" />
@@ -574,7 +926,7 @@ export const BatchesView = ({
                           </TableHead>
                           <TableHead
                             className="h-10 text-center cursor-pointer text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white"
-                            onClick={() => handleSort("expiration")}
+                            onClick={() => onSortChange("expiration")}
                           >
                             <div className="flex items-center justify-center gap-1">
                               Validade <SortIcon field="expiration" />
@@ -763,15 +1115,7 @@ export const BatchesView = ({
         </div>
       </main>
 
-      {/* Floating Action Buttons - Mobile */}
-      <Link href="/batches/create">
-        <Button
-          className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-          size="icon"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </Link>
+      {renderMobileFiltersPanel(mobileFiltersDraft)}
     </div>
   );
 };

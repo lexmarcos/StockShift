@@ -3,14 +3,51 @@ import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type {
   Batch,
+  BatchFilterDraft,
   BatchFilters,
   BatchStatus,
   SortConfig,
   BatchesResponse,
+  ProductBatchesGroup,
 } from "./batches.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
-export type { Batch, BatchFilters, BatchStatus, SortConfig };
+export type {
+  Batch,
+  BatchFilterDraft,
+  BatchFilters,
+  BatchStatus,
+  SortConfig,
+  ProductBatchesGroup,
+};
+
+const DEFAULT_LOW_STOCK_THRESHOLD = 10;
+
+const DEFAULT_SORT_CONFIG: SortConfig = {
+  key: "createdAt",
+  direction: "desc",
+};
+
+const buildDefaultFilters = (
+  selectedWarehouseId?: string | null,
+): BatchFilters => ({
+  searchQuery: "",
+  warehouseId: selectedWarehouseId ?? "",
+  status: "all",
+  lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
+});
+
+const buildFilterDraft = (
+  filters: BatchFilters,
+  sortConfig: SortConfig,
+  isGroupedByProduct: boolean,
+): BatchFilterDraft => ({
+  status: filters.status,
+  lowStockThreshold: filters.lowStockThreshold,
+  sortKey: sortConfig.key,
+  sortDirection: sortConfig.direction,
+  isGroupedByProduct,
+});
 
 export const deriveBatchStatus = (
   batch: Batch,
@@ -108,17 +145,22 @@ export const sortBatches = (batches: Batch[], sort: SortConfig) => {
 export const useBatchesModel = () => {
   const { warehouseId: selectedWarehouseId } = useSelectedWarehouse();
 
-  const [filters, setFilters] = useState<BatchFilters>({
-    searchQuery: "",
-    warehouseId: selectedWarehouseId ?? "",
-    status: "all",
-    lowStockThreshold: 10,
-  });
+  const [filters, setFilters] = useState<BatchFilters>(() =>
+    buildDefaultFilters(selectedWarehouseId),
+  );
 
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: "createdAt",
-    direction: "desc",
-  });
+  const [sortConfig, setSortConfig] =
+    useState<SortConfig>(DEFAULT_SORT_CONFIG);
+  const [isGroupedByProduct, setIsGroupedByProduct] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [mobileFiltersDraft, setMobileFiltersDraft] =
+    useState<BatchFilterDraft>(() =>
+      buildFilterDraft(
+        buildDefaultFilters(selectedWarehouseId),
+        DEFAULT_SORT_CONFIG,
+        false,
+      ),
+    );
 
   useEffect(() => {
     if (selectedWarehouseId) {
@@ -146,6 +188,34 @@ export const useBatchesModel = () => {
     [filtered, sortConfig],
   );
 
+  const groupedByProduct = useMemo<ProductBatchesGroup[]>(() => {
+    if (!isGroupedByProduct) return [];
+
+    const groups = new Map<string, ProductBatchesGroup>();
+
+    for (const batch of sorted) {
+      const groupKey = batch.productId || batch.productName;
+      const existing = groups.get(groupKey);
+
+      if (existing) {
+        existing.batches.push(batch);
+        existing.totalQuantity += batch.quantity ?? 0;
+        continue;
+      }
+
+      groups.set(groupKey, {
+        key: groupKey,
+        productId: batch.productId,
+        productName: batch.productName,
+        productSku: batch.productSku,
+        totalQuantity: batch.quantity ?? 0,
+        batches: [batch],
+      });
+    }
+
+    return Array.from(groups.values());
+  }, [sorted, isGroupedByProduct]);
+
   const statusCounts = useMemo(() => {
     return filtered.reduce(
       (acc, batch) => {
@@ -161,24 +231,98 @@ export const useBatchesModel = () => {
     );
   }, [filtered, filters.lowStockThreshold]);
 
+  const onSortChange = (key: SortConfig["key"]) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        };
+      }
+
+      return { key, direction: "asc" };
+    });
+  };
+
+  const onOpenMobileFilters = () => {
+    setMobileFiltersDraft(
+      buildFilterDraft(filters, sortConfig, isGroupedByProduct),
+    );
+    setIsMobileFiltersOpen(true);
+  };
+
+  const onMobileFiltersOpenChange = (open: boolean) => {
+    if (open) {
+      onOpenMobileFilters();
+      return;
+    }
+
+    setIsMobileFiltersOpen(false);
+  };
+
+  const onApplyMobileFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      status: mobileFiltersDraft.status,
+      lowStockThreshold: mobileFiltersDraft.lowStockThreshold,
+    }));
+    setSortConfig({
+      key: mobileFiltersDraft.sortKey,
+      direction: mobileFiltersDraft.sortDirection,
+    });
+    setIsGroupedByProduct(mobileFiltersDraft.isGroupedByProduct);
+    setIsMobileFiltersOpen(false);
+  };
+
+  const onClearFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      searchQuery: "",
+      status: "all",
+      lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
+    }));
+    setSortConfig(DEFAULT_SORT_CONFIG);
+    setIsGroupedByProduct(false);
+  };
+
+  const onClearMobileFilters = () => {
+    const nextFilters = {
+      ...filters,
+      searchQuery: "",
+      status: "all" as const,
+      lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
+    };
+
+    setFilters(nextFilters);
+    setSortConfig(DEFAULT_SORT_CONFIG);
+    setIsGroupedByProduct(false);
+    setMobileFiltersDraft(buildFilterDraft(nextFilters, DEFAULT_SORT_CONFIG, false));
+  };
+
   return {
     batches: sorted,
+    groupedByProduct,
     isLoading,
     error,
     filters,
     sortConfig,
+    isGroupedByProduct,
+    isMobileFiltersOpen,
+    mobileFiltersDraft,
     statusCounts,
     setSearchQuery: (searchQuery: string) =>
       setFilters((prev) => ({ ...prev, searchQuery })),
     setStatus: (status: BatchFilters["status"]) =>
       setFilters((prev) => ({ ...prev, status })),
-    setSortConfig,
-    onClearFilters: () =>
-      setFilters((prev) => ({
-        ...prev,
-        searchQuery: "",
-        status: "all",
-      })),
+    onGroupedByProductChange: setIsGroupedByProduct,
+    onSortChange,
+    onMobileFiltersOpenChange,
+    onOpenMobileFilters,
+    onApplyMobileFilters,
+    onClearFilters,
+    onClearMobileFilters,
+    onMobileFilterDraftChange: (patch: Partial<BatchFilterDraft>) =>
+      setMobileFiltersDraft((prev) => ({ ...prev, ...patch })),
     refresh: mutate,
   };
 };

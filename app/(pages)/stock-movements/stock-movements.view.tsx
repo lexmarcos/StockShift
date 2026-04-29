@@ -140,6 +140,20 @@ const getActiveFilterCount = (filters: StockMovementsViewProps["filters"]) => {
   return Number(hasType) + Number(hasDate);
 };
 
+const preventDrawerDismissFromSelectPortal = (event: Event) => {
+  const target = event.target;
+
+  if (!(target instanceof HTMLElement)) return;
+
+  const isSelectPortal =
+    target.closest('[data-slot="select-content"]') ||
+    target.closest("[data-radix-popper-content-wrapper]");
+
+  if (isSelectPortal) {
+    event.preventDefault();
+  }
+};
+
 export const StockMovementsView = ({
   movements,
   isLoading,
@@ -303,18 +317,14 @@ export const StockMovementsView = ({
       {icon}
       <span className="ml-2 whitespace-nowrap">{label}</span>
       {badge ? (
-        <span className="ml-2 rounded-[4px] bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+        <span className="ml-2 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
           {badge}
         </span>
       ) : null}
     </Button>
   );
 
-  const MobileFiltersPanel = ({
-    draft,
-  }: {
-    draft: StockMovementFilterDraft;
-  }) => {
+  const renderMobileFiltersPanel = (draft: StockMovementFilterDraft) => {
     return (
       <Drawer
         direction="bottom"
@@ -323,7 +333,11 @@ export const StockMovementsView = ({
           if (!open) onCloseMobileFilters();
         }}
       >
-        <DrawerContent className="max-h-[88vh] rounded-t-[4px] border-neutral-800 bg-[#0e0e0e] text-neutral-200 md:hidden">
+        <DrawerContent
+          onInteractOutside={preventDrawerDismissFromSelectPortal}
+          onPointerDownOutside={preventDrawerDismissFromSelectPortal}
+          className="max-h-[88vh] rounded-t-[4px] border-neutral-800 bg-[#0e0e0e] text-neutral-200 md:hidden"
+        >
           <DrawerHeader className="px-5 pb-2 pt-5 text-left">
             <DrawerTitle className="text-xl font-bold tracking-tight text-white">
               Filtros
@@ -859,7 +873,7 @@ export const StockMovementsView = ({
           </div>
         </div>
       </main>
-      <MobileFiltersPanel draft={mobileFiltersDraft} />
+      {renderMobileFiltersPanel(mobileFiltersDraft)}
     </div>
   );
 };

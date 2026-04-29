@@ -14,7 +14,6 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/ui/page-container";
-import { PageHeader } from "@/components/ui/page-header";
 import { InsightCard } from "@/components/ui/insight-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -96,11 +95,17 @@ export function TransfersView({
 
   return (
     <PageContainer>
-      <PageHeader
-        title="Transferências"
-        subtitle="Gerenciamento"
-        actions={
-          activeTab === "outgoing" ? (
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tighter text-white">
+            Transferências
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Transfira produtos entre estoques
+          </p>
+        </div>
+        {activeTab === "outgoing" && (
+          <div className="w-full md:w-auto">
             <PermissionGate permission="transfers:create">
               <Button
                 asChild
@@ -112,9 +117,9 @@ export function TransfersView({
                 </Link>
               </Button>
             </PermissionGate>
-          ) : undefined
-        }
-      />
+          </div>
+        )}
+      </div>
 
       {/* Tab Selector */}
       <div className="mb-8 grid grid-cols-2 gap-3">

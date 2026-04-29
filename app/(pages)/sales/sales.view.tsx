@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 import {
   Table,
   TableBody,
@@ -16,15 +17,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   ShoppingCart,
   Plus,
   Calendar,
+  CalendarDays,
   Eye,
   MoreHorizontal,
   Filter,
   DollarSign,
   TrendingUp,
+  CreditCard,
+  Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -44,6 +59,9 @@ import {
   SaleStatus,
   SalesDashboardData,
   SaleFilters,
+  SaleFilterDraft,
+  PaymentMethod,
+  DateFilterPreset,
   PAYMENT_METHOD_LABELS,
   SALE_STATUS_LABELS,
   formatCents,
@@ -63,7 +81,9 @@ interface SalesViewProps {
   sales: SaleSummary[];
   isLoading: boolean;
   error: Error | null;
-  filters: { status?: string; paymentMethod?: string };
+  filters: SaleFilters;
+  mobileFiltersDraft: SaleFilterDraft;
+  isMobileFiltersOpen: boolean;
   pagination: {
     page: number;
     pageSize: number;
@@ -73,7 +93,22 @@ interface SalesViewProps {
   dashboardData: SalesDashboardData | null;
   dashboardLoading: boolean;
   onPageChange: (page: number) => void;
-  onFilterChange: (key: keyof SaleFilters, value: string) => void;
+  onFilterChange: <K extends keyof SaleFilters>(
+    key: K,
+    value: SaleFilters[K],
+  ) => void;
+  onDatePresetChange: (preset: DateFilterPreset) => void;
+  onDateInputChange: (key: "dateFrom" | "dateTo", value: string) => void;
+  onOpenMobileFilters: () => void;
+  onCloseMobileFilters: () => void;
+  onApplyMobileFilters: () => void;
+  onClearMobileFilters: () => void;
+  onMobileDatePresetChange: (preset: DateFilterPreset) => void;
+  onMobileDateInputChange: (key: "dateFrom" | "dateTo", value: string) => void;
+  onMobileFilterDraftChange: <K extends keyof SaleFilterDraft>(
+    key: K,
+    value: SaleFilterDraft[K],
+  ) => void;
 }
 
 const getStatusStyle = (status: SaleStatus) =>
@@ -89,15 +124,99 @@ const getStatusStyle = (status: SaleStatus) =>
         border: "border-rose-500/20",
       };
 
+const DATE_PRESET_LABELS: Record<DateFilterPreset, string> = {
+  ALL: "Todos períodos",
+  TODAY: "Hoje",
+  LAST_7_DAYS: "Últimos 7 dias",
+  THIS_MONTH: "Este mês",
+  CUSTOM: "Personalizado",
+};
+
+const STATUS_FILTER_OPTIONS: {
+  value: SaleStatus | "ALL";
+  label: string;
+}[] = [
+  { value: "ALL", label: "Todos" },
+  { value: "COMPLETED", label: SALE_STATUS_LABELS.COMPLETED },
+  { value: "CANCELLED", label: SALE_STATUS_LABELS.CANCELLED },
+];
+
+const PAYMENT_FILTER_OPTIONS: {
+  value: PaymentMethod | "ALL";
+  label: string;
+}[] = [
+  { value: "ALL", label: "Todos" },
+  ...Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => ({
+    value: value as PaymentMethod,
+    label,
+  })),
+];
+
+const formatDateDisplay = (value?: string) => {
+  if (!value) return "";
+
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+const getDateSummary = (
+  datePreset: DateFilterPreset,
+  dateFrom?: string,
+  dateTo?: string,
+) => {
+  if (datePreset !== "CUSTOM") {
+    return DATE_PRESET_LABELS[datePreset];
+  }
+
+  if (dateFrom && dateTo) {
+    return `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo)}`;
+  }
+
+  return DATE_PRESET_LABELS.CUSTOM;
+};
+
+const getActiveFilterCount = (filters: SaleFilters) => {
+  const hasStatus = filters.status && filters.status !== "ALL";
+  const hasPayment = filters.paymentMethod && filters.paymentMethod !== "ALL";
+  const hasDate = filters.datePreset !== "ALL";
+
+  return Number(hasStatus) + Number(hasPayment) + Number(hasDate);
+};
+
+const preventDrawerDismissFromSelectPortal = (event: Event) => {
+  const target = event.target;
+
+  if (!(target instanceof HTMLElement)) return;
+
+  const isSelectPortal =
+    target.closest('[data-slot="select-content"]') ||
+    target.closest("[data-radix-popper-content-wrapper]");
+
+  if (isSelectPortal) {
+    event.preventDefault();
+  }
+};
+
 export const SalesView = ({
   sales,
   isLoading,
   filters,
+  mobileFiltersDraft,
+  isMobileFiltersOpen,
   pagination,
   dashboardData,
   dashboardLoading,
   onPageChange,
   onFilterChange,
+  onDatePresetChange,
+  onDateInputChange,
+  onOpenMobileFilters,
+  onCloseMobileFilters,
+  onApplyMobileFilters,
+  onClearMobileFilters,
+  onMobileDatePresetChange,
+  onMobileDateInputChange,
+  onMobileFilterDraftChange,
 }: SalesViewProps) => {
   const SaleActions = ({ sale }: { sale: SaleSummary }) => (
     <DropdownMenu>
@@ -130,6 +249,217 @@ export const SalesView = ({
     </DropdownMenu>
   );
 
+  const FilterToken = ({
+    icon,
+    label,
+    badge,
+    onClick,
+  }: {
+    icon: ReactNode;
+    label: string;
+    badge?: number;
+    onClick: () => void;
+  }) => (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      className="h-9 shrink-0 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-xs font-medium text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+    >
+      {icon}
+      <span className="ml-2 whitespace-nowrap">{label}</span>
+      {badge ? (
+        <span className="ml-2 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+          {badge}
+        </span>
+      ) : null}
+    </Button>
+  );
+
+  const renderMobileFiltersPanel = (draft: SaleFilterDraft) => {
+    return (
+      <Drawer
+        direction="bottom"
+        open={isMobileFiltersOpen}
+        onOpenChange={(open) => {
+          if (!open) onCloseMobileFilters();
+        }}
+      >
+        <DrawerContent
+          onInteractOutside={preventDrawerDismissFromSelectPortal}
+          onPointerDownOutside={preventDrawerDismissFromSelectPortal}
+          className="max-h-[88vh] rounded-t-[4px] border-neutral-800 bg-[#0e0e0e] text-neutral-200 md:hidden"
+        >
+          <DrawerHeader className="relative px-5 pb-2 pt-5 text-left">
+            <DrawerTitle className="text-xl font-bold tracking-tight text-white">
+              Filtros
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-xs text-neutral-500">
+              Refine o histórico de vendas
+            </DrawerDescription>
+            <div className="absolute right-5 top-5 flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClearMobileFilters}
+                className="h-9 rounded-[4px] px-2 text-xs font-bold text-rose-500 hover:bg-rose-500/10 hover:text-rose-400"
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Limpar
+              </Button>
+              <DrawerClose asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-9 w-9 rounded-[4px] p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
+
+          <div className="overflow-y-auto px-5 pb-2 pt-3">
+            <div className="space-y-7">
+              <div>
+                <h3 className="mb-3 text-sm font-bold text-white">Status</h3>
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_FILTER_OPTIONS.map((option) => {
+                    const isSelected = draft.status === option.value;
+                    return (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          onMobileFilterDraftChange("status", option.value)
+                        }
+                        className={`h-10 rounded-[4px] border px-3 text-sm font-semibold ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-500/15 text-blue-300"
+                            : "border-neutral-700 bg-neutral-900/30 text-neutral-300 hover:border-neutral-600 hover:bg-neutral-800"
+                        }`}
+                      >
+                        {option.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mb-3 text-sm font-bold text-white">
+                  Pagamento
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {PAYMENT_FILTER_OPTIONS.map((option) => {
+                    const isSelected = draft.paymentMethod === option.value;
+                    return (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          onMobileFilterDraftChange(
+                            "paymentMethod",
+                            option.value,
+                          )
+                        }
+                        className={`h-10 rounded-[4px] border px-3 text-sm font-semibold ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-500/15 text-blue-300"
+                            : "border-neutral-700 bg-neutral-900/30 text-neutral-300 hover:border-neutral-600 hover:bg-neutral-800"
+                        }`}
+                      >
+                        {option.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mb-3 text-sm font-bold text-white">Período</h3>
+                <Select
+                  value={draft.datePreset}
+                  onValueChange={(value) =>
+                    onMobileDatePresetChange(value as DateFilterPreset)
+                  }
+                >
+                  <SelectTrigger className="h-12 rounded-[4px] border-neutral-700 bg-neutral-900/30 text-neutral-200 focus:border-blue-600 focus:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                    {Object.entries(DATE_PRESET_LABELS).map(
+                      ([value, label]) => (
+                        <SelectItem
+                          key={value}
+                          value={value}
+                          className="focus:bg-neutral-800"
+                        >
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {draft.datePreset === "CUSTOM" ? (
+                  <div className="mt-4 grid grid-cols-1 gap-3">
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-neutral-400">
+                        Data inicial
+                      </span>
+                      <Input
+                        type="date"
+                        value={draft.dateFrom ?? ""}
+                        onChange={(event) =>
+                          onMobileDateInputChange(
+                            "dateFrom",
+                            event.target.value,
+                          )
+                        }
+                        className="h-12 rounded-[4px] border-neutral-700 bg-neutral-900/30 text-neutral-200 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-neutral-400">
+                        Data final
+                      </span>
+                      <Input
+                        type="date"
+                        value={draft.dateTo ?? ""}
+                        onChange={(event) =>
+                          onMobileDateInputChange(
+                            "dateTo",
+                            event.target.value,
+                          )
+                        }
+                        className="h-12 rounded-[4px] border-neutral-700 bg-neutral-900/30 text-neutral-200 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <DrawerFooter className="border-t border-neutral-800 px-5 pb-5 pt-4">
+            <Button
+              type="button"
+              onClick={onApplyMobileFilters}
+              className="h-12 w-full rounded-[4px] bg-blue-600 text-sm font-bold text-white hover:bg-blue-700"
+            >
+              Aplicar filtros
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  };
+
+  const activeFilterCount = getActiveFilterCount(filters);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
@@ -153,10 +483,41 @@ export const SalesView = ({
               </PermissionGate>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
+            <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max gap-2">
+                <FilterToken
+                  icon={<Filter className="h-3.5 w-3.5" />}
+                  label="Filtros"
+                  badge={activeFilterCount || undefined}
+                  onClick={onOpenMobileFilters}
+                />
+                <FilterToken
+                  icon={<CalendarDays className="h-3.5 w-3.5" />}
+                  label={getDateSummary(
+                    filters.datePreset,
+                    filters.dateFrom,
+                    filters.dateTo,
+                  )}
+                  onClick={onOpenMobileFilters}
+                />
+                <FilterToken
+                  icon={<CreditCard className="h-3.5 w-3.5" />}
+                  label={
+                    filters.paymentMethod && filters.paymentMethod !== "ALL"
+                      ? PAYMENT_METHOD_LABELS[filters.paymentMethod]
+                      : "Pagamento"
+                  }
+                  onClick={onOpenMobileFilters}
+                />
+              </div>
+            </div>
+
+            <div className="hidden w-full gap-3 md:flex md:h-12 md:flex-row md:items-center">
               <Select
                 value={filters.status || "ALL"}
-                onValueChange={(value) => onFilterChange("status", value)}
+                onValueChange={(value) =>
+                  onFilterChange("status", value as SaleStatus | "ALL")
+                }
               >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                   <div className="flex items-center gap-2">
@@ -189,7 +550,10 @@ export const SalesView = ({
               <Select
                 value={filters.paymentMethod || "ALL"}
                 onValueChange={(value) =>
-                  onFilterChange("paymentMethod", value)
+                  onFilterChange(
+                    "paymentMethod",
+                    value as PaymentMethod | "ALL",
+                  )
                 }
               >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
@@ -216,6 +580,52 @@ export const SalesView = ({
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select
+                value={filters.datePreset}
+                onValueChange={(value) =>
+                  onDatePresetChange(value as DateFilterPreset)
+                }
+              >
+                <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 focus:border-blue-600 focus:ring-0 md:w-[190px]">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-3.5 w-3.5 text-neutral-500" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                  {Object.entries(DATE_PRESET_LABELS).map(([value, label]) => (
+                    <SelectItem
+                      key={value}
+                      value={value}
+                      className="text-[12px] font-bold uppercase focus:bg-neutral-800"
+                    >
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {filters.datePreset === "CUSTOM" ? (
+                <>
+                  <Input
+                    type="date"
+                    value={filters.dateFrom ?? ""}
+                    onChange={(event) =>
+                      onDateInputChange("dateFrom", event.target.value)
+                    }
+                    className="h-12 w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                  />
+                  <Input
+                    type="date"
+                    value={filters.dateTo ?? ""}
+                    onChange={(event) =>
+                      onDateInputChange("dateTo", event.target.value)
+                    }
+                    className="h-12 w-[160px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
+                  />
+                </>
+              ) : null}
             </div>
           </div>
 
@@ -593,6 +1003,7 @@ export const SalesView = ({
           </div>
         </div>
       </main>
+      {renderMobileFiltersPanel(mobileFiltersDraft)}
     </div>
   );
 };
