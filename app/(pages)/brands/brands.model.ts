@@ -144,7 +144,9 @@ export const useBrandsModel = () => {
       const err = error as { response?: Response };
       if (err.response) {
         const errorData = await err.response.json();
-        if (errorData.message?.includes("já existe")) {
+        const errorMessage = (errorData.message ?? "").toLowerCase();
+
+        if (errorMessage.includes("já existe")) {
           form.setError("name", {
             message: "Já existe uma marca com este nome",
           });
@@ -185,7 +187,9 @@ export const useBrandsModel = () => {
       const err = error as { response?: Response };
       if (err.response) {
         const errorData = await err.response.json();
-        if (errorData.message?.includes("produtos vinculados")) {
+        const errorMessage = (errorData.message ?? "").toLowerCase();
+
+        if (errorMessage.includes("produtos vinculados")) {
           toast.error(
             "Esta marca possui produtos. Remova-os primeiro."
           );
