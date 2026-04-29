@@ -59,17 +59,29 @@ export interface ProductsResponse {
 
 export type SortField = "name" | "sku" | "barcode" | "active" | "createdAt" | "updatedAt";
 export type SortOrder = "asc" | "desc";
+export type StockStatus = "all" | "inStock" | "lowStock" | "outOfStock";
+export type ActiveStatus = "all" | "active" | "inactive";
 
 export interface ProductFilters {
   searchQuery: string;
   sortBy: SortField;
   sortOrder: SortOrder;
+  stockStatus: StockStatus;
+  activeStatus: ActiveStatus;
   page: number;
   pageSize: number;
 }
 
+export interface ProductFilterDraft {
+  stockStatus: StockStatus;
+  activeStatus: ActiveStatus;
+  sortBy: SortField;
+  sortOrder: SortOrder;
+}
+
 export interface ProductsViewProps {
   products: Product[];
+  filteredProducts: Product[];
   isLoading: boolean;
   error: Error | null;
   requiresWarehouse: boolean;
@@ -81,10 +93,18 @@ export interface ProductsViewProps {
     totalPages: number;
     totalElements: number;
   };
+  isMobileFiltersOpen: boolean;
+  mobileFiltersDraft: ProductFilterDraft;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   onSearchChange: (search: string) => void;
   onSortChange: (sortBy: SortField, sortOrder: SortOrder) => void;
+  onMobileFiltersOpenChange: (open: boolean) => void;
+  onOpenMobileFilters: () => void;
+  onApplyMobileFilters: () => void;
+  onClearFilters: () => void;
+  onClearMobileFilters: () => void;
+  onMobileFilterDraftChange: (patch: Partial<ProductFilterDraft>) => void;
   onOpenDeleteDialog: (product: Product) => void;
   onConfirmDelete: () => void;
   onSecondConfirmDelete: () => void;

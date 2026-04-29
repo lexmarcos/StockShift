@@ -19,11 +19,13 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,49 +39,227 @@ import {
   Loader2,
   Eye,
   Pencil,
-  Warehouse,
-  Plus,
   Search,
   ChevronLeft,
   ChevronRight,
-  Move,
-  ScanLine,
   Trash2,
   AlertTriangle,
   Filter,
   ArrowUp,
   ArrowDown,
-  Layers,
   BarChart3,
   AlertCircle,
   XCircle,
   Tag,
   MoreHorizontal,
+  SlidersHorizontal,
+  CheckCircle2,
+  TrendingDown,
+  Power,
+  PowerOff,
+  LayoutList,
+  ArrowDownUp,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import type { ReactNode } from "react";
 import { PermissionGate } from "@/components/permission-gate";
-import { ScannerDrawer } from "@/components/product/scanner-drawer/scanner-drawer";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   ProductsViewProps,
   SortField,
   SortOrder,
   Product,
+  StockStatus,
+  ActiveStatus,
 } from "./products.types";
 import { cn } from "@/lib/utils";
 
+// ── Filter option constants ──
+
+const STOCK_FILTER_OPTIONS: Array<{
+  value: StockStatus;
+  label: string;
+  tone: string;
+  icon: ReactNode;
+}> = [
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "inStock", label: "Com estoque", tone: "text-emerald-400", icon: <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "lowStock", label: "Baixo estoque", tone: "text-amber-400", icon: <TrendingDown className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "outOfStock", label: "Sem estoque", tone: "text-rose-400", icon: <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+];
+
+const ACTIVE_FILTER_OPTIONS: Array<{
+  value: ActiveStatus;
+  label: string;
+  tone: string;
+  icon: ReactNode;
+}> = [
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "active", label: "Ativos", tone: "text-emerald-400", icon: <Power className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "inactive", label: "Inativos", tone: "text-neutral-400", icon: <PowerOff className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+];
+
+const SORT_FILTER_OPTIONS: Array<{
+  value: `${SortField}-${SortOrder}`;
+  label: string;
+}> = [
+  { value: "name-asc", label: "Nome (A-Z)" },
+  { value: "name-desc", label: "Nome (Z-A)" },
+  { value: "sku-asc", label: "SKU (A-Z)" },
+  { value: "sku-desc", label: "SKU (Z-A)" },
+  { value: "createdAt-desc", label: "Recentes" },
+  { value: "createdAt-asc", label: "Antigos" },
+];
+
+// ── Label helpers ──
+
+const getStockFilterLabel = (status: StockStatus) =>
+  STOCK_FILTER_OPTIONS.find((o) => o.value === status)?.label ?? "Todos";
+
+const getActiveFilterLabel = (status: ActiveStatus) =>
+  ACTIVE_FILTER_OPTIONS.find((o) => o.value === status)?.label ?? "Todos";
+
+const getSortLabel = (sortBy: SortField, sortOrder: SortOrder) =>
+  SORT_FILTER_OPTIONS.find((o) => o.value === `${sortBy}-${sortOrder}`)
+    ?.label ?? "Nome (A-Z)";
+
+const getActiveFilterCount = (
+  stockStatus: StockStatus,
+  activeStatus: ActiveStatus,
+  sortBy: SortField,
+  sortOrder: SortOrder,
+) => {
+  let count = 0;
+  if (stockStatus !== "all") count += 1;
+  if (activeStatus !== "all") count += 1;
+  if (sortBy !== "name" || sortOrder !== "asc") count += 1;
+  return count;
+};
+
+// ── Drawer dismiss guard ──
+
+const preventDrawerDismissFromSelectPortal = (event: Event) => {
+  const target = event.target as HTMLElement | null;
+  if (
+    target?.closest("[data-radix-popper-content-wrapper]") ||
+    target?.closest("[data-radix-select-content]")
+  ) {
+    event.preventDefault();
+  }
+};
+
+// ── FilterToken component ──
+
+const FilterToken = ({
+  active,
+  count,
+  icon,
+  label,
+  onClick,
+  value,
+}: {
+  active?: boolean;
+  count?: number;
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  value?: string;
+}) => (
+  <Button
+    type="button"
+    variant="outline"
+    onClick={onClick}
+    className={cn(
+      "h-9 shrink-0 gap-2 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+      active &&
+        "border-blue-500/50 bg-blue-500/10 text-blue-100 hover:border-blue-500/70 hover:bg-blue-500/15",
+    )}
+  >
+    {icon}
+    <span>{label}</span>
+    {value && (
+      <span className="max-w-[120px] truncate text-neutral-200">{value}</span>
+    )}
+    {Boolean(count) && (
+      <span className="min-w-5 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-center text-[10px] font-black leading-none text-white">
+        {count}
+      </span>
+    )}
+  </Button>
+);
+
+// ── Status helpers ──
+
+const getStockStatus = (quantity: number) => {
+  if (quantity === 0)
+    return {
+      label: "SEM ESTOQUE",
+      color: "text-rose-500",
+      bg: "bg-rose-500/10",
+      border: "border-rose-500/20",
+      indicator: "bg-rose-500",
+    };
+  if (quantity < 10)
+    return {
+      label: "BAIXO",
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+      border: "border-amber-500/20",
+      indicator: "bg-amber-500",
+    };
+  if (quantity < 50)
+    return {
+      label: "REGULAR",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10",
+      border: "border-blue-500/20",
+      indicator: "bg-blue-500",
+    };
+  return {
+    label: "ALTO",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    indicator: "bg-emerald-500",
+  };
+};
+
+// ── Tone maps for filter buttons ──
+
+const stockToneMap: Record<string, { activeBorder: string; activeBg: string; activeText: string }> = {
+  all: { activeBorder: "border-neutral-500/50", activeBg: "bg-neutral-500/10", activeText: "text-neutral-100" },
+  inStock: { activeBorder: "border-emerald-500/50", activeBg: "bg-emerald-500/10", activeText: "text-emerald-100" },
+  lowStock: { activeBorder: "border-amber-500/50", activeBg: "bg-amber-500/10", activeText: "text-amber-100" },
+  outOfStock: { activeBorder: "border-rose-500/50", activeBg: "bg-rose-500/10", activeText: "text-rose-100" },
+};
+
+const activeToneMap: Record<string, { activeBorder: string; activeBg: string; activeText: string }> = {
+  all: { activeBorder: "border-neutral-500/50", activeBg: "bg-neutral-500/10", activeText: "text-neutral-100" },
+  active: { activeBorder: "border-emerald-500/50", activeBg: "bg-emerald-500/10", activeText: "text-emerald-100" },
+  inactive: { activeBorder: "border-neutral-500/50", activeBg: "bg-neutral-500/10", activeText: "text-neutral-300" },
+};
+
+// ── Main View ──
+
 export const ProductsView = ({
-  products,
+  filteredProducts,
   isLoading,
   error,
-  requiresWarehouse,
   filters,
+  setFilters,
   pagination,
   onPageChange,
   onPageSizeChange,
   onSearchChange,
   onSortChange,
+  isMobileFiltersOpen,
+  mobileFiltersDraft,
+  onMobileFiltersOpenChange,
+  onOpenMobileFilters,
+  onApplyMobileFilters,
+  onClearFilters,
+  onClearMobileFilters,
+  onMobileFilterDraftChange,
   onOpenDeleteDialog,
   onConfirmDelete,
   onSecondConfirmDelete,
@@ -92,16 +272,20 @@ export const ProductsView = ({
   isCheckingDeleteBatches,
   isDeletingProduct,
 }: ProductsViewProps) => {
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const activeFilterCount = getActiveFilterCount(
+    filters.stockStatus,
+    filters.activeStatus,
+    filters.sortBy,
+    filters.sortOrder,
+  );
 
-  // Calculate Client-Side Stats (Demo purposes as backend aggregation is separate)
-  const lowStockCount = products.filter(
+  // Stats from filtered products
+  const lowStockCount = filteredProducts.filter(
     (p) => p.totalQuantity > 0 && p.totalQuantity < 10,
   ).length;
-  const outOfStockCount = products.filter((p) => p.totalQuantity === 0).length;
+  const outOfStockCount = filteredProducts.filter((p) => p.totalQuantity === 0).length;
 
-  // Simple mode calculation for category
-  const categories = products
+  const categories = filteredProducts
     .map((p) => p.categoryName)
     .filter(Boolean) as string[];
   const topCategory =
@@ -114,40 +298,6 @@ export const ProductsView = ({
           )
           .pop()
       : "N/A";
-
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0)
-      return {
-        label: "SEM ESTOQUE",
-        color: "text-rose-500",
-        bg: "bg-rose-500/10",
-        border: "border-rose-500/20",
-        indicator: "bg-rose-500",
-      };
-    if (quantity < 10)
-      return {
-        label: "BAIXO",
-        color: "text-amber-500",
-        bg: "bg-amber-500/10",
-        border: "border-amber-500/20",
-        indicator: "bg-amber-500",
-      };
-    if (quantity < 50)
-      return {
-        label: "REGULAR",
-        color: "text-blue-500",
-        bg: "bg-blue-500/10",
-        border: "border-blue-500/20",
-        indicator: "bg-blue-500",
-      };
-    return {
-      label: "ALTO",
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
-      indicator: "bg-emerald-500",
-    };
-  };
 
   const handleSort = (field: SortField) => {
     const newOrder: SortOrder =
@@ -216,12 +366,12 @@ export const ProductsView = ({
   const InsightCards = () => (
     <>
       {/* Total Items */}
-      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-blue-600/10 border border-blue-600/20">
-            <BarChart3 className="h-3.5 w-3.5 text-blue-500" />
+      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:h-6 md:w-6">
+            <BarChart3 className="h-5 w-5 text-blue-500 md:h-3.5 md:w-3.5" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
             Total Geral
           </span>
         </div>
@@ -236,12 +386,12 @@ export const ProductsView = ({
       </div>
 
       {/* Low Stock */}
-      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
-            <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:h-6 md:w-6">
+            <AlertCircle className="h-5 w-5 text-amber-500 md:h-3.5 md:w-3.5" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
             Baixo Estoque
           </span>
         </div>
@@ -256,12 +406,12 @@ export const ProductsView = ({
       </div>
 
       {/* Out of Stock */}
-      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
-            <XCircle className="h-3.5 w-3.5 text-rose-500" />
+      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:h-6 md:w-6">
+            <XCircle className="h-5 w-5 text-rose-500 md:h-3.5 md:w-3.5" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
             Sem Estoque
           </span>
         </div>
@@ -276,12 +426,12 @@ export const ProductsView = ({
       </div>
 
       {/* Top Category */}
-      <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-emerald-500/10 border border-emerald-500/20">
-            <Tag className="h-3.5 w-3.5 text-emerald-500" />
+      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:h-6 md:w-6">
+            <Tag className="h-5 w-5 text-emerald-500 md:h-3.5 md:w-3.5" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
             Top Categoria
           </span>
         </div>
@@ -297,34 +447,198 @@ export const ProductsView = ({
     </>
   );
 
+  // ── Mobile filter drawer ──
+  const renderMobileFiltersPanel = () => (
+    <Drawer open={isMobileFiltersOpen} onOpenChange={onMobileFiltersOpenChange}>
+      <DrawerContent
+        className="border-neutral-800 bg-[#171717] text-neutral-100"
+        onInteractOutside={preventDrawerDismissFromSelectPortal}
+        onPointerDownOutside={preventDrawerDismissFromSelectPortal}
+      >
+        <DrawerHeader className="px-5 pb-2 text-left">
+          <DrawerTitle className="text-lg font-black tracking-tight text-white">
+            Filtros
+          </DrawerTitle>
+          <DrawerDescription className="text-xs text-neutral-500">
+            Refine os produtos por estoque, status e ordenação.
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div className="max-h-[68vh] overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="space-y-6">
+            {/* Stock status */}
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Nível de estoque
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {STOCK_FILTER_OPTIONS.map((option) => {
+                  const tones = stockToneMap[option.value];
+                  const isActive = mobileFiltersDraft.stockStatus === option.value;
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        onMobileFilterDraftChange({ stockStatus: option.value })
+                      }
+                      className={cn(
+                        "h-10 w-full rounded-[4px] border text-xs font-bold transition-colors",
+                        isActive
+                          ? cn(tones.activeBorder, tones.activeBg, tones.activeText)
+                          : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+                      )}
+                    >
+                      {option.icon}
+                      {option.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <div className="h-px bg-neutral-800/60" />
+
+            {/* Active status */}
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Status do produto
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {ACTIVE_FILTER_OPTIONS.map((option) => {
+                  const tones = activeToneMap[option.value];
+                  const isActive = mobileFiltersDraft.activeStatus === option.value;
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        onMobileFilterDraftChange({ activeStatus: option.value })
+                      }
+                      className={cn(
+                        "h-10 w-full rounded-[4px] border text-xs font-bold transition-colors",
+                        isActive
+                          ? cn(tones.activeBorder, tones.activeBg, tones.activeText)
+                          : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
+                      )}
+                    >
+                      {option.icon}
+                      {option.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <div className="h-px bg-neutral-800/60" />
+
+            {/* Sort order */}
+            <section className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                Ordenar por
+              </h3>
+              <Select
+                value={`${mobileFiltersDraft.sortBy}-${mobileFiltersDraft.sortOrder}`}
+                onValueChange={(value) => {
+                  const [sortBy, sortOrder] = value.split("-") as [SortField, SortOrder];
+                  onMobileFilterDraftChange({ sortBy, sortOrder });
+                }}
+              >
+                <SelectTrigger className="h-10 w-full rounded-[4px] border-neutral-800 bg-neutral-950/50 text-xs text-neutral-300 focus:border-blue-600 focus:ring-0">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                  {SORT_FILTER_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-xs focus:bg-neutral-800"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </section>
+          </div>
+        </div>
+
+        <DrawerFooter className="flex-row gap-3 border-t border-neutral-800 px-5 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClearMobileFilters}
+            className="h-11 flex-1 rounded-[4px] border-neutral-700 bg-transparent text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          >
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            Limpar
+          </Button>
+          <Button
+            type="button"
+            onClick={onApplyMobileFilters}
+            className="h-11 flex-[2] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+          >
+            Aplicar filtros
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+
   return (
     <>
       <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
-        {/* Scanner Drawer */}
-        <ScannerDrawer open={scannerOpen} onOpenChange={setScannerOpen} />
-
         <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
           {/* Main Content */}
           <div className="space-y-6">
             <div className="flex flex-col gap-5">
-              {/* Actions Bar */}
-              <div className="flex items-center justify-end gap-3">
-                <Button
-                  onClick={() => setScannerOpen(true)}
-                  variant="outline"
-                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                >
-                  <ScanLine className="mr-2 h-3.5 w-3.5" />
-                  Scanner
-                </Button>
-                <PermissionGate permission="products:create">
-                  <Link href="/products/create">
-                    <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Novo Produto
-                    </Button>
-                  </Link>
-                </PermissionGate>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tighter text-white">
+                    Produtos
+                  </h1>
+                  <p className="text-sm text-neutral-500 mt-1">
+                    Gerencie o inventário de produtos
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile Filter Tokens */}
+              <div className="md:hidden">
+                <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex min-w-max gap-2 pb-1">
+                    <FilterToken
+                      active={activeFilterCount > 0}
+                      count={activeFilterCount}
+                      icon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+                      label="Filtros"
+                      onClick={onOpenMobileFilters}
+                    />
+                    <FilterToken
+                      active={filters.stockStatus !== "all"}
+                      icon={<Package className="h-3.5 w-3.5" />}
+                      label="Estoque"
+                      value={getStockFilterLabel(filters.stockStatus)}
+                      onClick={onOpenMobileFilters}
+                    />
+                    <FilterToken
+                      active={filters.activeStatus !== "all"}
+                      icon={<Power className="h-3.5 w-3.5" />}
+                      label="Status"
+                      value={getActiveFilterLabel(filters.activeStatus)}
+                      onClick={onOpenMobileFilters}
+                    />
+                    <FilterToken
+                      active={filters.sortBy !== "name" || filters.sortOrder !== "asc"}
+                      icon={<ArrowDownUp className="h-3.5 w-3.5" />}
+                      label="Ordem"
+                      value={getSortLabel(filters.sortBy, filters.sortOrder)}
+                      onClick={onOpenMobileFilters}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Row 1: Insight Cards */}
@@ -332,23 +646,12 @@ export const ProductsView = ({
                 <InsightCards />
               </div>
 
-              {/* Mobile Accordion Insights */}
-              <div className="md:hidden">
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem
-                    value="insights"
-                    className="border border-neutral-800 rounded-[4px] bg-[#171717] px-4"
-                  >
-                    <AccordionTrigger className="text-sm font-bold uppercase text-neutral-400 hover:text-white hover:no-underline py-4">
-                      Resumo do Inventário
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="grid grid-cols-1 gap-4 pt-2 pb-2">
-                        <InsightCards />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+              {/* Mobile Insight Cards */}
+              <div
+                data-slot="mobile-product-kpis"
+                className="grid grid-cols-2 gap-3 md:hidden"
+              >
+                <InsightCards />
               </div>
 
               {/* Row 2: Search & Filters */}
@@ -365,7 +668,48 @@ export const ProductsView = ({
                   />
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-2 h-auto md:h-12">
+                {/* Desktop filters */}
+                <div className="hidden flex-col items-center gap-2 h-auto md:flex md:h-12 md:flex-row">
+                  <Select
+                    value={filters.stockStatus}
+                    onValueChange={(value) =>
+                      setFilters({ ...filters, stockStatus: value as StockStatus })
+                    }
+                  >
+                    <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-3.5 w-3.5 text-neutral-500" />
+                        <SelectValue placeholder="Estoque" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
+                      <SelectItem
+                        value="all"
+                        className="text-[9px] font-bold uppercase focus:bg-neutral-800"
+                      >
+                        Todos
+                      </SelectItem>
+                      <SelectItem
+                        value="inStock"
+                        className="text-[9px] font-bold uppercase focus:bg-neutral-800 text-emerald-500"
+                      >
+                        Com estoque
+                      </SelectItem>
+                      <SelectItem
+                        value="lowStock"
+                        className="text-[9px] font-bold uppercase focus:bg-neutral-800 text-amber-500"
+                      >
+                        Baixo estoque
+                      </SelectItem>
+                      <SelectItem
+                        value="outOfStock"
+                        className="text-[9px] font-bold uppercase focus:bg-neutral-800 text-rose-500"
+                      >
+                        Sem estoque
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Select
                     value={`${filters.sortBy}-${filters.sortOrder}`}
                     onValueChange={(value) => {
@@ -376,7 +720,7 @@ export const ProductsView = ({
                       onSortChange(field, order);
                     }}
                   >
-                    <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
+                    <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                       <div className="flex items-center gap-2">
                         <Filter className="h-3.5 w-3.5 text-neutral-500" />
                         <SelectValue />
@@ -444,6 +788,20 @@ export const ProductsView = ({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {(filters.stockStatus !== "all" ||
+                    filters.activeStatus !== "all" ||
+                    filters.searchQuery ||
+                    filters.sortBy !== "name" ||
+                    filters.sortOrder !== "asc") && (
+                    <Button
+                      variant="outline"
+                      onClick={onClearFilters}
+                      className="w-full md:w-auto rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    >
+                      Limpar
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -476,46 +834,37 @@ export const ProductsView = ({
               )}
 
               {/* Empty State */}
-              {!isLoading && !error && products.length === 0 && (
+              {!isLoading && !error && filteredProducts.length === 0 && (
                 <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
                   <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
                     <Package className="h-8 w-8 text-neutral-600" />
                   </div>
                   <div className="text-center">
                     <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
-                      {filters.searchQuery
+                      {filters.searchQuery || filters.stockStatus !== "all" || filters.activeStatus !== "all"
                         ? "Nenhum resultado encontrado"
                         : "Nenhum produto cadastrado"}
                     </h3>
                     <p className="mt-1 max-w-xs text-xs text-neutral-500">
-                      {filters.searchQuery
+                      {filters.searchQuery || filters.stockStatus !== "all" || filters.activeStatus !== "all"
                         ? "Tente ajustar seus termos de busca ou filtros."
                         : "O inventário deste armazém está vazio. Comece adicionando produtos."}
                     </p>
                   </div>
-                  {filters.searchQuery ? (
+                  {filters.searchQuery || filters.stockStatus !== "all" || filters.activeStatus !== "all" ? (
                     <Button
                       variant="outline"
-                      onClick={() => onSearchChange("")}
+                      onClick={onClearFilters}
                       className="rounded-[4px] border-neutral-700 text-xs uppercase text-neutral-300 hover:bg-neutral-800"
                     >
                       Limpar Filtros
                     </Button>
-                  ) : (
-                    <PermissionGate permission="products:create">
-                      <Link href="/products/create">
-                        <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
-                          <Plus className="mr-2 h-3.5 w-3.5" />
-                          Primeiro Produto
-                        </Button>
-                      </Link>
-                    </PermissionGate>
-                  )}
+                  ) : null}
                 </div>
               )}
 
               {/* Table View (Desktop) */}
-              {!isLoading && !error && products.length > 0 && (
+              {!isLoading && !error && filteredProducts.length > 0 && (
                 <>
                   <div className="hidden overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] md:block">
                     <Table>
@@ -552,7 +901,7 @@ export const ProductsView = ({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {products.map((product) => {
+                        {filteredProducts.map((product) => {
                           const stockStatus = getStockStatus(
                             product.totalQuantity,
                           );
@@ -653,7 +1002,7 @@ export const ProductsView = ({
 
                   {/* Mobile Grid */}
                   <div className="grid gap-3 md:hidden">
-                    {products.map((product) => {
+                    {filteredProducts.map((product) => {
                       const stockStatus = getStockStatus(product.totalQuantity);
                       return (
                         <div
@@ -733,28 +1082,12 @@ export const ProductsView = ({
             </div>
           </div>
         </main>
-
-        {/* Floating Action Buttons - Mobile */}
-        <Button
-          onClick={() => setScannerOpen(true)}
-          className="fixed bottom-20 right-4 h-12 w-12 rounded-[4px] border border-neutral-700 bg-[#171717] text-white shadow-lg hover:bg-neutral-800 md:hidden"
-          size="icon"
-        >
-          <ScanLine className="h-5 w-5" />
-        </Button>
-
-        <PermissionGate permission="products:create">
-          <Link href="/products/create">
-            <Button
-              className="fixed bottom-6 right-4 h-12 w-12 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden"
-              size="icon"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </Link>
-        </PermissionGate>
       </div>
 
+      {/* Mobile Filter Drawer */}
+      {renderMobileFiltersPanel()}
+
+      {/* Delete Confirmation Modals */}
       <ResponsiveModal
         open={deleteDialogOpen}
         onOpenChange={(open) => {

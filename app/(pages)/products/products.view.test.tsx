@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import { ProductsView } from "./products.view";
 
 vi.mock("next/link", () => ({
@@ -38,6 +38,7 @@ afterEach(() => cleanup());
 
 const baseProps = {
   products: [],
+  filteredProducts: [],
   isLoading: false,
   error: null,
   requiresWarehouse: false,
@@ -45,19 +46,35 @@ const baseProps = {
     searchQuery: "",
     sortBy: "name" as const,
     sortOrder: "asc" as const,
+    stockStatus: "all" as const,
+    activeStatus: "all" as const,
     page: 0,
     pageSize: 20,
   },
+  setFilters: vi.fn(),
   pagination: {
     page: 0,
     pageSize: 20,
     totalPages: 1,
     totalElements: 1,
   },
+  isMobileFiltersOpen: false,
+  mobileFiltersDraft: {
+    stockStatus: "all" as const,
+    activeStatus: "all" as const,
+    sortBy: "name" as const,
+    sortOrder: "asc" as const,
+  },
   onPageChange: vi.fn(),
   onPageSizeChange: vi.fn(),
   onSearchChange: vi.fn(),
   onSortChange: vi.fn(),
+  onMobileFiltersOpenChange: vi.fn(),
+  onOpenMobileFilters: vi.fn(),
+  onApplyMobileFilters: vi.fn(),
+  onClearFilters: vi.fn(),
+  onClearMobileFilters: vi.fn(),
+  onMobileFilterDraftChange: vi.fn(),
   onOpenDeleteDialog: vi.fn(),
   onConfirmDelete: vi.fn(),
   onSecondConfirmDelete: vi.fn(),
@@ -96,10 +113,31 @@ describe("ProductsView - delete action", () => {
       <ProductsView
         {...baseProps}
         products={[productItem]}
+        filteredProducts={[productItem]}
       />
     );
 
     expect(screen.getAllByText("Produto Teste").length).toBeGreaterThan(0);
+  });
+
+  it("renders mobile KPI cards outside the inventory accordion", () => {
+    const { container } = render(
+      <ProductsView
+        {...baseProps}
+        products={[productItem]}
+        filteredProducts={[productItem]}
+      />
+    );
+
+    const mobileKpis = container.querySelector('[data-slot="mobile-product-kpis"]');
+
+    expect(screen.queryByRole("button", { name: /resumo do inventário/i })).toBeNull();
+    expect(mobileKpis).toBeTruthy();
+    expect(mobileKpis?.className).toContain("grid-cols-2");
+    expect(mobileKpis?.textContent).toContain("Total Geral");
+    expect(mobileKpis?.textContent).toContain("Baixo Estoque");
+    expect(mobileKpis?.textContent).toContain("Sem Estoque");
+    expect(mobileKpis?.textContent).toContain("Top Categoria");
   });
 
   it("shows delete modal when deleteDialogOpen is true", () => {
@@ -107,6 +145,7 @@ describe("ProductsView - delete action", () => {
       <ProductsView
         {...baseProps}
         products={[productItem]}
+        filteredProducts={[productItem]}
         deleteDialogOpen
         deleteProduct={productItem}
       />
@@ -120,6 +159,7 @@ describe("ProductsView - delete action", () => {
       <ProductsView
         {...baseProps}
         products={[productItem]}
+        filteredProducts={[productItem]}
         deleteDialogOpen
         deleteProduct={productItem}
         deleteBatches={[
@@ -144,6 +184,7 @@ describe("ProductsView - delete action", () => {
       <ProductsView
         {...baseProps}
         products={[productItem]}
+        filteredProducts={[productItem]}
         secondConfirmOpen
         deleteProduct={productItem}
       />

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -8,8 +8,11 @@ import {
   Product,
   ProductsResponse,
   ProductFilters,
+  ProductFilterDraft,
   SortField,
   SortOrder,
+  StockStatus,
+  ActiveStatus,
 } from "./products.types";
 
 interface BatchesResponse {
@@ -24,15 +27,59 @@ interface DeleteBatchesResponse {
   warehouseId: string;
 }
 
+const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
+  sortBy: "name",
+  sortOrder: "asc",
+  stockStatus: "all",
+  activeStatus: "all",
+  page: 0,
+  pageSize: 20,
+};
+
+const DEFAULT_DRAFT: ProductFilterDraft = {
+  stockStatus: "all",
+  activeStatus: "all",
+  sortBy: "name",
+  sortOrder: "asc",
+};
+
+const buildFilterDraft = (filters: ProductFilters): ProductFilterDraft => ({
+  stockStatus: filters.stockStatus,
+  activeStatus: filters.activeStatus,
+  sortBy: filters.sortBy,
+  sortOrder: filters.sortOrder,
+});
+
+const filterByStockStatus = (product: Product, status: StockStatus) => {
+  switch (status) {
+    case "inStock":
+      return product.totalQuantity >= 10;
+    case "lowStock":
+      return product.totalQuantity > 0 && product.totalQuantity < 10;
+    case "outOfStock":
+      return product.totalQuantity === 0;
+    default:
+      return true;
+  }
+};
+
+const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
+  switch (status) {
+    case "active":
+      return product.active;
+    case "inactive":
+      return !product.active;
+    default:
+      return true;
+  }
+};
+
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
 
   const [filters, setFilters] = useState<ProductFilters>({
     searchQuery: "",
-    sortBy: "name",
-    sortOrder: "asc",
-    page: 0,
-    pageSize: 20,
+    ...DEFAULT_FILTERS,
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
@@ -40,6 +87,11 @@ export const useProductsModel = () => {
   const [deleteBatches, setDeleteBatches] = useState<Batch[]>([]);
   const [isCheckingDeleteBatches, setIsCheckingDeleteBatches] = useState(false);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
+  // Mobile filter states
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [mobileFiltersDraft, setMobileFiltersDraft] =
+    useState<ProductFilterDraft>(DEFAULT_DRAFT);
 
   // Build URL with query params
   const url = useMemo(() => {
@@ -71,6 +123,18 @@ export const useProductsModel = () => {
   );
 
   const products = data?.data.content || [];
+
+  // Client-side filtering for stock status and active status
+  const filteredProducts = useMemo(
+    () =>
+      products.filter(
+        (p) =>
+          filterByStockStatus(p, filters.stockStatus) &&
+          filterByActiveStatus(p, filters.activeStatus)
+      ),
+    [products, filters.stockStatus, filters.activeStatus]
+  );
+
   const pagination = data?.data
     ? {
         page: data.data.number,
@@ -99,6 +163,52 @@ export const useProductsModel = () => {
 
   const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
     setFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
+  };
+
+  // Mobile filter handlers
+  const onOpenMobileFilters = () => {
+    setMobileFiltersDraft(buildFilterDraft(filters));
+    setIsMobileFiltersOpen(true);
+  };
+
+  const onMobileFiltersOpenChange = (open: boolean) => {
+    if (open) {
+      onOpenMobileFilters();
+      return;
+    }
+    setIsMobileFiltersOpen(false);
+  };
+
+  const onApplyMobileFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      stockStatus: mobileFiltersDraft.stockStatus,
+      activeStatus: mobileFiltersDraft.activeStatus,
+      sortBy: mobileFiltersDraft.sortBy,
+      sortOrder: mobileFiltersDraft.sortOrder,
+    }));
+    setIsMobileFiltersOpen(false);
+  };
+
+  const onClearFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      searchQuery: "",
+      ...DEFAULT_FILTERS,
+    }));
+  };
+
+  const onClearMobileFilters = () => {
+    const nextFilters = {
+      searchQuery: "",
+      ...DEFAULT_FILTERS,
+    };
+    setFilters(nextFilters);
+    setMobileFiltersDraft(DEFAULT_DRAFT);
+  };
+
+  const onMobileFilterDraftChange = (patch: Partial<ProductFilterDraft>) => {
+    setMobileFiltersDraft((prev) => ({ ...prev, ...patch }));
   };
 
   const onOpenDeleteDialog = async (product: Product) => {
@@ -182,16 +292,25 @@ export const useProductsModel = () => {
 
   return {
     products,
+    filteredProducts,
     isLoading,
     error: error || null,
     requiresWarehouse: !warehouseId,
     filters,
     setFilters,
     pagination,
+    isMobileFiltersOpen,
+    mobileFiltersDraft,
     onPageChange,
     onPageSizeChange,
     onSearchChange,
     onSortChange,
+    onMobileFiltersOpenChange,
+    onOpenMobileFilters,
+    onApplyMobileFilters,
+    onClearFilters,
+    onClearMobileFilters,
+    onMobileFilterDraftChange,
     onOpenDeleteDialog,
     onConfirmDelete,
     onSecondConfirmDelete,

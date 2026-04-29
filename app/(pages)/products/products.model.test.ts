@@ -8,6 +8,25 @@ const mockMutate = vi.fn();
 const mockGet = vi.fn();
 const mockDelete = vi.fn();
 
+const baseProduct = {
+  id: "prod-1",
+  name: "Produto Teste",
+  sku: "SKU-1",
+  barcode: "123",
+  barcodeType: "EAN13",
+  description: null,
+  categoryId: null,
+  categoryName: null,
+  brand: null,
+  isKit: false,
+  attributes: {},
+  hasExpiration: false,
+  active: true,
+  totalQuantity: 0,
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
+};
+
 let swrData: {
   success: boolean;
   data: {
@@ -59,25 +78,6 @@ vi.mock("sonner", () => ({
 }));
 
 describe("useProductsModel - delete flow", () => {
-  const baseProduct = {
-    id: "prod-1",
-    name: "Produto Teste",
-    sku: "SKU-1",
-    barcode: "123",
-    barcodeType: "EAN13",
-    description: null,
-    categoryId: null,
-    categoryName: null,
-    brand: null,
-    isKit: false,
-    attributes: {},
-    hasExpiration: false,
-    active: true,
-    totalQuantity: 0,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     swrData = {
