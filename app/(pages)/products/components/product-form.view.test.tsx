@@ -3,6 +3,13 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { ProductForm } from "./product-form.view";
+import type {
+  BatchDrawerFormItem,
+  BatchesDrawerProps,
+  ProductFormProps,
+} from "./product-form.types";
+import type { ProductCreateFormData } from "../create/products-create.schema";
+import type { UseFormReturn } from "react-hook-form";
 
 vi.mock("next/link", () => ({
   default: ({ children, ...props }: { children: React.ReactNode; href: string }) => <a {...props}>{children}</a>,
@@ -18,8 +25,34 @@ vi.mock("@/components/product/image-dropzone", () => ({
 
 afterEach(() => cleanup());
 
-const baseProps = {
-  mode: "edit" as const,
+const baseBatchesDrawer: BatchesDrawerProps = {
+  isOpen: false,
+  onOpenChange: vi.fn(),
+  direction: "bottom",
+  isLoading: false,
+  fields: [
+    {
+      id: "batch-1",
+      fieldId: "field-1",
+      productId: "prod-1",
+      warehouseId: "wh-1",
+      warehouseName: "Main",
+      warehouseCode: "WH-01",
+      quantity: 10,
+      batchCode: "BATCH-001",
+      expirationDate: "2026-12-31",
+      costPrice: 1250,
+      sellingPrice: 1990,
+      notes: "note",
+    },
+  ],
+  onSave: vi.fn(),
+  updatingBatchId: null,
+  form: {} as UseFormReturn<{ batches: BatchDrawerFormItem[] }>,
+};
+
+const baseProps: Omit<ProductFormProps, "form"> = {
+  mode: "edit",
   onSubmit: vi.fn(),
   isSubmitting: false,
   categories: [],
@@ -40,49 +73,24 @@ const baseProps = {
   currentImageUrl: undefined,
   handleImageSelect: vi.fn(),
   handleImageRemove: vi.fn(),
-  batchesDrawer: {
-    isOpen: false,
-    onOpenChange: vi.fn(),
-    direction: "bottom" as const,
-    isLoading: false,
-    fields: [
-      {
-        id: "batch-1",
-        fieldId: "field-1",
-        productId: "prod-1",
-        warehouseId: "wh-1",
-        warehouseName: "Main",
-        warehouseCode: "WH-01",
-        quantity: 10,
-        batchCode: "BATCH-001",
-        expirationDate: "2026-12-31",
-        costPrice: 1250,
-        sellingPrice: 1990,
-        notes: "note",
-      },
-    ],
-    onSave: vi.fn(),
-    updatingBatchId: null,
-    form: {} as ReturnType<typeof useForm>,
-  },
+  batchesDrawer: baseBatchesDrawer,
 };
 
-const Wrapper = (
-  props: typeof baseProps & {
-    defaultValues?: Record<string, unknown>;
-    onCancel?: () => void;
-  },
-) => {
+const Wrapper = ({
+  defaultValues,
+  ...props
+}: Omit<ProductFormProps, "form"> & {
+  defaultValues?: Partial<ProductCreateFormData>;
+}) => {
   const {
     batchesDrawer: batchesDrawerOverride,
-    defaultValues,
     ...rest
   } = props;
   const useOverride = Object.prototype.hasOwnProperty.call(
     props,
     "batchesDrawer"
   );
-  const form = useForm({
+  const form = useForm<ProductCreateFormData>({
     defaultValues: {
       name: "Produto",
       description: "",
@@ -105,10 +113,11 @@ const Wrapper = (
 
   const batchesDrawerValue = useOverride
     ? batchesDrawerOverride
-    : baseProps.batchesDrawer;
-  const batchForm = useForm({
+    : baseBatchesDrawer;
+  const batchFields = (batchesDrawerValue?.fields ?? []) as BatchDrawerFormItem[];
+  const batchForm = useForm<{ batches: BatchDrawerFormItem[] }>({
     defaultValues: {
-      batches: (batchesDrawerValue?.fields ?? []) as typeof baseProps.batchesDrawer.fields,
+      batches: batchFields,
     },
   });
 
@@ -131,7 +140,7 @@ describe("ProductForm batches drawer", () => {
       <Wrapper
         {...baseProps}
         mode="edit"
-        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: false }}
+        batchesDrawer={{ ...baseBatchesDrawer, isOpen: false }}
       />
     );
     expect(screen.queryByText(/estoque e precifica..o/i)).toBeNull();
@@ -141,7 +150,7 @@ describe("ProductForm batches drawer", () => {
     render(
       <Wrapper
         {...baseProps}
-        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+        batchesDrawer={{ ...baseBatchesDrawer, isOpen: true }}
       />
     );
     expect(screen.getByText(/gerenciar lotes/i)).toBeTruthy();
@@ -156,7 +165,7 @@ describe("ProductForm batches drawer", () => {
     render(
       <Wrapper
         {...baseProps}
-        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+        batchesDrawer={{ ...baseBatchesDrawer, isOpen: true }}
       />
     );
     fireEvent.click(screen.getByText(/batch-001/i));
@@ -168,7 +177,7 @@ describe("ProductForm batches drawer", () => {
     render(
       <Wrapper
         {...baseProps}
-        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+        batchesDrawer={{ ...baseBatchesDrawer, isOpen: true }}
       />
     );
     fireEvent.click(screen.getByText(/batch-001/i));
@@ -200,7 +209,28 @@ describe("ProductForm inline stock movement mode", () => {
     expect(screen.getByText(/modo em lote/i)).toBeTruthy();
   });
 
-  it("calls inline cancel cleanup before returning", () => {
+  it("keeps a mobile batch mode toggle copy after batch mode was selected", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="inline"
+        batchesDrawer={undefined}
+      />
+    );
+    const batchModeItem = screen
+      .getByText(/modo em lote/i)
+      .closest("[data-slot='form-item']");
+    const batchModeSwitch = batchModeItem?.querySelector("button");
+    expect(screen.getAllByText(/modo em lote/i)).toHaveLength(1);
+
+    fireEvent.click(batchModeSwitch as HTMLButtonElement);
+    expect(screen.getAllByText(/modo em lote/i)).toHaveLength(2);
+
+    fireEvent.click(batchModeSwitch as HTMLButtonElement);
+    expect(screen.getAllByText(/modo em lote/i)).toHaveLength(2);
+  });
+
+  it("calls inline cancel callback before returning", () => {
     const onCancel = vi.fn();
     render(
       <Wrapper
@@ -212,6 +242,21 @@ describe("ProductForm inline stock movement mode", () => {
     );
     fireEvent.click(screen.getByRole("link", { name: /cancelar/i }));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders inline edit actions without batch mode", () => {
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="inline"
+        batchesDrawer={undefined}
+        isInlineEdit
+      />
+    );
+
+    expect(screen.queryByText(/modo em lote/i)).toBeNull();
+    expect(screen.getByRole("button", { name: /salvar edi..o/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /cancelar/i })).toBeTruthy();
   });
 });
 
@@ -243,7 +288,7 @@ describe("ProductForm price formatting", () => {
     render(
       <Wrapper
         {...baseProps}
-        batchesDrawer={{ ...baseProps.batchesDrawer, isOpen: true }}
+        batchesDrawer={{ ...baseBatchesDrawer, isOpen: true }}
       />
     );
     fireEvent.click(screen.getByText(/batch-001/i));

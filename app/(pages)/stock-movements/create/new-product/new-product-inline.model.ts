@@ -17,19 +17,42 @@ import {
 } from "../../../products/create/products-create.types";
 import { productInlineSchema } from "../../../products/create/products-create.schema";
 import { ProductFormProps } from "../../../products/components/product-form.types";
-import type { InlineProductData } from "../create-stock-movement.types";
+import type {
+  InlineProductData,
+  StockMovementDraftItem,
+} from "../create-stock-movement.types";
 import { isManualMovementType } from "../../stock-movements.constants";
 import {
-  appendInlineProductItem,
-  clearInlineProductItems,
   fileToInlineProductImage,
+  inlineProductImageToFile,
   readStockMovementDraft,
-  readInlineProductItems,
+  writeStockMovementDraft,
 } from "../create-stock-movement.storage";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
   return `/stock-movements/create?type=${type}`;
+};
+
+const parseEditItemIndex = (value: string | null): number | null => {
+  if (!value) return null;
+  const index = Number(value);
+  return Number.isInteger(index) && index >= 0 ? index : null;
+};
+
+const buildCustomAttributes = (
+  attributes: Record<string, string> | undefined,
+): CustomAttribute[] => {
+  if (!attributes) return [];
+  return Object.entries(attributes)
+    .filter(([key]) => key !== "weight" && key !== "dimensions")
+    .map(([key, value]) => ({ id: `inline-${key}`, key, value }));
+};
+
+const resolveInitialProductImage = (
+  product: InlineProductData | undefined,
+): File | null => {
+  return product?.image ? inlineProductImageToFile(product.image) : null;
 };
 
 const buildInlineProductData = async (
@@ -56,44 +79,103 @@ const buildInlineProductData = async (
 const hasDuplicateInlineProductName = (
   productName: string,
   draft: ReturnType<typeof readStockMovementDraft>,
+  ignoredIndex: number | null,
 ): boolean => {
   const normalizedName = productName.toLowerCase();
-  const duplicateInDraft = draft?.items.some((item) => {
+  const duplicateInDraft = draft?.items.some((item, index) => {
+    if (index === ignoredIndex) return false;
     return item.newProductData?.name.toLowerCase() === normalizedName;
   });
-  const duplicateInPending = readInlineProductItems().some((item) => {
-    return item.product.name.toLowerCase() === normalizedName;
+  return Boolean(duplicateInDraft);
+};
+
+const buildInlineMovementItem = (
+  product: InlineProductData,
+  quantity: number,
+): StockMovementDraftItem => ({
+  quantity,
+  productName: product.name,
+  newProductData: product,
+});
+
+const appendProductToMovementDraft = (
+  product: InlineProductData,
+  quantity: number,
+): void => {
+  const draft = readStockMovementDraft();
+  if (!draft) return;
+  writeStockMovementDraft({
+    ...draft,
+    items: [...draft.items, buildInlineMovementItem(product, quantity)],
+    selectedProductId: "",
+    itemQuantity: "",
+    inlineProductBarcode: undefined,
   });
-  return Boolean(duplicateInDraft || duplicateInPending);
+};
+
+const updateProductInMovementDraft = (
+  index: number,
+  product: InlineProductData,
+  quantity: number,
+): void => {
+  const draft = readStockMovementDraft();
+  if (!draft) return;
+  writeStockMovementDraft({
+    ...draft,
+    items: draft.items.map((item, itemIndex) => {
+      return itemIndex === index
+        ? buildInlineMovementItem(product, quantity)
+        : item;
+    }),
+    selectedProductId: "",
+    itemQuantity: "",
+    inlineProductBarcode: undefined,
+  });
 };
 
 export const useNewProductInlineModel = (): ProductFormProps => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const movementType = searchParams.get("type");
+  const editItemIndex = parseEditItemIndex(searchParams.get("editItem"));
   const cancelHref = buildReturnHref(movementType);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
-    [],
-  );
-  const [productImage, setProductImage] = useState<File | null>(null);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
   const initialDraftRef = useRef(readStockMovementDraft());
   const initialDraft = initialDraftRef.current;
+  const editedItem =
+    editItemIndex !== null ? initialDraft?.items[editItemIndex] : undefined;
+  const editedProduct = editedItem?.newProductData;
+  const isEditingInlineProduct = Boolean(editedProduct);
+  const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
+    () => buildCustomAttributes(editedProduct?.attributes),
+  );
+  const [productImage, setProductImage] = useState<File | null>(() =>
+    resolveInitialProductImage(editedProduct),
+  );
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useBreadcrumb({
-    title: "Novo Produto",
+    title: isEditingInlineProduct ? "Editar Produto" : "Novo Produto",
     backUrl: cancelHref,
     section: "Movimentações",
-    subsection: "Produto Inline",
+    subsection: isEditingInlineProduct ? "Editar Produto" : "Produto Inline",
   });
 
   useEffect(() => {
-    if (isManualMovementType(movementType) && initialDraft) return;
+    const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
+    if (isManualMovementType(movementType) && initialDraft && hasValidEditItem) {
+      return;
+    }
     toast.error("Volte para a movimentação antes de criar o produto.");
     router.replace("/stock-movements");
-  }, [initialDraft, movementType, router]);
+  }, [
+    editItemIndex,
+    initialDraft,
+    isEditingInlineProduct,
+    movementType,
+    router,
+  ]);
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useSWR<CategoriesResponse>("categories", (url: string) =>
@@ -108,21 +190,24 @@ export const useNewProductInlineModel = (): ProductFormProps => {
   const form = useForm<ProductCreateFormData>({
     resolver: zodResolver(productInlineSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      barcode: initialDraft?.inlineProductBarcode || "",
-      isKit: false,
-      hasExpiration: false,
-      active: true,
+      name: editedProduct?.name || "",
+      description: editedProduct?.description || "",
+      barcode: editedProduct?.barcode || initialDraft?.inlineProductBarcode || "",
+      isKit: editedProduct?.isKit || false,
+      hasExpiration: editedProduct?.hasExpiration || false,
+      active: editedProduct?.active ?? true,
       continuousMode: false,
-      categoryId: "",
-      brandId: "",
-      attributes: { weight: "", dimensions: "" },
-      quantity: 0,
-      manufacturedDate: "",
-      expirationDate: "",
-      costPrice: undefined,
-      sellingPrice: undefined,
+      categoryId: editedProduct?.categoryId || "",
+      brandId: editedProduct?.brandId || "",
+      attributes: {
+        weight: editedProduct?.attributes?.weight || "",
+        dimensions: editedProduct?.attributes?.dimensions || "",
+      },
+      quantity: editedItem?.quantity || 0,
+      manufacturedDate: editedProduct?.manufacturedDate || "",
+      expirationDate: editedProduct?.expirationDate || "",
+      costPrice: editedProduct?.costPrice,
+      sellingPrice: editedProduct?.sellingPrice,
     },
   });
 
@@ -196,13 +281,20 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     });
     setCustomAttributes([]);
     setProductImage(null);
+    window.scrollTo({ top: 0 });
     window.setTimeout(() => nameInputRef.current?.focus(), 100);
   };
 
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
-    if (hasDuplicateInlineProductName(data.name, readStockMovementDraft())) {
+    if (
+      hasDuplicateInlineProductName(
+        data.name,
+        readStockMovementDraft(),
+        editItemIndex,
+      )
+    ) {
       toast.error(`O produto "${data.name}" já foi adicionado nesta movimentação.`);
       return;
     }
@@ -214,12 +306,18 @@ export const useNewProductInlineModel = (): ProductFormProps => {
         mergeAttributes(data),
         productImage,
       );
-      appendInlineProductItem({
-        product,
-        quantity: data.quantity,
-      });
+      if (isEditingInlineProduct && editItemIndex !== null) {
+        updateProductInMovementDraft(editItemIndex, product, data.quantity);
+        toast.success(`${data.name} foi atualizado na movimentação.`);
+        router.push(cancelHref);
+        return;
+      }
+
+      appendProductToMovementDraft(product, data.quantity);
       if (data.continuousMode) {
-        toast.success(`${data.name} adicionado ao lote.`);
+        toast.success(
+          `${data.name} já está na movimentação. Continue adicionando novos produtos.`,
+        );
         resetInlineFormForNextProduct();
         return;
       }
@@ -254,6 +352,6 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     nameInputRef,
     warehouseId: null,
     cancelHref,
-    onCancel: clearInlineProductItems,
+    isInlineEdit: isEditingInlineProduct,
   };
 };

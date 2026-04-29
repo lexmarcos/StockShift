@@ -17,10 +17,8 @@ import {
   MANUAL_IN_MOVEMENT_TYPES,
 } from "../stock-movements.constants";
 import {
-  clearInlineProductItems,
   clearStockMovementDraft,
   inlineProductImageToFile,
-  readInlineProductItems,
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
@@ -154,32 +152,9 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     setSelectedProductId(draft.selectedProductId);
     setItemQuantity(draft.itemQuantity);
 
-    const inlineProductItems = readInlineProductItems();
-    if (inlineProductItems.length === 0) {
-      clearStockMovementDraft();
-      return;
-    }
-
-    const productNames = new Set(
-      draft.items
-        .map((item) => item.newProductData?.name.toLowerCase())
-        .filter((name): name is string => Boolean(name)),
-    );
-    inlineProductItems.forEach((inlineItem) => {
-      const productName = inlineItem.product.name.toLowerCase();
-      if (productNames.has(productName)) return;
-
-      append({
-        quantity: inlineItem.quantity,
-        productName: inlineItem.product.name,
-        newProductData: inlineItem.product,
-      });
-      productNames.add(productName);
-    });
     setSelectedProductId("");
     setItemQuantity("");
 
-    clearInlineProductItems();
     clearStockMovementDraft();
   }, [append, form]);
 
@@ -273,6 +248,24 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     });
     setIsScannerOpen(false);
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
+  };
+
+  const handleEditNewProductItem = (index: number) => {
+    if (!selectedMovementType) return;
+
+    const item = form.getValues("items")[index];
+    if (!item?.newProductData) return;
+
+    writeStockMovementDraft({
+      type: selectedMovementType,
+      notes: form.getValues("notes") || "",
+      items: form.getValues("items"),
+      selectedProductId,
+      itemQuantity,
+    });
+    router.push(
+      `/stock-movements/create/new-product?type=${selectedMovementType}&editItem=${index}`,
+    );
   };
 
   const resolveScannerQuantity = () => {
@@ -375,6 +368,7 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     onQuantityChange: setItemQuantity,
     onAddItem: handleAddItem,
     onCreateNewProduct: handleCreateNewProduct,
+    onEditNewProductItem: handleEditNewProductItem,
     onScannerOpenChange: setIsScannerOpen,
     onBarcodeScan: handleBarcodeScan,
     onRemoveItem: remove,

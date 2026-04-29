@@ -47,6 +47,7 @@ export interface CreateStockMovementViewProps {
   onQuantityChange: (value: string) => void;
   onAddItem: () => void;
   onCreateNewProduct: () => void;
+  onEditNewProductItem: (index: number) => void;
   onScannerOpenChange: (open: boolean) => void;
   onBarcodeScan: (barcode: string) => void;
   onRemoveItem: (index: number) => void;

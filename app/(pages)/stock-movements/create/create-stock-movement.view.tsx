@@ -11,6 +11,7 @@ import {
   TrendingDown,
   TrendingUp,
   ScanLine,
+  Pencil,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ export function CreateStockMovementView({
   onQuantityChange,
   onAddItem,
   onCreateNewProduct,
+  onEditNewProductItem,
   onScannerOpenChange,
   onBarcodeScan,
   onRemoveItem,
@@ -313,15 +315,28 @@ export function CreateStockMovementView({
                           </span>
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onRemoveItem(index)}
-                        className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
-                      >
-                        <Trash2 className="h-4 w-4" strokeWidth={2} />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {item.newProductData && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEditNewProductItem(index)}
+                            className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400"
+                          >
+                            <Pencil className="h-4 w-4" strokeWidth={2} />
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onRemoveItem(index)}
+                          className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
+                        >
+                          <Trash2 className="h-4 w-4" strokeWidth={2} />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -338,7 +353,7 @@ export function CreateStockMovementView({
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                             Quantidade
                           </th>
-                          <th className="w-12 px-3 py-3" />
+                          <th className="w-24 px-3 py-3" />
                         </tr>
                       </thead>
                       <tbody>
@@ -361,18 +376,34 @@ export function CreateStockMovementView({
                               {item.quantity}
                             </td>
                             <td className="px-3 py-3.5">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onRemoveItem(index)}
-                                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
-                              >
-                                <Trash2
-                                  className="h-3.5 w-3.5"
-                                  strokeWidth={2}
-                                />
-                              </Button>
+                              <div className="flex justify-end gap-1">
+                                {item.newProductData && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEditNewProductItem(index)}
+                                    className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400"
+                                  >
+                                    <Pencil
+                                      className="h-3.5 w-3.5"
+                                      strokeWidth={2}
+                                    />
+                                  </Button>
+                                )}
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => onRemoveItem(index)}
+                                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
+                                >
+                                  <Trash2
+                                    className="h-3.5 w-3.5"
+                                    strokeWidth={2}
+                                  />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}

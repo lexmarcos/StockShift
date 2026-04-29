@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 import { ProductAiFillModal } from "@/components/product/product-ai-fill-modal";
@@ -68,6 +69,52 @@ import { PermissionGate } from "@/components/permission-gate";
 import { ProductFormProps } from "./product-form.types";
 import { cn } from "@/lib/utils";
 
+interface BatchModeSwitchProps {
+  control: ProductFormProps["form"]["control"];
+  isInlineMode: boolean;
+  compact?: boolean;
+}
+
+const BatchModeSwitch = ({
+  control,
+  isInlineMode,
+  compact = false,
+}: BatchModeSwitchProps) => (
+  <FormField
+    control={control}
+    name="continuousMode"
+    render={({ field }) => (
+      <FormItem
+        className={cn(
+          "flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900",
+          compact ? "px-3 py-3" : "p-3",
+        )}
+      >
+        <div className="space-y-0.5">
+          <FormLabel className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white">
+            <Zap className="h-3 w-3 text-amber-500" />
+            {isInlineMode ? "Modo em lote" : "Modo Contínuo"}
+          </FormLabel>
+          {!compact && (
+            <FormDescription className="text-[10px] text-neutral-500">
+              {isInlineMode
+                ? "Adicionar vários produtos antes de voltar"
+                : "Manter na tela após salvar"}
+            </FormDescription>
+          )}
+        </div>
+        <FormControl>
+          <Switch
+            checked={field.value}
+            onCheckedChange={field.onChange}
+            className="data-[state=checked]:bg-amber-500"
+          />
+        </FormControl>
+      </FormItem>
+    )}
+  />
+);
+
 export const ProductForm = ({
   mode,
   form,
@@ -98,6 +145,7 @@ export const ProductForm = ({
   handleAiFill,
   cancelHref,
   onCancel,
+  isInlineEdit,
 }: ProductFormProps) => {
   const hasExpiration = form.watch("hasExpiration");
 
@@ -113,10 +161,17 @@ export const ProductForm = ({
   const showPricingCard = mode === "create" || isInlineMode;
   const showQuantityField = mode === "create" || isInlineMode;
   const showBatchDateFields = mode === "create" || isInlineMode;
-  const showContinuousMode = mode === "create" || isInlineMode;
+  const showContinuousMode = mode === "create" || (isInlineMode && !isInlineEdit);
   const productCancelHref = cancelHref || "/products";
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [showMobileBatchModeToggle, setShowMobileBatchModeToggle] = useState(
+    isInlineMode && !isInlineEdit && Boolean(continuousMode),
+  );
+  const lastScrollYRef = useRef(0);
   const submitLabel = isInlineMode
-    ? continuousMode
+    ? isInlineEdit
+      ? "Salvar edição"
+      : continuousMode
       ? "Adicionar e continuar"
       : "Adicionar e voltar"
     : mode === "create"
@@ -128,8 +183,33 @@ export const ProductForm = ({
     return category.parentCategoryName ?? category.parentCategory?.name ?? null;
   };
 
+  useEffect(() => {
+    if (!isInlineMode || isInlineEdit || !continuousMode) return;
+    setShowMobileBatchModeToggle(true);
+  }, [continuousMode, isInlineEdit, isInlineMode]);
+
+  useEffect(() => {
+    const handleScroll = (): void => {
+      const currentScrollY = window.scrollY;
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      const isAtPageEnd = currentScrollY >= maxScrollY - 8;
+      const isScrollingUp = currentScrollY < lastScrollYRef.current;
+      setIsFooterVisible(isScrollingUp || isAtPageEnd || currentScrollY < 8);
+      lastScrollYRef.current = Math.max(currentScrollY, 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pb-24 md:pb-20 font-sans text-neutral-200">
+    <div
+      className={cn(
+        "min-h-screen bg-[#0A0A0A] font-sans text-neutral-200 md:pb-20",
+        isInlineMode ? "pb-56" : "pb-24",
+      )}
+    >
       {/* Barcode Scanner Modal */}
       <BarcodeScannerModal
         open={isScannerOpen}
@@ -733,31 +813,9 @@ export const ProductForm = ({
                     />
 
                     {showContinuousMode && (
-                      <FormField
+                      <BatchModeSwitch
                         control={form.control}
-                        name="continuousMode"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-xs font-bold uppercase tracking-wide text-white flex items-center gap-2">
-                                <Zap className="h-3 w-3 text-amber-500" />
-                                {isInlineMode ? "Modo em lote" : "Modo Contínuo"}
-                              </FormLabel>
-                              <FormDescription className="text-[10px] text-neutral-500">
-                                {isInlineMode
-                                  ? "Adicionar vários produtos antes de voltar"
-                                  : "Manter na tela após salvar"}
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="data-[state=checked]:bg-amber-500"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
+                        isInlineMode={isInlineMode}
                       />
                     )}
 
@@ -806,8 +864,24 @@ export const ProductForm = ({
             </div>
 
             {/* Footer Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 md:ml-[var(--sidebar-width)]">
+            <div
+              className={cn(
+                "fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm md:ml-[var(--sidebar-width)]",
+                isFooterVisible
+                  ? "translate-y-0"
+                  : "translate-y-[calc(100%+1rem)]",
+              )}
+            >
               <div className="mx-auto flex w-full max-w-7xl flex-col md:flex-row items-center md:justify-end gap-3 px-4 md:px-6 lg:px-8">
+                {isInlineMode && showMobileBatchModeToggle && (
+                  <div className="w-full md:hidden">
+                    <BatchModeSwitch
+                      control={form.control}
+                      isInlineMode={isInlineMode}
+                      compact
+                    />
+                  </div>
+                )}
                 <Button
                   variant="outline"
                   type="button"
