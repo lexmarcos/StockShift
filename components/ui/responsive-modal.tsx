@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode, useEffect, useState } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Dialog,
@@ -29,6 +29,66 @@ interface ResponsiveModalProps {
   maxWidth?: string;
 }
 
+type MobileDrawerViewportStyle = CSSProperties & {
+  "--responsive-modal-bottom"?: string;
+  "--responsive-modal-max-height"?: string;
+};
+
+const MOBILE_DRAWER_OFFSET = 12;
+const MOBILE_DRAWER_MIN_HEIGHT = 160;
+
+const getDefaultMobileDrawerStyle = (): MobileDrawerViewportStyle => ({
+  "--responsive-modal-bottom": "0px",
+  "--responsive-modal-max-height": "calc(100dvh - 12px)",
+});
+
+const getMobileDrawerViewportStyle = (): MobileDrawerViewportStyle => {
+  const viewport = window.visualViewport;
+  const viewportHeight = viewport?.height ?? window.innerHeight;
+  const viewportOffsetTop = viewport?.offsetTop ?? 0;
+  const bottomInset = window.innerHeight - viewportHeight - viewportOffsetTop;
+  const maxHeight = Math.min(
+    viewportHeight,
+    Math.max(MOBILE_DRAWER_MIN_HEIGHT, viewportHeight - MOBILE_DRAWER_OFFSET)
+  );
+
+  return {
+    "--responsive-modal-bottom": `${Math.max(0, Math.round(bottomInset))}px`,
+    "--responsive-modal-max-height": `${Math.round(maxHeight)}px`,
+  };
+};
+
+const useMobileDrawerViewportStyle = (
+  open: boolean
+): MobileDrawerViewportStyle => {
+  const [style, setStyle] = useState<MobileDrawerViewportStyle>(
+    getDefaultMobileDrawerStyle
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setStyle(getDefaultMobileDrawerStyle());
+      return;
+    }
+
+    const updateStyle = () => setStyle(getMobileDrawerViewportStyle());
+    const viewport = window.visualViewport;
+
+    updateStyle();
+    window.addEventListener("resize", updateStyle);
+    viewport?.addEventListener("resize", updateStyle);
+    viewport?.addEventListener("scroll", updateStyle);
+
+    return () => {
+      window.removeEventListener("resize", updateStyle);
+      viewport?.removeEventListener("resize", updateStyle);
+      viewport?.removeEventListener("scroll", updateStyle);
+    };
+  }, [open]);
+
+  return style;
+};
+
 export function ResponsiveModal({
   open,
   onOpenChange,
@@ -39,6 +99,7 @@ export function ResponsiveModal({
   maxWidth = "sm:max-w-[600px]",
 }: ResponsiveModalProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const mobileDrawerViewportStyle = useMobileDrawerViewportStyle(open);
 
   if (isDesktop) {
     return (
@@ -60,9 +121,16 @@ export function ResponsiveModal({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="rounded-t-[4px] border-neutral-800 bg-[#171717] text-neutral-200 max-h-[90vh]">
-        <DrawerHeader className="text-left">
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      repositionInputs={false}
+    >
+      <DrawerContent
+        style={mobileDrawerViewportStyle}
+        className="overflow-hidden rounded-t-[4px] border-neutral-800 bg-[#171717] text-neutral-200 data-[vaul-drawer-direction=bottom]:bottom-[var(--responsive-modal-bottom)] data-[vaul-drawer-direction=bottom]:max-h-[var(--responsive-modal-max-height)]"
+      >
+        <DrawerHeader className="shrink-0 text-left">
           <DrawerTitle className="text-base font-bold uppercase tracking-wide text-white">
             {title}
           </DrawerTitle>
@@ -70,8 +138,14 @@ export function ResponsiveModal({
             {description}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="overflow-y-auto px-4">{children}</div>
-        {footer && <DrawerFooter className="pt-4">{footer}</DrawerFooter>}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {children}
+          {footer && (
+            <DrawerFooter className="relative mt-6 border-t border-neutral-800 px-0 pb-0 pt-4">
+              {footer}
+            </DrawerFooter>
+          )}
+        </div>
       </DrawerContent>
     </Drawer>
   );
