@@ -10,8 +10,6 @@ type SwrState<T> = {
   mutate: () => void;
 };
 
-type SwrCall = { key: string | null; url: string };
-
 const fakeSWR = vi.hoisted(() => {
   class FakeSWR {
     private readonly responses = new Map<string | null, SwrState<unknown>>();
@@ -23,8 +21,10 @@ const fakeSWR = vi.hoisted(() => {
     };
 
     public readonly hook = vi.fn(
-      (key: string | null, _fetcher?: unknown): SwrState<unknown> =>
-        this.responses.get(key) ?? this.defaultState,
+      (key: string | null, fetcher?: unknown): SwrState<unknown> => {
+        void fetcher;
+        return this.responses.get(key) ?? this.defaultState;
+      },
     );
 
     public setState<T>(key: string | null, state: SwrState<T>): void {

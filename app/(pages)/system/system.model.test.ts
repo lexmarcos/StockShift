@@ -135,8 +135,8 @@ describe("useSystemModel", () => {
 
   it("combina estado de carregamento do auth e SWR", () => {
     authIsLoading = true;
-    let usersLoading = false;
-    let rolesLoading = true;
+    const usersLoading = false;
+    const rolesLoading = true;
 
     mockSWR.mockImplementation((key: string | null) => {
       if (key === "users") {

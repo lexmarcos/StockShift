@@ -11,7 +11,6 @@ import {
   Truck,
   MapPin,
   Hash,
-  Clock,
   ShieldCheck,
 } from "lucide-react";
 import { TransferDetailViewProps } from "./transfer-detail.types";

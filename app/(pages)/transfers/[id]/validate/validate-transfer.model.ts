@@ -7,7 +7,6 @@ import {
   TransferDetailResponse,
   ScanResponse,
   DiscrepancyItem,
-  DiscrepancyReportResponse,
   ValidationLogsResponse,
 } from "../../transfers.types";
 import { ScanResultItem, ExpectedItem } from "./validate-transfer.types";

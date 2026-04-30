@@ -174,15 +174,6 @@ const updateCategorySuccess: UpdateCategoryResponse = {
   },
 };
 
-const updateCategoryError: UpdateCategoryResponse = {
-  success: false,
-  message: "Falha ao atualizar",
-  data: {
-    ...baseCategories[0],
-    name: "Alpha",
-  },
-};
-
 const deleteCategorySuccess: DeleteCategoryResponse = {
   success: true,
   message: "Categoria removida",

@@ -22,7 +22,6 @@ import {
   DollarSign,
   Package,
   History,
-  AlertCircle,
   CheckCircle2,
   Clock,
 } from "lucide-react";

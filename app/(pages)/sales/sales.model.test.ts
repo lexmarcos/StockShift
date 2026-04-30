@@ -46,7 +46,7 @@ let salesResponse: SalesResponse | undefined = {
 let salesLoading = false;
 let salesError: Error | null = null;
 
-let dashboardResponse: SalesDashboardResponse = {
+const dashboardResponse: SalesDashboardResponse = {
   success: true,
   message: "",
   data: {

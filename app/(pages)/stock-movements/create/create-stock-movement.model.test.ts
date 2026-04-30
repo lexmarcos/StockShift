@@ -11,7 +11,6 @@ import type { StockMovementProductOption } from "./create-stock-movement.types";
 
 type JsonResponse<T> = { json: () => Promise<T> };
 type ProductListResponse = { success: boolean; data: StockMovementProductOption[] };
-type ProductByBarcodeResponse = { success: boolean; data: StockMovementProductOption };
 
 const createJsonResponse = <T>(payload: T): JsonResponse<T> => ({
   json: vi.fn(async () => payload),
@@ -35,8 +34,10 @@ const fakeSWR = vi.hoisted(() => {
     };
 
     public readonly hook = vi.fn(
-      (key: string | null, _fetcher?: unknown): SwrState<unknown> =>
-        this.responses.get(key) ?? this.defaultState,
+      (key: string | null, fetcher?: unknown): SwrState<unknown> => {
+        void fetcher;
+        return this.responses.get(key) ?? this.defaultState;
+      },
     );
 
     public setState<T>(key: string | null, state: SwrState<T>): void {

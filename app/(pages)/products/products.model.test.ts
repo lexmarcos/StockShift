@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useProductsModel } from "./products.model";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const mockMutate = vi.fn();

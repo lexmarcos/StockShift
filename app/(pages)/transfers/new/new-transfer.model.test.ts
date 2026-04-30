@@ -181,18 +181,6 @@ const batchContentResponse: BatchListResponse = {
   },
 };
 
-const batchArrayResponse: BatchListResponse = {
-  success: true,
-  data: [
-    {
-      id: "batch-cha",
-      code: "CH-01",
-      quantity: 7,
-      productId: "prod-cha",
-    },
-  ],
-};
-
 beforeEach(() => {
   vi.clearAllMocks();
   fakeSWR.reset();
