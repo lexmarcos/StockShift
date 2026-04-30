@@ -252,6 +252,29 @@ describe("useRolesModel", () => {
     });
   });
 
+  it("abre e fecha modal de permissões agrupando a role selecionada", () => {
+    const { result } = renderHook(() => useRolesModel());
+
+    expect(result.current.isPermissionsModalOpen).toBe(false);
+    expect(result.current.roleToViewPermissions).toBeNull();
+
+    act(() => {
+      result.current.openPermissionsModal(baseRoles[0]);
+    });
+
+    expect(result.current.isPermissionsModalOpen).toBe(true);
+    expect(result.current.roleToViewPermissions?.id).toBe("role-admin");
+    expect(result.current.viewedRoleGroupedPermissions.get("Products")).toHaveLength(2);
+
+    act(() => {
+      result.current.closePermissionsModal();
+    });
+
+    expect(result.current.isPermissionsModalOpen).toBe(false);
+    expect(result.current.roleToViewPermissions).toBeNull();
+    expect(result.current.viewedRoleGroupedPermissions.size).toBe(0);
+  });
+
   it("cria role com sucesso e fecha modal", async () => {
     const { result } = renderHook(() => useRolesModel());
 

@@ -26,6 +26,7 @@ export const useRolesModel = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [roleToViewPermissions, setRoleToViewPermissions] = useState<Role | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editFormPopulated, setEditFormPopulated] = useState(false);
@@ -73,6 +74,10 @@ export const useRolesModel = () => {
   const groupedPermissions = useMemo(
     () => groupPermissionsByResource(permissions),
     [permissions],
+  );
+  const viewedRoleGroupedPermissions = useMemo(
+    () => groupPermissionsByResource(roleToViewPermissions?.permissions ?? []),
+    [roleToViewPermissions],
   );
 
   // Create form
@@ -152,6 +157,14 @@ export const useRolesModel = () => {
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
     setRoleToDelete(null);
+  };
+
+  const openPermissionsModal = (role: Role) => {
+    setRoleToViewPermissions(role);
+  };
+
+  const closePermissionsModal = () => {
+    setRoleToViewPermissions(null);
   };
 
   const onCreateSubmit = async (data: RoleFormData) => {
@@ -238,6 +251,10 @@ export const useRolesModel = () => {
     roleToDelete,
     openDeleteModal,
     closeDeleteModal,
+    isPermissionsModalOpen: roleToViewPermissions !== null,
+    roleToViewPermissions,
+    openPermissionsModal,
+    closePermissionsModal,
     confirmDelete,
     isDeleting,
     permissions,
@@ -249,6 +266,7 @@ export const useRolesModel = () => {
     isSubmitting,
     isAdmin,
     groupedPermissions,
+    viewedRoleGroupedPermissions,
     isLoadingAdmin,
   };
 };

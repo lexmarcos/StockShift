@@ -73,6 +73,10 @@ export interface RolesViewProps {
   roleToDelete: Role | null;
   openDeleteModal: (role: Role) => void;
   closeDeleteModal: () => void;
+  isPermissionsModalOpen: boolean;
+  roleToViewPermissions: Role | null;
+  openPermissionsModal: (role: Role) => void;
+  closePermissionsModal: () => void;
   confirmDelete: () => Promise<void>;
   isDeleting: boolean;
   permissions: Permission[];
@@ -84,5 +88,6 @@ export interface RolesViewProps {
   isSubmitting: boolean;
   isAdmin: boolean;
   groupedPermissions: Map<string, Permission[]>;
+  viewedRoleGroupedPermissions: Map<string, Permission[]>;
   isLoadingAdmin: boolean;
 }

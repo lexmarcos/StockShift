@@ -47,7 +47,7 @@ import {
   Plus,
   Search,
   MoreHorizontal,
-  ShieldAlert,
+  Eye,
   Pencil,
   Trash2,
   Lock,
@@ -55,6 +55,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { RolesViewProps, Role } from "./roles.types";
+import { RolePermissionsModal } from "./roles-permissions-modal.view";
 import { cn } from "@/lib/utils";
 
 export const RolesView = ({
@@ -74,6 +75,10 @@ export const RolesView = ({
   roleToDelete,
   openDeleteModal,
   closeDeleteModal,
+  isPermissionsModalOpen,
+  roleToViewPermissions,
+  openPermissionsModal,
+  closePermissionsModal,
   confirmDelete,
   isDeleting,
   permissions,
@@ -85,11 +90,22 @@ export const RolesView = ({
   isSubmitting,
   isAdmin,
   groupedPermissions,
+  viewedRoleGroupedPermissions,
   isLoadingAdmin
 }: RolesViewProps) => {
   // Desktop actions - visible buttons
   const DesktopActions = ({ role }: { role: Role }) => (
     <div className="flex justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => openPermissionsModal(role)}
+        title="Ver permissões da role"
+        aria-label={`Ver permissões da role ${role.name}`}
+        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
       <Button
         variant="ghost"
         size="icon"
@@ -134,6 +150,13 @@ export const RolesView = ({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-neutral-800" />
         <DropdownMenuItem
+          onClick={() => openPermissionsModal(role)}
+          className="cursor-pointer"
+        >
+          <Eye className="mr-2 h-3.5 w-3.5" />
+          Ver permissões
+        </DropdownMenuItem>
+        <DropdownMenuItem
           onClick={() => openEditModal(role)}
           disabled={role.isSystemRole}
           className={cn(
@@ -161,10 +184,8 @@ export const RolesView = ({
 
   const PermissionSelector = ({
     form,
-    formId,
   }: {
     form: typeof createForm | typeof editForm;
-    formId: string;
   }) => (
     <FormField
       control={form.control}
@@ -378,12 +399,17 @@ export const RolesView = ({
                               {role.description || "—"}
                             </TableCell>
                             <TableCell className="py-3 text-center">
-                              <Badge
-                                variant="outline"
-                                className="rounded-[2px] border-neutral-700 bg-neutral-800 px-2 py-0.5 text-[10px] font-bold text-neutral-400"
+                              <Button
+                                variant="ghost"
+                                onClick={() => openPermissionsModal(role)}
+                                className="h-7 rounded-[4px] px-2 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                                title="Ver permissões da role"
                               >
-                                {role.permissions.length}
-                              </Badge>
+                                <Key className="mr-1.5 h-3 w-3" />
+                                <span className="text-[10px] font-bold">
+                                  {role.permissions.length}
+                                </span>
+                              </Button>
                             </TableCell>
                             <TableCell className="py-3 text-center">
                               {role.isSystemRole ? (
@@ -450,9 +476,13 @@ export const RolesView = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <Key className="h-3 w-3 text-neutral-600" />
-                          <span className="text-xs text-neutral-500">
+                          <button
+                            type="button"
+                            onClick={() => openPermissionsModal(role)}
+                            className="rounded-[4px] text-left text-xs text-neutral-500 hover:text-white"
+                          >
                             {role.permissions.length} permissões
-                          </span>
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -460,6 +490,13 @@ export const RolesView = ({
                 </>
               )}
       </PageContainer>
+
+      <RolePermissionsModal
+        open={isPermissionsModalOpen}
+        role={roleToViewPermissions}
+        groupedPermissions={viewedRoleGroupedPermissions}
+        onClose={closePermissionsModal}
+      />
 
       {/* Create Role Modal */}
       <ResponsiveModal
@@ -545,7 +582,7 @@ export const RolesView = ({
             />
 
             <div className="max-h-[250px] overflow-y-auto">
-              <PermissionSelector form={createForm} formId="create-role-form" />
+              <PermissionSelector form={createForm} />
             </div>
           </form>
         </Form>
@@ -635,7 +672,7 @@ export const RolesView = ({
             />
 
             <div className="max-h-[250px] overflow-y-auto">
-              <PermissionSelector form={editForm} formId="edit-role-form" />
+              <PermissionSelector form={editForm} />
             </div>
           </form>
         </Form>
