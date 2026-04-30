@@ -9,9 +9,7 @@ import { useAuth } from "@/lib/contexts/auth-context";
 import {
   User,
   UsersResponse,
-  Role,
   RolesResponse,
-  Warehouse,
   WarehousesResponse,
   CreateUserResponse,
   UpdateUserResponse,
@@ -56,9 +54,12 @@ export const useUsersModel = () => {
     }
   );
 
-  const users = usersData?.data || [];
-  const roles = rolesData?.data || [];
-  const warehouses = (warehousesData?.data || []).filter((w) => w.isActive);
+  const users = useMemo(() => usersData?.data ?? [], [usersData]);
+  const roles = useMemo(() => rolesData?.data ?? [], [rolesData]);
+  const warehouses = useMemo(
+    () => (warehousesData?.data ?? []).filter((warehouse) => warehouse.isActive),
+    [warehousesData],
+  );
 
   // Filter users by search query
   const filteredUsers = useMemo(() => {
@@ -135,7 +136,14 @@ export const useUsersModel = () => {
       });
       setEditFormPopulated(true);
     }
-  }, [selectedUser, isEditModalOpen, roles, warehouses, editFormPopulated]);
+  }, [
+    selectedUser,
+    isEditModalOpen,
+    roles,
+    warehouses,
+    editFormPopulated,
+    editForm,
+  ]);
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);

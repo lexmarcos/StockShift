@@ -34,8 +34,6 @@ export const useBrandsModel = () => {
     }
   );
 
-  const brands = data?.data || [];
-
   // Form
   const form = useForm<BrandFormData>({
     resolver: zodResolver(brandSchema),
@@ -47,6 +45,7 @@ export const useBrandsModel = () => {
 
   // Filtered and sorted brands
   const filteredAndSortedBrands = useMemo(() => {
+    const brands = data?.data ?? [];
     let filtered = brands;
 
     // Search filter
@@ -73,7 +72,7 @@ export const useBrandsModel = () => {
     });
 
     return sorted;
-  }, [brands, searchQuery, sortConfig]);
+  }, [data, searchQuery, sortConfig]);
 
   // Modal handlers
   const openCreateModal = () => {

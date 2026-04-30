@@ -122,9 +122,9 @@ export const useProductsModel = () => {
     }
   );
 
-  const products = data?.data.content || [];
-
   // Client-side filtering for stock status and active status
+  const products = useMemo(() => data?.data.content ?? [], [data]);
+
   const filteredProducts = useMemo(
     () =>
       products.filter(

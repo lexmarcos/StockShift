@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { categorySchema, CategoryFormData } from "./categories.schema";
@@ -38,7 +38,7 @@ export const useCategoriesModel = () => {
     }
   );
 
-  const categories = data?.data || [];
+  const categories = useMemo(() => data?.data ?? [], [data]);
 
   // Form
   const form = useForm<CategoryFormData>({
@@ -52,11 +52,11 @@ export const useCategoriesModel = () => {
   });
 
   // Build category tree
-  const buildTree = (
+  const buildTree = useCallback(function buildTree(
     categories: Category[],
     parentCategoryId: string | null = null,
     depth: number = 0
-  ): CategoryTree[] => {
+  ): CategoryTree[] {
     return categories
       .filter((cat) => cat.parentCategoryId === parentCategoryId)
       .map((cat) => ({
@@ -69,12 +69,17 @@ export const useCategoriesModel = () => {
         const comparison = a.name.localeCompare(b.name);
         return sortConfig.direction === "asc" ? comparison : -comparison;
       });
-  };
+  }, [sortConfig.direction]);
 
-  const categoryTree = useMemo(() => buildTree(categories), [categories, sortConfig]);
+  const categoryTree = useMemo(
+    () => buildTree(categories),
+    [categories, buildTree],
+  );
 
   // Flatten tree for flat view
-  const flattenTree = (nodes: CategoryTree[]): CategoryTree[] => {
+  const flattenTree = useCallback(function flattenTree(
+    nodes: CategoryTree[],
+  ): CategoryTree[] {
     return nodes.reduce<CategoryTree[]>((acc, node) => {
       acc.push(node);
       if (node.children.length > 0) {
@@ -82,9 +87,12 @@ export const useCategoriesModel = () => {
       }
       return acc;
     }, []);
-  };
+  }, []);
 
-  const flatCategories = useMemo(() => flattenTree(categoryTree), [categoryTree]);
+  const flatCategories = useMemo(
+    () => flattenTree(categoryTree),
+    [categoryTree, flattenTree],
+  );
 
   // Filter categories by search
   const filteredCategories = useMemo(() => {
@@ -116,7 +124,7 @@ export const useCategoriesModel = () => {
     }
 
     return filtered;
-  }, [categories, categoryTree, flatCategories, searchQuery, viewMode]);
+  }, [categories, categoryTree, flatCategories, searchQuery, viewMode, buildTree]);
 
   // Modal handlers
   const openCreateModal = () => {

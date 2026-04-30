@@ -176,11 +176,9 @@ export const useBatchesModel = () => {
     },
   );
 
-  const rawBatches = data?.data || [];
-
   const filtered = useMemo(
-    () => filterBatches(rawBatches, filters),
-    [rawBatches, filters],
+    () => filterBatches(data?.data ?? [], filters),
+    [data, filters],
   );
 
   const sorted = useMemo(
