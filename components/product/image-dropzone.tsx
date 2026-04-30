@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useState, useEffect } from "react";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -147,16 +148,21 @@ export const ImageDropzone = ({
     input.click();
   }, [handleFile]);
 
+  const rootClassName = className ? `w-full ${className}` : "w-full";
+
   // State 1: New image selected (preview exists)
   if (preview && value) {
     return (
-      <div className="w-full">
+      <div className={rootClassName}>
         <div className="relative rounded-sm border border-border/50 bg-card/80 p-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
-            <img
+            <Image
               src={preview}
               alt="Preview"
-              className="h-full w-full object-contain"
+              fill
+              sizes="100vw"
+              unoptimized
+              className="object-contain"
             />
           </div>
           <div className="mt-3 flex items-center justify-between">
@@ -188,13 +194,16 @@ export const ImageDropzone = ({
   // State 2: Current image exists (edit mode, no new image)
   if (currentImageUrl && !showRemovalIndicator) {
     return (
-      <div className="w-full">
+      <div className={rootClassName}>
         <div className="relative rounded-sm border border-border/50 bg-card/80 p-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
-            <img
+            <Image
               src={currentImageUrl}
               alt="Imagem atual"
-              className="h-full w-full object-contain"
+              fill
+              sizes="100vw"
+              unoptimized
+              className="object-contain"
             />
           </div>
           <div className="mt-3 flex items-center justify-between gap-2">
@@ -238,7 +247,7 @@ export const ImageDropzone = ({
   // State 3: Image was removed (edit mode, removal indicated)
   if (showRemovalIndicator) {
     return (
-      <div className="w-full">
+      <div className={rootClassName}>
         <div className="relative rounded-sm border border-red-900/30 bg-red-950/10 p-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-red-900/20 bg-red-950/5 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2 text-center">
@@ -268,7 +277,7 @@ export const ImageDropzone = ({
   // State 4: Compressing image
   if (isCompressing) {
     return (
-      <div className="w-full">
+      <div className={rootClassName}>
         <div className="relative rounded-sm border-2 border-dashed p-8 border-blue-600/40 bg-blue-950/10">
           <div className="flex flex-col items-center justify-center gap-3 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-blue-600/10 border border-blue-600/30">
@@ -290,7 +299,7 @@ export const ImageDropzone = ({
 
   // State 5: No image (create mode or empty)
   return (
-    <div className="w-full">
+    <div className={rootClassName}>
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

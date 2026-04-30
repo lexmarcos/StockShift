@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
@@ -39,7 +40,6 @@ import {
   XCircle,
   MoreHorizontal,
   Calendar,
-  Globe,
 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { BrandFormData } from "./brands.schema";
@@ -321,12 +321,15 @@ export const BrandsView = ({
                       className="group border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-all"
                     >
                       <TableCell>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 overflow-hidden shadow-inner group-hover:border-neutral-700 transition-colors">
+                        <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner transition-colors group-hover:border-neutral-700">
                           {brand.logoUrl ? (
-                            <img
+                            <Image
                               src={brand.logoUrl}
                               alt={brand.name}
-                              className="h-full w-full object-cover"
+                              fill
+                              sizes="48px"
+                              unoptimized
+                              className="object-cover"
                             />
                           ) : (
                             <ImageIcon className="h-5 w-5 text-neutral-700" />
@@ -384,12 +387,15 @@ export const BrandsView = ({
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-800 rounded-l-[4px]" />
 
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 overflow-hidden shadow-inner">
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner">
                     {brand.logoUrl ? (
-                      <img
+                      <Image
                         src={brand.logoUrl}
                         alt={brand.name}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="64px"
+                        unoptimized
+                        className="object-cover"
                       />
                     ) : (
                       <ImageIcon className="h-7 w-7 text-neutral-700" />
@@ -535,12 +541,17 @@ export const BrandsView = ({
                   Preview de Identidade
                 </span>
                 {!logoError ? (
-                  <img
-                    src={logoPreview}
-                    alt="Brand Identity"
-                    className="max-h-20 max-w-full rounded-[2px] object-contain shadow-sm"
-                    onError={() => setLogoError(true)}
-                  />
+                  <div className="relative h-20 w-full">
+                    <Image
+                      src={logoPreview}
+                      alt="Brand Identity"
+                      fill
+                      sizes="240px"
+                      unoptimized
+                      className="rounded-[2px] object-contain shadow-sm"
+                      onError={() => setLogoError(true)}
+                    />
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 opacity-30 text-neutral-500">
                     <XCircle className="h-8 w-8" />

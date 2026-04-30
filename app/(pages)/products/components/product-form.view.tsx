@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
@@ -752,9 +753,12 @@ export const ProductForm = ({
                                     >
                                       <div className="flex items-center gap-2">
                                         {brand.logoUrl ? (
-                                          <img
+                                          <Image
                                             src={brand.logoUrl}
                                             alt={brand.name}
+                                            width={16}
+                                            height={16}
+                                            unoptimized
                                             className="h-4 w-4 object-contain rounded-[2px]"
                                           />
                                         ) : (

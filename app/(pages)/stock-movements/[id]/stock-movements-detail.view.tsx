@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +10,8 @@ import {
   ArrowUpRight,
   Package,
   Warehouse,
-  Calendar,
   FileText,
   DollarSign,
-  TrendingUp,
   Layers,
   AlertCircle,
   Link2,
@@ -76,8 +75,6 @@ const computeFinancialSummary = (
 
   let totalPurchaseCost = 0;
   let totalExpectedSale = 0;
-  let itemsWithPrices = 0;
-
   for (const item of items) {
     const prices = priceMap.get(item.batchId);
     if (prices) {
@@ -85,7 +82,6 @@ const computeFinancialSummary = (
       const sale = (prices.sellingPrice ?? 0) * item.quantity;
       totalPurchaseCost += cost;
       totalExpectedSale += sale;
-      if (prices.costPrice !== null) itemsWithPrices++;
     }
   }
 
@@ -167,7 +163,6 @@ export const StockMovementDetailView = ({
                 <FinancialCard
                   financial={financial}
                   category={category}
-                  totalQuantity={totalQuantity}
                   batchPrices={batchPrices}
                 />
               )}
@@ -300,12 +295,10 @@ const HeaderSection = ({
 const FinancialCard = ({
   financial,
   category,
-  totalQuantity,
   batchPrices,
 }: {
   financial: FinancialSummary;
   category: MovementCategory;
-  totalQuantity: number;
   batchPrices: BatchPriceInfo[];
 }) => {
   const hasAnyPrices = batchPrices.some(
@@ -434,12 +427,15 @@ const ProductGroup = ({
     {/* Product Header */}
     <div className="flex flex-col gap-3 border-b border-[#262626] bg-neutral-900/60 px-3 py-3 md:flex-row md:items-center md:justify-between md:px-4">
       <div className="flex min-w-0 items-start gap-3 md:items-center">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-neutral-800 overflow-hidden">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-neutral-800">
           {product.productImageUrl ? (
-            <img
+            <Image
               src={product.productImageUrl}
               alt={product.productName}
-              className="h-full w-full object-cover"
+              fill
+              sizes="40px"
+              unoptimized
+              className="object-cover"
             />
           ) : (
             <Package className="h-5 w-5 text-blue-500" />
@@ -536,7 +532,7 @@ const BatchRow = ({
               </span>
             </div>
           )}
-          {unitCost !== null && totalSale !== null && (
+          {totalCost !== null && totalSale !== null && (
             <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] px-2 py-2 md:border-0 md:bg-transparent md:p-0">
               <span className="text-neutral-500">Lucro:</span>
               <span

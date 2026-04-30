@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState, useEffect, useCallback } from "react";
 import type { PointerEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -352,9 +353,16 @@ function ProductSearchRow({ product, onAdd }: ProductSearchRowProps) {
       onClick={() => onAdd(product)}
       className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-800/50 transition-colors"
     >
-      <div className="h-9 w-9 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center overflow-hidden shrink-0">
+      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="36px"
+            unoptimized
+            className="object-cover"
+          />
         ) : (
           <Package className="h-4 w-4 text-neutral-700" />
         )}
@@ -393,9 +401,16 @@ function FavoritesGrid({ favorites, onAddProduct }: FavoritesGridProps) {
             onClick={() => onAddProduct(product)}
             className="flex flex-col items-center gap-1.5 rounded-[4px] border border-neutral-800 bg-[#171717] p-2 hover:border-blue-600 transition-colors"
           >
-            <div className="h-10 w-10 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center overflow-hidden">
+            <div className="relative h-10 w-10 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
               {product.imageUrl ? (
-                <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  fill
+                  sizes="40px"
+                  unoptimized
+                  className="object-cover"
+                />
               ) : (
                 <Package className="h-4 w-4 text-neutral-700" />
               )}
@@ -526,9 +541,16 @@ function CartItemCard({
         onPointerCancel={resetSwipe}
       >
         {/* Thumbnail */}
-        <div className="h-11 w-11 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center overflow-hidden shrink-0">
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
           {item.productImageUrl ? (
-            <img src={item.productImageUrl} alt={item.productName} className="h-full w-full object-cover" />
+            <Image
+              src={item.productImageUrl}
+              alt={item.productName}
+              fill
+              sizes="44px"
+              unoptimized
+              className="object-cover"
+            />
           ) : (
             <ImageIcon className="h-4 w-4 text-neutral-700" />
           )}

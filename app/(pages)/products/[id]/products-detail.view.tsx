@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Product, ProductBatch } from "./products-detail.types";
 import {
   ArrowLeft,
@@ -158,11 +159,16 @@ export const ProductDetailView = ({
 
               <div className="aspect-square w-full flex items-center justify-center bg-[url('/grid-pattern.svg')] bg-center p-8">
                 {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="max-h-full max-w-full object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      unoptimized
+                      className="object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center text-neutral-700">
                     <Package className="h-20 w-20 stroke-1 mb-4 opacity-50" />
