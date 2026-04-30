@@ -13,24 +13,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Info } from "lucide-react";
 import { Role } from "@/app/(pages)/system/roles/roles.types";
 import {
   CreateUserFormData,
-  UpdateUserFormData,
-} from "@/app/(pages)/system/system.schema";
+  EditUserFormData,
+} from "@/app/(pages)/system/users/users.schema";
 
 interface Warehouse {
   id: string;
   name: string;
+}
+
+interface UserCommonFormData {
+  fullName: string;
+  roleIds: string[];
+  warehouseIds: string[];
 }
 
 interface UserModalProps {
@@ -38,9 +37,9 @@ interface UserModalProps {
   onClose: () => void;
   isEditMode: boolean;
   createForm: UseFormReturn<CreateUserFormData>;
-  updateForm: UseFormReturn<UpdateUserFormData>;
+  updateForm: UseFormReturn<EditUserFormData>;
   onCreateSubmit: (data: CreateUserFormData) => void;
-  onUpdateSubmit: (data: UpdateUserFormData) => void;
+  onUpdateSubmit: (data: EditUserFormData) => void;
   roles: Role[];
   warehouses: Warehouse[];
   isSubmitting: boolean;
@@ -60,8 +59,10 @@ export const UserModal = ({
   isSubmitting,
   isRolesLoading,
 }: UserModalProps) => {
-  const form = isEditMode ? updateForm : createForm;
-  const onSubmit = isEditMode ? onUpdateSubmit : onCreateSubmit;
+  const form = (isEditMode ? updateForm : createForm) as unknown as UseFormReturn<UserCommonFormData>;
+  const handleSubmit = isEditMode
+    ? updateForm.handleSubmit(onUpdateSubmit)
+    : createForm.handleSubmit(onCreateSubmit);
 
   return (
     <ResponsiveModal
@@ -76,7 +77,7 @@ export const UserModal = ({
     >
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as (data: CreateUserFormData | UpdateUserFormData) => void)}
+          onSubmit={handleSubmit}
           className="space-y-4"
         >
           {/* Full Name */}
@@ -115,29 +116,11 @@ export const UserModal = ({
             />
           )}
 
-          {/* Password - only for create */}
           {!isEditMode && (
-            <FormField
-              control={createForm.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha temporária</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      {...field}
-                    />
-                  </FormControl>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                    <Info className="h-3 w-3" />
-                    <span>Usuário deverá trocar no primeiro login</span>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Info className="h-3 w-3" />
+              <span>O backend gera uma senha temporária no cadastro.</span>
+            </div>
           )}
 
           {/* Roles */}
@@ -188,33 +171,38 @@ export const UserModal = ({
             )}
           />
 
-          {/* Warehouse */}
+          {/* Warehouses */}
           <FormField
             control={form.control}
-            name="warehouseId"
+            name="warehouseIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Warehouse vinculado</FormLabel>
-                <Select
-                  value={field.value || "none"}
-                  onValueChange={(value) =>
-                    field.onChange(value === "none" ? null : value)
-                  }
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um warehouse" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum (acesso global)</SelectItem>
-                    {warehouses.map((wh) => (
-                      <SelectItem key={wh.id} value={wh.id}>
-                        {wh.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Warehouses vinculados</FormLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {warehouses.map((warehouse) => (
+                    <label
+                      key={warehouse.id}
+                      className="flex items-center gap-2 p-2 rounded-md border border-border/50 hover:bg-foreground/5 cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={field.value?.includes(warehouse.id)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          if (checked) {
+                            field.onChange([...current, warehouse.id]);
+                            return;
+                          }
+                          field.onChange(
+                            current.filter((id: string) => id !== warehouse.id),
+                          );
+                        }}
+                      />
+                      <span className="text-sm font-medium">
+                        {warehouse.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
                 <FormMessage />
               </FormItem>
             )}
