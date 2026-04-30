@@ -43,7 +43,6 @@ import {
   Maximize2,
   Minimize2,
   AlertTriangle,
-  Layers,
   Tag,
   MoreHorizontal,
   Box,
@@ -430,7 +429,7 @@ export const CategoriesView = ({
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
       {/* Header & Controls */}
-      <div className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
+      <div className="relative z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
         <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
