@@ -41,7 +41,8 @@ export const CompanyView = ({
   infinitePayConfig,
   isLoadingCompany,
   isLoadingInfinitePay,
-  isUpdating,
+  isUpdatingCompany,
+  isUpdatingInfinitePay,
   isEditingInfinitePay,
   error,
   onUpdateCompany,
@@ -183,7 +184,7 @@ export const CompanyView = ({
                       <CompanyLogoUpload
                         currentLogoUrl={companyConfig?.logoUrl}
                         logoFile={logoFile}
-                        disabled={isUpdating}
+                        disabled={isUpdatingCompany}
                         onLogoSelect={setLogoFile}
                       />
 
@@ -270,10 +271,10 @@ export const CompanyView = ({
 
                       <Button
                         type="submit"
-                        disabled={isUpdating}
+                        disabled={isUpdatingCompany}
                         className="w-full h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] disabled:opacity-50"
                       >
-                        {isUpdating ? (
+                        {isUpdatingCompany ? (
                           <>
                             <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                             Salvando...
@@ -366,7 +367,7 @@ export const CompanyView = ({
                         <Button
                           type="button"
                           onClick={handleInfinitePayButtonClick}
-                          disabled={isUpdating}
+                          disabled={isUpdatingInfinitePay}
                           className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
                         >
                           Editar Configuração
@@ -374,10 +375,10 @@ export const CompanyView = ({
                       ) : (
                         <Button
                           type="submit"
-                          disabled={isUpdating}
+                          disabled={isUpdatingInfinitePay}
                           className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
                         >
-                          {isUpdating ? (
+                          {isUpdatingInfinitePay ? (
                             <>
                               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                               Salvando...

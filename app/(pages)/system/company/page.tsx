@@ -6,7 +6,8 @@ import { CompanyView } from "./company.view";
 import type { UpdateCompanyData, UpdateInfinitePayData } from "./company.types";
 
 export default function CompanyConfigPage() {
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingCompany, setIsUpdatingCompany] = useState(false);
+  const [isUpdatingInfinitePay, setIsUpdatingInfinitePay] = useState(false);
   const [isEditingInfinitePay, setIsEditingInfinitePay] = useState(false);
 
   const {
@@ -21,20 +22,20 @@ export default function CompanyConfigPage() {
 
   const handleUpdateCompany = async (data: UpdateCompanyData) => {
     try {
-      setIsUpdating(true);
+      setIsUpdatingCompany(true);
       await updateCompany(data);
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingCompany(false);
     }
   };
 
   const handleUpdateInfinitePay = async (data: UpdateInfinitePayData) => {
     try {
-      setIsUpdating(true);
+      setIsUpdatingInfinitePay(true);
       await updateInfinitePay(data);
       setIsEditingInfinitePay(false);
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingInfinitePay(false);
     }
   };
 
@@ -44,7 +45,8 @@ export default function CompanyConfigPage() {
       infinitePayConfig={infinitePayConfig}
       isLoadingCompany={isLoadingCompany}
       isLoadingInfinitePay={isLoadingInfinitePay}
-      isUpdating={isUpdating}
+      isUpdatingCompany={isUpdatingCompany}
+      isUpdatingInfinitePay={isUpdatingInfinitePay}
       isEditingInfinitePay={isEditingInfinitePay}
       error={error}
       onUpdateCompany={handleUpdateCompany}

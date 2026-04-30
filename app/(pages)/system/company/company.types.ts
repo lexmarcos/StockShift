@@ -18,7 +18,8 @@ export interface CompanyViewProps {
   infinitePayConfig: InfinitePayConfigData | null;
   isLoadingCompany: boolean;
   isLoadingInfinitePay: boolean;
-  isUpdating: boolean;
+  isUpdatingCompany: boolean;
+  isUpdatingInfinitePay: boolean;
   isEditingInfinitePay: boolean;
   error: Error | null;
   onUpdateCompany: (data: UpdateCompanyData) => void;
