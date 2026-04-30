@@ -13,7 +13,7 @@ import { useRouter, usePathname } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 
-const PUBLIC_PATHS = ["/login", "/register", "/change-password"];
+const PUBLIC_PATHS = ["/login", "/register"];
 
 interface BaseUser {
   userId: string;
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [baseUser, meData]);
 
-  const setUser = (user: BaseUser | null) => {
+  const setUser = useCallback((user: BaseUser | null) => {
     setBaseUserState(user);
     if (user) {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
@@ -121,9 +121,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       localStorage.removeItem(USER_STORAGE_KEY);
     }
-  };
+  }, [mutateMe]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api.post("auth/logout");
     } catch (error) {
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setBaseUserState(null);
       router.push("/login");
     }
-  };
+  }, [router]);
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
@@ -171,7 +171,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       hasRole,
       isAdmin,
     }),
-    [fullUser, isLoading, isAuthenticated, hasPermission, hasRole, isAdmin],
+    [
+      fullUser,
+      isLoading,
+      isAuthenticated,
+      setUser,
+      logout,
+      hasPermission,
+      hasRole,
+      isAdmin,
+    ],
   );
 
   return (

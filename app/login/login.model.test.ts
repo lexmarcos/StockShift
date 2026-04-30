@@ -32,7 +32,6 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
-const mockResetCaptcha = vi.fn();
 vi.mock("@hcaptcha/react-hcaptcha", () => ({
   __esModule: true,
   default: vi.fn().mockImplementation(() => null),

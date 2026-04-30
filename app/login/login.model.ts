@@ -87,7 +87,7 @@ export const useLoginModel = () => {
           if (errorData.message) {
              errorMsg = errorData.message;
           }
-        } catch (parseError) {
+        } catch {
            errorMsg = error.message;
         }
 

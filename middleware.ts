@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Páginas públicas que não precisam de autenticação
-  const publicPaths = ["/login", "/register", "/change-password"];
+  const publicPaths = ["/login", "/register"];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
   // Se for uma página pública, permite o acesso
@@ -30,12 +30,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api and stockshift/api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|manifest.json).*)",
+    "/((?!api|stockshift/api|_next/static|_next/image|favicon.ico|.*\\..*|manifest.json).*)",
   ],
 };

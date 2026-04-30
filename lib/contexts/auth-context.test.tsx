@@ -3,12 +3,16 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./auth-context";
 
+const routeState = vi.hoisted(() => ({
+  pathname: "/products",
+}));
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
   }),
-  usePathname: () => "/products",
+  usePathname: () => routeState.pathname,
 }));
 
 // Mock SWR
@@ -56,9 +60,38 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    routeState.pathname = "/products";
     localStorageMock.getItem.mockReturnValue(
       JSON.stringify({ userId: "user-123", email: "test@example.com", fullName: "Test User" })
     );
+  });
+
+  describe("auth/me fetch", () => {
+    it("should fetch complete user data on change-password route", async () => {
+      const useSWR = await import("swr");
+      routeState.pathname = "/change-password";
+
+      renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        const calls = vi.mocked(useSWR.default).mock.calls;
+        expect(calls.some(([key]) => key === "auth/me")).toBe(true);
+      });
+    });
+
+    it("should not fetch complete user data on login route", async () => {
+      const useSWR = await import("swr");
+      routeState.pathname = "/login";
+
+      renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(localStorageMock.getItem).toHaveBeenCalledWith("user-data");
+      });
+
+      const calls = vi.mocked(useSWR.default).mock.calls;
+      expect(calls.some(([key]) => key === "auth/me")).toBe(false);
+    });
   });
 
   describe("hasPermission", () => {
