@@ -51,11 +51,11 @@ describe("BatchesDetailView", () => {
       />
     );
 
-    // Check if product name is present (it's now the link)
     expect(screen.getByText("Produto Teste")).toBeTruthy();
-
-    // Check for "financeiro" section
-    expect(screen.getByText(/financeiro/i)).toBeTruthy();
+    expect(screen.getByText(/estoque atual/i)).toBeTruthy();
+    expect(screen.getByText(/custo unitário/i)).toBeTruthy();
+    expect(screen.getByText(/ciclo de vida/i)).toBeTruthy();
+    expect(screen.getAllByText("Central").length).toBeGreaterThan(0);
   });
 
   it("formats prices as BRL from cents", () => {
