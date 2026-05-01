@@ -216,13 +216,6 @@ export const useBatchCreateModel = () => {
       return;
     }
 
-    if (selectedProduct?.hasExpiration && !data.expirationDate) {
-      form.setError("expirationDate", {
-        message: "Validade obrigatória para este produto",
-      });
-      return;
-    }
-
     try {
       const payload = buildBatchPayload(data, warehouseId);
       const { api } = await import("@/lib/api");

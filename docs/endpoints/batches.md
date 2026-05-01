@@ -37,7 +37,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 - `quantity`: Required, positive integer
 - `batchCode`: Optional, unique batch identifier. If not provided, will be auto-generated in format `BATCH-YYYYMMDD-XXX`
 - `manufacturedDate`: Optional, ISO date string for manufacturing date
-- `expirationDate`: Optional, ISO date string (required if product has expiration)
+- `expirationDate`: Optional, ISO date string. When present, the product is treated as using expiration tracking.
 - `costPrice`: Optional, cost per unit in cents (e.g., 1050 = R$10,50)
 - `notes`: Optional, additional notes
 
@@ -239,16 +239,6 @@ This endpoint atomically creates a new product and its first batch in a single t
 }
 ```
 
-#### 400 Bad Request - Missing Expiration Date
-```json
-{
-  "status": 400,
-  "error": "Business Rule Violation",
-  "message": "Expiration date is required for products with expiration",
-  "timestamp": "2026-01-04T10:00:00Z"
-}
-```
-
 #### 400 Bad Request - Invalid Date Range
 ```json
 {
@@ -288,7 +278,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 6. **Validation**:
    - Check if product exists before using this endpoint
    - Validate quantity is zero or positive
-   - Show expiration date field only if `hasExpiration: true`
+   - Keep expiration date optional; an empty value means no expiration
    - Validate dates: expiration must be after manufactured date
    - Validate image file type/size if provided
 7. **Success Flow**: Show both product and batch created, redirect to product detail
@@ -843,15 +833,6 @@ interface StockLevelProps {
 {
   "success": false,
   "message": "Quantity must be greater than 0",
-  "data": null
-}
-```
-
-### 400 Bad Request - Expiration Required
-```json
-{
-  "success": false,
-  "message": "Expiration date is required for products with expiration",
   "data": null
 }
 ```

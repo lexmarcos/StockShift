@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProductCreateModel } from "./products-create.model";
+import {
+  buildCreateProductWithBatchPayload,
+  useProductCreateModel,
+} from "./products-create.model";
 import { toast } from "sonner";
 
 const mockPost = vi.fn();
@@ -92,6 +95,23 @@ describe("useProductCreateModel - multipart submit", () => {
     expect(body.get("image")).toBeNull();
   });
 
+  it("marks product as expirable only when expiration date is filled", () => {
+    expect(
+      buildCreateProductWithBatchPayload(baseFormData, "wh-1", undefined)
+        .hasExpiration,
+    ).toBe(false);
+    expect(
+      buildCreateProductWithBatchPayload(
+        {
+          ...baseFormData,
+          expirationDate: "2027-01-01",
+        },
+        "wh-1",
+        undefined,
+      ).hasExpiration,
+    ).toBe(true);
+  });
+
   it("includes image part when provided", async () => {
     const { result } = renderHook(() => useProductCreateModel());
     const image = new File(["file"], "image.png", { type: "image/png" });
@@ -124,7 +144,7 @@ describe("useProductCreateModel - multipart submit", () => {
           name: "Café",
           categoryId: "cat-1",
           brandId: "brand-1",
-          volumeValue: "500",
+          volumeValue: 500,
           volumeUnit: "g",
         },
         image,

@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -42,7 +41,6 @@ export const ScannerDrawer = ({ open, onOpenChange }: ScannerDrawerProps) => {
     resolver: zodResolver(batchFormSchema),
     defaultValues: {
       quantity: 1,
-      hasExpiration: false,
       batchCode: "",
       expirationDate: undefined,
     },
@@ -89,8 +87,6 @@ export const ScannerDrawer = ({ open, onOpenChange }: ScannerDrawerProps) => {
     onOpenChange(false);
     router.push(`/products/create?barcode=${scannedBarcode}`);
   };
-
-  const hasExpiration = form.watch("hasExpiration");
 
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
@@ -245,65 +241,45 @@ export const ScannerDrawer = ({ open, onOpenChange }: ScannerDrawerProps) => {
                   )}
                 </div>
 
-                {/* Has Expiration Checkbox */}
-                <div className="flex items-center space-x-2 py-2">
-                  <Checkbox
-                    id="hasExpiration"
-                    checked={hasExpiration}
-                    onCheckedChange={(checked) =>
-                      form.setValue("hasExpiration", checked === true)
-                    }
-                    className="rounded-sm"
-                  />
-                  <Label
-                    htmlFor="hasExpiration"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Produto tem validade
-                  </Label>
-                </div>
-
                 {/* Expiration Date */}
-                {hasExpiration && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="expirationDate" className="text-xs uppercase tracking-wide">
-                      Data de Validade
-                    </Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-9 rounded-sm bg-background border-border/60",
-                            !form.watch("expirationDate") && "text-muted-foreground"
-                          )}
-                        >
-                          {form.watch("expirationDate") ? (
-                            format(form.watch("expirationDate")!, "dd/MM/yyyy", {
-                              locale: ptBR,
-                            })
-                          ) : (
-                            <span>Selecione a data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={form.watch("expirationDate")}
-                          onSelect={(date) => form.setValue("expirationDate", date)}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {form.formState.errors.expirationDate && (
-                      <p className="text-xs text-destructive">
-                        {form.formState.errors.expirationDate.message}
-                      </p>
-                    )}
-                  </div>
-                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="expirationDate" className="text-xs uppercase tracking-wide">
+                    Data de Validade
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-9 rounded-sm bg-background border-border/60",
+                          !form.watch("expirationDate") && "text-muted-foreground"
+                        )}
+                      >
+                        {form.watch("expirationDate") ? (
+                          format(form.watch("expirationDate")!, "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })
+                        ) : (
+                          <span>Sem validade</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={form.watch("expirationDate")}
+                        onSelect={(date) => form.setValue("expirationDate", date)}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {form.formState.errors.expirationDate && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.expirationDate.message}
+                    </p>
+                  )}
+                </div>
 
                 {/* Submit Button */}
                 <Button

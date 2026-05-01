@@ -25,34 +25,18 @@ export const productBaseSchema = z.object({
   sellingPrice: z.number().int().min(0).optional(),
 });
 
-const hasRequiredExpirationDate = (
-  data: z.infer<typeof productBaseSchema>,
-): boolean => {
-  return !data.hasExpiration || Boolean(data.expirationDate);
-};
-
 const hasPositiveQuantity = (
   data: z.infer<typeof productBaseSchema>,
 ): boolean => {
   return data.quantity > 0;
 };
 
-export const productCreateSchema = productBaseSchema
-  .refine(hasRequiredExpirationDate, {
-    message:
-      "Data de validade é obrigatória para produtos com controle de validade",
-    path: ["expirationDate"],
-  });
+export const productCreateSchema = productBaseSchema;
 
 export const productInlineSchema = productBaseSchema
   .refine(hasPositiveQuantity, {
     message: "Quantidade deve ser maior que zero",
     path: ["quantity"],
-  })
-  .refine(hasRequiredExpirationDate, {
-    message:
-      "Data de validade é obrigatória para produtos com controle de validade",
-    path: ["expirationDate"],
   });
 
 export type ProductCreateFormData = z.infer<typeof productBaseSchema>;

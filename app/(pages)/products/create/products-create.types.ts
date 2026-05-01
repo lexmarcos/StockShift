@@ -36,6 +36,24 @@ export interface CreateProductWithBatchResponse {
   };
 }
 
+export interface CreateProductWithBatchPayload {
+  name: string;
+  description?: string;
+  barcode?: string;
+  categoryId?: string;
+  brandId?: string;
+  isKit: boolean;
+  hasExpiration: boolean;
+  attributes?: Record<string, string>;
+  warehouseId: string;
+  batchCode?: string;
+  quantity: number;
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+}
+
 export interface CategoriesResponse {
   success: boolean;
   data: Category[];

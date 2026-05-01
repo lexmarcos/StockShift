@@ -40,7 +40,7 @@ const buildMovementItemPayload = (
     categoryId: item.newProductData.categoryId,
     brandId: item.newProductData.brandId,
     isKit: item.newProductData.isKit,
-    hasExpiration: item.newProductData.hasExpiration,
+    hasExpiration: Boolean(item.newProductData.expirationDate),
     active: item.newProductData.active,
     attributes: item.newProductData.attributes,
   };
@@ -60,7 +60,7 @@ const hasInlineProductImages = (
   return items.some((item) => Boolean(item.newProductData?.image));
 };
 
-const buildMovementPayload = (
+export const buildMovementPayload = (
   selectedMovementType: NonNullable<CreateStockMovementSchema["type"]>,
   data: CreateStockMovementSchema,
 ) => ({

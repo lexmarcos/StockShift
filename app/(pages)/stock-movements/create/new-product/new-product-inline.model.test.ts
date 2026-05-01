@@ -299,6 +299,7 @@ describe("useNewProductInlineModel", () => {
           name: "Novo Item",
           quantity: 3,
           continuousMode: true,
+          expirationDate: "2027-01-01",
           attributes: { weight: "2kg", dimensions: "10x10" },
         }),
       );
@@ -317,6 +318,8 @@ describe("useNewProductInlineModel", () => {
       productName: "Novo Item",
       newProductData: {
         name: "Novo Item",
+        hasExpiration: true,
+        expirationDate: "2027-01-01",
         attributes: {
           weight: "2kg",
           dimensions: "10x10",
@@ -424,6 +427,39 @@ describe("useNewProductInlineModel", () => {
       result.current.closeScanner();
     });
     expect(result.current.isScannerOpen).toBe(false);
+  });
+
+  it("controla modal de IA e preenche dados do produto inline", () => {
+    const { result } = renderHook(() => useNewProductInlineModel());
+    const image = new File(["img"], "produto.png", { type: "image/png" });
+
+    act(() => {
+      result.current.openAiModal?.();
+    });
+    expect(result.current.isAiModalOpen).toBe(true);
+
+    act(() => {
+      result.current.handleAiFill?.(
+        {
+          name: "Café Especial",
+          categoryId: "c1",
+          brandId: "b1",
+          volumeValue: 500,
+          volumeUnit: "g",
+        },
+        image,
+        true,
+      );
+      result.current.closeAiModal?.();
+    });
+
+    expect(result.current.isAiModalOpen).toBe(false);
+    expect(result.current.form.getValues("name")).toBe("Café Especial");
+    expect(result.current.form.getValues("categoryId")).toBe("c1");
+    expect(result.current.form.getValues("brandId")).toBe("b1");
+    expect(result.current.form.getValues("attributes.weight")).toBe("500g");
+    expect(result.current.productImage).toBe(image);
+    expect(toastSuccess).toHaveBeenCalledWith("Dados preenchidos via IA!");
   });
 
   it("marca estado de carregamento para categorias e marcas", () => {

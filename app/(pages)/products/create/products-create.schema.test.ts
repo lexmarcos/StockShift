@@ -35,7 +35,7 @@ describe("productCreateSchema price validation", () => {
   });
 });
 
-describe("productInlineSchema expiration validation", () => {
+describe("productInlineSchema validation", () => {
   it("requires positive quantity", () => {
     const result = productInlineSchema.safeParse({
       ...baseData,
@@ -44,12 +44,12 @@ describe("productInlineSchema expiration validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("requires expiration date when expiration control is enabled", () => {
+  it("allows empty expiration date when expiration control is enabled", () => {
     const result = productInlineSchema.safeParse({
       ...baseData,
       hasExpiration: true,
       expirationDate: "",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 });

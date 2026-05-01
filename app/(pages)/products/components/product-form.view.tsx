@@ -148,8 +148,6 @@ export const ProductForm = ({
   onCancel,
   isInlineEdit,
 }: ProductFormProps) => {
-  const hasExpiration = form.watch("hasExpiration");
-
   const costPrice = form.watch("costPrice") || 0;
   const sellingPrice = form.watch("sellingPrice") || 0;
   const continuousMode = form.watch("continuousMode");
@@ -220,7 +218,7 @@ export const ProductForm = ({
 
       <main className="mx-auto w-full max-w-7xl py-8 px-4 md:px-6 lg:px-8">
         {/* AI Fill Modal */}
-        {mode === "create" &&
+        {(mode === "create" || isInlineMode) &&
           isAiModalOpen !== undefined &&
           closeAiModal &&
           handleAiFill && (
@@ -249,7 +247,7 @@ export const ProductForm = ({
                         </CardTitle>
                       </div>
 
-                      {mode === "create" && openAiModal && (
+                      {(mode === "create" || isInlineMode) && openAiModal && (
                         <PermissionGate permission="products:analyze_image">
                           <Button
                             type="button"
@@ -576,15 +574,11 @@ export const ProductForm = ({
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
                                   <Calendar className="h-3 w-3" /> Validade
-                                  {hasExpiration && (
-                                    <span className="text-rose-500">*</span>
-                                  )}
                                 </FormLabel>
                                 <FormControl>
                                   <Input
                                     type="date"
-                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0 disabled:opacity-50"
-                                    disabled={!hasExpiration}
+                                    className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                                     {...field}
                                   />
                                 </FormControl>
@@ -823,26 +817,7 @@ export const ProductForm = ({
                       />
                     )}
 
-                    <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-3 space-y-3">
-                      <FormField
-                        control={form.control}
-                        name="hasExpiration"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center justify-between">
-                            <FormLabel className="text-xs font-medium text-neutral-400 cursor-pointer">
-                              Controlar Validade
-                            </FormLabel>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="data-[state=checked]:bg-blue-600 scale-90"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <div className="h-px bg-neutral-800" />
+                    <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-3">
                       <FormField
                         control={form.control}
                         name="isKit"

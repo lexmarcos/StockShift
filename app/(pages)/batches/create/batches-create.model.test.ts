@@ -453,7 +453,7 @@ describe("useBatchCreateModel", () => {
     expect(fakeApi.post).not.toHaveBeenCalled();
   });
 
-  it("bloqueia envio sem validade para produto com controle de vencimento", async () => {
+  it("permite envio sem validade para produto com controle de vencimento", async () => {
     const { result } = renderHook(() => useBatchCreateModel());
 
     act(() => {
@@ -469,9 +469,17 @@ describe("useBatchCreateModel", () => {
       });
     });
 
-    expect(fakeApi.post).not.toHaveBeenCalled();
+    expect(fakeApi.post).toHaveBeenCalledWith("batches", {
+      json: buildBatchPayload(
+        {
+          ...validSubmitData,
+          expirationDate: "",
+        },
+        "wh-1",
+      ),
+    });
     expect(result.current.form.getFieldState("expirationDate").error?.message).toBe(
-      "Validade obrigatória para este produto",
+      undefined,
     );
   });
 

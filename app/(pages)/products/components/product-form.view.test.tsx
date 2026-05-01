@@ -23,6 +23,15 @@ vi.mock("@/components/product/image-dropzone", () => ({
   ImageDropzone: () => null,
 }));
 
+vi.mock("@/components/product/product-ai-fill-modal", () => ({
+  ProductAiFillModal: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="ai-fill-modal" /> : null,
+}));
+
+vi.mock("@/components/permission-gate", () => ({
+  PermissionGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 afterEach(() => cleanup());
 
 const baseBatchesDrawer: BatchesDrawerProps = {
@@ -188,23 +197,45 @@ describe("ProductForm batches drawer", () => {
 });
 
 describe("ProductForm inline stock movement mode", () => {
+  it("renders the AI fill action in inline product mode", () => {
+    const openAiModal = vi.fn();
+    render(
+      <Wrapper
+        {...baseProps}
+        mode="inline"
+        batchesDrawer={undefined}
+        isAiModalOpen={false}
+        openAiModal={openAiModal}
+        closeAiModal={vi.fn()}
+        handleAiFill={vi.fn()}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /pegar dados de uma foto/i }),
+    );
+    expect(openAiModal).toHaveBeenCalledTimes(1);
+  });
+
   it("renders quantity, batch date fields, and batch mode toggle", () => {
     render(
       <Wrapper
         {...baseProps}
         mode="inline"
         batchesDrawer={undefined}
-        defaultValues={{ hasExpiration: true }}
       />
     );
     expect(screen.getByText(/^Quantidade$/i)).toBeTruthy();
     expect(screen.getByText(/fabrica..o/i)).toBeTruthy();
-    expect(
-      screen.getByText((_, element) => {
-        return element?.tagName === "LABEL"
-          && element.textContent?.trim().startsWith("Validade") === true;
-      }),
-    ).toBeTruthy();
+    const validityLabel = screen.getByText((_, element) => {
+      return element?.tagName === "LABEL"
+        && element.textContent?.trim().startsWith("Validade") === true;
+    });
+    const validityInput = validityLabel
+      .closest("[data-slot='form-item']")
+      ?.querySelector("input") as HTMLInputElement;
+    expect(validityInput.disabled).toBe(false);
+    expect(screen.queryByText(/controlar validade/i)).toBeNull();
     expect(screen.queryByText(/qtd. inicial/i)).toBeNull();
     expect(screen.getByText(/modo em lote/i)).toBeTruthy();
   });

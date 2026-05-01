@@ -11,10 +11,12 @@ import { useBreadcrumb } from "@/components/breadcrumb";
 import { api } from "@/lib/api";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
 import {
+  AiFillData,
   BrandsResponse,
   CategoriesResponse,
   ProductCreateFormData,
 } from "../../../products/create/products-create.types";
+import { applyProductAiFillData } from "../../../products/components/product-ai-fill.model";
 import { productInlineSchema } from "../../../products/create/products-create.schema";
 import { ProductFormProps } from "../../../products/components/product-form.types";
 import type {
@@ -66,7 +68,7 @@ const buildInlineProductData = async (
   categoryId: data.categoryId || undefined,
   brandId: data.brandId || undefined,
   isKit: data.isKit,
-  hasExpiration: data.hasExpiration,
+  hasExpiration: Boolean(data.expirationDate),
   active: data.active,
   attributes,
   manufacturedDate: data.manufacturedDate || undefined,
@@ -153,6 +155,7 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     resolveInitialProductImage(editedProduct),
   );
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useBreadcrumb({
@@ -230,6 +233,12 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     setCustomAttributes((current) =>
       current.map((attr, i) => (i === index ? { ...attr, [field]: value } : attr)),
     );
+  };
+
+  const handleAiFill = (data: AiFillData, file: File, useImage: boolean): void => {
+    applyProductAiFillData(form, data);
+    if (useImage) setProductImage(file);
+    toast.success("Dados preenchidos via IA!");
   };
 
   const validateCustomAttributes = (): boolean => {
@@ -349,6 +358,10 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     closeScanner: () => setIsScannerOpen(false),
     isScannerOpen,
     handleBarcodeScan: (barcode: string) => form.setValue("barcode", barcode),
+    isAiModalOpen,
+    openAiModal: () => setIsAiModalOpen(true),
+    closeAiModal: () => setIsAiModalOpen(false),
+    handleAiFill,
     nameInputRef,
     warehouseId: null,
     cancelHref,

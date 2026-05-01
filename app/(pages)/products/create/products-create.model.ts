@@ -14,12 +14,35 @@ import {
   CategoriesResponse,
   BrandsResponse,
   CreateProductWithBatchResponse,
+  CreateProductWithBatchPayload,
   CustomAttribute,
   AiFillData,
 } from "./products-create.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
+import { applyProductAiFillData } from "../components/product-ai-fill.model";
 
 const CONTINUOUS_MODE_KEY = "productCreate:continuousMode";
+
+export const buildCreateProductWithBatchPayload = (
+  data: ProductCreateFormData, warehouseId: string,
+  attributes: Record<string, string> | undefined,
+): CreateProductWithBatchPayload => ({
+  name: data.name,
+  description: data.description || undefined,
+  barcode: data.barcode || undefined,
+  categoryId: data.categoryId || undefined,
+  brandId: data.brandId || undefined,
+  isKit: data.isKit,
+  hasExpiration: Boolean(data.expirationDate),
+  attributes,
+  warehouseId,
+  batchCode: data.batchCode || undefined,
+  quantity: data.quantity,
+  manufacturedDate: data.manufacturedDate || undefined,
+  expirationDate: data.expirationDate || undefined,
+  costPrice: data.costPrice,
+  sellingPrice: data.sellingPrice,
+});
 
 // Load continuous mode preference from localStorage
 const loadContinuousMode = (): boolean => {
@@ -140,30 +163,8 @@ export const useProductCreateModel = () => {
   const closeAiModal = () => setIsAiModalOpen(false);
 
   const handleAiFill = (data: AiFillData, file: File, useImage: boolean) => {
-    // Fill name
-    if (data.name) form.setValue("name", data.name);
-
-    // Fill category if ID matches
-    if (data.categoryId) {
-      form.setValue("categoryId", data.categoryId);
-    }
-
-    // Fill brand if ID matches
-    if (data.brandId) {
-      form.setValue("brandId", data.brandId);
-    }
-
-    // Fill weight if present
-    if (data.volumeValue) {
-      const weightStr = `${data.volumeValue}${data.volumeUnit || ""}`;
-      form.setValue("attributes.weight", weightStr);
-    }
-
-    // Handle Image
-    if (useImage && file) {
-      setProductImage(file);
-    }
-
+    applyProductAiFillData(form, data);
+    if (useImage) setProductImage(file);
     toast.success("Dados preenchidos via IA!");
   };
 
@@ -255,23 +256,11 @@ export const useProductCreateModel = () => {
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        name: data.name,
-        description: data.description || undefined,
-        barcode: data.barcode || undefined,
-        categoryId: data.categoryId || undefined,
-        brandId: data.brandId || undefined,
-        isKit: data.isKit,
-        hasExpiration: data.hasExpiration,
-        attributes: mergeAttributes(data),
+      const payload = buildCreateProductWithBatchPayload(
+        data,
         warehouseId,
-        batchCode: data.batchCode || undefined,
-        quantity: data.quantity,
-        manufacturedDate: data.manufacturedDate || undefined,
-        expirationDate: data.expirationDate || undefined,
-        costPrice: data.costPrice,
-        sellingPrice: data.sellingPrice,
-      };
+        mergeAttributes(data),
+      );
 
       const formData = new FormData();
       const productBlob = new Blob([JSON.stringify(payload)], {

@@ -7,7 +7,6 @@ import {
   Calendar,
   FileText,
   DollarSign,
-  AlertCircle,
   Loader2,
   Scan,
   Search,
@@ -26,7 +25,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { NumberInput } from "@/components/ui/number-input";
@@ -56,7 +54,6 @@ interface BatchCreateViewProps {
   selectedWarehouseId: string | null;
   onQuantityIncrement: () => void;
   onQuantityDecrement: () => void;
-  selectedProduct?: { hasExpiration: boolean } | null;
 }
 
 export const BatchCreateView = ({
@@ -78,7 +75,6 @@ export const BatchCreateView = ({
   selectedWarehouseId,
   onQuantityIncrement,
   onQuantityDecrement,
-  selectedProduct,
 }: BatchCreateViewProps) => {
   const { isSubmitting } = form.formState;
 
@@ -414,9 +410,6 @@ export const BatchCreateView = ({
                         <FormItem>
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Data de Validade
-                            {selectedProduct?.hasExpiration && (
-                              <span className="text-rose-500 ml-1">*</span>
-                            )}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -425,12 +418,6 @@ export const BatchCreateView = ({
                               {...field}
                             />
                           </FormControl>
-                          {selectedProduct?.hasExpiration && (
-                            <FormDescription className="text-[10px] text-amber-500 flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              Obrigatório para este produto
-                            </FormDescription>
-                          )}
                           <FormMessage className="text-xs text-rose-500" />
                         </FormItem>
                       )}

@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import {
+  buildMovementPayload,
   filterStockMovementProductOptions,
   formatStockMovementProductLabel,
 } from "./create-stock-movement.model";
@@ -370,6 +371,12 @@ describe("helpers de produto", () => {
 
   it("exibe apenas nome quando SKU ausente", () => {
     expect(formatStockMovementProductLabel(movementProducts[3])).toBe("Copo Térmico");
+  });
+
+  it("marca produto inline como expirável somente quando validade foi preenchida", () => {
+    const payload = buildMovementPayload("PURCHASE_IN", createInlineSubmitPayload());
+
+    expect(payload.items[0].newProduct?.hasExpiration).toBe(true);
   });
 });
 

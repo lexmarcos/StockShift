@@ -22,7 +22,6 @@ export interface Product {
 
 export interface BatchFormData {
   quantity: number;
-  hasExpiration: boolean;
   expirationDate?: Date;
   batchCode: string;
 }
