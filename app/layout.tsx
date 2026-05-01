@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 type AppleStartupImage = {
   url: string;
-  media?: string;
+  media: string;
 };
 
 type AppleStartupScreen = {
@@ -33,17 +33,6 @@ type AppleStartupScreen = {
 };
 
 const SPLASH_SCREEN_BASE_PATH = "/splash_screens";
-
-const appleStartupImageFallbacks: AppleStartupImage[] = [
-  {
-    url: `${SPLASH_SCREEN_BASE_PATH}/iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png`,
-    media: "(orientation: portrait)",
-  },
-  {
-    url: `${SPLASH_SCREEN_BASE_PATH}/iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png`,
-    media: "(orientation: landscape)",
-  },
-];
 
 const appleStartupScreens: AppleStartupScreen[] = [
   { fileName: "10.2__iPad_landscape.png", width: 2160, height: 1620, pixelRatio: 2, orientation: "landscape" },
@@ -103,7 +92,6 @@ function createAppleStartupImage(screen: AppleStartupScreen): AppleStartupImage 
 }
 
 const appleStartupImages: AppleStartupImage[] = [
-  ...appleStartupImageFallbacks,
   ...appleStartupScreens.map(createAppleStartupImage),
 ];
 
@@ -148,11 +136,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-256x256.png", sizes: "256x256", type: "image/png" },
-      { url: "/icon-384x384.png", sizes: "384x384", type: "image/png" },
-      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
     ],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
     apple: [
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
