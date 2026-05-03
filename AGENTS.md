@@ -55,3 +55,4 @@ Next.js 15, TS, Tailwind CSS, shadcn/ui.
 ## Workflow & Commands
 - Commands: `pnpm dev` (Dev), `pnpm test` (Test), `pnpm build` (Build).
 - Automation defaults: email `pass@pass.com` / pw `test123`.
+- If you use `pnpm build`, go to the `stockshift-frontend` GNU screen and restart `pnpm dev`

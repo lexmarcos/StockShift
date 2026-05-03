@@ -54,6 +54,7 @@ import {
   DollarSign,
   Layers,
   Loader2,
+  Minus,
   Ruler,
   Scale,
   Settings2,
@@ -63,6 +64,7 @@ import {
   Scan,
   Box,
   Barcode,
+  Plus,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -147,6 +149,8 @@ export const ProductForm = ({
   cancelHref,
   onCancel,
   isInlineEdit,
+  onQuantityIncrement,
+  onQuantityDecrement,
 }: ProductFormProps) => {
   const costPrice = form.watch("costPrice") || 0;
   const sellingPrice = form.watch("sellingPrice") || 0;
@@ -532,16 +536,49 @@ export const ProductForm = ({
                                       {isInlineMode ? "Quantidade" : "Qtd. Inicial"}{" "}
                                       <span className="text-rose-500">*</span>
                                     </FormLabel>
-                                    <FormControl>
-                                      <NumberInput
-                                        {...rest}
-                                        value={value}
-                                        onValueChange={onChange}
-                                        mode="integer"
-                                        placeholder="0"
-                                        className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                      />
-                                    </FormControl>
+                                    {onQuantityIncrement && onQuantityDecrement ? (
+                                      <div className="flex">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={onQuantityDecrement}
+                                          className="h-10 w-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                          aria-label="Diminuir quantidade"
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <FormControl>
+                                          <NumberInput
+                                            {...rest}
+                                            value={value}
+                                            onValueChange={onChange}
+                                            mode="integer"
+                                            placeholder="0"
+                                            className="h-10 min-w-0 flex-1 rounded-none border-x-0 border-neutral-800 bg-neutral-900 text-center text-sm focus:border-blue-600 focus:ring-0"
+                                          />
+                                        </FormControl>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={onQuantityIncrement}
+                                          className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                          aria-label="Aumentar quantidade"
+                                        >
+                                          <Plus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <FormControl>
+                                        <NumberInput
+                                          {...rest}
+                                          value={value}
+                                          onValueChange={onChange}
+                                          mode="integer"
+                                          placeholder="0"
+                                          className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                                        />
+                                      </FormControl>
+                                    )}
                                     <FormMessage className="text-xs text-rose-500" />
                                   </FormItem>
                                 );

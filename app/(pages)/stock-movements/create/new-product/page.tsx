@@ -3,10 +3,16 @@
 import { Suspense } from "react";
 import { ProductForm } from "../../../products/components/product-form.view";
 import { useNewProductInlineModel } from "./new-product-inline.model";
+import { StockMovementReloadGuard } from "../stock-movement-reload-guard";
 
 function NewProductInlineContent() {
   const model = useNewProductInlineModel();
-  return <ProductForm {...model} />;
+  return (
+    <>
+      <StockMovementReloadGuard />
+      <ProductForm {...model} />
+    </>
+  );
 }
 
 export default function NewProductInlinePage() {

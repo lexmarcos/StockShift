@@ -104,6 +104,8 @@ export interface ProductFormProps {
   cancelHref?: string;
   onCancel?: () => void;
   isInlineEdit?: boolean;
+  onQuantityIncrement?: () => void;
+  onQuantityDecrement?: () => void;
   isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
   batchesDrawer?: BatchesDrawerProps;
 }

@@ -429,6 +429,21 @@ describe("useNewProductInlineModel", () => {
     expect(result.current.isScannerOpen).toBe(false);
   });
 
+  it("controla quantidade com incremento e decremento sem ficar negativa", () => {
+    const { result } = renderHook(() => useNewProductInlineModel());
+
+    act(() => {
+      result.current.onQuantityIncrement?.();
+    });
+    expect(result.current.form.getValues("quantity")).toBe(1);
+
+    act(() => {
+      result.current.onQuantityDecrement?.();
+      result.current.onQuantityDecrement?.();
+    });
+    expect(result.current.form.getValues("quantity")).toBe(0);
+  });
+
   it("controla modal de IA e preenche dados do produto inline", () => {
     const { result } = renderHook(() => useNewProductInlineModel());
     const image = new File(["img"], "produto.png", { type: "image/png" });

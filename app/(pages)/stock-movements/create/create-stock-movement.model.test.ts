@@ -5,6 +5,7 @@ import {
   buildMovementPayload,
   filterStockMovementProductOptions,
   formatStockMovementProductLabel,
+  shouldShowStockMovementFooter,
 } from "./create-stock-movement.model";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
 import type { StockMovementDraft } from "./create-stock-movement.storage";
@@ -378,6 +379,37 @@ describe("helpers de produto", () => {
 
     expect(payload.items[0].newProduct?.hasExpiration).toBe(true);
   });
+
+  it("exibe footer no fim da pagina ou quando usuario rola para cima", () => {
+    expect(
+      shouldShowStockMovementFooter({
+        currentScrollY: 200,
+        lastScrollY: 100,
+        maxScrollY: 1000,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowStockMovementFooter({
+        currentScrollY: 995,
+        lastScrollY: 900,
+        maxScrollY: 1000,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowStockMovementFooter({
+        currentScrollY: 600,
+        lastScrollY: 700,
+        maxScrollY: 1000,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowStockMovementFooter({
+        currentScrollY: 0,
+        lastScrollY: 0,
+        maxScrollY: 0,
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("useCreateStockMovementModel", () => {
@@ -386,6 +418,7 @@ describe("useCreateStockMovementModel", () => {
 
     expect(result.current.form.getValues("type")).toBe("PURCHASE_IN");
     expect(result.current.products).toEqual(movementProducts);
+    expect(result.current.isFooterVisible).toBe(true);
     expect(result.current.selectedProductId).toBe("");
     expect(result.current.itemQuantity).toBe("");
     expect(fakeBreadcrumb.useBreadcrumb).toHaveBeenCalledWith({

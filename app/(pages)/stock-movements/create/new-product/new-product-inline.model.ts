@@ -294,6 +294,21 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     window.setTimeout(() => nameInputRef.current?.focus(), 100);
   };
 
+  const updateInlineQuantity = (quantity: number): void => {
+    form.setValue("quantity", Math.max(0, quantity), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const onQuantityIncrement = (): void => {
+    updateInlineQuantity((form.getValues("quantity") || 0) + 1);
+  };
+
+  const onQuantityDecrement = (): void => {
+    updateInlineQuantity((form.getValues("quantity") || 0) - 1);
+  };
+
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
@@ -366,5 +381,7 @@ export const useNewProductInlineModel = (): ProductFormProps => {
     warehouseId: null,
     cancelHref,
     isInlineEdit: isEditingInlineProduct,
+    onQuantityIncrement,
+    onQuantityDecrement,
   };
 };

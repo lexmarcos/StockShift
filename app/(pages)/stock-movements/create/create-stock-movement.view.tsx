@@ -35,6 +35,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SectionLabel } from "@/components/ui/section-label";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { PermissionGate } from "@/components/permission-gate";
+import { cn } from "@/lib/utils";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { StockMovementScanner } from "./stock-movement-scanner.view";
 import {
@@ -47,6 +48,7 @@ export function CreateStockMovementView({
   onSubmit,
   isLoadingProducts,
   isSubmitting,
+  isFooterVisible,
   itemQuantity,
   productSearchQuery,
   productOptions,
@@ -80,7 +82,7 @@ export function CreateStockMovementView({
     : false;
 
   return (
-    <PageContainer bottomPadding="fixed-bar">
+    <PageContainer bottomPadding="fixed-bar" className="pb-40 md:pb-28">
       <StockMovementScanner
         open={isScannerOpen}
         onOpenChange={onScannerOpenChange}
@@ -319,9 +321,9 @@ export function CreateStockMovementView({
                   <PermissionGate permission="products:create">
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       onClick={onCreateNewProduct}
-                      className="h-9 rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                      className="h-9 rounded-[4px] border-white bg-white text-xs font-bold uppercase tracking-wide text-black hover:bg-neutral-200 hover:text-black"
                     >
                       <Plus className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
                       Criar Novo Produto
@@ -500,8 +502,15 @@ export function CreateStockMovementView({
           </div>
 
           {/* ── Fixed Bottom Bar ── */}
-          <FixedBottomBar>
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+          <FixedBottomBar
+            className={cn(
+              "bg-[#0A0A0A]/95 backdrop-blur-sm",
+              isFooterVisible
+                ? "pointer-events-auto translate-y-0"
+                : "pointer-events-none translate-y-[calc(100%+1rem)]",
+            )}
+          >
+            <div className="mx-auto flex w-full max-w-7xl flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-between">
               <div className="hidden items-center gap-4 text-xs text-neutral-500 sm:flex">
                 <span>
                   <span className="font-mono font-bold tracking-tighter text-neutral-300">
@@ -524,12 +533,12 @@ export function CreateStockMovementView({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => window.history.back()}
-                  className="h-10 rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide"
+                  className="h-10 w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
                 >
                   CANCELAR
                 </Button>
@@ -537,7 +546,7 @@ export function CreateStockMovementView({
                   <Button
                     type="submit"
                     disabled={isSubmitting || isLoadingProducts}
-                    className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                    className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
                   >
                     <Save className="mr-2 h-4 w-4" strokeWidth={2} />
                     {isSubmitting ? "REGISTRANDO..." : "REGISTRAR MOVIMENTAÇÃO"}

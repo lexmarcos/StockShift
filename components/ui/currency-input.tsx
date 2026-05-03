@@ -17,7 +17,7 @@ export function CurrencyInput({
   ...props
 }: CurrencyInputProps) {
   const displayValue =
-    typeof value === "number" ? (value / 100).toFixed(2) : undefined;
+    typeof value === "number" ? (value / 100).toFixed(2) : "";
 
   const handleValueChange = (values: NumberFormatValues) => {
     if (values.value === "") {

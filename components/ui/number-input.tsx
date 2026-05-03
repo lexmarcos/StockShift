@@ -28,7 +28,7 @@ export function NumberInput({
       ? isFloat
         ? value.toFixed(2)
         : String(value)
-      : undefined;
+      : "";
 
   const handleValueChange = (values: NumberFormatValues) => {
     if (values.value === "") {

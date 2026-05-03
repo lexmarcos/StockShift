@@ -102,6 +102,23 @@ interface ProductByBarcodeResponse {
 
 const PRODUCT_SEARCH_LIMIT = 5;
 
+interface FooterVisibilityParams {
+  currentScrollY: number;
+  lastScrollY: number;
+  maxScrollY: number;
+}
+
+export const shouldShowStockMovementFooter = ({
+  currentScrollY,
+  lastScrollY,
+  maxScrollY,
+}: FooterVisibilityParams): boolean => {
+  const isShortPage = maxScrollY <= 8;
+  const isAtPageEnd = currentScrollY >= maxScrollY - 8;
+  const isScrollingUp = currentScrollY < lastScrollY;
+  return isShortPage || isAtPageEnd || isScrollingUp;
+};
+
 export const formatStockMovementProductLabel = (
   product: StockMovementProductOption,
 ): string => (product.sku ? `${product.name} (${product.sku})` : product.name);
@@ -141,7 +158,9 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
   const lastScannedBarcodeRef = useRef<string | null>(null);
+  const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
   const typeParam = searchParams.get("type");
@@ -227,6 +246,25 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
       if (!productSearchBlurTimeoutRef.current) return;
       clearTimeout(productSearchBlurTimeoutRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = (): void => {
+      const currentScrollY = window.scrollY;
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      setIsFooterVisible(
+        shouldShowStockMovementFooter({
+          currentScrollY,
+          lastScrollY: lastScrollYRef.current,
+          maxScrollY,
+        }),
+      );
+      lastScrollYRef.current = Math.max(currentScrollY, 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const productOptions = filterStockMovementProductOptions(
@@ -471,6 +509,7 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     products,
     isLoadingProducts,
     isSubmitting,
+    isFooterVisible,
     selectedProductId,
     productSearchQuery,
     productOptions,

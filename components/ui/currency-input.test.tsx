@@ -38,4 +38,16 @@ describe("CurrencyInput", () => {
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall).toBeUndefined();
   });
+
+  it("clears rendered value when controlled value is reset", () => {
+    const { getByRole, rerender } = render(
+      <CurrencyInput value={12300} aria-label="Preco" />
+    );
+    const input = getByRole("textbox") as HTMLInputElement;
+    expect(input.value).toBe("R$ 123,00");
+
+    rerender(<CurrencyInput value={undefined} aria-label="Preco" />);
+
+    expect(input.value).toBe("");
+  });
 });

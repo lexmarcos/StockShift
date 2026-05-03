@@ -45,6 +45,7 @@ export interface CreateStockMovementViewProps {
   products: StockMovementProductOption[];
   isLoadingProducts: boolean;
   isSubmitting: boolean;
+  isFooterVisible: boolean;
 
   // Item builder state
   selectedProductId: string;
