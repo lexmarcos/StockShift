@@ -44,16 +44,7 @@ import {
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
 import { InsightCard } from "@/components/ui/insight-card";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { SalesChart } from "./sales-chart.view";
 import {
   SaleSummary,
   SaleStatus,
@@ -62,6 +53,7 @@ import {
   SaleFilterDraft,
   PaymentMethod,
   DateFilterPreset,
+  KpiPeriodKey,
   PAYMENT_METHOD_LABELS,
   SALE_STATUS_LABELS,
   formatCents,
@@ -92,6 +84,8 @@ interface SalesViewProps {
   };
   dashboardData: SalesDashboardData | null;
   dashboardLoading: boolean;
+  kpiPeriod: KpiPeriodKey;
+  onKpiPeriodChange: (period: KpiPeriodKey) => void;
   onPageChange: (page: number) => void;
   onFilterChange: <K extends keyof SaleFilters>(
     key: K,
@@ -264,6 +258,8 @@ export const SalesView = ({
   pagination,
   dashboardData,
   dashboardLoading,
+  kpiPeriod,
+  onKpiPeriodChange,
   onPageChange,
   onFilterChange,
   onDatePresetChange,
@@ -632,74 +628,62 @@ export const SalesView = ({
           </div>
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {dashboardLoading ? (
-              <div className="col-span-3 flex items-center justify-center py-6">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
-              </div>
-            ) : (
-              dashboardData && (
-                <>
-                  <InsightCard
-                    icon={ShoppingCart}
-                    color="blue"
-                    label="Vendas Hoje"
-                    value={dashboardData.kpis.today.count}
-                    suffix="vendas"
-                  />
-                  <InsightCard
-                    icon={DollarSign}
-                    color="emerald"
-                    label="Faturamento Hoje"
-                    value={formatCents(dashboardData.kpis.today.revenue)}
-                  />
-                  <InsightCard
-                    icon={TrendingUp}
-                    color="amber"
-                    label="Ticket Médio Hoje"
-                    value={formatCents(dashboardData.kpis.today.avgTicket)}
-                  />
-                  <InsightCard
-                    icon={ShoppingCart}
-                    color="blue"
-                    label="Vendas Semana"
-                    value={dashboardData.kpis.week.count}
-                    suffix="vendas"
-                  />
-                  <InsightCard
-                    icon={DollarSign}
-                    color="emerald"
-                    label="Faturamento Semana"
-                    value={formatCents(dashboardData.kpis.week.revenue)}
-                  />
-                  <InsightCard
-                    icon={TrendingUp}
-                    color="amber"
-                    label="Ticket Médio Semana"
-                    value={formatCents(dashboardData.kpis.week.avgTicket)}
-                  />
-                  <InsightCard
-                    icon={ShoppingCart}
-                    color="blue"
-                    label="Vendas Mês"
-                    value={dashboardData.kpis.month.count}
-                    suffix="vendas"
-                  />
-                  <InsightCard
-                    icon={DollarSign}
-                    color="emerald"
-                    label="Faturamento Mês"
-                    value={formatCents(dashboardData.kpis.month.revenue)}
-                  />
-                  <InsightCard
-                    icon={TrendingUp}
-                    color="amber"
-                    label="Ticket Médio Mês"
-                    value={formatCents(dashboardData.kpis.month.avgTicket)}
-                  />
-                </>
-              )
-            )}
+          <div className="space-y-3">
+            {/* Period Toggle */}
+            <div className="flex items-center gap-1 rounded-[4px] border border-neutral-800 bg-[#171717] p-1 w-full md:w-fit">
+              {(
+                [
+                  { key: "today", label: "Hoje" },
+                  { key: "week", label: "Semana" },
+                  { key: "month", label: "Mês" },
+                ] as const
+              ).map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onKpiPeriodChange(key)}
+                  className={`flex-1 md:flex-initial rounded-[4px] px-4 py-1.5 text-xs font-bold uppercase tracking-wide ${
+                    kpiPeriod === key
+                      ? "bg-blue-600 text-white"
+                      : "text-neutral-500 hover:text-neutral-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {dashboardLoading ? (
+                <div className="col-span-3 flex items-center justify-center py-6">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                </div>
+              ) : (
+                dashboardData && (
+                  <>
+                    <InsightCard
+                      icon={ShoppingCart}
+                      color="blue"
+                      label="Vendas"
+                      value={dashboardData.kpis[kpiPeriod].count}
+                      suffix="vendas"
+                    />
+                    <InsightCard
+                      icon={DollarSign}
+                      color="emerald"
+                      label="Faturamento"
+                      value={formatCents(dashboardData.kpis[kpiPeriod].revenue)}
+                    />
+                    <InsightCard
+                      icon={TrendingUp}
+                      color="amber"
+                      label="Ticket Médio"
+                      value={formatCents(dashboardData.kpis[kpiPeriod].avgTicket)}
+                    />
+                  </>
+                )
+              )}
+            </div>
           </div>
 
           {/* Monthly Chart */}
@@ -708,79 +692,7 @@ export const SalesView = ({
               <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                 Vendas do Mês
               </h3>
-              <div className="h-64 md:h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={dashboardData.dailyChart}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: "#737373", fontSize: 10 }}
-                      tickFormatter={(v: string) =>
-                        v.split("-").slice(1).join("/")
-                      }
-                      stroke="#262626"
-                    />
-                    <YAxis
-                      yAxisId="count"
-                      tick={{ fill: "#737373", fontSize: 10 }}
-                      stroke="#262626"
-                      width={40}
-                    />
-                    <YAxis
-                      yAxisId="revenue"
-                      orientation="right"
-                      tick={{ fill: "#737373", fontSize: 10 }}
-                      tickFormatter={(v: number) => `R$${(v / 100).toFixed(0)}`}
-                      stroke="#262626"
-                      width={70}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #262626",
-                        borderRadius: "4px",
-                        color: "#e5e5e5",
-                        fontSize: 12,
-                      }}
-                      labelFormatter={(v: string) =>
-                        v.split("-").reverse().join("/")
-                      }
-                      formatter={(value: number, name: string) => {
-                        if (name === "revenue")
-                          return [formatCents(value), "Faturamento"];
-                        return [value, "Vendas"];
-                      }}
-                    />
-                    <Legend
-                      formatter={(value: string) =>
-                        value === "count" ? "Vendas" : "Faturamento"
-                      }
-                      wrapperStyle={{ fontSize: 10, color: "#737373" }}
-                    />
-                    <Line
-                      yAxisId="count"
-                      type="monotone"
-                      dataKey="count"
-                      stroke="#2563EB"
-                      strokeWidth={2}
-                      dot={false}
-                      name="count"
-                    />
-                    <Line
-                      yAxisId="revenue"
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#059669"
-                      strokeWidth={2}
-                      dot={false}
-                      name="revenue"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <SalesChart data={dashboardData.dailyChart} />
             </div>
           )}
 

@@ -63,6 +63,8 @@ export interface KpiPeriod {
   avgTicket: number;
 }
 
+export type KpiPeriodKey = "today" | "week" | "month";
+
 export interface DailyChartEntry {
   date: string;
   count: number;

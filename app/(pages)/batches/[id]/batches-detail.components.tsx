@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Archive,
-  Box,
   CalendarDays,
   CheckCircle2,
   Package,
@@ -38,6 +37,8 @@ import { PermissionGate } from "@/components/permission-gate";
 import { cn } from "@/lib/utils";
 import type { Batch } from "../batches.types";
 
+/* ─── State Definitions ─── */
+
 export interface BatchStateView {
   label: string;
   description: string;
@@ -46,36 +47,6 @@ export interface BatchStateView {
   panelClass: string;
   textClass: string;
   meterClass: string;
-}
-
-interface MetricTileProps {
-  label: string;
-  value: string;
-  detail: string;
-  icon: LucideIcon;
-  toneClass: string;
-  valueClass?: string;
-}
-
-interface LedgerItemProps {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-}
-
-interface TimelineStepProps {
-  label: string;
-  value: string;
-  detail: string;
-  toneClass: string;
-}
-
-interface BatchActionsProps {
-  batch: Batch;
-  isDeleteOpen: boolean;
-  onDeleteOpenChange: (open: boolean) => void;
-  isDeleting: boolean;
-  onDelete: () => void;
 }
 
 export const LOW_STOCK_THRESHOLD = 10;
@@ -129,6 +100,8 @@ const emptyState: BatchStateView = {
   textClass: "text-neutral-400",
   meterClass: "bg-neutral-600",
 };
+
+/* ─── Utilities ─── */
 
 const parseBatchDate = (value?: string | null): Date | null => {
   if (!value) return null;
@@ -224,40 +197,16 @@ export const getBatchState = (
   return activeState;
 };
 
-export const LoadingBatchDetail = () => (
-  <div className="min-h-screen bg-[#0A0A0A] text-neutral-200">
-    <main className="mx-auto flex min-h-[520px] w-full max-w-7xl items-center justify-center px-4 md:px-6 lg:px-8">
-      <div className="grid w-full max-w-xl gap-3 border border-neutral-800 bg-[#171717] p-6">
-        <div className="h-3 w-32 bg-neutral-800" />
-        <div className="h-9 w-3/4 bg-neutral-800" />
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="h-20 bg-neutral-900" />
-          <div className="h-20 bg-neutral-900" />
-          <div className="h-20 bg-neutral-900" />
-        </div>
-      </div>
-    </main>
-  </div>
-);
+/* ─── Sub-Components ─── */
 
-export const MissingBatchDetail = () => (
-  <div className="min-h-screen bg-[#0A0A0A] text-neutral-200">
-    <main className="mx-auto flex min-h-[520px] w-full max-w-7xl items-center justify-center px-4 md:px-6 lg:px-8">
-      <section className="w-full max-w-lg border border-neutral-800 bg-[#171717] p-8 text-center">
-        <Box className="mx-auto mb-4 h-12 w-12 text-neutral-600" />
-        <h2 className="text-lg font-bold text-white">Batch não encontrado</h2>
-        <p className="mt-2 text-sm text-neutral-500">
-          O lote que você procura não existe ou foi removido.
-        </p>
-        <Link href="/batches" className="mt-6 inline-flex">
-          <Button className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase text-white hover:bg-blue-700">
-            Voltar para lotes
-          </Button>
-        </Link>
-      </section>
-    </main>
-  </div>
-);
+interface MetricTileProps {
+  label: string;
+  value: string;
+  detail: string;
+  icon: LucideIcon;
+  toneClass: string;
+  valueClass?: string;
+}
 
 export const MetricTile = ({
   label,
@@ -267,19 +216,19 @@ export const MetricTile = ({
   toneClass,
   valueClass,
 }: MetricTileProps) => (
-  <section className="border border-neutral-800 bg-[#171717] p-4">
+  <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
     <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-[11px] font-bold uppercase text-neutral-500">
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
           {label}
         </p>
-        <p className={cn("mt-2 text-2xl font-black text-white", valueClass)}>
+        <p className={cn("mt-2 text-2xl font-bold tabular-nums text-white", valueClass)}>
           {value}
         </p>
       </div>
       <div
         className={cn(
-          "flex h-9 w-9 items-center justify-center border",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border",
           toneClass,
         )}
       >
@@ -289,18 +238,31 @@ export const MetricTile = ({
     <p className="mt-3 border-t border-neutral-800 pt-3 text-xs text-neutral-500">
       {detail}
     </p>
-  </section>
-);
-
-export const LedgerItem = ({ label, value, icon: Icon }: LedgerItemProps) => (
-  <div className="bg-[#111111] p-4">
-    <div className="mb-3 flex items-center gap-2 text-neutral-500">
-      <Icon className="h-3.5 w-3.5" />
-      <span className="text-[10px] font-bold uppercase">{label}</span>
-    </div>
-    <p className="break-words font-mono text-sm text-neutral-100">{value}</p>
   </div>
 );
+
+interface LedgerItemProps {
+  label: string;
+  value: string;
+  icon: LucideIcon;
+}
+
+export const LedgerItem = ({ label, value, icon: Icon }: LedgerItemProps) => (
+  <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4">
+    <div className="mb-2 flex items-center gap-2 text-neutral-500">
+      <Icon className="h-3.5 w-3.5" />
+      <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+    </div>
+    <p className="break-words font-mono text-sm font-bold text-white">{value}</p>
+  </div>
+);
+
+interface TimelineStepProps {
+  label: string;
+  value: string;
+  detail: string;
+  toneClass: string;
+}
 
 export const TimelineStep = ({
   label,
@@ -311,13 +273,13 @@ export const TimelineStep = ({
   <div className="relative pl-5">
     <span
       className={cn(
-        "absolute left-[-5px] top-1 h-2.5 w-2.5 border border-[#171717]",
+        "absolute left-[-5px] top-1 h-2.5 w-2.5 rounded-[2px] border border-[#171717]",
         toneClass,
       )}
     />
-    <p className="text-[10px] font-bold uppercase text-neutral-500">{label}</p>
+    <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{label}</p>
     <p className="mt-1 text-sm font-bold text-white">{value}</p>
-    <p className="mt-1 text-xs text-neutral-500">{detail}</p>
+    <p className="mt-0.5 text-xs text-neutral-500">{detail}</p>
   </div>
 );
 
@@ -327,7 +289,7 @@ export const StatusBadge = ({ state }: { state: BatchStateView }) => {
     <Badge
       variant="outline"
       className={cn(
-        "h-7 rounded-[4px] border px-2 text-[10px] font-bold uppercase",
+        "h-7 rounded-[4px] border px-2 text-[10px] font-bold uppercase tracking-wider",
         state.badgeClass,
       )}
     >
@@ -337,6 +299,14 @@ export const StatusBadge = ({ state }: { state: BatchStateView }) => {
   );
 };
 
+interface BatchActionsProps {
+  batch: Batch;
+  isDeleteOpen: boolean;
+  onDeleteOpenChange: (open: boolean) => void;
+  isDeleting: boolean;
+  onDelete: () => void;
+}
+
 export const BatchActions = ({
   batch,
   isDeleteOpen,
@@ -344,12 +314,12 @@ export const BatchActions = ({
   isDeleting,
   onDelete,
 }: BatchActionsProps) => (
-  <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
+  <div className="flex items-center gap-2">
     <PermissionGate permission="batches:update">
-      <Link href={`/batches/${batch.id}/edit`} className="w-full sm:w-auto">
+      <Link href={`/batches/${batch.id}/edit`}>
         <Button
           variant="outline"
-          className="h-10 w-full rounded-[4px] border-neutral-700 bg-neutral-950 text-xs font-bold uppercase text-neutral-200 hover:bg-neutral-800 hover:text-white sm:w-auto"
+          className="h-9 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
         >
           <Pencil className="mr-2 h-3.5 w-3.5" />
           Editar
@@ -362,7 +332,7 @@ export const BatchActions = ({
         <AlertDialogTrigger asChild>
           <Button
             variant="outline"
-            className="h-10 rounded-[4px] border-rose-900/60 bg-rose-950/10 text-xs font-bold uppercase text-rose-400 hover:border-rose-700 hover:bg-rose-950/40"
+            className="h-9 rounded-[4px] border-rose-900/60 bg-transparent text-xs font-bold uppercase tracking-wide text-rose-400 hover:border-rose-700 hover:bg-rose-950/40"
           >
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             Excluir

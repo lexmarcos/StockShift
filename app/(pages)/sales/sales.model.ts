@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   DateFilterPreset,
+  KpiPeriodKey,
   SaleFilterDraft,
   SalesResponse,
   SaleFilters,
@@ -98,6 +99,7 @@ export const useSalesModel = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [mobileFiltersDraft, setMobileFiltersDraft] =
     useState<SaleFilterDraft>(buildDefaultFilterDraft);
+  const [kpiPeriod, setKpiPeriod] = useState<KpiPeriodKey>("today");
 
   const url = useMemo(() => {
     if (!warehouseId) return null;
@@ -228,6 +230,10 @@ export const useSalesModel = () => {
     setMobileFiltersDraft((prev) => ({ ...prev, [key]: value }));
   };
 
+  const onKpiPeriodChange = useCallback((period: KpiPeriodKey) => {
+    setKpiPeriod(period);
+  }, []);
+
   return {
     sales,
     isLoading,
@@ -236,6 +242,8 @@ export const useSalesModel = () => {
     mobileFiltersDraft,
     isMobileFiltersOpen,
     pagination,
+    kpiPeriod,
+    onKpiPeriodChange,
     onPageChange,
     onFilterChange,
     onDatePresetChange,
