@@ -12,6 +12,7 @@ import {
 } from "./create-stock-movement.schema";
 import {
   CreateStockMovementViewProps,
+  ExistingProductBatchFormState,
   StockMovementProductOption,
 } from "./create-stock-movement.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
@@ -26,13 +27,36 @@ import {
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
 
+const getOptionalText = (value: string | undefined): string | undefined => {
+  const trimmedValue = value?.trim();
+  return trimmedValue || undefined;
+};
+
+const buildExistingProductItemPayload = (
+  item: CreateStockMovementSchema["items"][number],
+) => {
+  const payload: {
+    productId: string | undefined;
+    quantity: number;
+    manufacturedDate?: string;
+    expirationDate?: string;
+    costPrice?: number;
+    sellingPrice?: number;
+  } = { productId: item.productId, quantity: item.quantity };
+
+  const manufacturedDate = getOptionalText(item.manufacturedDate);
+  const expirationDate = getOptionalText(item.expirationDate);
+  if (manufacturedDate) payload.manufacturedDate = manufacturedDate;
+  if (expirationDate) payload.expirationDate = expirationDate;
+  if (item.costPrice !== undefined) payload.costPrice = item.costPrice;
+  if (item.sellingPrice !== undefined) payload.sellingPrice = item.sellingPrice;
+  return payload;
+};
+
 const buildMovementItemPayload = (
   item: CreateStockMovementSchema["items"][number],
 ) => {
-  if (!item.newProductData) {
-    return { productId: item.productId, quantity: item.quantity };
-  }
-
+  if (!item.newProductData) return buildExistingProductItemPayload(item);
   const newProduct = {
     name: item.newProductData.name,
     description: item.newProductData.description,
@@ -47,8 +71,8 @@ const buildMovementItemPayload = (
   return {
     quantity: item.quantity,
     newProduct,
-    manufacturedDate: item.newProductData.manufacturedDate,
-    expirationDate: item.newProductData.expirationDate,
+    manufacturedDate: getOptionalText(item.newProductData.manufacturedDate),
+    expirationDate: getOptionalText(item.newProductData.expirationDate),
     costPrice: item.newProductData.costPrice,
     sellingPrice: item.newProductData.sellingPrice,
   };
@@ -101,6 +125,17 @@ interface ProductByBarcodeResponse {
 }
 
 const PRODUCT_SEARCH_LIMIT = 5;
+
+const EMPTY_EXISTING_BATCH_FORM: ExistingProductBatchFormState = {
+  isOpen: false,
+  productId: "",
+  productName: "",
+  quantity: "",
+  manufacturedDate: "",
+  expirationDate: "",
+  editingIndex: null,
+  error: null,
+};
 
 interface FooterVisibilityParams {
   currentScrollY: number;
@@ -159,6 +194,8 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const [addItemError, setAddItemError] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const [existingProductBatchForm, setExistingProductBatchForm] =
+    useState<ExistingProductBatchFormState>(EMPTY_EXISTING_BATCH_FORM);
   const lastScannedBarcodeRef = useRef<string | null>(null);
   const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
@@ -194,7 +231,7 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     form.setValue("type", selectedMovementType, { shouldValidate: true });
   }, [form, router, selectedMovementType]);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items",
   });
@@ -317,41 +354,137 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     setAddItemError(null);
   };
 
+  const isSelectedInMovement = (): boolean => {
+    if (!selectedMovementType) return false;
+    return MANUAL_IN_MOVEMENT_TYPES.includes(
+      selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
+    );
+  };
+
+  const resetProductBuilder = (): void => {
+    setSelectedProductId("");
+    setSelectedProduct(null);
+    setProductSearchQuery("");
+    setItemQuantity("");
+  };
+
+  const closeExistingProductBatchForm = (): void => {
+    setExistingProductBatchForm(EMPTY_EXISTING_BATCH_FORM);
+  };
+
+  const openExistingProductBatchForm = (
+    params: Omit<ExistingProductBatchFormState, "isOpen" | "error">,
+  ): void => {
+    setExistingProductBatchForm({
+      ...params,
+      isOpen: true,
+      error: null,
+    });
+  };
+
+  const appendExistingProductItem = (
+    productId: string,
+    productName: string,
+    quantity: number,
+  ): void => {
+    append({ productId, quantity, productName });
+    resetProductBuilder();
+  };
+
+  const hasExistingProductAlreadyAdded = (productId: string): boolean => {
+    return form.getValues("items").some((item) => item.productId === productId);
+  };
+
+  const getSelectedProductQuantity = (): number | null => {
+    const quantity = Number(itemQuantity);
+    return quantity > 0 ? quantity : null;
+  };
+
   const handleAddItem = () => {
     setAddItemError(null);
-
     if (!selectedProductId) {
       setAddItemError("Selecione um produto.");
       return;
     }
 
-    const qty = Number(itemQuantity);
-    if (!qty || qty <= 0) {
+    const quantity = getSelectedProductQuantity();
+    if (!quantity) {
       setAddItemError("Informe uma quantidade válida.");
       return;
     }
 
-    const alreadyAdded = fields.find((f) => f.productId === selectedProductId);
-    if (alreadyAdded) {
+    if (hasExistingProductAlreadyAdded(selectedProductId)) {
       setAddItemError(
         "Este produto já foi adicionado. Remova-o para alterar a quantidade.",
       );
       return;
     }
-
     const product =
       selectedProduct || products.find((p) => p.id === selectedProductId);
+    const productName = product?.name || "Produto";
 
-    append({
-      productId: selectedProductId,
-      quantity: qty,
-      productName: product?.name || "Produto",
-    });
+    if (isSelectedInMovement()) {
+      openExistingProductBatchForm({
+        productId: selectedProductId,
+        productName,
+        quantity: String(quantity),
+        manufacturedDate: "",
+        expirationDate: "",
+        costPrice: undefined,
+        sellingPrice: undefined,
+        editingIndex: null,
+      });
+      return;
+    }
 
-    setSelectedProductId("");
-    setSelectedProduct(null);
-    setProductSearchQuery("");
-    setItemQuantity("");
+    appendExistingProductItem(selectedProductId, productName, quantity);
+  };
+
+  const handleExistingProductBatchOpenChange = (open: boolean): void => {
+    if (open) {
+      setExistingProductBatchForm((current) => ({ ...current, isOpen: true }));
+      return;
+    }
+    closeExistingProductBatchForm();
+  };
+
+  const updateExistingProductBatchForm = (
+    patch: Partial<ExistingProductBatchFormState>,
+  ): void => {
+    setExistingProductBatchForm((current) => ({
+      ...current,
+      ...patch,
+      error: patch.error ?? null,
+    }));
+  };
+
+  const buildExistingProductBatchItem = (): CreateStockMovementSchema["items"][number] => ({
+    productId: existingProductBatchForm.productId,
+    productName: existingProductBatchForm.productName,
+    quantity: Number(existingProductBatchForm.quantity),
+    manufacturedDate: getOptionalText(existingProductBatchForm.manufacturedDate),
+    expirationDate: getOptionalText(existingProductBatchForm.expirationDate),
+    costPrice: existingProductBatchForm.costPrice,
+    sellingPrice: existingProductBatchForm.sellingPrice,
+  });
+
+  const handleConfirmExistingProductBatchData = (): void => {
+    const quantity = Number(existingProductBatchForm.quantity);
+    if (!quantity || quantity <= 0) {
+      updateExistingProductBatchForm({
+        error: "Informe uma quantidade válida para o lote.",
+      });
+      return;
+    }
+
+    const item = buildExistingProductBatchItem();
+    if (existingProductBatchForm.editingIndex !== null) {
+      update(existingProductBatchForm.editingIndex, item);
+    } else {
+      append(item);
+      resetProductBuilder();
+    }
+    closeExistingProductBatchForm();
   };
 
   const handleCreateNewProduct = () => {
@@ -417,17 +550,46 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     );
   };
 
-  const resolveScannerQuantity = () => {
+  const handleEditExistingProductBatchData = (index: number): void => {
+    if (!isSelectedInMovement()) return;
+    const item = form.getValues("items")[index];
+    if (!item?.productId || item.newProductData) return;
+
+    openExistingProductBatchForm({
+      productId: item.productId,
+      productName: item.productName || "Produto",
+      quantity: String(item.quantity),
+      manufacturedDate: item.manufacturedDate || "",
+      expirationDate: item.expirationDate || "",
+      costPrice: item.costPrice,
+      sellingPrice: item.sellingPrice,
+      editingIndex: index,
+    });
+  };
+
+  const resolveScannerQuantity = (): number => {
     const qty = Number(itemQuantity);
     return qty > 0 ? qty : 1;
   };
 
   const appendScannedProduct = (product: StockMovementProductOption) => {
-    const alreadyAdded = form.getValues("items").some((item) => {
-      return item.productId === product.id;
-    });
-    if (alreadyAdded) {
+    if (hasExistingProductAlreadyAdded(product.id)) {
       toast.error(`${product.name} já está na movimentação.`);
+      return;
+    }
+
+    if (isSelectedInMovement()) {
+      setIsScannerOpen(false);
+      openExistingProductBatchForm({
+        productId: product.id,
+        productName: product.name,
+        quantity: String(resolveScannerQuantity()),
+        manufacturedDate: "",
+        expirationDate: "",
+        costPrice: undefined,
+        sellingPrice: undefined,
+        editingIndex: null,
+      });
       return;
     }
 
@@ -528,9 +690,23 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
     onAddItem: handleAddItem,
     onCreateNewProduct: handleCreateNewProduct,
     onEditNewProductItem: handleEditNewProductItem,
+    onEditExistingProductBatchData: handleEditExistingProductBatchData,
     onScannerOpenChange: setIsScannerOpen,
     onBarcodeScan: handleBarcodeScan,
     onRemoveItem: remove,
+    existingProductBatchForm,
+    onExistingProductBatchOpenChange: handleExistingProductBatchOpenChange,
+    onExistingProductBatchQuantityChange: (quantity: string) =>
+      updateExistingProductBatchForm({ quantity }),
+    onExistingProductBatchManufacturedDateChange: (manufacturedDate: string) =>
+      updateExistingProductBatchForm({ manufacturedDate }),
+    onExistingProductBatchExpirationDateChange: (expirationDate: string) =>
+      updateExistingProductBatchForm({ expirationDate }),
+    onExistingProductBatchCostPriceChange: (costPrice?: number) =>
+      updateExistingProductBatchForm({ costPrice }),
+    onExistingProductBatchSellingPriceChange: (sellingPrice?: number) =>
+      updateExistingProductBatchForm({ sellingPrice }),
+    onConfirmExistingProductBatchData: handleConfirmExistingProductBatchData,
     items: fields,
   };
 }

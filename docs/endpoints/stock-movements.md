@@ -52,7 +52,11 @@ Request:
     },
     {
       "productId": "660e8400-e29b-41d4-a716-446655440001",
-      "quantity": 2.5
+      "quantity": 2.5,
+      "costPrice": 500,
+      "sellingPrice": 800,
+      "manufacturedDate": "2026-04-01",
+      "expirationDate": "2026-12-31"
     },
     {
       "quantity": 4,
@@ -87,8 +91,8 @@ Regras:
   - Produto existente: `productId` (UUID).
   - Produto novo: `newProduct` com o mesmo formato JSON de `POST /api/products`.
 - Produtos em `newProduct` sao persistidos dentro da mesma transacao da movimentacao.
-- `costPrice` e `sellingPrice` sao opcionais, enviados em centavos no item da movimentacao, e aplicados ao batch criado para o produto novo.
-- `manufacturedDate` e `expirationDate` sao opcionais, enviados no item da movimentacao, e aplicados ao batch criado em movimentos de entrada.
+- `costPrice` e `sellingPrice` sao opcionais, enviados em centavos no item da movimentacao, e aplicados ao batch criado em movimentos de entrada para produto existente ou produto novo.
+- `manufacturedDate` e `expirationDate` sao opcionais, enviados no item da movimentacao, e aplicados ao batch criado em movimentos de entrada para produto existente ou produto novo.
 - Para imagem de produto novo, envie multipart com:
   - `movement`: Blob JSON do request acima (`application/json`).
   - `inlineProductImages`: uma parte de arquivo para cada produto novo, na mesma ordem em que esses produtos aparecem em `items`; quando um produto novo nao tiver imagem, envie uma parte vazia para preservar o pareamento.
@@ -96,7 +100,7 @@ Regras:
 - Produtos novos inline sao aceitos somente para movimentacoes de entrada (`PURCHASE_IN`, `ADJUSTMENT_IN`).
 - Para movimentos `OUT`, o sistema deduz automaticamente dos batches usando FIFO (batch mais antigo primeiro).
 - Se a quantidade total disponivel no warehouse for insuficiente, retorna `400` com mensagem de estoque insuficiente.
-- Para movimentos `IN`, o sistema cria um novo batch ou adiciona ao batch existente do produto.
+- Para movimentos `IN` com `productId`, o sistema cria um novo batch quando qualquer data/preco de lote for informado. Sem esses campos, adiciona a quantidade ao primeiro batch existente do produto, ou cria o primeiro batch se ainda nao houver lote.
 - O `warehouseId` e determinado automaticamente pelo warehouse do usuario logado.
 - Um codigo unico e gerado automaticamente (ex: `MOV-2026-0001`).
 

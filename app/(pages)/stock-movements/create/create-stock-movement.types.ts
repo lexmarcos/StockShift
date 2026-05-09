@@ -28,7 +28,24 @@ export interface StockMovementDraftItem {
   productId?: string;
   quantity: number;
   productName?: string;
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
   newProductData?: InlineProductData;
+}
+
+export interface ExistingProductBatchFormState {
+  isOpen: boolean;
+  productId: string;
+  productName: string;
+  quantity: string;
+  manufacturedDate: string;
+  expirationDate: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  editingIndex: number | null;
+  error: string | null;
 }
 
 export interface StockMovementProductOption {
@@ -65,14 +82,27 @@ export interface CreateStockMovementViewProps {
   onAddItem: () => void;
   onCreateNewProduct: () => void;
   onEditNewProductItem: (index: number) => void;
+  onEditExistingProductBatchData: (index: number) => void;
   onScannerOpenChange: (open: boolean) => void;
   onBarcodeScan: (barcode: string) => void;
   onRemoveItem: (index: number) => void;
+  existingProductBatchForm: ExistingProductBatchFormState;
+  onExistingProductBatchOpenChange: (open: boolean) => void;
+  onExistingProductBatchQuantityChange: (quantity: string) => void;
+  onExistingProductBatchManufacturedDateChange: (date: string) => void;
+  onExistingProductBatchExpirationDateChange: (date: string) => void;
+  onExistingProductBatchCostPriceChange: (price?: number) => void;
+  onExistingProductBatchSellingPriceChange: (price?: number) => void;
+  onConfirmExistingProductBatchData: () => void;
   items: Array<{
     id: string;
     productId?: string;
     quantity: number;
     productName?: string;
+    manufacturedDate?: string;
+    expirationDate?: string;
+    costPrice?: number;
+    sellingPrice?: number;
     newProductData?: InlineProductData;
   }>;
 }

@@ -28,6 +28,10 @@ export const movementItemSchema = z.object({
   productId: z.string().uuid("Produto inválido").optional(),
   quantity: z.number().positive("Quantidade deve ser maior que zero"),
   productName: z.string().optional(), // UI helper
+  manufacturedDate: z.string().optional(),
+  expirationDate: z.string().optional(),
+  costPrice: z.number().int().min(0).optional(),
+  sellingPrice: z.number().int().min(0).optional(),
   newProductData: inlineProductSchema.optional(),
 }).refine((item) => Boolean(item.productId) !== Boolean(item.newProductData), {
   message: "Informe um produto existente ou um novo produto",

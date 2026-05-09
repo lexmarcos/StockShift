@@ -380,6 +380,34 @@ describe("helpers de produto", () => {
     expect(payload.items[0].newProduct?.hasExpiration).toBe(true);
   });
 
+  it("envia dados de lote em item de produto existente quando preenchidos", () => {
+    const payload = buildMovementPayload(
+      "PURCHASE_IN",
+      createSubmitPayload({
+        items: [
+          {
+            productId: validExistingProductUuid,
+            quantity: 2,
+            productName: "Café Torrado",
+            manufacturedDate: "2026-04-01",
+            expirationDate: "2026-12-31",
+            costPrice: 1290,
+            sellingPrice: 2490,
+          },
+        ],
+      }),
+    );
+
+    expect(payload.items[0]).toEqual({
+      productId: validExistingProductUuid,
+      quantity: 2,
+      manufacturedDate: "2026-04-01",
+      expirationDate: "2026-12-31",
+      costPrice: 1290,
+      sellingPrice: 2490,
+    });
+  });
+
   it("exibe footer no fim da pagina ou quando usuario rola para cima", () => {
     expect(
       shouldShowStockMovementFooter({
@@ -531,7 +559,8 @@ describe("useCreateStockMovementModel", () => {
     expect(result.current.isProductOptionsOpen).toBe(false);
   });
 
-  it("adiciona item válido e valida quantidade/produto", () => {
+  it("adiciona item válido em saída e valida quantidade/produto", () => {
+    fakeSearchParams.setType("USAGE");
     const { result } = renderHook(() => useCreateStockMovementModel());
 
     act(() => {
@@ -574,6 +603,99 @@ describe("useCreateStockMovementModel", () => {
     expect(result.current.addItemError).toBe(
       "Este produto já foi adicionado. Remova-o para alterar a quantidade.",
     );
+    expect(result.current.existingProductBatchForm.isOpen).toBe(false);
+  });
+
+  it("abre dados de lote antes de adicionar produto existente em compra", () => {
+    const { result } = renderHook(() => useCreateStockMovementModel());
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onQuantityChange("2");
+    });
+    act(() => {
+      result.current.onAddItem();
+    });
+
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.existingProductBatchForm).toMatchObject({
+      isOpen: true,
+      productId: "p-1",
+      productName: "Café Torrado",
+      quantity: "2",
+      editingIndex: null,
+    });
+  });
+
+  it("confirma dados de lote e adiciona item com datas e preços", () => {
+    const { result } = renderHook(() => useCreateStockMovementModel());
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onQuantityChange("2");
+    });
+    act(() => {
+      result.current.onAddItem();
+    });
+    act(() => {
+      result.current.onExistingProductBatchManufacturedDateChange("2026-04-01");
+      result.current.onExistingProductBatchExpirationDateChange("2026-12-31");
+      result.current.onExistingProductBatchCostPriceChange(1290);
+      result.current.onExistingProductBatchSellingPriceChange(2490);
+    });
+    act(() => {
+      result.current.onConfirmExistingProductBatchData();
+    });
+
+    expect(result.current.items[0]).toMatchObject({
+      productId: "p-1",
+      productName: "Café Torrado",
+      quantity: 2,
+      manufacturedDate: "2026-04-01",
+      expirationDate: "2026-12-31",
+      costPrice: 1290,
+      sellingPrice: 2490,
+    });
+    expect(result.current.existingProductBatchForm.isOpen).toBe(false);
+    expect(result.current.selectedProductId).toBe("");
+  });
+
+  it("edita dados de lote de produto existente de entrada", () => {
+    const { result } = renderHook(() => useCreateStockMovementModel());
+
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          productId: validExistingProductUuid,
+          productName: "Café Torrado",
+          quantity: 2,
+          expirationDate: "2026-12-31",
+        },
+      ]);
+    });
+    act(() => {
+      result.current.onEditExistingProductBatchData(0);
+    });
+    act(() => {
+      result.current.onExistingProductBatchQuantityChange("3");
+      result.current.onExistingProductBatchManufacturedDateChange("2026-04-01");
+      result.current.onExistingProductBatchCostPriceChange(1290);
+    });
+    act(() => {
+      result.current.onConfirmExistingProductBatchData();
+    });
+
+    expect(result.current.form.getValues("items")[0]).toMatchObject({
+      productId: validExistingProductUuid,
+      quantity: 3,
+      manufacturedDate: "2026-04-01",
+      expirationDate: "2026-12-31",
+      costPrice: 1290,
+    });
   });
 
   it("bloqueia criação de novo produto fora dos tipos de entrada", () => {
@@ -610,7 +732,8 @@ describe("useCreateStockMovementModel", () => {
     );
   });
 
-  it("adiciona item por código de barras e impede duplicado imediato", async () => {
+  it("adiciona item por código de barras em saída e impede duplicado imediato", async () => {
+    fakeSearchParams.setType("USAGE");
     const { result } = renderHook(() => useCreateStockMovementModel());
 
     fakeApi.get.mockImplementation((url: string) => {
@@ -653,6 +776,23 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeToast.error).toHaveBeenCalledTimes(0);
     expect(fakeApi.get).toHaveBeenCalledTimes(2);
     expect(result.current.form.getValues("items")).toHaveLength(2);
+  });
+
+  it("abre dados de lote por código de barras em ajuste de entrada", async () => {
+    fakeSearchParams.setType("ADJUSTMENT_IN");
+    const { result } = renderHook(() => useCreateStockMovementModel());
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891000000004");
+    });
+
+    expect(result.current.form.getValues("items")).toHaveLength(0);
+    expect(result.current.existingProductBatchForm).toMatchObject({
+      isOpen: true,
+      productId: "p-4",
+      productName: "Copo Térmico",
+      quantity: "1",
+    });
   });
 
   it("mostra erro com ação para criação quando produto não existe", async () => {

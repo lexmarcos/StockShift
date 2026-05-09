@@ -2,16 +2,13 @@
 
 import {
   Plus,
-  Trash2,
   Package,
   AlertCircle,
   FileText,
   Save,
-  Hash,
   TrendingDown,
   TrendingUp,
   ScanLine,
-  Pencil,
   Search,
   X,
   Loader2,
@@ -31,13 +28,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageContainer } from "@/components/ui/page-container";
 import { FormSection } from "@/components/ui/form-section";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SectionLabel } from "@/components/ui/section-label";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { PermissionGate } from "@/components/permission-gate";
 import { cn } from "@/lib/utils";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { StockMovementScanner } from "./stock-movement-scanner.view";
+import { StockMovementBatchDataModal } from "./stock-movement-batch-data-modal.view";
+import { StockMovementItemsList } from "./stock-movement-items-list.view";
 import {
   MANUAL_MOVEMENT_TYPE_LABELS,
   MANUAL_OUT_MOVEMENT_TYPES,
@@ -65,9 +62,18 @@ export function CreateStockMovementView({
   onAddItem,
   onCreateNewProduct,
   onEditNewProductItem,
+  onEditExistingProductBatchData,
   onScannerOpenChange,
   onBarcodeScan,
   onRemoveItem,
+  existingProductBatchForm,
+  onExistingProductBatchOpenChange,
+  onExistingProductBatchQuantityChange,
+  onExistingProductBatchManufacturedDateChange,
+  onExistingProductBatchExpirationDateChange,
+  onExistingProductBatchCostPriceChange,
+  onExistingProductBatchSellingPriceChange,
+  onConfirmExistingProductBatchData,
   items,
 }: CreateStockMovementViewProps) {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
@@ -80,6 +86,7 @@ export function CreateStockMovementView({
         selectedType as (typeof MANUAL_OUT_MOVEMENT_TYPES)[number],
       )
     : false;
+  const isInMovement = Boolean(selectedType) && !isOutMovement;
 
   return (
     <PageContainer bottomPadding="fixed-bar" className="pb-40 md:pb-28">
@@ -87,6 +94,16 @@ export function CreateStockMovementView({
         open={isScannerOpen}
         onOpenChange={onScannerOpenChange}
         onScan={onBarcodeScan}
+      />
+      <StockMovementBatchDataModal
+        form={existingProductBatchForm}
+        onOpenChange={onExistingProductBatchOpenChange}
+        onQuantityChange={onExistingProductBatchQuantityChange}
+        onManufacturedDateChange={onExistingProductBatchManufacturedDateChange}
+        onExpirationDateChange={onExistingProductBatchExpirationDateChange}
+        onCostPriceChange={onExistingProductBatchCostPriceChange}
+        onSellingPriceChange={onExistingProductBatchSellingPriceChange}
+        onConfirm={onConfirmExistingProductBatchData}
       />
 
       <div className="mb-6 flex justify-end">
@@ -346,160 +363,14 @@ export function CreateStockMovementView({
             </div>
           </FormSection>
           {/* ── Items List ── */}
-          <div>
-            <SectionLabel icon={Hash} className="mb-4">
-              Itens da Movimentação ({items.length})
-            </SectionLabel>
-
-            {items.length === 0 ? (
-              <EmptyState
-                icon={Package}
-                title="Nenhum item adicionado"
-                description="Selecione um produto e informe a quantidade para adicioná-lo."
-              />
-            ) : (
-              <>
-                {/* Mobile cards */}
-                <div className="flex flex-col gap-3 md:hidden">
-                  {items.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <p className="truncate text-sm font-bold text-white">
-                            {item.productName || "Produto"}
-                          </p>
-                          {item.newProductData && (
-                            <span className="rounded-[2px] border border-blue-500/30 bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-400">
-                              Novo
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-xs text-neutral-500">
-                          Qtd:{" "}
-                          <span className="font-mono font-bold tracking-tighter text-white">
-                            {item.quantity}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {item.newProductData && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEditNewProductItem(index)}
-                            className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400"
-                          >
-                            <Pencil className="h-4 w-4" strokeWidth={2} />
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRemoveItem(index)}
-                          className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
-                        >
-                          <Trash2 className="h-4 w-4" strokeWidth={2} />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop table */}
-                <div className="hidden md:block">
-                  <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-neutral-800">
-                          <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                            Produto
-                          </th>
-                          <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                            Quantidade
-                          </th>
-                          <th className="w-24 px-3 py-3" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item, index) => (
-                          <tr
-                            key={item.id}
-                            className="border-b border-neutral-800 last:border-0"
-                          >
-                            <td className="px-5 py-3.5 text-sm font-medium text-white">
-                              <div className="flex items-center gap-2">
-                                <span>{item.productName || "Produto"}</span>
-                                {item.newProductData && (
-                                  <span className="rounded-[2px] border border-blue-500/30 bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-400">
-                                    Novo
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
-                              {item.quantity}
-                            </td>
-                            <td className="px-3 py-3.5">
-                              <div className="flex justify-end gap-1">
-                                {item.newProductData && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onEditNewProductItem(index)}
-                                    className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400"
-                                  >
-                                    <Pencil
-                                      className="h-3.5 w-3.5"
-                                      strokeWidth={2}
-                                    />
-                                  </Button>
-                                )}
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => onRemoveItem(index)}
-                                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
-                                >
-                                  <Trash2
-                                    className="h-3.5 w-3.5"
-                                    strokeWidth={2}
-                                  />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t border-neutral-700">
-                          <td className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                            Total
-                          </td>
-                          <td className="px-5 py-3 text-right font-mono text-sm font-bold tracking-tighter text-white">
-                            {totalQuantity}
-                          </td>
-                          <td />
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {form.formState.errors.items && (
-              <p className="mt-2 text-xs font-medium text-rose-500">
-                {form.formState.errors.items.message}
-              </p>
-            )}
-          </div>
+          <StockMovementItemsList
+            items={items}
+            isInMovement={isInMovement}
+            itemsErrorMessage={form.formState.errors.items?.message}
+            onEditNewProductItem={onEditNewProductItem}
+            onEditExistingProductBatchData={onEditExistingProductBatchData}
+            onRemoveItem={onRemoveItem}
+          />
 
           {/* ── Fixed Bottom Bar ── */}
           <FixedBottomBar
