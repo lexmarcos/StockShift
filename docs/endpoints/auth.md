@@ -38,7 +38,7 @@ These endpoints handle user authentication, registration, and session management
   "message": null,
   "data": {
     "tokenType": "Bearer",
-    "expiresIn": 3600000,
+    "expiresIn": 900000,
     "userId": "550e8400-e29b-41d4-a716-446655440000",
     "email": "user@example.com",
     "fullName": "John Doe",
@@ -68,9 +68,9 @@ These endpoints handle user authentication, registration, and session management
 
 ### Rate Limiting & Captcha Logic
 The system tracks login attempts per IP address using a token bucket algorithm:
-- **Default capacity**: 5 attempts
-- **Refill rate**: 5 tokens every 15 minutes
-- **Captcha threshold**: When remaining tokens ≤ 50% of capacity (e.g., after 3 attempts with capacity=5)
+- **Default capacity**: 10 attempts
+- **Refill rate**: 10 tokens every 15 minutes
+- **Captcha threshold**: When remaining tokens ≤ 50% of capacity (e.g., after 5 attempts with capacity=10)
 
 When `requiresCaptcha: true` is returned, the frontend should display a captcha challenge before allowing the next login attempt.
 
@@ -125,7 +125,7 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 ### Request
 **Method**: `POST`
 **Content-Type**: `application/json`
-**Authentication**: Not required
+**Authentication**: Required (Bearer token via HTTP-only cookie)
 
 **Request Body**: None
 
@@ -241,18 +241,22 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 **400 Bad Request** (Current password incorrect):
 ```json
 {
-  "success": false,
+  "timestamp": "2025-01-22T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Current password is incorrect",
-  "data": null
+  "path": "/api/auth/change-password"
 }
 ```
 
 **401 Unauthorized** (Not authenticated):
 ```json
 {
-  "success": false,
+  "timestamp": "2025-01-22T10:30:00",
+  "status": 401,
+  "error": "Unauthorized",
   "message": "Unauthorized",
-  "data": null
+  "path": "/api/auth/change-password"
 }
 ```
 
@@ -315,6 +319,7 @@ When `requiresCaptcha: true` is returned, the frontend should display a captcha 
 ### Roles
 Roles are tenant-specific groups that bundle permissions. Common roles include:
 - `ADMIN`: System administrator with full access (receives `["*"]` permission)
+- `SUPER_ADMIN`: Platform-level administrator with full access across tenants (receives `["*"]` permission)
 - Custom roles created by the tenant (e.g., `VENDEDOR`, `GERENTE`, `ESTOQUISTA`)
 
 ### Permission Format
@@ -372,7 +377,7 @@ Permissions follow the format `resource:action`:
 }
 ```
 
-> **Note**: A new access token containing the `warehouseId` claim is set as an HTTP-only cookie. The refresh token remains unchanged.
+> **Note**: New access and refresh tokens are set as HTTP-only cookies. The refresh token is rotated with the new `warehouseId` embedded in it.
 
 ### Error Responses
 
@@ -385,12 +390,14 @@ Permissions follow the format `resource:action`:
 }
 ```
 
-**401 Unauthorized** (No access to warehouse):
+**403 Forbidden** (No access to warehouse):
 ```json
 {
-  "success": false,
+  "timestamp": "2025-01-22T10:30:00",
+  "status": 403,
+  "error": "Forbidden",
   "message": "User does not have access to this warehouse",
-  "data": null
+  "path": "/api/auth/switch-warehouse"
 }
 ```
 
@@ -434,6 +441,13 @@ The access token is a JWT (JSON Web Token) signed with HS256. Below is the decod
     "stock_movements:read",
     "stock_movements:create"
   ],
+  "authorities": [
+    "products:read",
+    "products:update",
+    "warehouses:read",
+    "stock_movements:read",
+    "stock_movements:create"
+  ],
   "iat": 1706097600,
   "exp": 1706101200
 }
@@ -450,11 +464,13 @@ The access token is a JWT (JSON Web Token) signed with HS256. Below is the decod
 | `email` | string | User's email address |
 | `roles` | array of strings | List of role names assigned to the user |
 | `permissions` | array of strings | List of permission codes granted to the user |
+| `authorities` | array of strings | Duplicate of `permissions` for backward compatibility with legacy consumers |
+| `warehouseId` | string (UUID) or null | Currently selected warehouse ID, if any |
 | `iat` | number | Issued at timestamp (Unix epoch in seconds) |
 | `exp` | number | Expiration timestamp (Unix epoch in seconds) |
 
 ### Token Expiration
-- **Access Token**: 1 hour (3600000 ms)
+- **Access Token**: 15 minutes (900000 ms)
 - **Refresh Token**: 7 days
 
 ### Frontend Notes
@@ -465,12 +481,24 @@ The access token is a JWT (JSON Web Token) signed with HS256. Below is the decod
 ---
 
 ## Error Response Format
-All endpoints return errors in the following format:
+Most endpoints return errors in the following format (`ErrorResponse`):
+
+```json
+{
+  "timestamp": "2025-01-22T10:30:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Error description",
+  "path": "/api/auth/login"
+}
+```
+
+Rate limit (429) errors use a different format (`ApiResponse`):
 
 ```json
 {
   "success": false,
-  "message": "Error description",
+  "message": "Muitas tentativas de login. Tente novamente em 15 minutos.",
   "data": null
 }
 ```

@@ -1,9 +1,40 @@
 # User Management Endpoints
 
 ## Overview
-These endpoints handle user management within a tenant. All endpoints require authentication and ADMIN role.
+These endpoints handle user management within a tenant. All endpoints require authentication and the matching user permission. Users with `ROLE_ADMIN`, `ROLE_SUPER_ADMIN`, or `*` are allowed by the permission guard.
 
 **Base URL**: `/api/users`
+
+---
+
+## Error Response Format
+
+Validation, business rule, permission, and not found errors use the global error response format:
+
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Error message",
+  "path": "/api/users"
+}
+```
+
+Validation errors include a `validationErrors` object:
+
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Validation Failed",
+  "message": "Invalid input",
+  "path": "/api/users",
+  "validationErrors": {
+    "email": "Invalid email format"
+  }
+}
+```
 
 ---
 
@@ -12,7 +43,8 @@ These endpoints handle user management within a tenant. All endpoints require au
 
 ### Request
 **Method**: `GET`
-**Authentication**: Required (ROLE_ADMIN)
+**Authentication**: Required (Bearer token)
+**Required Permissions**: `users:read`
 
 ### Response
 **Status Code**: `200 OK`
@@ -56,7 +88,8 @@ These endpoints handle user management within a tenant. All endpoints require au
 ### Request
 **Method**: `POST`
 **Content-Type**: `application/json`
-**Authentication**: Required (ROLE_ADMIN)
+**Authentication**: Required (Bearer token)
+**Required Permissions**: `users:create`
 
 #### Request Body
 ```json
@@ -107,45 +140,66 @@ These endpoints handle user management within a tenant. All endpoints require au
 **400 Bad Request** (Email already exists):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Email already registered in this tenant",
-  "data": null
+  "path": "/api/users"
 }
 ```
 
 **400 Bad Request** (Invalid role):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Role not found: <roleId>",
-  "data": null
+  "path": "/api/users"
+}
+```
+
+**400 Bad Request** (Role from another tenant):
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Role does not belong to this tenant: <roleId>",
+  "path": "/api/users"
 }
 ```
 
 **400 Bad Request** (Invalid warehouse):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Warehouse not found: <warehouseId>",
-  "data": null
+  "path": "/api/users"
 }
 ```
 
 **400 Bad Request** (Inactive warehouse):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Warehouse is inactive: <warehouseId>",
-  "data": null
+  "path": "/api/users"
 }
 ```
 
-**403 Forbidden** (Not admin):
+**403 Forbidden** (Missing permission):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 403,
+  "error": "Forbidden",
   "message": "You don't have permission to access this resource",
-  "data": null
+  "path": "/api/users"
 }
 ```
 
@@ -157,7 +211,8 @@ These endpoints handle user management within a tenant. All endpoints require au
 ### Request
 **Method**: `GET`
 **URL Parameters**: `id` (UUID) - User identifier
-**Authentication**: Required (ROLE_ADMIN)
+**Authentication**: Required (Bearer token)
+**Required Permissions**: `users:read`
 
 ### Response
 **Status Code**: `200 OK`
@@ -185,9 +240,11 @@ These endpoints handle user management within a tenant. All endpoints require au
 **404 Not Found**:
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 404,
+  "error": "Not Found",
   "message": "User not found with id: <userId>",
-  "data": null
+  "path": "/api/users/<userId>"
 }
 ```
 
@@ -200,7 +257,8 @@ These endpoints handle user management within a tenant. All endpoints require au
 **Method**: `PUT`
 **URL Parameters**: `id` (UUID) - User identifier
 **Content-Type**: `application/json`
-**Authentication**: Required (ROLE_ADMIN)
+**Authentication**: Required (Bearer token)
+**Required Permissions**: `users:update`
 
 #### Request Body
 ```json
@@ -246,18 +304,55 @@ These endpoints handle user management within a tenant. All endpoints require au
 **404 Not Found**:
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 404,
+  "error": "Not Found",
   "message": "User not found with id: <userId>",
-  "data": null
+  "path": "/api/users/<userId>"
 }
 ```
 
 **400 Bad Request** (Invalid role):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Role not found: <roleId>",
-  "data": null
+  "path": "/api/users/<userId>"
+}
+```
+
+**400 Bad Request** (Role from another tenant):
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Role does not belong to this tenant: <roleId>",
+  "path": "/api/users/<userId>"
+}
+```
+
+**400 Bad Request** (Invalid warehouse):
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Warehouse not found: <warehouseId>",
+  "path": "/api/users/<userId>"
+}
+```
+
+**400 Bad Request** (Inactive warehouse):
+```json
+{
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
+  "message": "Warehouse is inactive: <warehouseId>",
+  "path": "/api/users/<userId>"
 }
 ```
 
@@ -276,7 +371,8 @@ These endpoints handle user management within a tenant. All endpoints require au
 ### Request
 **Method**: `DELETE`
 **URL Parameters**: `id` (UUID) - User identifier
-**Authentication**: Required (ROLE_ADMIN)
+**Authentication**: Required (Bearer token)
+**Required Permissions**: `users:delete`
 
 ### Response
 **Status Code**: `200 OK`
@@ -294,18 +390,22 @@ These endpoints handle user management within a tenant. All endpoints require au
 **404 Not Found**:
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 404,
+  "error": "Not Found",
   "message": "User not found with id: <userId>",
-  "data": null
+  "path": "/api/users/<userId>"
 }
 ```
 
 **400 Bad Request** (Self-deletion):
 ```json
 {
-  "success": false,
+  "timestamp": "2026-01-27T10:30:00",
+  "status": 400,
+  "error": "Business Rule Violation",
   "message": "Cannot delete your own account",
-  "data": null
+  "path": "/api/users/<userId>"
 }
 ```
 
@@ -325,23 +425,22 @@ Users are associated with specific warehouses. This controls what data they can 
 
 | User Type | Warehouse Access |
 |-----------|------------------|
-| ADMIN | Full access to all warehouses |
-| Non-admin with warehouses | Access only to assigned warehouses |
-| Non-admin without warehouses | Blocked (403 Forbidden) |
+| ADMIN | Full access flag in the authenticated principal |
+| Non-admin with warehouses | Access only to assigned warehouses/current warehouse context |
+| Non-admin without warehouses | No warehouse scope available for warehouse-scoped operations |
 
 ### Affected Operations
 
 When a non-admin user accesses the system:
 - **Warehouses**: Only sees assigned warehouses
 - **Batches**: Only sees batches from assigned warehouses
-- **Stock Movements**: Only sees movements involving assigned warehouses
 - **Sales**: Can only create sales in assigned warehouses
 
 ### Frontend Implementation Guide
 
 1. **User Creation Form**: Include warehouse selection (multi-select)
 2. **Temporary Password**: Display the temporary password clearly and advise admin to share securely
-3. **Role Selection**: Fetch available roles from `/api/roles` (to be implemented)
+3. **Role Selection**: Fetch available roles from `/api/roles`
 4. **Warehouse Selection**: Fetch available warehouses from `/api/warehouses`
 5. **Error Handling**: Display specific validation errors
 6. **User List**: Show roles and warehouses for each user
@@ -354,6 +453,6 @@ When a non-admin user accesses the system:
 - `201`: Created
 - `400`: Bad Request (validation errors)
 - `401`: Unauthorized (not authenticated)
-- `403`: Forbidden (not admin or no warehouse access)
+- `403`: Forbidden (missing permission or no warehouse access)
 - `404`: Not Found
 - `500`: Internal Server Error

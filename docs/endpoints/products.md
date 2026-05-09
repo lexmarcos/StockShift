@@ -6,13 +6,20 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **Base URL**: `/api/products`  
 **Authentication**: Required (Bearer token)
 
+### Current Permission Codes
+- Create product: `products:create`
+- Read products: `products:read`
+- Update product: `products:update`
+- Delete product: `products:delete`
+- Analyze product image: `products:analyze_image`
+
 ---
 
 ## POST /api/products/analyze-image
 **Summary**: Analyze a product image using AI to extract details
 
 ### Authorization
-**Required Permissions**: `PRODUCT_CREATE` or `ROLE_ADMIN`
+**Required Permission**: `products:analyze_image`
 
 ### Request
 **Method**: `POST`
@@ -27,7 +34,6 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```json
 {
   "success": true,
-  "message": null,
   "data": {
     "name": "Make Me Fever Gold",
     "brandId": "660e8400-e29b-41d4-a716-446655440002",
@@ -66,7 +72,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **Summary**: Create a new product
 
 ### Authorization
-**Required Permissions**: `PRODUCT_CREATE` or `ROLE_ADMIN`
+**Required Permission**: `products:create`
 
 ### Request
 **Method**: `POST`  
@@ -84,7 +90,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
   "categoryId": "550e8400-e29b-41d4-a716-446655440000",
   "brandId": "660e8400-e29b-41d4-a716-446655440002",
   "barcode": "1234567890123",
-  "barcodeType": "EAN13",
+  "barcodeType": "EXTERNAL",
   "sku": "PROD-001",
   "isKit": false,
   "attributes": {
@@ -103,8 +109,8 @@ These endpoints manage products in the StockShift system. All endpoints require 
 - `categoryId`: Optional, UUID of the category
 - `brandId`: Optional, UUID of the brand
 - `barcode`: Optional, alphanumeric with hyphens only
-- `barcodeType`: Optional, enum values: `EAN13`, `EAN8`, `UPC`, `CODE128`, `CODE39`
-- `sku`: Optional, alphanumeric with hyphens only
+- `barcodeType`: Optional, enum values: `EXTERNAL`, `GENERATED`
+- `sku`: Optional, alphanumeric with hyphens only. On create, if omitted or blank, the backend generates a unique SKU in the format `PRD-{timestamp}-{random}`
 - `isKit`: Optional, default `false`, indicates if product is a kit
 - `attributes`: Optional, JSON object with custom key-value pairs
 - `hasExpiration`: Optional, default `false`, indicates if product has expiration date
@@ -131,11 +137,11 @@ These endpoints manage products in the StockShift system. All endpoints require 
       "id": "660e8400-e29b-41d4-a716-446655440002",
       "name": "Brand Name",
       "logoUrl": "https://example.com/brand-logo.png",
-      "createdAt": "2025-12-28T09:00:00Z",
-      "updatedAt": "2025-12-28T09:00:00Z"
+      "createdAt": "2025-12-28T09:00:00",
+      "updatedAt": "2025-12-28T09:00:00"
     },
     "barcode": "1234567890123",
-    "barcodeType": "EAN13",
+    "barcodeType": "EXTERNAL",
     "sku": "PROD-001",
     "isKit": false,
     "attributes": {
@@ -144,8 +150,8 @@ These endpoints manage products in the StockShift system. All endpoints require 
     },
     "hasExpiration": true,
     "active": true,
-    "createdAt": "2025-12-28T10:00:00Z",
-    "updatedAt": "2025-12-28T10:00:00Z"
+    "createdAt": "2025-12-28T10:00:00",
+    "updatedAt": "2025-12-28T10:00:00"
   }
 }
 ```
@@ -157,7 +163,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 4. **Category Selector**: Implement dropdown/autocomplete for category selection
 5. **Brand Selector**: Implement dropdown/autocomplete for brand selection (optional field)
 6. **Barcode Scanner**: Consider integrating barcode scanner library
-7. **Barcode Type**: Provide dropdown with barcode types
+7. **Barcode Type**: Provide dropdown with `EXTERNAL` and `GENERATED`
 8. **Attributes Builder**: Allow dynamic key-value pairs for custom attributes
 9. **Validation**: Validate required fields and image file type/size before submission
 10. **Success Feedback**: Show success message and optionally redirect to product list
@@ -168,7 +174,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **Summary**: Get all products
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`
@@ -179,7 +185,6 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```json
 {
   "success": true,
-  "message": null,
   "data": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -192,18 +197,18 @@ These endpoints manage products in the StockShift system. All endpoints require 
         "id": "660e8400-e29b-41d4-a716-446655440002",
         "name": "Brand Name",
         "logoUrl": "https://example.com/brand-logo.png",
-        "createdAt": "2025-12-28T09:00:00Z",
-        "updatedAt": "2025-12-28T09:00:00Z"
+        "createdAt": "2025-12-28T09:00:00",
+        "updatedAt": "2025-12-28T09:00:00"
       },
       "barcode": "1234567890123",
-      "barcodeType": "EAN13",
+      "barcodeType": "EXTERNAL",
       "sku": "PROD-001",
       "isKit": false,
       "attributes": {},
       "hasExpiration": true,
       "active": true,
-      "createdAt": "2025-12-28T10:00:00Z",
-      "updatedAt": "2025-12-28T10:00:00Z"
+      "createdAt": "2025-12-28T10:00:00",
+      "updatedAt": "2025-12-28T10:00:00"
     }
   ]
 }
@@ -224,7 +229,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **Summary**: Get product by ID
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -236,7 +241,6 @@ These endpoints manage products in the StockShift system. All endpoints require 
 ```json
 {
   "success": true,
-  "message": null,
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Product Name",
@@ -248,18 +252,18 @@ These endpoints manage products in the StockShift system. All endpoints require 
       "id": "660e8400-e29b-41d4-a716-446655440002",
       "name": "Brand Name",
       "logoUrl": "https://example.com/brand-logo.png",
-      "createdAt": "2025-12-28T09:00:00Z",
-      "updatedAt": "2025-12-28T09:00:00Z"
+      "createdAt": "2025-12-28T09:00:00",
+      "updatedAt": "2025-12-28T09:00:00"
     },
     "barcode": "1234567890123",
-    "barcodeType": "EAN13",
+    "barcodeType": "EXTERNAL",
     "sku": "PROD-001",
     "isKit": false,
     "attributes": {},
     "hasExpiration": true,
     "active": true,
-    "createdAt": "2025-12-28T10:00:00Z",
-    "updatedAt": "2025-12-28T10:00:00Z"
+    "createdAt": "2025-12-28T10:00:00",
+    "updatedAt": "2025-12-28T10:00:00"
   }
 }
 ```
@@ -278,7 +282,7 @@ These endpoints manage products in the StockShift system. All endpoints require 
 **Summary**: Get products by category
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -298,7 +302,7 @@ Same format as GET /api/products (returns array of products with imageUrl)
 **Summary**: Get products by active status
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -318,7 +322,7 @@ Same format as GET /api/products (returns array of products with imageUrl)
 **Summary**: Search products by name, SKU or barcode
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -344,7 +348,7 @@ Same format as GET /api/products (returns array of matching products with imageU
 **Summary**: Get product by barcode
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -364,7 +368,7 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 **Summary**: Get product by SKU
 
 ### Authorization
-**Required Permissions**: `PRODUCT_READ` or `ROLE_ADMIN`
+**Required Permission**: `products:read`
 
 ### Request
 **Method**: `GET`  
@@ -384,7 +388,7 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 **Summary**: Update product
 
 ### Authorization
-**Required Permissions**: `PRODUCT_UPDATE` or `ROLE_ADMIN`
+**Required Permission**: `products:update`
 
 ### Request
 **Method**: `PUT`  
@@ -394,6 +398,8 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 #### Request Parts
 - `product`: JSON object (same structure as POST /api/products)
 - `image`: Optional, new image file to replace current one
+
+> **Important**: Update uses the submitted product payload as replacement values for mutable fields. Include the current `sku`, `categoryId`, and `brandId` when they should be preserved; omitting nullable fields clears them.
 
 ### Response
 **Status Code**: `200 OK`
@@ -405,8 +411,20 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Updated Product Name",
+    "description": "Updated description",
     "imageUrl": "https://example.com/storage/products/new-uuid.png",
-    // ... rest of product object
+    "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+    "categoryName": "Category Name",
+    "brand": null,
+    "barcode": "1234567890123",
+    "barcodeType": "EXTERNAL",
+    "sku": "PROD-001",
+    "isKit": false,
+    "attributes": {},
+    "hasExpiration": true,
+    "active": true,
+    "createdAt": "2025-12-28T10:00:00",
+    "updatedAt": "2025-12-28T11:00:00"
   }
 }
 ```
@@ -425,7 +443,7 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 **Summary**: Delete product (soft delete)
 
 ### Authorization
-**Required Permissions**: `PRODUCT_DELETE` or `ROLE_ADMIN`
+**Required Permission**: `products:delete`
 
 ### Request
 **Method**: `DELETE`  
@@ -437,8 +455,7 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 ```json
 {
   "success": true,
-  "message": "Product deleted successfully",
-  "data": null
+  "message": "Product deleted successfully"
 }
 ```
 
@@ -457,29 +474,36 @@ Same format as GET /api/products/{id} (returns single product with imageUrl)
 ### 403 Forbidden
 ```json
 {
-  "success": false,
-  "message": "Access denied. Required permission: PRODUCT_CREATE",
-  "data": null
+  "timestamp": "2026-01-25T10:00:00",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "You don't have permission to access this resource",
+  "path": "/api/products"
 }
 ```
 
 ### 404 Not Found
 ```json
 {
-  "success": false,
-  "message": "Product not found",
-  "data": null
+  "timestamp": "2026-01-25T10:00:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Product not found with id: 550e8400-e29b-41d4-a716-446655440000",
+  "path": "/api/products/550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 ### 400 Bad Request
 ```json
 {
-  "success": false,
-  "message": "Validation failed",
-  "data": {
+  "timestamp": "2026-01-25T10:00:00",
+  "status": 400,
+  "error": "Validation Failed",
+  "message": "Invalid input",
+  "path": "/api/products",
+  "validationErrors": {
     "name": "Product name is required",
-    "barcode": "Invalid barcode format"
+    "barcode": "Barcode contains invalid characters"
   }
 }
 ```

@@ -1,6 +1,7 @@
 # Category Endpoints
 
 ## Overview
+
 These endpoints manage product categories in the StockShift system. Categories can be hierarchical (have parent categories).
 
 **Base URL**: `/api/categories`  
@@ -9,22 +10,26 @@ These endpoints manage product categories in the StockShift system. Categories c
 ---
 
 ## POST /api/categories
+
 **Summary**: Create a new category
 
 ### Authorization
-**Required Permissions**: `CATEGORY_CREATE` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:create`
 
 ### Request
+
 **Method**: `POST`  
 **Content-Type**: `application/json`
 
 #### Request Body
+
 ```json
 {
   "name": "Electronics",
   "description": "Electronic products",
-  "parentId": null,
-  "attributes": {
+  "parentCategoryId": null,
+  "attributesSchema": {
     "color": "#FF5733",
     "icon": "electronics"
   }
@@ -32,12 +37,14 @@ These endpoints manage product categories in the StockShift system. Categories c
 ```
 
 **Field Details**:
-- `name`: Required, category name (2-100 characters)
-- `description`: Optional, category description
-- `parentId`: Optional, UUID of parent category (null for root categories)
-- `attributes`: Optional, JSON object with custom attributes
+
+- `name`: Required, category name (cannot exceed 255 characters, allowed chars: letters, numbers, spaces, - . & ' ( ))
+- `description`: Optional, category description (cannot exceed 1000 characters)
+- `parentCategoryId`: Optional, UUID of parent category (null for root categories)
+- `attributesSchema`: Optional, JSON object representing the configuration schema for product attributes within this category
 
 ### Response
+
 **Status Code**: `201 CREATED`
 
 ```json
@@ -48,9 +55,9 @@ These endpoints manage product categories in the StockShift system. Categories c
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Electronics",
     "description": "Electronic products",
-    "parentId": null,
-    "parentName": null,
-    "attributes": {
+    "parentCategoryId": null,
+    "parentCategoryName": null,
+    "attributesSchema": {
       "color": "#FF5733",
       "icon": "electronics"
     },
@@ -61,6 +68,7 @@ These endpoints manage product categories in the StockShift system. Categories c
 ```
 
 ### Frontend Implementation Guide
+
 1. **Category Form**: Create modal or page with form fields
 2. **Parent Selector**: Implement tree selector or dropdown for parent category
 3. **Hierarchy Preview**: Show category hierarchy in real-time
@@ -72,15 +80,19 @@ These endpoints manage product categories in the StockShift system. Categories c
 ---
 
 ## GET /api/categories
+
 **Summary**: Get all categories
 
 ### Authorization
-**Required Permissions**: `CATEGORY_READ` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:read`
 
 ### Request
+
 **Method**: `GET`
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -92,9 +104,9 @@ These endpoints manage product categories in the StockShift system. Categories c
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "Electronics",
       "description": "Electronic products",
-      "parentId": null,
-      "parentName": null,
-      "attributes": {
+      "parentCategoryId": null,
+      "parentCategoryName": null,
+      "attributesSchema": {
         "color": "#FF5733",
         "icon": "electronics"
       },
@@ -105,9 +117,9 @@ These endpoints manage product categories in the StockShift system. Categories c
       "id": "660e8400-e29b-41d4-a716-446655440001",
       "name": "Smartphones",
       "description": "Mobile phones",
-      "parentId": "550e8400-e29b-41d4-a716-446655440000",
-      "parentName": "Electronics",
-      "attributes": {},
+      "parentCategoryId": "550e8400-e29b-41d4-a716-446655440000",
+      "parentCategoryName": "Electronics",
+      "attributesSchema": {},
       "createdAt": "2025-12-28T10:00:00Z",
       "updatedAt": "2025-12-28T10:00:00Z"
     }
@@ -116,6 +128,7 @@ These endpoints manage product categories in the StockShift system. Categories c
 ```
 
 ### Frontend Implementation Guide
+
 1. **Tree View**: Display categories in hierarchical tree structure
 2. **Flat List**: Alternative view as flat list with indentation
 3. **Expand/Collapse**: Allow expanding/collapsing category branches
@@ -128,16 +141,20 @@ These endpoints manage product categories in the StockShift system. Categories c
 ---
 
 ## GET /api/categories/{id}
+
 **Summary**: Get category by ID
 
 ### Authorization
-**Required Permissions**: `CATEGORY_READ` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:read`
 
 ### Request
+
 **Method**: `GET`  
 **URL Parameters**: `id` (UUID) - Category identifier
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -148,9 +165,9 @@ These endpoints manage product categories in the StockShift system. Categories c
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Electronics",
     "description": "Electronic products",
-    "parentId": null,
-    "parentName": null,
-    "attributes": {
+    "parentCategoryId": null,
+    "parentCategoryName": null,
+    "attributesSchema": {
       "color": "#FF5733",
       "icon": "electronics"
     },
@@ -161,6 +178,7 @@ These endpoints manage product categories in the StockShift system. Categories c
 ```
 
 ### Frontend Implementation Guide
+
 1. **Detail View**: Display full category information
 2. **Breadcrumb**: Show category path from root
 3. **Products List**: Show products in this category
@@ -171,21 +189,26 @@ These endpoints manage product categories in the StockShift system. Categories c
 ---
 
 ## GET /api/categories/parent/{parentId}
+
 **Summary**: Get categories by parent ID
 
 ### Authorization
-**Required Permissions**: `CATEGORY_READ` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:read`
 
 ### Request
+
 **Method**: `GET`  
 **URL Parameters**: `parentId` (UUID) - Parent category identifier
 
 **Special Case**: To get root categories (no parent), use a special endpoint or filter
 
 ### Response
+
 Same format as GET /api/categories (returns array of child categories)
 
 ### Frontend Implementation Guide
+
 1. **Lazy Loading**: Load child categories on demand when expanding tree
 2. **Breadcrumb Navigation**: Use for navigating category hierarchy
 3. **Subcategory List**: Display immediate children in category detail view
@@ -194,20 +217,25 @@ Same format as GET /api/categories (returns array of child categories)
 ---
 
 ## PUT /api/categories/{id}
+
 **Summary**: Update category
 
 ### Authorization
-**Required Permissions**: `CATEGORY_UPDATE` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:update`
 
 ### Request
+
 **Method**: `PUT`  
 **URL Parameters**: `id` (UUID) - Category identifier  
 **Content-Type**: `application/json`
 
 #### Request Body
+
 Same structure as POST /api/categories
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -221,6 +249,7 @@ Same structure as POST /api/categories
 ```
 
 ### Frontend Implementation Guide
+
 1. **Edit Modal**: Open modal/drawer with pre-populated form
 2. **Inline Editing**: Allow inline name editing in tree view
 3. **Parent Change**: Allow changing parent (with validation)
@@ -231,16 +260,20 @@ Same structure as POST /api/categories
 ---
 
 ## DELETE /api/categories/{id}
+
 **Summary**: Delete category (soft delete)
 
 ### Authorization
-**Required Permissions**: `CATEGORY_DELETE` or `ROLE_ADMIN`
+
+**Required Permissions**: `categories:delete`
 
 ### Request
+
 **Method**: `DELETE`  
 **URL Parameters**: `id` (UUID) - Category identifier
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -252,6 +285,7 @@ Same structure as POST /api/categories
 ```
 
 ### Frontend Implementation Guide
+
 1. **Confirmation Modal**: Require confirmation before deletion
 2. **Impact Check**: Show number of products and subcategories affected
 3. **Subcategory Handling**: Explain what happens to subcategories
@@ -265,46 +299,48 @@ Same structure as POST /api/categories
 ## Frontend Best Practices
 
 ### Tree Structure Management
+
 ```typescript
 // Example category tree structure
 interface CategoryTree {
   id: string;
   name: string;
   description: string;
-  parentId: string | null;
+  parentCategoryId: string | null;
   children: CategoryTree[];
   productCount: number;
-  attributes: Record<string, any>;
+  attributesSchema: Record<string, any>;
 }
 
 // Build tree from flat array
 function buildCategoryTree(categories: Category[]): CategoryTree[] {
   const map = new Map<string, CategoryTree>();
   const roots: CategoryTree[] = [];
-  
+
   // Create map entries
-  categories.forEach(cat => {
+  categories.forEach((cat) => {
     map.set(cat.id, { ...cat, children: [], productCount: 0 });
   });
-  
+
   // Build hierarchy
-  categories.forEach(cat => {
+  categories.forEach((cat) => {
     const node = map.get(cat.id)!;
-    if (cat.parentId === null) {
+    if (cat.parentCategoryId === null) {
       roots.push(node);
     } else {
-      const parent = map.get(cat.parentId);
+      const parent = map.get(cat.parentCategoryId);
       if (parent) {
         parent.children.push(node);
       }
     }
   });
-  
+
   return roots;
 }
 ```
 
 ### Category Selector Component
+
 1. **Tree Dropdown**: Expandable tree in dropdown
 2. **Breadcrumb Path**: Show full path in display
 3. **Search**: Filter categories by name
@@ -312,6 +348,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 5. **Create New**: Allow creating new category inline
 
 ### Visual Design
+
 1. **Colors**: Use category colors for visual coding
 2. **Icons**: Display category icons consistently
 3. **Indentation**: Clear visual hierarchy in lists
@@ -319,6 +356,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 5. **Depth Limit**: Limit visual depth (e.g., 3-4 levels)
 
 ### State Management
+
 1. **Cache Tree**: Cache category tree structure
 2. **Invalidation**: Refresh on create/update/delete
 3. **Optimistic Updates**: Update tree immediately
@@ -326,6 +364,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 5. **Selected State**: Track selected category across navigation
 
 ### Performance
+
 1. **Lazy Loading**: Load subcategories on demand
 2. **Virtualization**: Use virtual scrolling for large trees
 3. **Debounce Search**: Debounce category search
@@ -337,6 +376,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 ## Common Error Responses
 
 ### 400 Bad Request - Circular Reference
+
 ```json
 {
   "success": false,
@@ -346,6 +386,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 ```
 
 ### 400 Bad Request - Category Has Products
+
 ```json
 {
   "success": false,
@@ -357,6 +398,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "success": false,
@@ -366,6 +408,7 @@ function buildCategoryTree(categories: Category[]): CategoryTree[] {
 ```
 
 ### 409 Conflict - Duplicate Name
+
 ```json
 {
   "success": false,

@@ -1,6 +1,7 @@
 # Brand Endpoints
 
 ## Overview
+
 These endpoints manage brands in the StockShift system. Brands can be associated with products to organize inventory by manufacturer or brand name. All endpoints require authentication with appropriate permissions.
 
 **Base URL**: `/api/brands`
@@ -9,16 +10,20 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ---
 
 ## POST /api/brands
+
 **Summary**: Create a new brand
 
 ### Authorization
-**Required Permissions**: `BRAND_CREATE` or `ROLE_ADMIN`
+
+**Required Permissions**: `brands:create`
 
 ### Request
+
 **Method**: `POST`
 **Content-Type**: `application/json`
 
 #### Request Body
+
 ```json
 {
   "name": "Natura",
@@ -27,10 +32,12 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 **Field Details**:
-- `name`: Required, brand name (unique per tenant, max 255 characters)
-- `logoUrl`: Optional, URL for brand logo (max 500 characters)
+
+- `name`: Required, brand name (unique per tenant, max 255 characters). Only letters, numbers, spaces and symbols `-`, `.`, `&`, `'`, `(`, `)` are allowed.
+- `logoUrl`: Optional, URL for brand logo (max 500 characters). Must be a valid `http` or `https` URL.
 
 ### Response
+
 **Status Code**: `201 CREATED`
 
 ```json
@@ -48,6 +55,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Frontend Implementation Guide
+
 1. **Form Fields**: Simple form with name (required) and logo URL (optional)
 2. **Logo Upload**: Consider implementing file upload for logo (store URL after upload)
 3. **Logo Preview**: Show logo preview when URL is provided
@@ -56,7 +64,9 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 6. **Error Handling**: Display validation errors (duplicate name, invalid URL format)
 
 ### Error Responses
+
 **400 Bad Request** - Duplicate brand name:
+
 ```json
 {
   "success": false,
@@ -68,15 +78,19 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ---
 
 ## GET /api/brands
+
 **Summary**: Get all brands for the current tenant
 
 ### Authorization
-**Required Permissions**: `BRAND_READ` or `ROLE_ADMIN`
+
+**Required Permissions**: `brands:read`
 
 ### Request
+
 **Method**: `GET`
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -103,6 +117,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Frontend Implementation Guide
+
 1. **List View**: Display brands in table or card grid
 2. **Columns**: Show logo (thumbnail), name, creation date
 3. **Logo Display**: Show logo thumbnail if available, placeholder if not
@@ -116,16 +131,20 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ---
 
 ## GET /api/brands/{id}
+
 **Summary**: Get brand by ID
 
 ### Authorization
-**Required Permissions**: `BRAND_READ` or `ROLE_ADMIN`
+
+**Required Permissions**: `brands:read`
 
 ### Request
+
 **Method**: `GET`
 **URL Parameters**: `id` (UUID) - Brand identifier
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -143,6 +162,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Frontend Implementation Guide
+
 1. **Detail View**: Display brand information with logo
 2. **Logo Display**: Show full-size logo if available
 3. **Product Count**: Optionally show count of products using this brand
@@ -153,17 +173,21 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ---
 
 ## PUT /api/brands/{id}
+
 **Summary**: Update brand
 
 ### Authorization
-**Required Permissions**: `BRAND_UPDATE` or `ROLE_ADMIN`
+
+**Required Permissions**: `brands:update`
 
 ### Request
+
 **Method**: `PUT`
 **URL Parameters**: `id` (UUID) - Brand identifier
 **Content-Type**: `application/json`
 
 #### Request Body
+
 ```json
 {
   "name": "Natura Cosméticos",
@@ -172,6 +196,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -189,6 +214,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Frontend Implementation Guide
+
 1. **Edit Form**: Pre-populate form with current brand data
 2. **Logo Update**: Allow changing logo URL or uploading new logo
 3. **Logo Preview**: Show preview of new logo before saving
@@ -198,7 +224,9 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 7. **Duplicate Check**: Handle error if new name conflicts with another brand
 
 ### Error Responses
+
 **400 Bad Request** - Duplicate name with another brand:
+
 ```json
 {
   "success": false,
@@ -210,16 +238,20 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ---
 
 ## DELETE /api/brands/{id}
+
 **Summary**: Delete brand (soft delete)
 
 ### Authorization
-**Required Permissions**: `BRAND_DELETE` or `ROLE_ADMIN`
+
+**Required Permissions**: `brands:delete`
 
 ### Request
+
 **Method**: `DELETE`
 **URL Parameters**: `id` (UUID) - Brand identifier
 
 ### Response
+
 **Status Code**: `200 OK`
 
 ```json
@@ -231,6 +263,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 ### Frontend Implementation Guide
+
 1. **Confirmation Modal**: Always confirm before deletion
 2. **Product Check**: Warn if brand has associated products
 3. **Soft Delete Explanation**: Explain brand is deactivated, not permanently deleted
@@ -239,7 +272,9 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 6. **Alternative Action**: Suggest removing brand from products first
 
 ### Error Responses
+
 **400 Bad Request** - Brand has associated products:
+
 ```json
 {
   "success": false,
@@ -249,10 +284,11 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ```
 
 **404 Not Found** - Brand not found:
+
 ```json
 {
   "success": false,
-  "message": "Brand not found",
+  "message": "Marca não encontrada.",
   "data": null
 }
 ```
@@ -262,33 +298,37 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ## Common Error Responses
 
 ### 401 Unauthorized
+
 ```json
 {
   "success": false,
-  "message": "Authentication required",
+  "message": "Token JWT ausente ou inválido.",
   "data": null
 }
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "success": false,
-  "message": "Access denied. Required permission: BRAND_CREATE",
+  "message": "Acesso negado. Esta funcionalidade requer permissão em 'Brands'.",
   "data": null
 }
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "success": false,
-  "message": "Brand not found",
+  "message": "Marca não encontrada.",
   "data": null
 }
 ```
 
 ### 400 Bad Request
+
 ```json
 {
   "success": false,
@@ -302,11 +342,13 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ## Business Rules
 
 ### Brand Name Uniqueness
+
 - Brand names must be unique per tenant
 - Validation occurs at both database and application level
 - Case-sensitive comparison (e.g., "Natura" and "natura" are different)
 
 ### Brand Deletion
+
 - Brands can only be deleted if they have no associated products
 - If products exist with the brand, deletion is blocked
 - To delete a brand:
@@ -315,12 +357,14 @@ These endpoints manage brands in the StockShift system. Brands can be associated
   3. Wait until all products are naturally removed
 
 ### Soft Delete
+
 - Deleted brands are not permanently removed from database
 - They are marked with `deletedAt` timestamp
 - Deleted brands do not appear in listings
 - Soft-deleted brands cannot be restored via API (requires database operation)
 
 ### Multi-Tenancy
+
 - Brands are isolated by tenant
 - Users can only see and manage brands within their tenant
 - Brand name uniqueness is enforced per tenant (different tenants can have brands with same name)
@@ -352,6 +396,7 @@ These endpoints manage brands in the StockShift system. Brands can be associated
 ## Integration with Products
 
 ### Assigning Brand to Product
+
 When creating or updating a product, include `brandId`:
 
 ```json
@@ -364,6 +409,7 @@ POST /api/products
 ```
 
 ### Product Response includes Brand
+
 Product responses include full brand object:
 
 ```json
@@ -381,6 +427,7 @@ Product responses include full brand object:
 ```
 
 ### Filtering Products by Brand
+
 To get all products for a specific brand, use product search/filter endpoints with brand criteria.
 
 ---
@@ -388,6 +435,7 @@ To get all products for a specific brand, use product search/filter endpoints wi
 ## Example Frontend Workflows
 
 ### Creating a Brand
+
 1. User clicks "Add Brand" button
 2. Modal/page opens with form (name required, logo optional)
 3. User fills name "Natura"
@@ -399,6 +447,7 @@ To get all products for a specific brand, use product search/filter endpoints wi
 9. On error: display error message (e.g., duplicate name)
 
 ### Editing a Brand
+
 1. User clicks "Edit" on brand in list
 2. Modal/page opens with pre-filled form
 3. User modifies name or logo
@@ -409,6 +458,7 @@ To get all products for a specific brand, use product search/filter endpoints wi
 8. On error: display error message
 
 ### Deleting a Brand
+
 1. User clicks "Delete" on brand in list
 2. Confirmation modal appears: "Are you sure you want to delete 'Natura'?"
 3. User confirms deletion
@@ -417,6 +467,7 @@ To get all products for a specific brand, use product search/filter endpoints wi
 6. On error (brand has products): show error "Cannot delete brand with associated products. Remove brand from products first."
 
 ### Using Brand in Product Form
+
 1. Product create/edit form includes brand selector
 2. Brand selector dropdown populated with GET `/api/brands`
 3. User selects brand from dropdown (optional field)

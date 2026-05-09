@@ -12,7 +12,7 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
 **Summary**: Get dashboard summary with key metrics
 
 ### Authorization
-**Required Permissions**: `REPORT_READ` or `ROLE_ADMIN`
+**Required Permissions**: `reports:read`
 
 ### Request
 **Method**: `GET`
@@ -54,7 +54,7 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
     ],
     "stockByCategory": [
       {
-        "categoryId": "660e8400-e29b-41d4-a716-446655440001",
+        "categoryId": "electronics",
         "categoryName": "Electronics",
         "batchCount": 45,
         "stockValue": 35000.00,
@@ -103,7 +103,7 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
 **Summary**: Get complete stock report
 
 ### Authorization
-**Required Permissions**: `REPORT_READ` or `ROLE_ADMIN`
+**Required Permissions**: `reports:read`
 
 ### Request
 **Method**: `GET`
@@ -119,58 +119,39 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
     {
       "productId": "550e8400-e29b-41d4-a716-446655440000",
       "productName": "Product Name",
-      "productSku": "PROD-001",
-      "categoryId": "660e8400-e29b-41d4-a716-446655440001",
-      "categoryName": "Electronics",
-      "totalQuantity": 250,
+      "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
+      "warehouseName": "Main Warehouse",
+      "totalQuantity": 250.000,
       "totalValue": 2625.00,
-      "averageCostPrice": 10.50,
-      "batchCount": 5,
-      "warehouseCount": 2,
-      "oldestExpirationDate": "2026-03-15",
-      "newestExpirationDate": "2027-12-31",
-      "warehouses": [
-        {
-          "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
-          "warehouseName": "Main Warehouse",
-          "warehouseCode": "WH-001",
-          "quantity": 150,
-          "batchCount": 3
-        },
-        {
-          "warehouseId": "880e8400-e29b-41d4-a716-446655440003",
-          "warehouseName": "Secondary Warehouse",
-          "warehouseCode": "WH-002",
-          "quantity": 100,
-          "batchCount": 2
-        }
-      ],
-      "batches": [
-        {
-          "batchId": "990e8400-e29b-41d4-a716-446655440004",
-          "batchNumber": "BATCH-2025-001",
-          "warehouseName": "Main Warehouse",
-          "quantity": 80,
-          "expirationDate": "2026-03-15",
-          "costPrice": 10.50
-        }
-      ]
+      "nearestExpiration": "2026-03-15",
+      "batchCount": 5
     }
   ]
 }
 ```
 
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `productId` | UUID | Product identifier |
+| `productName` | String | Product name |
+| `warehouseId` | UUID | Warehouse identifier |
+| `warehouseName` | String | Warehouse name |
+| `totalQuantity` | BigDecimal | Total quantity in stock |
+| `totalValue` | BigDecimal | Total stock value (`costPrice * quantity`) |
+| `nearestExpiration` | LocalDate | Nearest batch expiration date (nullable) |
+| `batchCount` | Integer | Number of batches for this product/warehouse |
+
 ### Frontend Implementation Guide
 1. **Comprehensive Table**: Display all stock data in sortable table
-2. **Expandable Rows**: Expand to show warehouse/batch details
-3. **Export Options**: Export to CSV, Excel, PDF
-4. **Print View**: Optimized print layout
-5. **Filters**: Filter by category, warehouse, stock level
-6. **Search**: Full-text search across products
-7. **Aggregations**: Show totals at bottom (quantity, value)
-8. **Visualization**: Charts for top products, categories
-9. **Stock Levels**: Visual indicators (bars, gauges)
-10. **Drill-down**: Link to product details
+2. **Export Options**: Export to CSV, Excel, PDF
+3. **Print View**: Optimized print layout
+4. **Filters**: Filter by warehouse, stock level
+5. **Search**: Full-text search across products
+6. **Aggregations**: Show totals at bottom (quantity, value)
+7. **Visualization**: Charts for top products
+8. **Stock Levels**: Visual indicators (bars, gauges)
+9. **Drill-down**: Link to product details
 
 ---
 
@@ -178,7 +159,7 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
 **Summary**: Get low stock report
 
 ### Authorization
-**Required Permissions**: `REPORT_READ` or `ROLE_ADMIN`
+**Required Permissions**: `reports:read`
 
 ### Request
 **Method**: `GET`  
@@ -199,35 +180,12 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
     {
       "productId": "550e8400-e29b-41d4-a716-446655440000",
       "productName": "Product Name",
-      "productSku": "PROD-001",
-      "categoryId": "660e8400-e29b-41d4-a716-446655440001",
-      "categoryName": "Electronics",
-      "totalQuantity": 8,
+      "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
+      "warehouseName": "Main Warehouse",
+      "totalQuantity": 8.000,
       "totalValue": 84.00,
-      "averageCostPrice": 10.50,
-      "batchCount": 2,
-      "warehouseCount": 1,
-      "oldestExpirationDate": "2026-03-15",
-      "newestExpirationDate": null,
-      "warehouses": [
-        {
-          "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
-          "warehouseName": "Main Warehouse",
-          "warehouseCode": "WH-001",
-          "quantity": 8,
-          "batchCount": 2
-        }
-      ],
-      "batches": [
-        {
-          "batchId": "990e8400-e29b-41d4-a716-446655440004",
-          "batchNumber": "BATCH-2025-001",
-          "warehouseName": "Main Warehouse",
-          "quantity": 5,
-          "expirationDate": "2026-03-15",
-          "costPrice": 10.50
-        }
-      ]
+      "nearestExpiration": "2026-03-15",
+      "batchCount": 2
     }
   ]
 }
@@ -251,7 +209,7 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
 **Summary**: Get expiring products report
 
 ### Authorization
-**Required Permissions**: `REPORT_READ` or `ROLE_ADMIN`
+**Required Permissions**: `reports:read`
 
 ### Request
 **Method**: `GET`  
@@ -272,45 +230,12 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
     {
       "productId": "550e8400-e29b-41d4-a716-446655440000",
       "productName": "Product Name",
-      "productSku": "PROD-001",
-      "categoryId": "660e8400-e29b-41d4-a716-446655440001",
-      "categoryName": "Food Items",
-      "totalQuantity": 45,
+      "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
+      "warehouseName": "Main Warehouse",
+      "totalQuantity": 45.000,
       "totalValue": 472.50,
-      "averageCostPrice": 10.50,
-      "batchCount": 3,
-      "warehouseCount": 2,
-      "oldestExpirationDate": "2026-01-15",
-      "newestExpirationDate": "2026-02-28",
-      "warehouses": [
-        {
-          "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
-          "warehouseName": "Main Warehouse",
-          "warehouseCode": "WH-001",
-          "quantity": 30,
-          "batchCount": 2
-        }
-      ],
-      "batches": [
-        {
-          "batchId": "990e8400-e29b-41d4-a716-446655440004",
-          "batchNumber": "BATCH-2025-001",
-          "warehouseName": "Main Warehouse",
-          "quantity": 15,
-          "expirationDate": "2026-01-15",
-          "costPrice": 10.50,
-          "daysUntilExpiration": 18
-        },
-        {
-          "batchId": "aa0e8400-e29b-41d4-a716-446655440005",
-          "batchNumber": "BATCH-2025-002",
-          "warehouseName": "Main Warehouse",
-          "quantity": 15,
-          "expirationDate": "2026-01-20",
-          "costPrice": 10.50,
-          "daysUntilExpiration": 23
-        }
-      ]
+      "nearestExpiration": "2026-01-15",
+      "batchCount": 3
     }
   ]
 }
@@ -330,6 +255,386 @@ These endpoints provide dashboard summaries, stock reports, and analytics for th
 8. **Loss Prevention**: Calculate potential losses
 9. **Disposal Tracking**: Track disposed expired items
 10. **Trend Analysis**: Historical expiration patterns
+
+---
+
+## GET /api/reports/dashboard/summary
+**Summary**: Get dashboard quick summary with key operational metrics
+
+### Authorization
+**Required Permissions**: `reports:read`
+
+### Request
+**Method**: `GET`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "totalProducts": 150,
+    "totalWarehouses": 3,
+    "totalActiveBatches": 280,
+    "totalStockQuantity": 15000.000,
+    "totalStockValue": 150000.000,
+    "totalTransitQuantity": 500.000,
+    "pendingTransfers": 3,
+    "todayMovements": 12,
+    "criticalAlerts": 5
+  }
+}
+```
+
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `totalProducts` | Long | Number of distinct products with stock |
+| `totalWarehouses` | Long | Number of warehouses (1 if warehouse-scoped) |
+| `totalActiveBatches` | Long | Number of active (non-deleted) batches |
+| `totalStockQuantity` | BigDecimal | Sum of all batch quantities |
+| `totalStockValue` | BigDecimal | Sum of `costPrice * quantity` across all batches |
+| `totalTransitQuantity` | BigDecimal | Sum of all `transitQuantity` across batches |
+| `pendingTransfers` | Long | Transfers in DRAFT, IN_TRANSIT, or PENDING_VALIDATION status |
+| `todayMovements` | Long | Stock movements created today |
+| `criticalAlerts` | Long | Products with low stock (<=10) OR expiring within 7 days |
+
+### Frontend Implementation Guide
+1. **KPI Cards**: Display each metric in a card with icon and label
+2. **Critical Alerts Badge**: Highlight `criticalAlerts` with a red badge when > 0
+3. **Pending Transfers Link**: Make `pendingTransfers` clickable to navigate to transfers list
+4. **Auto-refresh**: Refresh every 60 seconds for real-time monitoring
+
+---
+
+## GET /api/reports/dashboard/kpis
+**Summary**: Get financial KPIs with month-over-month comparison
+
+### Authorization
+**Required Permissions**: `reports:read`
+
+### Request
+**Method**: `GET`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "currentMonth": {
+      "totalStockValue": 150000.00,
+      "totalPurchasesValue": 15000.00,
+      "totalLossesValue": 800.00,
+      "totalDamageValue": 200.00,
+      "totalGiftValue": 150.00,
+      "totalAdjustmentValue": 300.00,
+      "totalTransitValue": 5000.00,
+      "stockTurnoverRate": 2.50
+    },
+    "previousMonth": {
+      "totalStockValue": 143000.00,
+      "totalPurchasesValue": 12000.00,
+      "totalLossesValue": 600.00,
+      "totalDamageValue": 100.00,
+      "totalGiftValue": 300.00,
+      "totalAdjustmentValue": 0.00,
+      "totalTransitValue": 3000.00,
+      "stockTurnoverRate": 2.10
+    },
+    "variations": {
+      "totalStockValue": 4.90,
+      "totalPurchasesValue": 25.00,
+      "totalLossesValue": 33.33,
+      "totalDamageValue": 100.00,
+      "totalGiftValue": -50.00,
+      "totalAdjustmentValue": null,
+      "totalTransitValue": 66.67,
+      "stockTurnoverRate": 19.05
+    }
+  }
+}
+```
+
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `currentMonth` | KpiPeriodData | KPIs for the current calendar month |
+| `previousMonth` | KpiPeriodData | KPIs for the previous calendar month. `null` if no historical data |
+| `variations` | KpiVariations | Percentage variation between months. `null` if `previousMonth` is null. Individual fields are `null` when previous value is zero |
+
+#### KpiPeriodData Fields
+| Field | Type | Description |
+|---|---|---|
+| `totalStockValue` | BigDecimal | Current total stock value (`costPrice * quantity`) |
+| `totalPurchasesValue` | BigDecimal | Total quantity from PURCHASE_IN movements in the period |
+| `totalLossesValue` | BigDecimal | Total quantity from LOSS movements in the period |
+| `totalDamageValue` | BigDecimal | Total quantity from DAMAGE movements in the period |
+| `totalGiftValue` | BigDecimal | Total quantity from GIFT movements in the period |
+| `totalAdjustmentValue` | BigDecimal | Total quantity from ADJUSTMENT_IN + ADJUSTMENT_OUT movements |
+| `totalTransitValue` | BigDecimal | Current transit quantity value |
+| `stockTurnoverRate` | BigDecimal | Total OUT quantity / average stock value |
+
+#### KpiVariations Fields
+Each field represents the percentage change: `((current - previous) / previous) * 100`. All fields share the same names as `KpiPeriodData`.
+
+### Frontend Implementation Guide
+1. **KPI Cards with Arrows**: Show each KPI with an up/down arrow and variation percentage
+2. **Color Coding**: Green for positive variations (purchases up), red for negative (losses up)
+3. **Tooltip**: Show both current and previous month values on hover
+4. **Turnover Gauge**: Display `stockTurnoverRate` as a gauge or progress bar
+5. **Null Handling**: Show "N/A" when `previousMonth` or individual variations are null
+
+---
+
+## GET /api/reports/dashboard/alerts
+**Summary**: Get operational alerts for the dashboard
+
+### Authorization
+**Required Permissions**: `reports:read`
+
+### Request
+**Method**: `GET`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "lowStockProducts": [
+      {
+        "productId": "550e8400-e29b-41d4-a716-446655440000",
+        "productName": "Product A",
+        "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
+        "warehouseName": "Main Warehouse",
+        "totalQuantity": 5.000,
+        "totalValue": 52.500,
+        "nearestExpiration": "2026-06-15",
+        "batchCount": 1
+      }
+    ],
+    "expiringProducts": [
+      {
+        "productId": "660e8400-e29b-41d4-a716-446655440001",
+        "productName": "Product B",
+        "warehouseId": "770e8400-e29b-41d4-a716-446655440002",
+        "warehouseName": "Main Warehouse",
+        "totalQuantity": 45.000,
+        "totalValue": 472.500,
+        "nearestExpiration": "2026-04-20",
+        "batchCount": 2
+      }
+    ],
+    "recentLosses": [
+      {
+        "movementType": "LOSS",
+        "productName": "Product C",
+        "quantity": 10.000,
+        "value": 105.000,
+        "date": "2026-04-05"
+      }
+    ],
+    "pendingTransfers": 3,
+    "highTransitValue": 5000.000
+  }
+}
+```
+
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `lowStockProducts` | List\<StockReportResponse\> | Top 10 products with quantity <= 10 |
+| `expiringProducts` | List\<StockReportResponse\> | Top 10 products expiring within 30 days |
+| `recentLosses` | List\<RecentMovementAlert\> | Last 30 days of LOSS and DAMAGE movements (max 10) |
+| `pendingTransfers` | Long | Transfers in DRAFT, IN_TRANSIT, or PENDING_VALIDATION status |
+| `highTransitValue` | BigDecimal | Sum of `costPrice * transitQuantity` for batches in transit |
+
+#### RecentMovementAlert Fields
+| Field | Type | Description |
+|---|---|---|
+| `movementType` | StockMovementType | `LOSS` or `DAMAGE` |
+| `productName` | String | Name of the product |
+| `quantity` | BigDecimal | Quantity affected |
+| `value` | BigDecimal | Financial value (`costPrice * quantity`) |
+| `date` | LocalDate | Date of the movement |
+
+### Frontend Implementation Guide
+1. **Alert Panels**: Group alerts by type (low stock, expiring, losses)
+2. **Severity Colors**: Red for critical, yellow for warning
+3. **Loss History**: Show recent losses in a timeline or compact list
+4. **Pending Transfers Counter**: Badge with count, clickable to transfers page
+5. **Transit Value Warning**: Highlight when `highTransitValue` exceeds a threshold
+
+---
+
+## GET /api/reports/dashboard/movement-trend
+**Summary**: Get daily movement volume trend for charts
+
+### Authorization
+**Required Permissions**: `reports:read`
+
+### Request
+**Method**: `GET`
+**Query Parameters**:
+- `days` (Integer, default: 30) - Number of days to look back
+
+**Example**: `/api/reports/dashboard/movement-trend?days=7`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "startDate": "2026-03-09",
+    "endDate": "2026-04-08",
+    "days": [
+      {
+        "date": "2026-04-01",
+        "totalInQuantity": 150.000,
+        "totalInValue": 0.000,
+        "totalOutQuantity": 80.000,
+        "totalOutValue": 0.000,
+        "movementCount": 12
+      },
+      {
+        "date": "2026-04-02",
+        "totalInQuantity": 200.000,
+        "totalInValue": 0.000,
+        "totalOutQuantity": 0.000,
+        "totalOutValue": 0.000,
+        "movementCount": 5
+      }
+    ],
+    "totals": {
+      "totalInQuantity": 4500.000,
+      "totalInValue": 0.000,
+      "totalOutQuantity": 2800.000,
+      "totalOutValue": 0.000,
+      "movementCount": 320
+    }
+  }
+}
+```
+
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `startDate` | LocalDate | Start date of the period |
+| `endDate` | LocalDate | End date of the period (today) |
+| `days` | List\<DailyMovement\> | One entry per day, including days with zero movements |
+| `totals` | MovementTotals | Aggregated totals for the entire period |
+
+#### DailyMovement Fields
+| Field | Type | Description |
+|---|---|---|
+| `date` | LocalDate | The date |
+| `totalInQuantity` | BigDecimal | Total quantity from IN-direction movements |
+| `totalInValue` | BigDecimal | Reserved for future use (currently 0) |
+| `totalOutQuantity` | BigDecimal | Total quantity from OUT-direction movements |
+| `totalOutValue` | BigDecimal | Reserved for future use (currently 0) |
+| `movementCount` | Long | Number of distinct movements on this date |
+
+#### MovementTotals Fields
+Same structure as `DailyMovement` but aggregated across all days in the period.
+
+### Frontend Implementation Guide
+1. **Bar Chart**: Stacked bar chart with IN (green) and OUT (red) quantities per day
+2. **Line Chart**: Alternative view showing IN and OUT trend lines
+3. **Period Selector**: Buttons for 7, 15, 30, 60, 90 days
+4. **Tooltip**: Show exact values on hover
+5. **Summary Stats**: Display `totals` below the chart
+6. **Zero-fill**: API already returns zero-filled days, no frontend gap-filling needed
+
+---
+
+## GET /api/transfers/{id}/discrepancy-report
+**Summary**: Get discrepancy report for a completed transfer
+
+### Authorization
+**Required Permissions**: `transfers:read`
+
+### Request
+**Method**: `GET`
+**Path Parameters**:
+- `id` (UUID, required) - Transfer ID
+
+**Example**: `/api/transfers/550e8400-e29b-41d4-a716-446655440000/discrepancy-report`
+
+### Response
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "transferId": "550e8400-e29b-41d4-a716-446655440000",
+    "transferCode": "TRF-2026-001",
+    "sourceWarehouseName": "Main Warehouse",
+    "destinationWarehouseName": "Secondary Warehouse",
+    "completedAt": "2026-04-25T14:30:00Z",
+    "discrepancies": [
+      {
+        "productName": "Product A",
+        "productBarcode": "1234567890128",
+        "quantitySent": 100.000,
+        "quantityReceived": 95.000,
+        "difference": -5.000,
+        "type": "SHORTAGE"
+      },
+      {
+        "productName": "Product B",
+        "productBarcode": "9876543210987",
+        "quantitySent": 50.000,
+        "quantityReceived": 52.000,
+        "difference": 2.000,
+        "type": "OVERAGE"
+      }
+    ],
+    "totalShortage": -5.000,
+    "totalOverage": 2.000
+  }
+}
+```
+
+### Fields
+| Field | Type | Description |
+|---|---|---|
+| `transferId` | UUID | Transfer identifier |
+| `transferCode` | String | Human-readable transfer code |
+| `sourceWarehouseName` | String | Origin warehouse name |
+| `destinationWarehouseName` | String | Destination warehouse name |
+| `completedAt` | Instant | Timestamp when transfer was completed |
+| `discrepancies` | List\<DiscrepancyItem\> | List of item-level discrepancies |
+| `totalShortage` | BigDecimal | Sum of all SHORTAGE differences (negative) |
+| `totalOverage` | BigDecimal | Sum of all OVERAGE differences (positive) |
+
+#### DiscrepancyItem Fields
+| Field | Type | Description |
+|---|---|---|
+| `productName` | String | Product name |
+| `productBarcode` | String | Product barcode |
+| `quantitySent` | BigDecimal | Quantity sent from source |
+| `quantityReceived` | BigDecimal | Quantity received at destination |
+| `difference` | BigDecimal | `quantityReceived - quantitySent` |
+| `type` | DiscrepancyType | `SHORTAGE` (received less) or `OVERAGE` (received more) |
+
+### Frontend Implementation Guide
+1. **Discrepancy Table**: Show each item with sent vs received quantities
+2. **Color Coding**: Red for SHORTAGE, green for OVERAGE
+3. **Summary Cards**: Display totalShortage and totalOverage as KPIs
+4. **Print**: Support printing the report for physical records
+5. **Export**: Export to CSV or PDF for documentation
 
 ---
 

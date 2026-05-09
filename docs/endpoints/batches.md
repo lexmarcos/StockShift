@@ -15,7 +15,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 
 ### Authorization
 
-**Required Permissions**: `batches:create`
+**Required Permissions**: `BATCH_CREATE` or `ROLE_ADMIN`
 
 ### Request
 
@@ -74,6 +74,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
     "updatedAt": "2025-12-28T10:00:00Z"
   }
 }
+}
 ```
 
 ### Frontend Implementation Guide
@@ -95,7 +96,7 @@ Batches represent specific quantities of products stored in warehouses. Each bat
 
 ### Authorization
 
-**Required Permissions**: `batches:create` and `products:create`
+**Required Permissions**: `BATCH_CREATE` and `PRODUCT_CREATE` or `ROLE_ADMIN`
 
 ### Description
 
@@ -155,7 +156,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 - `warehouseId`: Required, UUID of the warehouse
 - `batchCode`: Optional, unique batch identifier. If not provided, will be auto-generated in format `BATCH-YYYYMMDD-XXX`
-- `quantity`: Required, positive number or zero (BigDecimal format)
+- `quantity`: Required, positive integer or zero
 - `manufacturedDate`: Optional, ISO date string
 - `expirationDate`: Optional, ISO date string (required if `hasExpiration: true`)
 - `costPrice`: Optional, cost per unit in cents (e.g., 1050 = R$10,50)
@@ -331,7 +332,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -387,7 +388,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -441,7 +442,7 @@ This endpoint atomically creates a new product and its first batch in a single t
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -468,7 +469,7 @@ Same format as GET /api/batches (returns array of batches)
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -495,7 +496,7 @@ Same format as GET /api/batches (returns array of batches)
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -525,7 +526,7 @@ Same format as GET /api/batches (returns array of batches)
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -555,7 +556,7 @@ Same format as GET /api/batches (returns array of expiring batches)
 
 ### Authorization
 
-**Required Permissions**: `batches:read`
+**Required Permissions**: `BATCH_READ` or `ROLE_ADMIN`
 
 ### Request
 
@@ -585,7 +586,7 @@ Same format as GET /api/batches (returns array of low-stock batches)
 
 ### Authorization
 
-**Required Permissions**: `batches:update`
+**Required Permissions**: `BATCH_UPDATE` or `ROLE_ADMIN`
 
 ### Request
 
@@ -630,7 +631,7 @@ Same structure as POST /api/batches
 
 ### Authorization
 
-**Required Permissions**: `batches:delete`
+**Required Permissions**: `BATCH_DELETE` or `ROLE_ADMIN`
 
 ### Request
 
@@ -666,7 +667,7 @@ Same structure as POST /api/batches
 
 ### Authorization
 
-**Required Permissions**: `batches:delete`
+**Required Permissions**: `BATCH_DELETE` or `ROLE_ADMIN`
 
 ### Description
 
@@ -775,7 +776,7 @@ Returns 200 with zero count (idempotent operation):
 
 2. **Validation**:
    - Verify warehouse and product IDs are valid UUIDs
-   - Check user has `batches:delete` permission before showing delete option
+   - Check user has BATCH_DELETE permission before showing delete option
    - Consider checking if batches have recent movements before allowing deletion
 
 3. **Success Feedback**:
