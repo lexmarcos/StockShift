@@ -7,25 +7,27 @@ import { BatchesDetailView } from "./batches-detail.view";
 export function PageClient() {
   const params = useParams();
   const batchId = params.id as string;
-  const {
-    batch,
-    isLoading,
-    error,
-    onDelete,
-    isDeleting,
-    isDeleteOpen,
-    onDeleteOpenChange,
-  } = useBatchDetailModel(batchId);
+  const model = useBatchDetailModel(batchId);
 
   return (
     <BatchesDetailView
-      batch={batch}
-      isLoading={isLoading}
-      error={error}
-      onDelete={onDelete}
-      isDeleting={isDeleting}
-      isDeleteOpen={isDeleteOpen}
-      onDeleteOpenChange={onDeleteOpenChange}
+      batch={model.batch}
+      isLoading={model.isLoading}
+      error={model.error}
+      status={model.status}
+      daysToExpire={model.daysToExpire}
+      formattedCostPrice={model.formattedCostPrice}
+      formattedSellingPrice={model.formattedSellingPrice}
+      formattedCostTotal={model.formattedCostTotal}
+      formattedSellingTotal={model.formattedSellingTotal}
+      marginLabel={model.marginLabel}
+      marginClass={model.marginClass}
+      stockMeterWidth={model.stockMeterWidth}
+      expirationLabel={model.expirationLabel}
+      isDeleteOpen={model.isDeleteOpen}
+      onDeleteOpenChange={model.onDeleteOpenChange}
+      isDeleting={model.isDeleting}
+      onDelete={model.onDelete}
     />
   );
 }

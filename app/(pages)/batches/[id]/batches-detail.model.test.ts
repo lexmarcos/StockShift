@@ -1,7 +1,20 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useBatchDetailModel } from "./batches-detail.model";
-import type { Batch } from "../batches.types";
+import {
+  computeBatchStatus,
+  computeExpirationDays,
+  computeMarginClass,
+  computeMarginLabel,
+  computeStockMeterWidth,
+  formatCentsToBRL,
+  formatCentsTotal,
+  formatExpirationLabel,
+  formatQuantityDisplay,
+} from "./batches-detail.model";
+import type { BatchDetail, BatchDetailResponse } from "./batches-detail.types";
+
+/* ─── Fakes ─── */
 
 type JsonResponse<T> = {
   json: () => Promise<T>;
@@ -82,6 +95,8 @@ const fakeSWR = vi.hoisted(() => {
   return new FakeSWR();
 });
 
+/* ─── Mocks ─── */
+
 vi.mock("swr", () => ({
   default: (...args: Parameters<(key: string | null, fetcher?: unknown) => SwrState<unknown>>) =>
     fakeSWR.hook(...args),
@@ -105,30 +120,31 @@ vi.mock("@/components/breadcrumb", () => ({
   useBreadcrumb: fakeBreadcrumb.invoke,
 }));
 
-const batchPayload = {
+/* ─── Fixtures ─── */
+
+const batchFixture: BatchDetail = {
   id: "batch-1",
   productId: "prod-1",
   productName: "Leite",
-  productSku: "L-01",
   warehouseId: "wh-1",
   warehouseName: "Central",
-  warehouseCode: "W1",
+  originStockMovementItemId: null,
+  originStockMovementId: null,
+  originStockMovementCode: null,
+  batchCode: "BATCH-2026-001",
   quantity: 12,
-  batchNumber: "B-001",
-  batchCode: null,
-  expirationDate: "2026-12-31",
   manufacturedDate: null,
+  expirationDate: "2026-12-31",
   costPrice: 100,
   sellingPrice: 250,
-  notes: null,
   createdAt: "2026-01-01T08:00:00.000Z",
   updatedAt: "2026-01-01T08:00:00.000Z",
-} satisfies Batch;
+};
 
-const batchResponse = {
+const batchResponse: BatchDetailResponse = {
   success: true,
   message: null,
-  data: batchPayload,
+  data: batchFixture,
 };
 
 beforeEach(() => {
@@ -139,11 +155,157 @@ beforeEach(() => {
     error: null,
     isLoading: false,
     mutate: vi.fn(),
-  } as SwrState<unknown>);
+  });
 });
 
+/* ─── Pure Function Tests ─── */
+
+describe("formatCentsToBRL", () => {
+  it("formats cents to BRL currency", () => {
+    expect(formatCentsToBRL(1050)).toMatch(/R\$\s?10,50/);
+  });
+
+  it("returns dash for null", () => {
+    expect(formatCentsToBRL(null)).toBe("-");
+  });
+
+  it("returns dash for undefined", () => {
+    expect(formatCentsToBRL(undefined)).toBe("-");
+  });
+
+  it("formats zero correctly", () => {
+    expect(formatCentsToBRL(0)).toMatch(/R\$\s?0,00/);
+  });
+});
+
+describe("formatCentsTotal", () => {
+  it("multiplies unit price by quantity", () => {
+    expect(formatCentsTotal(1000, 5)).toMatch(/R\$\s?50,00/);
+  });
+
+  it("returns dash when price is null", () => {
+    expect(formatCentsTotal(null, 10)).toBe("-");
+  });
+});
+
+describe("computeMarginLabel", () => {
+  it("computes positive margin percentage", () => {
+    expect(computeMarginLabel(100, 250)).toBe("150%");
+  });
+
+  it("returns dash when cost is null", () => {
+    expect(computeMarginLabel(null, 250)).toBe("-");
+  });
+
+  it("returns dash when selling is null", () => {
+    expect(computeMarginLabel(100, null)).toBe("-");
+  });
+});
+
+describe("computeMarginClass", () => {
+  it("returns emerald for positive margin", () => {
+    expect(computeMarginClass(100, 250)).toBe("text-emerald-400");
+  });
+
+  it("returns rose for negative margin", () => {
+    expect(computeMarginClass(250, 100)).toBe("text-rose-400");
+  });
+
+  it("returns neutral when values missing", () => {
+    expect(computeMarginClass(null, null)).toBe("text-neutral-500");
+  });
+});
+
+describe("computeStockMeterWidth", () => {
+  it("returns 0 for zero quantity", () => {
+    expect(computeStockMeterWidth(0)).toBe(0);
+  });
+
+  it("returns 0 for negative quantity", () => {
+    expect(computeStockMeterWidth(-5)).toBe(0);
+  });
+
+  it("caps at 100", () => {
+    expect(computeStockMeterWidth(500)).toBe(100);
+  });
+
+  it("has minimum of 8 for small positive values", () => {
+    expect(computeStockMeterWidth(3)).toBe(8);
+  });
+});
+
+describe("formatExpirationLabel", () => {
+  it("handles null (no expiration)", () => {
+    expect(formatExpirationLabel(null)).toBe("Sem validade cadastrada");
+  });
+
+  it("handles expired", () => {
+    expect(formatExpirationLabel(-5)).toBe("Venceu há 5 dia(s)");
+  });
+
+  it("handles today", () => {
+    expect(formatExpirationLabel(0)).toBe("Vence hoje");
+  });
+
+  it("handles future", () => {
+    expect(formatExpirationLabel(15)).toBe("Vence em 15 dia(s)");
+  });
+});
+
+describe("formatQuantityDisplay", () => {
+  it("displays integer without decimals", () => {
+    expect(formatQuantityDisplay(42)).toBe("42");
+  });
+
+  it("displays decimal with two places", () => {
+    expect(formatQuantityDisplay(12.5)).toBe("12.50");
+  });
+});
+
+describe("computeExpirationDays", () => {
+  it("returns null for null input", () => {
+    expect(computeExpirationDays(null)).toBeNull();
+  });
+
+  it("returns null for undefined", () => {
+    expect(computeExpirationDays(undefined)).toBeNull();
+  });
+
+  it("returns a number for valid date", () => {
+    const result = computeExpirationDays("2030-12-31");
+    expect(typeof result).toBe("number");
+    expect(result).toBeGreaterThan(0);
+  });
+});
+
+describe("computeBatchStatus", () => {
+  it("returns expired for past expiration", () => {
+    const status = computeBatchStatus(50, -5, "2020-01-01");
+    expect(status.kind).toBe("expired");
+  });
+
+  it("returns expiring for near expiration", () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 15);
+    const status = computeBatchStatus(50, 15, futureDate.toISOString());
+    expect(status.kind).toBe("expiring");
+  });
+
+  it("returns low_stock for low quantity", () => {
+    const status = computeBatchStatus(5, null, null);
+    expect(status.kind).toBe("low_stock");
+  });
+
+  it("returns ok for healthy batch", () => {
+    const status = computeBatchStatus(50, 60, "2030-12-31");
+    expect(status.kind).toBe("ok");
+  });
+});
+
+/* ─── Hook Tests ─── */
+
 describe("useBatchDetailModel", () => {
-  it("carrega lote, registra breadcrumb e expõe estado derivado", () => {
+  it("loads batch and registers breadcrumb", () => {
     renderHook(() => useBatchDetailModel("batch-1"));
 
     expect(fakeSWR.hook).toHaveBeenCalledWith(
@@ -151,12 +313,12 @@ describe("useBatchDetailModel", () => {
       expect.any(Function),
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
-      title: "B-001",
+      title: "BATCH-2026-001",
       backUrl: "/batches",
     });
   });
 
-  it("usa estado vazio quando não há id", () => {
+  it("uses empty state when no id", () => {
     renderHook(() => useBatchDetailModel(""));
 
     expect(fakeSWR.hook).toHaveBeenCalledWith(null, expect.any(Function));
@@ -166,7 +328,17 @@ describe("useBatchDetailModel", () => {
     });
   });
 
-  it("remove lote com sucesso e retorna para listagem", async () => {
+  it("exposes formatted derived values", () => {
+    const { result } = renderHook(() => useBatchDetailModel("batch-1"));
+
+    expect(result.current.batch).toEqual(batchFixture);
+    expect(result.current.formattedCostPrice).toMatch(/R\$\s?1,00/);
+    expect(result.current.formattedSellingPrice).toMatch(/R\$\s?2,50/);
+    expect(result.current.status?.kind).toBeDefined();
+    expect(result.current.stockMeterWidth).toBeGreaterThan(0);
+  });
+
+  it("deletes batch and redirects to listing", async () => {
     fakeApi.delete.mockReturnValueOnce(createJsonResponse({ success: true }));
     const mutate = vi.fn();
     fakeSWR.setState("batches/batch-1", {
@@ -188,14 +360,14 @@ describe("useBatchDetailModel", () => {
     });
 
     expect(fakeApi.delete).toHaveBeenCalledWith("batches/batch-1");
-    expect(fakeToast.success).toHaveBeenCalledWith("Batch removido com sucesso");
+    expect(fakeToast.success).toHaveBeenCalledWith("Lote removido com sucesso");
     expect(fakeRouter.push).toHaveBeenCalledWith("/batches");
     expect(mutate).toHaveBeenCalled();
     expect(result.current.isDeleteOpen).toBe(false);
     expect(result.current.isDeleting).toBe(false);
   });
 
-  it("trata erro da API na exclusão e mantém fluxo de cleanup", async () => {
+  it("handles API error on delete with cleanup", async () => {
     fakeApi.delete.mockReturnValueOnce({
       json: vi.fn(async () => {
         throw new Error("Falha ao remover");
@@ -220,7 +392,7 @@ describe("useBatchDetailModel", () => {
     expect(result.current.isDeleting).toBe(false);
   });
 
-  it("aceita erro não-Error e usa mensagem padrão de fallback", async () => {
+  it("uses fallback message for non-Error throws", async () => {
     fakeApi.delete.mockReturnValueOnce({
       json: vi.fn(async () => {
         throw "kaboom";
@@ -240,11 +412,11 @@ describe("useBatchDetailModel", () => {
       await result.current.onDelete();
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao remover batch");
+    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao remover lote");
     expect(mutate).toHaveBeenCalled();
   });
 
-  it("não dispara exclusão quando id está ausente", async () => {
+  it("does not trigger delete when id is empty", async () => {
     const { result } = renderHook(() => useBatchDetailModel(""));
 
     await act(async () => {
