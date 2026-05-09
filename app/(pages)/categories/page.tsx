@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useCategoriesModel } from "./categories.model";
-import { CategoriesView } from "./categories.view";
+export const metadata: Metadata = {
+  title: "Categorias | StockShift",
+  description: "Gerencie categorias de produtos.",
+};
 
-export default function CategoriesPage() {
-  const model = useCategoriesModel();
-
-  return <CategoriesView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

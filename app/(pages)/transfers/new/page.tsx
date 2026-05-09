@@ -1,9 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { NewTransferView } from "./new-transfer.view";
-import { useNewTransferModel } from "./new-transfer.model";
+export const metadata: Metadata = {
+  title: "Nova transferência | StockShift",
+  description: "Crie uma transferência entre depósitos.",
+};
 
-export default function NewTransferPage() {
-  const model = useNewTransferModel();
-  return <NewTransferView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

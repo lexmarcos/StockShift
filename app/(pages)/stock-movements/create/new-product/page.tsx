@@ -1,24 +1,16 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ProductForm } from "../../../products/components/product-form.view";
-import { useNewProductInlineModel } from "./new-product-inline.model";
-import { StockMovementReloadGuard } from "../stock-movement-reload-guard";
+import { PageClient } from "./page.client";
 
-function NewProductInlineContent() {
-  const model = useNewProductInlineModel();
-  return (
-    <>
-      <StockMovementReloadGuard />
-      <ProductForm {...model} />
-    </>
-  );
-}
+export const metadata: Metadata = {
+  title: "Novo produto da movimentação | StockShift",
+  description: "Cadastre produto durante uma movimentação de estoque.",
+};
 
-export default function NewProductInlinePage() {
+export default function Page() {
   return (
     <Suspense fallback={null}>
-      <NewProductInlineContent />
+      <PageClient />
     </Suspense>
   );
 }

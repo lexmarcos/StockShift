@@ -1,14 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useParams } from "next/navigation";
-import { ValidateTransferView } from "./validate-transfer.view";
-import { useValidateTransferModel } from "./validate-transfer.model";
+export const metadata: Metadata = {
+  title: "Validar transferência | StockShift",
+  description: "Valide itens recebidos em uma transferência.",
+};
 
-export default function ValidateTransferPage() {
-  const params = useParams();
-  const id = params?.id as string;
-
-  const model = useValidateTransferModel(id);
-
-  return <ValidateTransferView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

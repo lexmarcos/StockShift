@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useProductCreateModel } from "./products-create.model";
-import { ProductForm } from "../components/product-form.view";
+export const metadata: Metadata = {
+  title: "Novo produto | StockShift",
+  description: "Cadastre um novo produto no estoque.",
+};
 
-export default function ProductCreatePage() {
-  const modelProps = useProductCreateModel();
-
-  return <ProductForm mode="create" {...modelProps} />;
+export default function Page() {
+  return <PageClient />;
 }

@@ -1,57 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useState } from "react";
-import { useCompanyModel } from "./company.model";
-import { CompanyView } from "./company.view";
-import type { UpdateCompanyData, UpdateInfinitePayData } from "./company.types";
+export const metadata: Metadata = {
+  title: "Empresa | StockShift",
+  description: "Configure dados da empresa e integrações de pagamento.",
+};
 
-export default function CompanyConfigPage() {
-  const [isUpdatingCompany, setIsUpdatingCompany] = useState(false);
-  const [isUpdatingInfinitePay, setIsUpdatingInfinitePay] = useState(false);
-  const [isEditingInfinitePay, setIsEditingInfinitePay] = useState(false);
-
-  const {
-    companyConfig,
-    infinitePayConfig,
-    isLoadingCompany,
-    isLoadingInfinitePay,
-    error,
-    updateCompany,
-    updateInfinitePay,
-  } = useCompanyModel();
-
-  const handleUpdateCompany = async (data: UpdateCompanyData) => {
-    try {
-      setIsUpdatingCompany(true);
-      await updateCompany(data);
-    } finally {
-      setIsUpdatingCompany(false);
-    }
-  };
-
-  const handleUpdateInfinitePay = async (data: UpdateInfinitePayData) => {
-    try {
-      setIsUpdatingInfinitePay(true);
-      await updateInfinitePay(data);
-      setIsEditingInfinitePay(false);
-    } finally {
-      setIsUpdatingInfinitePay(false);
-    }
-  };
-
-  return (
-    <CompanyView
-      companyConfig={companyConfig}
-      infinitePayConfig={infinitePayConfig}
-      isLoadingCompany={isLoadingCompany}
-      isLoadingInfinitePay={isLoadingInfinitePay}
-      isUpdatingCompany={isUpdatingCompany}
-      isUpdatingInfinitePay={isUpdatingInfinitePay}
-      isEditingInfinitePay={isEditingInfinitePay}
-      error={error}
-      onUpdateCompany={handleUpdateCompany}
-      onUpdateInfinitePay={handleUpdateInfinitePay}
-      onEditInfinitePay={() => setIsEditingInfinitePay(true)}
-    />
-  );
+export default function Page() {
+  return <PageClient />;
 }

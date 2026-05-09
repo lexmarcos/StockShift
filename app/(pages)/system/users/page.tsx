@@ -1,22 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useEffect } from "react";
-import { useBreadcrumbContext } from "@/components/breadcrumb/breadcrumb-context";
-import { useUsersModel } from "./users.model";
-import { UsersView } from "./users.view";
+export const metadata: Metadata = {
+  title: "Usuários | StockShift",
+  description: "Gerencie usuários e permissões de acesso.",
+};
 
-export default function UsersPage() {
-  const { setBreadcrumb } = useBreadcrumbContext();
-  const model = useUsersModel();
-
-  useEffect(() => {
-    setBreadcrumb({
-      title: "Usuários",
-      section: "Sistema",
-      subsection: "Gerenciamento",
-      backUrl: "/system",
-    });
-  }, [setBreadcrumb]);
-
-  return <UsersView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

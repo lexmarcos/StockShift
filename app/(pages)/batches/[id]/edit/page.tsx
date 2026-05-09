@@ -1,20 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useParams } from "next/navigation";
-import { useBatchEditModel } from "./batches-edit.model";
-import { BatchEditView } from "./batches-edit.view";
+export const metadata: Metadata = {
+  title: "Editar lote | StockShift",
+  description: "Atualize os dados de um lote existente.",
+};
 
-export default function BatchEditPage() {
-  const params = useParams();
-  const batchId = params.id as string;
-  const { form, onSubmit, batch, isLoading } = useBatchEditModel(batchId);
-
-  return (
-    <BatchEditView
-      form={form}
-      onSubmit={onSubmit}
-      batch={batch}
-      isLoading={isLoading}
-    />
-  );
+export default function Page() {
+  return <PageClient />;
 }

@@ -1,24 +1,16 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { CreateStockMovementView } from "./create-stock-movement.view";
-import { useCreateStockMovementModel } from "./create-stock-movement.model";
-import { StockMovementReloadGuard } from "./stock-movement-reload-guard";
+import { PageClient } from "./page.client";
 
-function CreateStockMovementContent() {
-  const model = useCreateStockMovementModel();
-  return (
-    <>
-      <StockMovementReloadGuard />
-      <CreateStockMovementView {...model} />
-    </>
-  );
-}
+export const metadata: Metadata = {
+  title: "Nova movimentação | StockShift",
+  description: "Registre uma entrada ou saída manual de estoque.",
+};
 
-export default function CreateStockMovementPage() {
+export default function Page() {
   return (
     <Suspense fallback={null}>
-      <CreateStockMovementContent />
+      <PageClient />
     </Suspense>
   );
 }

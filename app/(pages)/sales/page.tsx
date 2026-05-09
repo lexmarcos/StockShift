@@ -1,9 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useSalesModel } from "./sales.model";
-import { SalesView } from "./sales.view";
+export const metadata: Metadata = {
+  title: "Vendas | StockShift",
+  description: "Acompanhe vendas e indicadores comerciais.",
+};
 
-export default function SalesPage() {
-  const model = useSalesModel();
-  return <SalesView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

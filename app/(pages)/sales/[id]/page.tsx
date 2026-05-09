@@ -1,11 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { use } from "react";
-import { useSaleDetailModel } from "./sales-detail.model";
-import { SaleDetailView } from "./sales-detail.view";
+export const metadata: Metadata = {
+  title: "Detalhe da venda | StockShift",
+  description: "Visualize itens e pagamentos de uma venda.",
+};
 
-export default function SaleDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const model = useSaleDetailModel(id);
-  return <SaleDetailView {...model} />;
+export default function Page(props: { params: Promise<{ id: string }> }) {
+  return <PageClient {...props} />;
 }

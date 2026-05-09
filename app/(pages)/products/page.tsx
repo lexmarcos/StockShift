@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useProductsModel } from "./products.model";
-import { ProductsView } from "./products.view";
+export const metadata: Metadata = {
+  title: "Produtos | StockShift",
+  description: "Gerencie produtos, estoque e cadastro comercial.",
+};
 
-export default function ProductsPage() {
-  const model = useProductsModel();
-
-  return <ProductsView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

@@ -1,9 +1,16 @@
-"use client";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageClient } from "./page.client";
 
-import { useInfinitePayResultModel } from "./infinitepay-result.model";
-import { InfinitePayResultView } from "./infinitepay-result.view";
+export const metadata: Metadata = {
+  title: "Resultado InfinitePay | StockShift",
+  description: "Confira o resultado do pagamento InfinitePay.",
+};
 
-export default function InfinitePayResultPage() {
-  const model = useInfinitePayResultModel();
-  return <InfinitePayResultView {...model} />;
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <PageClient />
+    </Suspense>
+  );
 }

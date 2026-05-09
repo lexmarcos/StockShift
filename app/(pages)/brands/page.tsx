@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useBrandsModel } from "./brands.model";
-import { BrandsView } from "./brands.view";
+export const metadata: Metadata = {
+  title: "Marcas | StockShift",
+  description: "Gerencie marcas de produtos.",
+};
 
-export default function BrandsPage() {
-  const model = useBrandsModel();
-
-  return <BrandsView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

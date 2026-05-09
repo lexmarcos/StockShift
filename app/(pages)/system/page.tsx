@@ -1,9 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useSystemModel } from "./system.model";
-import { SystemView } from "./system.view";
+export const metadata: Metadata = {
+  title: "Sistema | StockShift",
+  description: "Acesse configurações administrativas do sistema.",
+};
 
-export default function SystemPage() {
-  const model = useSystemModel();
-  return <SystemView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

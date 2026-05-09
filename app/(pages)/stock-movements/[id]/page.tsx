@@ -1,21 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useParams } from "next/navigation";
-import { useStockMovementDetailModel } from "./stock-movements-detail.model";
-import { StockMovementDetailView } from "./stock-movements-detail.view";
+export const metadata: Metadata = {
+  title: "Detalhe da movimentação | StockShift",
+  description: "Visualize detalhes de uma movimentação de estoque.",
+};
 
-export default function StockMovementDetailPage() {
-  const params = useParams();
-  const movementId = params.id as string;
-  const { movement, batchPrices, isLoading, error } =
-    useStockMovementDetailModel(movementId);
-
-  return (
-    <StockMovementDetailView
-      movement={movement}
-      batchPrices={batchPrices}
-      isLoading={isLoading}
-      error={error}
-    />
-  );
+export default function Page() {
+  return <PageClient />;
 }

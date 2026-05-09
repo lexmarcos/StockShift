@@ -1,9 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useBatchCreateModel } from "./batches-create.model";
-import { BatchCreateView } from "./batches-create.view";
+export const metadata: Metadata = {
+  title: "Novo lote | StockShift",
+  description: "Cadastre um novo lote de produto.",
+};
 
-export default function BatchCreatePage() {
-  const model = useBatchCreateModel();
-  return <BatchCreateView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

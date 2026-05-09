@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useStockMovementsModel } from "./stock-movements.model";
-import { StockMovementsView } from "./stock-movements.view";
+export const metadata: Metadata = {
+  title: "Movimentações | StockShift",
+  description: "Consulte entradas e saídas de estoque.",
+};
 
-export default function StockMovementsPage() {
-  const model = useStockMovementsModel();
-
-  return <StockMovementsView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

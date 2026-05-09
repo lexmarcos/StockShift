@@ -1,9 +1,16 @@
-"use client";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageClient } from "./page.client";
 
-import { useInfinitePayCallbackModel } from "./infinitepay-callback.model";
-import { InfinitePayCallbackView } from "./infinitepay-callback.view";
+export const metadata: Metadata = {
+  title: "Callback InfinitePay | StockShift",
+  description: "Processa o retorno de pagamento InfinitePay.",
+};
 
-export default function InfinitePayCallbackPage() {
-  const model = useInfinitePayCallbackModel();
-  return <InfinitePayCallbackView {...model} />;
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <PageClient />
+    </Suspense>
+  );
 }

@@ -1,22 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useEffect } from "react";
-import { useBreadcrumbContext } from "@/components/breadcrumb/breadcrumb-context";
-import { useRolesModel } from "./roles.model";
-import { RolesView } from "./roles.view";
+export const metadata: Metadata = {
+  title: "Perfis de acesso | StockShift",
+  description: "Gerencie perfis e permissões do sistema.",
+};
 
-export default function RolesPage() {
-  const { setBreadcrumb } = useBreadcrumbContext();
-  const model = useRolesModel();
-
-  useEffect(() => {
-    setBreadcrumb({
-      title: "Roles",
-      section: "Sistema",
-      subsection: "Permissões",
-      backUrl: "/system",
-    });
-  }, [setBreadcrumb]);
-
-  return <RolesView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

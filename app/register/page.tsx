@@ -1,10 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useRegisterModel } from "./register.model";
-import { RegisterView } from "./register.view";
+export const metadata: Metadata = {
+  title: "Cadastro | StockShift",
+  description: "Crie uma conta para acessar o StockShift.",
+};
 
-export default function RegisterPage() {
-  const methods = useRegisterModel();
-
-  return <RegisterView {...methods} />;
+export default function Page() {
+  return <PageClient />;
 }

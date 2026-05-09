@@ -1,9 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useBatchesModel } from "./batches.model";
-import { BatchesView } from "./batches.view";
+export const metadata: Metadata = {
+  title: "Lotes | StockShift",
+  description: "Consulte e filtre lotes por produto, validade e estoque.",
+};
 
-export default function BatchesPage() {
-  const model = useBatchesModel();
-  return <BatchesView {...model} />;
+export default function Page() {
+  return <PageClient />;
 }

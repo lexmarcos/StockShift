@@ -1,31 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import { PageClient } from "./page.client";
 
-import { useParams } from "next/navigation";
-import { useBatchDetailModel } from "./batches-detail.model";
-import { BatchesDetailView } from "./batches-detail.view";
+export const metadata: Metadata = {
+  title: "Detalhe do lote | StockShift",
+  description: "Visualize dados completos de um lote.",
+};
 
-export default function BatchDetailPage() {
-  const params = useParams();
-  const batchId = params.id as string;
-  const {
-    batch,
-    isLoading,
-    error,
-    onDelete,
-    isDeleting,
-    isDeleteOpen,
-    onDeleteOpenChange,
-  } = useBatchDetailModel(batchId);
-
-  return (
-    <BatchesDetailView
-      batch={batch}
-      isLoading={isLoading}
-      error={error}
-      onDelete={onDelete}
-      isDeleting={isDeleting}
-      isDeleteOpen={isDeleteOpen}
-      onDeleteOpenChange={onDeleteOpenChange}
-    />
-  );
+export default function Page() {
+  return <PageClient />;
 }
