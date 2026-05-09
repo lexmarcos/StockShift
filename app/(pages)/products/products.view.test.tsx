@@ -151,7 +151,7 @@ describe("ProductsView - delete action", () => {
       />
     );
 
-    expect(screen.getByText(/confirmar remoção/i)).toBeTruthy();
+    expect(screen.getByText(/confirmar exclusão/i)).toBeTruthy();
   });
 
   it("shows warning block with batches when delete dialog is open", () => {

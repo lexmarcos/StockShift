@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate as mutateGlobal } from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
@@ -18,13 +18,6 @@ import {
 interface BatchesResponse {
   success: boolean;
   data: Batch[];
-}
-
-interface DeleteBatchesResponse {
-  message: string;
-  deletedCount: number;
-  productId: string;
-  warehouseId: string;
 }
 
 const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
@@ -226,7 +219,7 @@ export const useProductsModel = () => {
 
       if (response.success) {
         const filtered = response.data.filter(
-          (batch) => batch.warehouseId === warehouseId && batch.quantity > 0
+          (batch) => batch.quantity > 0
         );
         setDeleteBatches(filtered);
       }
@@ -257,17 +250,19 @@ export const useProductsModel = () => {
 
     setIsDeletingProduct(true);
     try {
-      const response = await api
-        .delete(`batches/warehouses/${warehouseId}/products/${deleteProduct.id}/batches`)
-        .json<DeleteBatchesResponse>();
+      await api.delete(`products/${deleteProduct.id}`).json();
 
-      toast.success(response.message || "Produto removido do armazém com sucesso");
+      toast.success("Produto excluído com sucesso");
       mutate();
+      mutateGlobal((key) =>
+        typeof key === "string" &&
+        (key.includes("products") || key.includes("batches"))
+      );
       onCloseDeleteDialog();
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        error?.response?.data?.message || "Erro ao remover produto do armazém";
+        error?.response?.data?.message || "Erro ao excluir produto";
       toast.error(errorMessage);
     } finally {
       setIsDeletingProduct(false);

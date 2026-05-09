@@ -4,6 +4,7 @@ import { useProductsModel } from "./products.model";
 import { toast } from "sonner";
 
 const mockMutate = vi.fn();
+const mockGlobalMutate = vi.fn();
 const mockGet = vi.fn();
 const mockDelete = vi.fn();
 
@@ -53,6 +54,7 @@ vi.mock("swr", () => ({
     isLoading: false,
     mutate: mockMutate,
   })),
+  mutate: (...args: unknown[]) => mockGlobalMutate(...args),
 }));
 
 vi.mock("@/hooks/use-selected-warehouse", () => ({
@@ -100,7 +102,7 @@ describe("useProductsModel - delete flow", () => {
     };
   });
 
-  it("loads and filters batches for the current warehouse when opening delete dialog", async () => {
+  it("loads batches with positive stock when opening delete dialog", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({
         success: true,
@@ -144,7 +146,7 @@ describe("useProductsModel - delete flow", () => {
 
     expect(result.current.deleteDialogOpen).toBe(true);
     expect(result.current.deleteProduct?.id).toBe("prod-1");
-    expect(result.current.deleteBatches).toHaveLength(1);
+    expect(result.current.deleteBatches).toHaveLength(2);
     expect(result.current.deleteBatches[0].warehouseId).toBe("wh-1");
     expect(result.current.isCheckingDeleteBatches).toBe(false);
   });
@@ -196,7 +198,9 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onSecondConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
+    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(mockMutate).toHaveBeenCalled();
+    expect(mockGlobalMutate).toHaveBeenCalledWith(expect.any(Function));
     expect(result.current.secondConfirmOpen).toBe(false);
   });
 
@@ -209,8 +213,8 @@ describe("useProductsModel - delete flow", () => {
             id: "b1",
             productId: "prod-1",
             productName: "Produto Teste",
-            warehouseId: "wh-2",
-            quantity: 4,
+            warehouseId: "wh-1",
+            quantity: 0,
             batchNumber: "L2",
             expirationDate: null,
           },
@@ -235,7 +239,7 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
+    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
     expect(result.current.secondConfirmOpen).toBe(false);
     expect(result.current.deleteDialogOpen).toBe(false);
   });
@@ -350,8 +354,8 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onSecondConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("batches/warehouses/wh-1/products/prod-1/batches");
-    expect(toast.error).toHaveBeenCalledWith("Erro ao remover produto do armazém");
+    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(toast.error).toHaveBeenCalledWith("Erro ao excluir produto");
     expect(result.current.isDeletingProduct).toBe(false);
   });
 });
