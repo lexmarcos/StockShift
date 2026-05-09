@@ -62,13 +62,15 @@ export const ScannerDrawer = ({ open, onOpenChange }: ScannerDrawerProps) => {
 
   // Reset on drawer close
   useEffect(() => {
-    if (!open) {
-      setTimeout(() => {
-        onReset();
-        form.reset();
-        setBatchCode("");
-      }, 300);
-    }
+    if (open) return;
+
+    const resetTimeout = window.setTimeout(() => {
+      onReset();
+      form.reset();
+      setBatchCode("");
+    }, 300);
+
+    return () => window.clearTimeout(resetTimeout);
   }, [open, onReset, form]);
 
   const handleScan = (detectedCodes: { rawValue: string }[]) => {

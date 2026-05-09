@@ -55,8 +55,217 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { RolesViewProps, Role } from "./roles.types";
+
+type RoleForm = RolesViewProps["createForm"] | RolesViewProps["editForm"];
+type RolePermission = RolesViewProps["permissions"][number];
+type GroupedRolePermissions = RolesViewProps["groupedPermissions"];
 import { RolePermissionsModal } from "./roles-permissions-modal.view";
 import { cn } from "@/lib/utils";
+
+const DesktopActions = ({
+  role,
+  openPermissionsModal,
+  openEditModal,
+  openDeleteModal,
+}: {
+  role: Role;
+  openPermissionsModal: (role: Role) => void;
+  openEditModal: (role: Role) => void;
+  openDeleteModal: (role: Role) => void;
+}) => (
+  <div className="flex justify-end gap-1">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => openPermissionsModal(role)}
+      title="Ver permissões da role"
+      aria-label={`Ver permissões da role ${role.name}`}
+      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+    >
+      <Eye className="h-4 w-4" />
+    </Button>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => openEditModal(role)}
+      disabled={role.isSystemRole}
+      title={role.isSystemRole ? "Roles de sistema não podem ser editadas" : "Editar role"}
+      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
+    >
+      <Pencil className="h-4 w-4" />
+    </Button>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => openDeleteModal(role)}
+      disabled={role.isSystemRole}
+      title={role.isSystemRole ? "Roles de sistema não podem ser deletadas" : "Deletar role"}
+      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500 disabled:opacity-30"
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  </div>
+);
+
+const MobileActions = ({
+  role,
+  openPermissionsModal,
+  openEditModal,
+  openDeleteModal,
+}: {
+  role: Role;
+  openPermissionsModal: (role: Role) => void;
+  openEditModal: (role: Role) => void;
+  openDeleteModal: (role: Role) => void;
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent
+      align="end"
+      className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+    >
+      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+        Ações da Role
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator className="bg-neutral-800" />
+      <DropdownMenuItem
+        onClick={() => openPermissionsModal(role)}
+        className="cursor-pointer"
+      >
+        <Eye className="mr-2 h-3.5 w-3.5" />
+        Ver permissões
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => openEditModal(role)}
+        disabled={role.isSystemRole}
+        className={cn(
+          "cursor-pointer",
+          role.isSystemRole && "cursor-not-allowed opacity-50"
+        )}
+      >
+        <Pencil className="mr-2 h-3.5 w-3.5" />
+        Editar
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => openDeleteModal(role)}
+        disabled={role.isSystemRole}
+        className={cn(
+          "cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400",
+          role.isSystemRole && "cursor-not-allowed opacity-50"
+        )}
+      >
+        <Trash2 className="mr-2 h-3.5 w-3.5" />
+        Deletar
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const PermissionSelector = ({
+  form,
+  isLoadingPermissions,
+  permissions,
+  groupedPermissions,
+}: {
+  form: RoleForm;
+  isLoadingPermissions: boolean;
+  permissions: RolePermission[];
+  groupedPermissions: GroupedRolePermissions;
+}) => (
+  <FormField
+    control={form.control}
+    name="permissionIds"
+    render={() => (
+      <FormItem>
+        <FormLabel className="text-xs font-bold uppercase tracking-wide text-neutral-400">
+          Permissões
+        </FormLabel>
+        {isLoadingPermissions ? (
+          <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Carregando permissões...
+          </div>
+        ) : permissions.length === 0 ? (
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 text-xs text-neutral-500">
+            Nenhuma permissão disponível
+          </div>
+        ) : (
+          <Accordion type="multiple" className="w-full">
+            {Array.from(groupedPermissions.entries()).map(([resource, resourcePermissions]) => (
+              <AccordionItem
+                key={resource}
+                value={resource}
+                className="border border-neutral-800 rounded-[4px] bg-neutral-900 mb-2 last:mb-0"
+              >
+                <AccordionTrigger className="px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <Key className="h-3.5 w-3.5 text-neutral-500" />
+                    {resource}
+                    <Badge
+                      variant="outline"
+                      className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0 text-[10px] font-bold text-neutral-500"
+                    >
+                      {resourcePermissions.length}
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-3 pb-3">
+                  <div className="space-y-2">
+                    {resourcePermissions.map((permission) => (
+                      <FormField
+                        key={permission.id}
+                        control={form.control}
+                        name="permissionIds"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(permission.id)}
+                                onCheckedChange={(checked) => {
+                                  const current = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...current, permission.id]);
+                                  } else {
+                                    field.onChange(
+                                      current.filter((id) => id !== permission.id)
+                                    );
+                                  }
+                                }}
+                                className="rounded-[2px] border-neutral-700 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                              />
+                            </FormControl>
+                            <FormLabel className="text-xs font-normal text-neutral-400 cursor-pointer">
+                              <span className="text-neutral-300">{permission.actionDisplayName || permission.action}</span>
+                              <span className="text-neutral-600 ml-1">({permission.scopeDisplayName || permission.scope})</span>
+                              {permission.description && (
+                                <span className="block text-[10px] text-neutral-500">
+                                  {permission.description}
+                                </span>
+                              )}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+        <FormMessage className="text-xs text-rose-500" />
+      </FormItem>
+    )}
+  />
+);
 
 export const RolesView = ({
   roles,
@@ -94,185 +303,9 @@ export const RolesView = ({
   isLoadingAdmin
 }: RolesViewProps) => {
   // Desktop actions - visible buttons
-  const DesktopActions = ({ role }: { role: Role }) => (
-    <div className="flex justify-end gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => openPermissionsModal(role)}
-        title="Ver permissões da role"
-        aria-label={`Ver permissões da role ${role.name}`}
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => openEditModal(role)}
-        disabled={role.isSystemRole}
-        title={role.isSystemRole ? "Roles de sistema não podem ser editadas" : "Editar role"}
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => openDeleteModal(role)}
-        disabled={role.isSystemRole}
-        title={role.isSystemRole ? "Roles de sistema não podem ser deletadas" : "Deletar role"}
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500 disabled:opacity-30"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    </div>
-  );
 
   // Mobile actions - dropdown menu
-  const MobileActions = ({ role }: { role: Role }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
-      >
-        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-          Ações da Role
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-neutral-800" />
-        <DropdownMenuItem
-          onClick={() => openPermissionsModal(role)}
-          className="cursor-pointer"
-        >
-          <Eye className="mr-2 h-3.5 w-3.5" />
-          Ver permissões
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => openEditModal(role)}
-          disabled={role.isSystemRole}
-          className={cn(
-            "cursor-pointer",
-            role.isSystemRole && "cursor-not-allowed opacity-50"
-          )}
-        >
-          <Pencil className="mr-2 h-3.5 w-3.5" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => openDeleteModal(role)}
-          disabled={role.isSystemRole}
-          className={cn(
-            "cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400",
-            role.isSystemRole && "cursor-not-allowed opacity-50"
-          )}
-        >
-          <Trash2 className="mr-2 h-3.5 w-3.5" />
-          Deletar
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
-  const PermissionSelector = ({
-    form,
-  }: {
-    form: typeof createForm | typeof editForm;
-  }) => (
-    <FormField
-      control={form.control}
-      name="permissionIds"
-      render={() => (
-        <FormItem>
-          <FormLabel className="text-xs font-bold uppercase tracking-wide text-neutral-400">
-            Permissões
-          </FormLabel>
-          {isLoadingPermissions ? (
-            <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Carregando permissões...
-            </div>
-          ) : permissions.length === 0 ? (
-            <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 text-xs text-neutral-500">
-              Nenhuma permissão disponível
-            </div>
-          ) : (
-            <Accordion type="multiple" className="w-full">
-              {Array.from(groupedPermissions.entries()).map(([resource, resourcePermissions]) => (
-                <AccordionItem
-                  key={resource}
-                  value={resource}
-                  className="border border-neutral-800 rounded-[4px] bg-neutral-900 mb-2 last:mb-0"
-                >
-                  <AccordionTrigger className="px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Key className="h-3.5 w-3.5 text-neutral-500" />
-                      {resource}
-                      <Badge
-                        variant="outline"
-                        className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0 text-[10px] font-bold text-neutral-500"
-                      >
-                        {resourcePermissions.length}
-                      </Badge>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3">
-                    <div className="space-y-2">
-                      {resourcePermissions.map((permission) => (
-                        <FormField
-                          key={permission.id}
-                          control={form.control}
-                          name="permissionIds"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center gap-2">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(permission.id)}
-                                  onCheckedChange={(checked) => {
-                                    const current = field.value || [];
-                                    if (checked) {
-                                      field.onChange([...current, permission.id]);
-                                    } else {
-                                      field.onChange(
-                                        current.filter((id) => id !== permission.id)
-                                      );
-                                    }
-                                  }}
-                                  className="rounded-[2px] border-neutral-700 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                                />
-                              </FormControl>
-                              <FormLabel className="text-xs font-normal text-neutral-400 cursor-pointer">
-                                <span className="text-neutral-300">{permission.actionDisplayName || permission.action}</span>
-                                <span className="text-neutral-600 ml-1">({permission.scopeDisplayName || permission.scope})</span>
-                                {permission.description && (
-                                  <span className="block text-[10px] text-neutral-500">
-                                    {permission.description}
-                                  </span>
-                                )}
-                              </FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <FormMessage className="text-xs text-rose-500" />
-        </FormItem>
-      )}
-    />
-  );
 
   // Access denied state
   if (!isLoadingAdmin && !isAdmin) {
@@ -430,7 +463,7 @@ export const RolesView = ({
                               )}
                             </TableCell>
                             <TableCell className="py-3 text-right">
-                              <DesktopActions role={role} />
+                              <DesktopActions role={role} openPermissionsModal={openPermissionsModal} openEditModal={openEditModal} openDeleteModal={openDeleteModal} />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -471,7 +504,7 @@ export const RolesView = ({
                                 <Lock className="h-3 w-3" />
                               </Badge>
                             )}
-                            <MobileActions role={role} />
+                            <MobileActions role={role} openPermissionsModal={openPermissionsModal} openEditModal={openEditModal} openDeleteModal={openDeleteModal} />
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -582,7 +615,7 @@ export const RolesView = ({
             />
 
             <div className="max-h-[250px] overflow-y-auto">
-              <PermissionSelector form={createForm} />
+              <PermissionSelector form={createForm} isLoadingPermissions={isLoadingPermissions} permissions={permissions} groupedPermissions={groupedPermissions} />
             </div>
           </form>
         </Form>
@@ -672,7 +705,7 @@ export const RolesView = ({
             />
 
             <div className="max-h-[250px] overflow-y-auto">
-              <PermissionSelector form={editForm} />
+              <PermissionSelector form={editForm} isLoadingPermissions={isLoadingPermissions} permissions={permissions} groupedPermissions={groupedPermissions} />
             </div>
           </form>
         </Form>

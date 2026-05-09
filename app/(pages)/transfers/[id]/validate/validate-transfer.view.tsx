@@ -546,9 +546,9 @@ export function ValidateTransferView({
                   {discrepancies.length > 1 ? "s" : ""}
                 </span>
               </div>
-              {discrepancies.map((disc, idx) => (
+              {discrepancies.map((disc) => (
                 <div
-                  key={idx}
+                  key={`${disc.productName}-${disc.discrepancyType}`}
                   className={cn(
                     "rounded-[4px] border p-4",
                     disc.discrepancyType === "OVERAGE"

@@ -78,6 +78,21 @@ interface BrandsViewProps {
   isDeleting: boolean;
 }
 
+const SortIcon = ({
+  field,
+  sortConfig,
+}: {
+  field: SortConfig["key"];
+  sortConfig: SortConfig;
+}) => {
+  if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
+  return sortConfig.direction === "asc" ? (
+    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+  ) : (
+    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+  );
+};
+
 export const BrandsView = ({
   brands,
   isLoading,
@@ -114,14 +129,6 @@ export const BrandsView = ({
     }
   }, [logoUrl]);
 
-  const SortIcon = ({ field }: { field: SortConfig["key"] }) => {
-    if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
-    return sortConfig.direction === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
-    );
-  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
@@ -298,7 +305,7 @@ export const BrandsView = ({
                       onClick={() => handleSort("name")}
                     >
                       <div className="flex items-center gap-1">
-                        Nome <SortIcon field="name" />
+                        Nome <SortIcon field="name" sortConfig={sortConfig} />
                       </div>
                     </TableHead>
                     <TableHead
@@ -306,7 +313,7 @@ export const BrandsView = ({
                       onClick={() => handleSort("createdAt")}
                     >
                       <div className="flex items-center gap-1">
-                        Data de Registro <SortIcon field="createdAt" />
+                        Data de Registro <SortIcon field="createdAt" sortConfig={sortConfig} />
                       </div>
                     </TableHead>
                     <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">

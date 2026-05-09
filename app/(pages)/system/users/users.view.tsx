@@ -53,7 +53,213 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { UsersViewProps, User } from "./users.types";
+
+const isCurrentUser = (user: User, currentUserId: UsersViewProps["currentUserId"]) =>
+  user.id === currentUserId;
 import { cn } from "@/lib/utils";
+
+const DesktopActions = ({
+  user,
+  currentUserId,
+  openEditModal,
+  toggleUserStatus,
+}: {
+  user: User;
+  currentUserId: UsersViewProps["currentUserId"];
+  openEditModal: (user: User) => void;
+  toggleUserStatus: (user: User) => void;
+}) => (
+  <div className="flex justify-end gap-1">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => openEditModal(user)}
+      title="Editar usuário"
+      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+    >
+      <Pencil className="h-4 w-4" />
+    </Button>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => toggleUserStatus(user)}
+      disabled={isCurrentUser(user, currentUserId)}
+      title={
+        isCurrentUser(user, currentUserId)
+          ? "Não é possível desativar seu próprio usuário"
+          : user.isActive
+          ? "Desativar usuário"
+          : "Ativar usuário"
+      }
+      className={cn(
+        "h-8 w-8 rounded-[4px] disabled:opacity-30",
+        user.isActive
+          ? "text-neutral-500 hover:bg-amber-950/20 hover:text-amber-500"
+          : "text-neutral-500 hover:bg-emerald-950/20 hover:text-emerald-500"
+      )}
+    >
+      {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+    </Button>
+  </div>
+);
+
+const MobileActions = ({
+  user,
+  currentUserId,
+  openEditModal,
+  toggleUserStatus,
+}: {
+  user: User;
+  currentUserId: UsersViewProps["currentUserId"];
+  openEditModal: (user: User) => void;
+  toggleUserStatus: (user: User) => void;
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent
+      align="end"
+      className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+    >
+      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+        Ações do Usuário
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator className="bg-neutral-800" />
+      <DropdownMenuItem
+        onClick={() => openEditModal(user)}
+        className="cursor-pointer focus:bg-neutral-800 focus:text-white"
+      >
+        <Pencil className="mr-2 h-3.5 w-3.5" />
+        Editar
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => toggleUserStatus(user)}
+        disabled={isCurrentUser(user, currentUserId)}
+        className={cn(
+          "cursor-pointer",
+          isCurrentUser(user, currentUserId)
+            ? "cursor-not-allowed opacity-50"
+            : user.isActive
+            ? "text-amber-500 focus:bg-amber-950/20 focus:text-amber-400"
+            : "text-emerald-500 focus:bg-emerald-950/20 focus:text-emerald-400"
+        )}
+      >
+        {user.isActive ? (
+          <>
+            <UserX className="mr-2 h-3.5 w-3.5" />
+            Desativar
+          </>
+        ) : (
+          <>
+            <UserCheck className="mr-2 h-3.5 w-3.5" />
+            Ativar
+          </>
+        )}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const RoleBadges = ({ userRoles }: { userRoles: string[] }) => {
+  const maxVisible = 2;
+  const visible = userRoles.slice(0, maxVisible);
+  const remaining = userRoles.length - maxVisible;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {visible.map((role) => (
+        <Badge
+          key={role}
+          variant="outline"
+          className={cn(
+            "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+            role === "ADMIN"
+              ? "border-blue-500/20 bg-blue-500/10 text-blue-500"
+              : "border-neutral-700 bg-neutral-800 text-neutral-400"
+          )}
+        >
+          {role}
+        </Badge>
+      ))}
+      {remaining > 0 && (
+        <Badge
+          variant="outline"
+          className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500"
+        >
+          +{remaining}
+        </Badge>
+      )}
+    </div>
+  );
+};
+
+const WarehouseBadges = ({ userWarehouses }: { userWarehouses: string[] }) => {
+  const maxVisible = 2;
+  const visible = userWarehouses.slice(0, maxVisible);
+  const remaining = userWarehouses.length - maxVisible;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {visible.map((warehouse) => (
+        <Badge
+          key={warehouse}
+          variant="outline"
+          className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-medium text-neutral-400"
+        >
+          {warehouse}
+        </Badge>
+      ))}
+      {remaining > 0 && (
+        <Badge
+          variant="outline"
+          className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500"
+        >
+          +{remaining}
+        </Badge>
+      )}
+    </div>
+  );
+};
+
+const StatusBadge = ({ user }: { user: User }) => {
+  if (!user.isActive) {
+    return (
+      <Badge
+        variant="outline"
+        className="rounded-[2px] border-neutral-700 bg-neutral-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500"
+      >
+        INATIVO
+      </Badge>
+    );
+  }
+
+  if (user.mustChangePassword) {
+    return (
+      <Badge
+        variant="outline"
+        className="rounded-[2px] border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-500"
+      >
+        SENHA TEMP.
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className="rounded-[2px] border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-500"
+    >
+      ATIVO
+    </Badge>
+  );
+};
 
 export const UsersView = ({
   users,
@@ -110,189 +316,11 @@ export const UsersView = ({
   const isCurrentUser = (user: User) => user.id === currentUserId;
 
   // Desktop actions - visible buttons
-  const DesktopActions = ({ user }: { user: User }) => (
-    <div className="flex justify-end gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => openEditModal(user)}
-        title="Editar usuário"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => toggleUserStatus(user)}
-        disabled={isCurrentUser(user)}
-        title={
-          isCurrentUser(user)
-            ? "Não é possível desativar seu próprio usuário"
-            : user.isActive
-            ? "Desativar usuário"
-            : "Ativar usuário"
-        }
-        className={cn(
-          "h-8 w-8 rounded-[4px] disabled:opacity-30",
-          user.isActive
-            ? "text-neutral-500 hover:bg-amber-950/20 hover:text-amber-500"
-            : "text-neutral-500 hover:bg-emerald-950/20 hover:text-emerald-500"
-        )}
-      >
-        {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-      </Button>
-    </div>
-  );
 
   // Mobile actions - dropdown menu
-  const MobileActions = ({ user }: { user: User }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
-      >
-        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-          Ações do Usuário
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-neutral-800" />
-        <DropdownMenuItem
-          onClick={() => openEditModal(user)}
-          className="cursor-pointer focus:bg-neutral-800 focus:text-white"
-        >
-          <Pencil className="mr-2 h-3.5 w-3.5" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => toggleUserStatus(user)}
-          disabled={isCurrentUser(user)}
-          className={cn(
-            "cursor-pointer",
-            isCurrentUser(user)
-              ? "cursor-not-allowed opacity-50"
-              : user.isActive
-              ? "text-amber-500 focus:bg-amber-950/20 focus:text-amber-400"
-              : "text-emerald-500 focus:bg-emerald-950/20 focus:text-emerald-400"
-          )}
-        >
-          {user.isActive ? (
-            <>
-              <UserX className="mr-2 h-3.5 w-3.5" />
-              Desativar
-            </>
-          ) : (
-            <>
-              <UserCheck className="mr-2 h-3.5 w-3.5" />
-              Ativar
-            </>
-          )}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
-  const RoleBadges = ({ userRoles }: { userRoles: string[] }) => {
-    const maxVisible = 2;
-    const visible = userRoles.slice(0, maxVisible);
-    const remaining = userRoles.length - maxVisible;
 
-    return (
-      <div className="flex flex-wrap gap-1">
-        {visible.map((role) => (
-          <Badge
-            key={role}
-            variant="outline"
-            className={cn(
-              "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-              role === "ADMIN"
-                ? "border-blue-500/20 bg-blue-500/10 text-blue-500"
-                : "border-neutral-700 bg-neutral-800 text-neutral-400"
-            )}
-          >
-            {role}
-          </Badge>
-        ))}
-        {remaining > 0 && (
-          <Badge
-            variant="outline"
-            className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500"
-          >
-            +{remaining}
-          </Badge>
-        )}
-      </div>
-    );
-  };
 
-  const WarehouseBadges = ({ userWarehouses }: { userWarehouses: string[] }) => {
-    const maxVisible = 2;
-    const visible = userWarehouses.slice(0, maxVisible);
-    const remaining = userWarehouses.length - maxVisible;
-
-    return (
-      <div className="flex flex-wrap gap-1">
-        {visible.map((warehouse) => (
-          <Badge
-            key={warehouse}
-            variant="outline"
-            className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-medium text-neutral-400"
-          >
-            {warehouse}
-          </Badge>
-        ))}
-        {remaining > 0 && (
-          <Badge
-            variant="outline"
-            className="rounded-[2px] border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500"
-          >
-            +{remaining}
-          </Badge>
-        )}
-      </div>
-    );
-  };
-
-  const StatusBadge = ({ user }: { user: User }) => {
-    if (!user.isActive) {
-      return (
-        <Badge
-          variant="outline"
-          className="rounded-[2px] border-neutral-700 bg-neutral-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500"
-        >
-          INATIVO
-        </Badge>
-      );
-    }
-
-    if (user.mustChangePassword) {
-      return (
-        <Badge
-          variant="outline"
-          className="rounded-[2px] border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-500"
-        >
-          SENHA TEMP.
-        </Badge>
-      );
-    }
-
-    return (
-      <Badge
-        variant="outline"
-        className="rounded-[2px] border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-500"
-      >
-        ATIVO
-      </Badge>
-    );
-  };
 
   // Access denied state
   if (!isLoadingAdmin && !isAdmin) {
@@ -439,7 +467,7 @@ export const UsersView = ({
                               </div>
                             </TableCell>
                             <TableCell className="py-3 text-right">
-                              <DesktopActions user={user} />
+                              <DesktopActions user={user} currentUserId={currentUserId} openEditModal={openEditModal} toggleUserStatus={toggleUserStatus} />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -469,7 +497,7 @@ export const UsersView = ({
                           </div>
                           <div className="flex items-center gap-2">
                             <StatusBadge user={user} />
-                            <MobileActions user={user} />
+                            <MobileActions user={user} currentUserId={currentUserId} openEditModal={openEditModal} toggleUserStatus={toggleUserStatus} />
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">

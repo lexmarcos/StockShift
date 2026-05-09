@@ -170,7 +170,7 @@ export const ChangePasswordView = ({
 
       <div className="mt-8 text-center">
         <p className="text-[10px] text-neutral-600 uppercase tracking-widest">
-          © {new Date().getFullYear()} StockShift Inc. v1.0.0
+          © 2026 StockShift Inc. v1.0.0
         </p>
       </div>
     </div>

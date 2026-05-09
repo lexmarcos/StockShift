@@ -241,6 +241,172 @@ const activeToneMap: Record<string, { activeBorder: string; activeBg: string; ac
 
 // ── Main View ──
 
+const SortIcon = ({
+  field,
+  sortBy,
+  sortOrder,
+}: {
+  field: SortField;
+  sortBy: SortField;
+  sortOrder: SortOrder;
+}) => {
+  if (sortBy !== field) return <div className="w-3 h-3 opacity-0" />;
+  return sortOrder === "asc" ? (
+    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+  ) : (
+    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+  );
+};
+
+const ProductActions = ({
+  product,
+  onOpenDeleteDialog,
+}: {
+  product: Product;
+  onOpenDeleteDialog: (product: Product) => void;
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent
+      align="end"
+      className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+    >
+      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+        Ações do Produto
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator className="bg-neutral-800" />
+      <DropdownMenuItem asChild>
+        <Link
+          href={`/products/${product.id}`}
+          className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
+        >
+          <Eye className="mr-2 h-3.5 w-3.5" /> Detalhes
+        </Link>
+      </DropdownMenuItem>
+      <PermissionGate permission="products:update">
+        <DropdownMenuItem asChild>
+          <Link
+            href={`/products/${product.id}/edit`}
+            className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
+          >
+            <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+          </Link>
+        </DropdownMenuItem>
+      </PermissionGate>
+      <PermissionGate permission="products:delete">
+        <DropdownMenuItem
+          onClick={() => onOpenDeleteDialog(product)}
+          className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
+        >
+          <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
+        </DropdownMenuItem>
+      </PermissionGate>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const InsightCards = ({
+  totalElements,
+  lowStockCount,
+  outOfStockCount,
+  topCategory,
+}: {
+  totalElements: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  topCategory: string;
+}) => (
+  <>
+    {/* Total Items */}
+    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:h-6 md:w-6">
+          <BarChart3 className="h-5 w-5 text-blue-500 md:h-3.5 md:w-3.5" />
+        </div>
+        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
+          Total Geral
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold tracking-tighter text-white">
+          {totalElements}
+        </span>
+        <span className="text-[10px] font-medium uppercase text-neutral-600">
+          itens
+        </span>
+      </div>
+    </div>
+
+    {/* Low Stock */}
+    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:h-6 md:w-6">
+          <AlertCircle className="h-5 w-5 text-amber-500 md:h-3.5 md:w-3.5" />
+        </div>
+        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
+          Baixo Estoque
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold tracking-tighter text-white">
+          {lowStockCount}
+        </span>
+        <span className="text-[10px] font-medium uppercase text-neutral-600">
+          alertas
+        </span>
+      </div>
+    </div>
+
+    {/* Out of Stock */}
+    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:h-6 md:w-6">
+          <XCircle className="h-5 w-5 text-rose-500 md:h-3.5 md:w-3.5" />
+        </div>
+        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
+          Sem Estoque
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold tracking-tighter text-white">
+          {outOfStockCount}
+        </span>
+        <span className="text-[10px] font-medium uppercase text-neutral-600">
+          itens
+        </span>
+      </div>
+    </div>
+
+    {/* Top Category */}
+    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:h-6 md:w-6">
+          <Tag className="h-5 w-5 text-emerald-500 md:h-3.5 md:w-3.5" />
+        </div>
+        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
+          Top Categoria
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span
+          className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]"
+          title={topCategory}
+        >
+          {topCategory || "—"}
+        </span>
+      </div>
+    </div>
+  </>
+);
+
 export const ProductsView = ({
   filteredProducts,
   isLoading,
@@ -305,147 +471,8 @@ export const ProductsView = ({
     onSortChange(field, newOrder);
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (filters.sortBy !== field) return <div className="w-3 h-3 opacity-0" />;
-    return filters.sortOrder === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
-    );
-  };
 
-  const ProductActions = ({ product }: { product: Product }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
-      >
-        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-          Ações do Produto
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-neutral-800" />
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/products/${product.id}`}
-            className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
-          >
-            <Eye className="mr-2 h-3.5 w-3.5" /> Detalhes
-          </Link>
-        </DropdownMenuItem>
-        <PermissionGate permission="products:update">
-          <DropdownMenuItem asChild>
-            <Link
-              href={`/products/${product.id}/edit`}
-              className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
-            >
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
-            </Link>
-          </DropdownMenuItem>
-        </PermissionGate>
-        <PermissionGate permission="products:delete">
-          <DropdownMenuItem
-            onClick={() => onOpenDeleteDialog(product)}
-            className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
-          >
-            <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
-          </DropdownMenuItem>
-        </PermissionGate>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
-  const InsightCards = () => (
-    <>
-      {/* Total Items */}
-      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:h-6 md:w-6">
-            <BarChart3 className="h-5 w-5 text-blue-500 md:h-3.5 md:w-3.5" />
-          </div>
-          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-            Total Geral
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold tracking-tighter text-white">
-            {pagination.totalElements}
-          </span>
-          <span className="text-[10px] font-medium uppercase text-neutral-600">
-            itens
-          </span>
-        </div>
-      </div>
-
-      {/* Low Stock */}
-      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:h-6 md:w-6">
-            <AlertCircle className="h-5 w-5 text-amber-500 md:h-3.5 md:w-3.5" />
-          </div>
-          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-            Baixo Estoque
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold tracking-tighter text-white">
-            {lowStockCount}
-          </span>
-          <span className="text-[10px] font-medium uppercase text-neutral-600">
-            alertas
-          </span>
-        </div>
-      </div>
-
-      {/* Out of Stock */}
-      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:h-6 md:w-6">
-            <XCircle className="h-5 w-5 text-rose-500 md:h-3.5 md:w-3.5" />
-          </div>
-          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-            Sem Estoque
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold tracking-tighter text-white">
-            {outOfStockCount}
-          </span>
-          <span className="text-[10px] font-medium uppercase text-neutral-600">
-            itens
-          </span>
-        </div>
-      </div>
-
-      {/* Top Category */}
-      <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-        <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:h-6 md:w-6">
-            <Tag className="h-5 w-5 text-emerald-500 md:h-3.5 md:w-3.5" />
-          </div>
-          <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-            Top Categoria
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span
-            className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]"
-            title={topCategory}
-          >
-            {topCategory || "—"}
-          </span>
-        </div>
-      </div>
-    </>
-  );
 
   // ── Mobile filter drawer ──
   const renderMobileFiltersPanel = () => (
@@ -643,7 +670,7 @@ export const ProductsView = ({
 
               {/* Row 1: Insight Cards */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <InsightCards />
+                <InsightCards totalElements={pagination.totalElements} lowStockCount={lowStockCount} outOfStockCount={outOfStockCount} topCategory={topCategory ?? "N/A"} />
               </div>
 
               {/* Mobile Insight Cards */}
@@ -651,7 +678,7 @@ export const ProductsView = ({
                 data-slot="mobile-product-kpis"
                 className="grid grid-cols-2 gap-3 md:hidden"
               >
-                <InsightCards />
+                <InsightCards totalElements={pagination.totalElements} lowStockCount={lowStockCount} outOfStockCount={outOfStockCount} topCategory={topCategory ?? "N/A"} />
               </div>
 
               {/* Row 2: Search & Filters */}
@@ -875,7 +902,7 @@ export const ProductsView = ({
                             onClick={() => handleSort("name")}
                           >
                             <div className="flex items-center gap-1">
-                              Nome <SortIcon field="name" />
+                              Nome <SortIcon field="name" sortBy={filters.sortBy} sortOrder={filters.sortOrder} />
                             </div>
                           </TableHead>
                           <TableHead
@@ -883,7 +910,7 @@ export const ProductsView = ({
                             onClick={() => handleSort("sku")}
                           >
                             <div className="flex items-center gap-1">
-                              SKU <SortIcon field="sku" />
+                              SKU <SortIcon field="sku" sortBy={filters.sortBy} sortOrder={filters.sortOrder} />
                             </div>
                           </TableHead>
                           <TableHead className="h-10 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
@@ -1034,7 +1061,7 @@ export const ProductsView = ({
                               >
                                 {product.totalQuantity} un
                               </Badge>
-                              <ProductActions product={product} />
+                              <ProductActions product={product} onOpenDeleteDialog={onOpenDeleteDialog} />
                             </div>
                           </div>
                         </div>
@@ -1093,8 +1120,8 @@ export const ProductsView = ({
         onOpenChange={(open) => {
           if (!open) onCloseDeleteDialog();
         }}
-        title="Confirmar remoção"
-        description={`Tem certeza que deseja remover o produto ${deleteProduct?.name} deste armazém? Esta ação removerá todos os lotes associados.`}
+        title="Confirmar exclusão"
+        description={`Tem certeza que deseja excluir o produto ${deleteProduct?.name}? Esta ação removerá o produto e todos os lotes associados.`}
         maxWidth="sm:max-w-[450px]"
         footer={
           <>
@@ -1117,7 +1144,7 @@ export const ProductsView = ({
                   Removendo...
                 </>
               ) : (
-                "Remover"
+                "Excluir"
               )}
             </Button>
           </>
@@ -1138,8 +1165,8 @@ export const ProductsView = ({
                 Estoque Existente
               </div>
               <p className="mt-1 opacity-90">
-                Ainda existe estoque deste produto neste armazém. A remoção irá
-                apagar todos os lotes.
+                Ainda existe estoque deste produto. A exclusão irá apagar todos
+                os lotes associados.
               </p>
               <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
                 {deleteBatches.map((batch) => (
@@ -1163,7 +1190,7 @@ export const ProductsView = ({
           if (!open) onCloseSecondConfirm();
         }}
         title="Confirmação Final"
-        description={`Tem certeza que deseja remover? O produto ${deleteProduct?.name} será desvinculado deste armazém.`}
+        description={`Tem certeza que deseja excluir? O produto ${deleteProduct?.name} será removido do sistema.`}
         maxWidth="sm:max-w-[400px]"
         footer={
           <>
@@ -1185,7 +1212,7 @@ export const ProductsView = ({
                   Removendo...
                 </>
               ) : (
-                "Confirmar Remoção"
+                "Confirmar Exclusão"
               )}
             </Button>
           </>
@@ -1193,8 +1220,8 @@ export const ProductsView = ({
       >
         <div className="py-2">
           <p className="text-xs text-neutral-500">
-            Esta é a última confirmação antes da remoção definitiva dos lotes
-            deste produto neste armazém.
+            Esta é a última confirmação antes de remover o produto e seus lotes
+            do sistema.
           </p>
         </div>
       </ResponsiveModal>

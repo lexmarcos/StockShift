@@ -179,7 +179,7 @@ export const LoginView = ({
 
       <div className="mt-8 text-center">
         <p className="text-[10px] text-neutral-600 uppercase tracking-widest">
-          © {new Date().getFullYear()} StockShift Inc. v1.0.0
+          © 2026 StockShift Inc. v1.0.0
         </p>
       </div>
 
@@ -190,9 +190,9 @@ export const LoginView = ({
             <Info className="h-3 w-3" /> Logs do Sistema
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-            {debugMessages.map((msg, idx) => (
+            {debugMessages.map((msg) => (
               <div
-                key={idx}
+                key={`${msg.timestamp}-${msg.type}-${msg.message}`}
                 className={cn(
                   "flex gap-2 p-2 rounded-[2px] border-l-2",
                   msg.type === 'error' && "border-rose-500 bg-rose-950/10 text-rose-400",

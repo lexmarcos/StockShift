@@ -241,6 +241,21 @@ const FilterToken = ({
   </Button>
 );
 
+const SortIcon = ({
+  field,
+  sortConfig,
+}: {
+  field: SortConfig["key"];
+  sortConfig: SortConfig;
+}) => {
+  if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
+  return sortConfig.direction === "asc" ? (
+    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+  ) : (
+    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+  );
+};
+
 export const BatchesView = ({
   batches,
   groupedByProduct,
@@ -269,14 +284,6 @@ export const BatchesView = ({
     isGroupedByProduct,
   );
 
-  const SortIcon = ({ field }: { field: SortConfig["key"] }) => {
-    if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
-    return sortConfig.direction === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
-    );
-  };
 
   const statusToneMap: Record<string, { activeBorder: string; activeBg: string; activeText: string }> = {
     all: { activeBorder: "border-neutral-500/50", activeBg: "bg-neutral-500/10", activeText: "text-neutral-100" },
@@ -907,7 +914,7 @@ export const BatchesView = ({
                             onClick={() => onSortChange("product")}
                           >
                             <div className="flex items-center gap-1">
-                              Produto <SortIcon field="product" />
+                              Produto <SortIcon field="product" sortConfig={sortConfig} />
                             </div>
                           </TableHead>
                           <TableHead className="h-10 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
@@ -921,7 +928,7 @@ export const BatchesView = ({
                             onClick={() => onSortChange("quantity")}
                           >
                             <div className="flex items-center justify-end gap-1">
-                              Qtd. <SortIcon field="quantity" />
+                              Qtd. <SortIcon field="quantity" sortConfig={sortConfig} />
                             </div>
                           </TableHead>
                           <TableHead
@@ -929,7 +936,7 @@ export const BatchesView = ({
                             onClick={() => onSortChange("expiration")}
                           >
                             <div className="flex items-center justify-center gap-1">
-                              Validade <SortIcon field="expiration" />
+                              Validade <SortIcon field="expiration" sortConfig={sortConfig} />
                             </div>
                           </TableHead>
                           <TableHead className="h-10 text-center text-[10px] font-bold uppercase tracking-widest text-neutral-500">

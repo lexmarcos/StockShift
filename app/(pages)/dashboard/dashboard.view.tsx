@@ -232,8 +232,8 @@ function WarehouseChart({
               }
             />
             <Bar dataKey={metricKey} radius={[0, 4, 4, 0]} barSize={24}>
-              {data.map((_, i) => (
-                <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+              {data.map((item, i) => (
+                <Cell key={item.warehouseName} fill={BAR_COLORS[i % BAR_COLORS.length]} />
               ))}
             </Bar>
           </BarChart>
@@ -287,9 +287,9 @@ function CategoryChart({
               paddingAngle={2}
               strokeWidth={0}
             >
-              {data.map((_, i) => (
+              {data.map((item, i) => (
                 <Cell
-                  key={i}
+                  key={item.categoryName}
                   fill={DONUT_COLORS[i % DONUT_COLORS.length]}
                 />
               ))}

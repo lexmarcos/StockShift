@@ -197,6 +197,64 @@ const preventDrawerDismissFromSelectPortal = (event: Event) => {
   }
 };
 
+const SaleActions = ({ sale }: { sale: SaleSummary }) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent
+      align="end"
+      className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
+    >
+      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+        Ações
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator className="bg-neutral-800" />
+      <DropdownMenuItem asChild>
+        <Link
+          href={`/sales/${sale.id}`}
+          className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
+        >
+          <Eye className="mr-2 h-3.5 w-3.5" /> Ver Detalhes
+        </Link>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+
+const FilterToken = ({
+  icon,
+  label,
+  badge,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  badge?: number;
+  onClick: () => void;
+}) => (
+  <Button
+    type="button"
+    variant="outline"
+    onClick={onClick}
+    className="h-9 shrink-0 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-xs font-medium text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+  >
+    {icon}
+    <span className="ml-2 whitespace-nowrap">{label}</span>
+    {badge ? (
+      <span className="ml-2 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+        {badge}
+      </span>
+    ) : null}
+  </Button>
+);
+
 export const SalesView = ({
   sales,
   isLoading,
@@ -218,63 +276,7 @@ export const SalesView = ({
   onMobileDateInputChange,
   onMobileFilterDraftChange,
 }: SalesViewProps) => {
-  const SaleActions = ({ sale }: { sale: SaleSummary }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-xl"
-      >
-        <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-          Ações
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-neutral-800" />
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/sales/${sale.id}`}
-            className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
-          >
-            <Eye className="mr-2 h-3.5 w-3.5" /> Ver Detalhes
-          </Link>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
-  const FilterToken = ({
-    icon,
-    label,
-    badge,
-    onClick,
-  }: {
-    icon: ReactNode;
-    label: string;
-    badge?: number;
-    onClick: () => void;
-  }) => (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={onClick}
-      className="h-9 shrink-0 rounded-[4px] border-neutral-800 bg-[#171717] px-3 text-xs font-medium text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
-    >
-      {icon}
-      <span className="ml-2 whitespace-nowrap">{label}</span>
-      {badge ? (
-        <span className="ml-2 rounded-[4px] bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-          {badge}
-        </span>
-      ) : null}
-    </Button>
-  );
 
   const renderMobileFiltersPanel = (draft: SaleFilterDraft) => {
     return (
