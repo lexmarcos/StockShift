@@ -102,7 +102,7 @@ describe("useProductsModel - delete flow", () => {
     };
   });
 
-  it("loads batches with positive stock when opening delete dialog", async () => {
+  it("loads selected warehouse batches with positive stock", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({
         success: true,
@@ -120,7 +120,7 @@ describe("useProductsModel - delete flow", () => {
             id: "b2",
             productId: "prod-1",
             productName: "Produto Teste",
-            warehouseId: "wh-2",
+            warehouseId: "wh-1",
             quantity: 10,
             batchNumber: "L2",
             expirationDate: null,
@@ -146,12 +146,15 @@ describe("useProductsModel - delete flow", () => {
 
     expect(result.current.deleteDialogOpen).toBe(true);
     expect(result.current.deleteProduct?.id).toBe("prod-1");
+    expect(mockGet).toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/prod-1/batches"
+    );
     expect(result.current.deleteBatches).toHaveLength(2);
     expect(result.current.deleteBatches[0].warehouseId).toBe("wh-1");
     expect(result.current.isCheckingDeleteBatches).toBe(false);
   });
 
-  it("opens second confirmation when warehouse has stock and deletes after confirmation", async () => {
+  it("opens second confirmation and removes batches from selected warehouse", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({
         success: true,
@@ -198,13 +201,15 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onSecondConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/prod-1/batches"
+    );
     expect(mockMutate).toHaveBeenCalled();
     expect(mockGlobalMutate).toHaveBeenCalledWith(expect.any(Function));
     expect(result.current.secondConfirmOpen).toBe(false);
   });
 
-  it("deletes immediately when no warehouse stock exists", async () => {
+  it("removes from selected warehouse when no stock exists", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({
         success: true,
@@ -239,7 +244,9 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/prod-1/batches"
+    );
     expect(result.current.secondConfirmOpen).toBe(false);
     expect(result.current.deleteDialogOpen).toBe(false);
   });
@@ -354,8 +361,12 @@ describe("useProductsModel - delete flow", () => {
       await result.current.onSecondConfirmDelete();
     });
 
-    expect(mockDelete).toHaveBeenCalledWith("products/prod-1");
-    expect(toast.error).toHaveBeenCalledWith("Erro ao excluir produto");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/prod-1/batches"
+    );
+    expect(toast.error).toHaveBeenCalledWith(
+      "Erro ao remover produto do armazém"
+    );
     expect(result.current.isDeletingProduct).toBe(false);
   });
 });

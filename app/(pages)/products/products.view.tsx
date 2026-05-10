@@ -301,12 +301,12 @@ const ProductActions = ({
           </Link>
         </DropdownMenuItem>
       </PermissionGate>
-      <PermissionGate permission="products:delete">
+      <PermissionGate permission="batches:delete">
         <DropdownMenuItem
           onClick={() => onOpenDeleteDialog(product)}
           className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
         >
-          <Trash2 className="mr-2 size-3.5" /> Excluir
+          <Trash2 className="mr-2 size-3.5" /> Remover do armazém
         </DropdownMenuItem>
       </PermissionGate>
     </DropdownMenuContent>
@@ -1009,7 +1009,7 @@ export const ProductsView = ({
                                       </Link>
                                     </Button>
                                   </PermissionGate>
-                                  <PermissionGate permission="products:delete">
+                                  <PermissionGate permission="batches:delete">
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -1124,7 +1124,7 @@ export const ProductsView = ({
           if (!open) onCloseDeleteDialog();
         }}
         title="Confirmar exclusão"
-        description={`Tem certeza que deseja excluir o produto ${deleteProduct?.name}? Esta ação removerá o produto e todos os lotes associados.`}
+        description={`Tem certeza que deseja remover ${deleteProduct?.name} deste armazém? Esta ação apagará os lotes associados ao armazém atual.`}
         maxWidth="sm:max-w-[450px]"
         footer={
           <>
@@ -1147,7 +1147,7 @@ export const ProductsView = ({
                   Removendo…
                 </>
               ) : (
-                "Excluir"
+                "Remover"
               )}
             </Button>
           </>
@@ -1168,8 +1168,8 @@ export const ProductsView = ({
                 Estoque Existente
               </div>
               <p className="mt-1 opacity-90">
-                Ainda existe estoque deste produto. A exclusão irá apagar todos
-                os lotes associados.
+                Ainda existe estoque deste produto neste armazém. A remoção irá
+                apagar os lotes associados ao armazém atual.
               </p>
               <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
                 {deleteBatches.map((batch) => (
@@ -1193,7 +1193,7 @@ export const ProductsView = ({
           if (!open) onCloseSecondConfirm();
         }}
         title="Confirmação Final"
-        description={`Tem certeza que deseja excluir? O produto ${deleteProduct?.name} será removido do sistema.`}
+        description={`Tem certeza que deseja remover ${deleteProduct?.name} deste armazém?`}
         maxWidth="sm:max-w-[400px]"
         footer={
           <>
@@ -1215,7 +1215,7 @@ export const ProductsView = ({
                   Removendo…
                 </>
               ) : (
-                "Confirmar Exclusão"
+                "Confirmar Remoção"
               )}
             </Button>
           </>
@@ -1223,8 +1223,8 @@ export const ProductsView = ({
       >
         <div className="py-2">
           <p className="text-xs text-neutral-500">
-            Esta é a última confirmação antes de remover o produto e seus lotes
-            do sistema.
+            Esta é a última confirmação antes de apagar os lotes deste produto
+            no armazém atual.
           </p>
         </div>
       </ResponsiveModal>

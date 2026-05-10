@@ -213,8 +213,10 @@ export const useProductsModel = () => {
 
     setIsCheckingDeleteBatches(true);
     try {
+      const batchesEndpoint =
+        `batches/warehouses/${warehouseId}/products/${product.id}/batches`;
       const response = await api
-        .get(`batches/product/${product.id}`)
+        .get(batchesEndpoint)
         .json<BatchesResponse>();
 
       if (response.success) {
@@ -250,9 +252,11 @@ export const useProductsModel = () => {
 
     setIsDeletingProduct(true);
     try {
-      await api.delete(`products/${deleteProduct.id}`).json();
+      const deleteBatchesEndpoint =
+        `batches/warehouses/${warehouseId}/products/${deleteProduct.id}/batches`;
+      await api.delete(deleteBatchesEndpoint).json();
 
-      toast.success("Produto excluído com sucesso");
+      toast.success("Produto removido do armazém com sucesso");
       mutate();
       mutateGlobal((key) =>
         typeof key === "string" &&
@@ -262,7 +266,7 @@ export const useProductsModel = () => {
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
-        error?.response?.data?.message || "Erro ao excluir produto";
+        error?.response?.data?.message || "Erro ao remover produto do armazém";
       toast.error(errorMessage);
     } finally {
       setIsDeletingProduct(false);
