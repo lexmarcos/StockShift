@@ -71,7 +71,7 @@ export function NewTransferView({
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
             <div className="mb-5 flex items-center justify-between border-b border-neutral-800 pb-4">
               <div className="flex items-center gap-3">
-                <ArrowRight className="h-5 w-5 text-blue-400" strokeWidth={2} />
+                <ArrowRight className="size-5 text-blue-400" strokeWidth={2} />
                 <div>
                   <p className="text-sm font-bold text-white">Rota</p>
                   <p className="text-xs text-neutral-500">
@@ -90,15 +90,15 @@ export function NewTransferView({
                     : "border-neutral-800 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300"
                 }`}
               >
-                <FileText className="h-3.5 w-3.5" />
+                <FileText className="size-3.5" />
                 {notesValue ? "Editar Obs." : "Observações"}
               </Button>
             </div>
 
             {/* Origin */}
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[4px] border border-blue-600/50 bg-blue-600/10 text-blue-400">
-                <Warehouse className="h-4 w-4" strokeWidth={2} />
+              <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-[4px] border border-blue-600/50 bg-blue-600/10 text-blue-400">
+                <Warehouse className="size-4" strokeWidth={2} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
@@ -113,9 +113,9 @@ export function NewTransferView({
             {/* Connector */}
             <div className="ml-5 flex flex-col items-center py-2">
               <div className="h-5 w-px border-l border-dashed border-neutral-700" />
-              <div className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800/50">
+              <div className="flex size-6 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800/50">
                 <ArrowRight
-                  className="h-3 w-3 rotate-90 text-neutral-500"
+                  className="size-3 rotate-90 text-neutral-500"
                   strokeWidth={2.5}
                 />
               </div>
@@ -128,8 +128,8 @@ export function NewTransferView({
                 Destino
               </p>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-700 bg-neutral-800 text-neutral-400">
-                  <MapPin className="h-4 w-4" strokeWidth={2} />
+                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-700 bg-neutral-800 text-neutral-400">
+                  <MapPin className="size-4" strokeWidth={2} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <FormField
@@ -209,14 +209,20 @@ export function NewTransferView({
             <div className="space-y-4">
               <div className="flex flex-col gap-4 md:flex-row">
                 <div className="min-w-0 flex-1 space-y-2">
-                  <label className="text-xs font-bold text-neutral-400">
+                  <label
+                    htmlFor="transfer-product-select"
+                    className="text-xs font-bold text-neutral-400"
+                  >
                     PRODUTO
                   </label>
                   <Select
                     value={selectedProductId}
                     onValueChange={onProductChange}
                   >
-                    <SelectTrigger className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600">
+                    <SelectTrigger
+                      id="transfer-product-select"
+                      className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600"
+                    >
                       <SelectValue placeholder="Selecione um produto..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-[4px] border-neutral-800 bg-neutral-900">
@@ -230,7 +236,10 @@ export function NewTransferView({
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-2">
-                  <label className="text-xs font-bold text-neutral-400">
+                  <label
+                    htmlFor="transfer-batch-select"
+                    className="text-xs font-bold text-neutral-400"
+                  >
                     LOTE (DISPONÍVEL)
                   </label>
                   <Select
@@ -238,7 +247,10 @@ export function NewTransferView({
                     onValueChange={onBatchChange}
                     disabled={!selectedProductId}
                   >
-                    <SelectTrigger className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600 disabled:opacity-40">
+                    <SelectTrigger
+                      id="transfer-batch-select"
+                      className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600 disabled:opacity-40"
+                    >
                       <SelectValue placeholder="Selecione o lote" />
                     </SelectTrigger>
                     <SelectContent className="rounded-[4px] border-neutral-800 bg-neutral-900">
@@ -258,11 +270,15 @@ export function NewTransferView({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-400">
+                <label
+                  htmlFor="transfer-item-quantity"
+                  className="text-xs font-bold text-neutral-400"
+                >
                   QUANTIDADE
                 </label>
                 <div className="flex items-center gap-3">
                   <NumberInput
+                    id="transfer-item-quantity"
                     value={itemQuantity ? Number(itemQuantity) : undefined}
                     onValueChange={(val) =>
                       onQuantityChange(val !== undefined ? String(val) : "")
@@ -275,7 +291,7 @@ export function NewTransferView({
                     onClick={onAddItem}
                     className="h-10 flex-shrink-0 rounded-[4px] bg-emerald-600 px-5 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700"
                   >
-                    <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+                    <Plus className="mr-2 size-4" strokeWidth={2.5} />
                     Adicionar
                   </Button>
                 </div>
@@ -284,7 +300,7 @@ export function NewTransferView({
               {addItemError && (
                 <div className="flex items-center gap-2 rounded-[4px] border border-rose-900/30 bg-rose-950/10 px-4 py-3">
                   <AlertCircle
-                    className="h-4 w-4 flex-shrink-0 text-rose-500"
+                    className="size-4 flex-shrink-0 text-rose-500"
                     strokeWidth={2}
                   />
                   <p className="text-xs font-medium text-rose-400">
@@ -340,9 +356,9 @@ export function NewTransferView({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemoveItem(index)}
-                        className="h-9 w-9 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
+                        className="size-9 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
                       >
-                        <Trash2 className="h-4 w-4" strokeWidth={2} />
+                        <Trash2 className="size-4" strokeWidth={2} />
                       </Button>
                     </div>
                   ))}
@@ -363,7 +379,7 @@ export function NewTransferView({
                           <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                             Quantidade
                           </th>
-                          <th className="w-12 px-3 py-3" />
+                          <th className="w-12 p-3" />
                         </tr>
                       </thead>
                       <tbody>
@@ -381,16 +397,16 @@ export function NewTransferView({
                             <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
                               {item.quantity}
                             </td>
-                            <td className="px-3 py-3.5">
+                            <td className="p-3.5">
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => onRemoveItem(index)}
-                                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500"
+                                className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
                               >
                                 <Trash2
-                                  className="h-3.5 w-3.5"
+                                  className="size-3.5"
                                   strokeWidth={2}
                                 />
                               </Button>
@@ -460,7 +476,7 @@ export function NewTransferView({
                     disabled={isSubmitting || isLoading}
                     className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                   >
-                    <Save className="mr-2 h-4 w-4" strokeWidth={2} />
+                    <Save className="mr-2 size-4" strokeWidth={2} />
                     {isSubmitting ? "CRIANDO..." : "CRIAR TRANSFERÊNCIA"}
                   </Button>
                 </PermissionGate>

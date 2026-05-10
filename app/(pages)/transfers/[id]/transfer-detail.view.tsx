@@ -23,6 +23,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { cn } from "@/lib/utils";
 import { PermissionGate } from "@/components/permission-gate";
+import { format, parseISO } from "date-fns";
 
 const statusConfig: Record<
   TransferStatus,
@@ -91,7 +92,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
       <PageContainer>
         <div className="flex flex-col items-center justify-center py-32">
           <Package
-            className="mb-4 h-10 w-10 text-neutral-600"
+            className="mb-4 size-10 text-neutral-600"
             strokeWidth={2}
           />
           <p className="text-sm font-bold text-white">
@@ -136,7 +137,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 status.text,
               )}
             >
-              <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
+              <span className={cn("size-1.5 rounded-full", status.dot)} />
               {status.label}
             </span>
           </div>
@@ -152,13 +153,13 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             <div className="relative flex flex-col items-center">
               <div
                 className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-[4px] border",
+                  "flex size-12 items-center justify-center rounded-[4px] border",
                   isSource
                     ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
                     : "border-neutral-700 bg-neutral-800 text-neutral-400",
                 )}
               >
-                <Warehouse className="h-5 w-5" strokeWidth={2} />
+                <Warehouse className="size-5" strokeWidth={2} />
               </div>
               {/* Vertical connector (mobile only) */}
               <div className="mt-1 h-6 w-px bg-neutral-700 sm:hidden" />
@@ -185,7 +186,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
               <div className="h-px w-8 border-t border-dashed border-neutral-700" />
               <div
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-full border",
+                  "flex size-10 items-center justify-center rounded-full border",
                   transfer.status === TransferStatus.IN_TRANSIT
                     ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
                     : transfer.status === TransferStatus.COMPLETED
@@ -194,11 +195,11 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 )}
               >
                 {transfer.status === TransferStatus.COMPLETED ? (
-                  <CheckCircle className="h-4 w-4" strokeWidth={2.5} />
+                  <CheckCircle className="size-4" strokeWidth={2.5} />
                 ) : transfer.status === TransferStatus.CANCELLED ? (
-                  <XCircle className="h-4 w-4" strokeWidth={2.5} />
+                  <XCircle className="size-4" strokeWidth={2.5} />
                 ) : (
-                  <Truck className="h-4 w-4" strokeWidth={2} />
+                  <Truck className="size-4" strokeWidth={2} />
                 )}
               </div>
               <div className="h-px w-8 border-t border-dashed border-neutral-700" />
@@ -208,7 +209,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             <div className="flex flex-col items-center sm:hidden">
               <div
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full border",
+                  "flex size-8 items-center justify-center rounded-full border",
                   transfer.status === TransferStatus.IN_TRANSIT
                     ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
                     : transfer.status === TransferStatus.COMPLETED
@@ -217,12 +218,12 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 )}
               >
                 {transfer.status === TransferStatus.COMPLETED ? (
-                  <CheckCircle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  <CheckCircle className="size-3.5" strokeWidth={2.5} />
                 ) : transfer.status === TransferStatus.CANCELLED ? (
-                  <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  <XCircle className="size-3.5" strokeWidth={2.5} />
                 ) : (
                   <ArrowRight
-                    className="h-3.5 w-3.5 rotate-90"
+                    className="size-3.5 rotate-90"
                     strokeWidth={2.5}
                   />
                 )}
@@ -248,13 +249,13 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             </div>
             <div
               className={cn(
-                "order-0 flex h-12 w-12 items-center justify-center rounded-[4px] border sm:order-none",
+                "order-0 flex size-12 items-center justify-center rounded-[4px] border sm:order-none",
                 isDestination
                   ? "border-blue-600/50 bg-blue-600/10 text-blue-400"
                   : "border-neutral-700 bg-neutral-800 text-neutral-400",
               )}
             >
-              <MapPin className="h-5 w-5" strokeWidth={2} />
+              <MapPin className="size-5" strokeWidth={2} />
             </div>
           </div>
         </div>
@@ -262,16 +263,16 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
         {/* Meta row */}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-neutral-800 pt-5">
           <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <Calendar className="h-3.5 w-3.5" strokeWidth={2} />
+            <Calendar className="size-3.5" strokeWidth={2} />
             <span>
               Criado em{" "}
               <span className="font-medium text-neutral-300">
-                {new Date(transfer.createdAt).toLocaleDateString()}
+                {format(parseISO(transfer.createdAt), "dd/MM/yyyy")}
               </span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <Package className="h-3.5 w-3.5" strokeWidth={2} />
+            <Package className="size-3.5" strokeWidth={2} />
             <span>
               <span className="font-mono font-bold tracking-tighter text-neutral-300">
                 {transfer.items.length}
@@ -280,7 +281,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <Hash className="h-3.5 w-3.5" strokeWidth={2} />
+            <Hash className="size-3.5" strokeWidth={2} />
             <span>
               Total{" "}
               <span className="font-mono font-bold tracking-tighter text-neutral-300">
@@ -295,7 +296,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
         {transfer.notes && (
           <div className="mt-5 border-t border-neutral-800 pt-5">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-              <FileText className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <FileText className="size-3.5" strokeWidth={2.5} />
               Observações
             </div>
             <p className="mt-2 text-sm leading-relaxed text-neutral-300">
@@ -461,7 +462,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                       variant="ghost"
                       className="h-10 rounded-[4px] text-xs font-bold uppercase tracking-wide text-neutral-400 hover:text-white"
                     >
-                      <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                      <Edit className="mr-2 size-4" strokeWidth={2} />
                       Editar
                     </Button>
                   </Link>
@@ -471,7 +472,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                     variant="outline"
                     onClick={onCancel}
                     disabled={isCancelling}
-                    className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
+                    className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-neutral-800 hover:text-rose-500"
                   >
                     {isCancelling ? "Cancelando..." : "CANCELAR"}
                   </Button>
@@ -495,7 +496,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                   variant="outline"
                   onClick={onCancel}
                   disabled={isCancelling}
-                  className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-rose-900/20 hover:text-rose-500"
+                  className="h-10 rounded-[4px] border-neutral-700 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:border-rose-900 hover:bg-neutral-800 hover:text-rose-500"
                 >
                   {isCancelling ? "Cancelando..." : "CANCELAR TRANSFERÊNCIA"}
                 </Button>
@@ -510,7 +511,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                   disabled={isValidating}
                   className="h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                 >
-                  <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
+                  <ShieldCheck className="mr-2 size-4" strokeWidth={2} />
                   {isValidating ? "Iniciando..." : "INICIAR VALIDAÇÃO"}
                 </Button>
               </PermissionGate>
@@ -522,7 +523,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
                 <PermissionGate permission="transfers:update">
                   <Link href={`/transfers/${transfer.id}/validate`}>
                     <Button className="h-10 rounded-[4px] bg-amber-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-amber-700">
-                      <ShieldCheck className="mr-2 h-4 w-4" strokeWidth={2} />
+                      <ShieldCheck className="mr-2 size-4" strokeWidth={2} />
                       CONTINUAR VALIDAÇÃO
                     </Button>
                   </Link>
@@ -533,7 +534,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             {transfer.status === TransferStatus.COMPLETED && (
               <>
                 <div className="flex items-center gap-2 px-4 text-sm font-medium text-emerald-500">
-                  <CheckCircle className="h-5 w-5" strokeWidth={2} />
+                  <CheckCircle className="size-5" strokeWidth={2} />
                   Transferência Concluída
                 </div>
                 {isDestination && (
@@ -551,7 +552,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             {transfer.status === TransferStatus.COMPLETED_WITH_DISCREPANCY && (
               <>
                 <div className="flex items-center gap-2 px-4 text-sm font-medium text-amber-500">
-                  <CheckCircle className="h-5 w-5" strokeWidth={2} />
+                  <CheckCircle className="size-5" strokeWidth={2} />
                   Concluída com Divergência
                 </div>
                 {isDestination && (
@@ -568,7 +569,7 @@ export const TransferDetailView: React.FC<TransferDetailViewProps> = ({
             {/* Cancelled */}
             {transfer.status === TransferStatus.CANCELLED && (
               <div className="flex items-center gap-2 px-4 text-sm font-medium text-rose-500">
-                <XCircle className="h-5 w-5" strokeWidth={2} />
+                <XCircle className="size-5" strokeWidth={2} />
                 Transferência Cancelada
               </div>
             )}

@@ -7,7 +7,7 @@ export enum TransferStatus {
   CANCELLED = "CANCELLED",
 }
 
-export interface TransferItem {
+interface TransferItem {
   id: string;
   sourceBatchId: string;
   quantity?: number;
@@ -75,14 +75,6 @@ export interface DiscrepancyItem {
   difference: number;
 }
 
-export interface DiscrepancyReportResponse {
-  success: boolean;
-  message?: string;
-  data: {
-    transferId: string;
-    items: DiscrepancyItem[];
-  };
-}
 
 // GET /transfers/{id}/validation-logs
 export interface ValidationLogEntry {

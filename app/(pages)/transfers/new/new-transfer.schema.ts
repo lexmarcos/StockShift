@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const transferItemSchema = z.object({
+const transferItemSchema = z.object({
   sourceBatchId: z.string().uuid("Lote inválido"),
   quantity: z.number().positive("Quantidade deve ser maior que zero"),
   productName: z.string().optional(), // UI helper
