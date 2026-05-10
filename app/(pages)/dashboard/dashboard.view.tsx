@@ -15,17 +15,10 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  Bar,
-  BarChart,
-  Cell,
-  Pie,
-  PieChart as RechartsPie,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { InsightCard } from "@/components/ui/insight-card";
@@ -45,6 +38,31 @@ import type {
   DashboardRecentMovement,
   DashboardViewProps,
 } from "./dashboard.types";
+
+type DynamicRechartsProps = Record<string, unknown>;
+type DynamicRechartsComponent = ComponentType<DynamicRechartsProps>;
+
+const Bar = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.Bar as unknown as DynamicRechartsComponent),
+);
+const BarChart = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.BarChart as unknown as DynamicRechartsComponent),
+);
+const Cell = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.Cell as unknown as DynamicRechartsComponent),
+);
+const Pie = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.Pie as unknown as DynamicRechartsComponent),
+);
+const RechartsPie = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.PieChart as unknown as DynamicRechartsComponent),
+);
+const XAxis = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.XAxis as unknown as DynamicRechartsComponent),
+);
+const YAxis = dynamic<DynamicRechartsProps>(() =>
+  import("recharts").then((mod) => mod.YAxis as unknown as DynamicRechartsComponent),
+);
 
 const MOVEMENT_COLORS: Record<string, string> = {
   ENTRY: "#059669",
@@ -79,6 +97,12 @@ const DONUT_COLORS = [
   "#84CC16",
 ];
 
+const DASHBOARD_CURRENCY_FORMATTER = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+const DASHBOARD_COUNT_FORMATTER = new Intl.NumberFormat("pt-BR");
+
 function formatCompactCurrency(value: number): string {
   if (value >= 1_000_000) {
     return `R$ ${(value / 1_000_000).toFixed(1).replace(".0", "")}M`;
@@ -86,21 +110,15 @@ function formatCompactCurrency(value: number): string {
   if (value >= 1_000) {
     return `R$ ${(value / 1_000).toFixed(1).replace(".0", "")}K`;
   }
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+  return DASHBOARD_CURRENCY_FORMATTER.format(value);
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+  return DASHBOARD_CURRENCY_FORMATTER.format(value);
 }
 
 function formatCount(value: number): string {
-  return new Intl.NumberFormat("pt-BR").format(value);
+  return DASHBOARD_COUNT_FORMATTER.format(value);
 }
 
 // --- Loading Skeleton ---
@@ -313,7 +331,7 @@ function CategoryChart({
         {data.map((item, i) => (
           <div key={item.categoryName} className="flex items-center gap-1.5">
             <div
-              className="h-2 w-2 shrink-0 rounded-[2px]"
+              className="size-2 shrink-0 rounded-[2px]"
               style={{
                 backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length],
               }}
@@ -345,7 +363,7 @@ function RecentMovementsTimeline({
       <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
         <SectionLabel icon={Activity}>Movimentações Recentes</SectionLabel>
         <div className="mt-6 flex flex-col items-center gap-2 py-8">
-          <Clock className="h-8 w-8 text-neutral-700" strokeWidth={2} />
+          <Clock className="size-8 text-neutral-700" strokeWidth={2} />
           <p className="text-xs text-neutral-500">
             Nenhuma movimentação recente
           </p>
@@ -370,11 +388,11 @@ function RecentMovementsTimeline({
               {/* Timeline line + icon */}
               <div className="flex flex-col items-center">
                 <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full"
                   style={{ backgroundColor: `${color}15` }}
                 >
                   <Icon
-                    className="h-3.5 w-3.5"
+                    className="size-3.5"
                     style={{ color }}
                     strokeWidth={2}
                   />
@@ -399,7 +417,7 @@ function RecentMovementsTimeline({
                     </Badge>
                   </div>
                   <span className="text-[10px] text-neutral-600">
-                    {formatDistanceToNow(new Date(movement.createdAt), {
+                    {formatDistanceToNow(parseISO(movement.createdAt), {
                       addSuffix: true,
                       locale: ptBR,
                     })}

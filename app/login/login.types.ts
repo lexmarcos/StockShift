@@ -1,6 +1,4 @@
-import { LoginFormData } from "./login.schema";
-
-export type { LoginFormData };
+export {};
 
 export interface LoginResponse {
   success: boolean;
@@ -14,15 +12,6 @@ export interface LoginResponse {
     requiresCaptcha: boolean;
     mustChangePassword: boolean;
   };
-}
-
-export interface LoginErrorResponse {
-  timestamp: string;
-  status: number;
-  error: string;
-  message: string;
-  path: string;
-  requiresCaptcha: boolean;
 }
 
 export type DebugMessage = {

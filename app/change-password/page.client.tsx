@@ -7,7 +7,7 @@ import { ChangePasswordView } from "./change-password.view";
 import { useAuth } from "@/lib/contexts/auth-context";
 
 export function PageClient() {
-  const router = useRouter();
+  const { push } = useRouter();
   const { user, isLoading } = useAuth();
   const methods = useChangePasswordModel();
 
@@ -15,14 +15,14 @@ export function PageClient() {
     if (isLoading) return;
 
     if (!user) {
-      router.push("/login");
+      push("/login");
       return;
     }
 
     if (!user.mustChangePassword) {
-      router.push("/warehouses");
+      push("/warehouses");
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, push]);
 
   if (isLoading || !user || !user.mustChangePassword) {
     return null;

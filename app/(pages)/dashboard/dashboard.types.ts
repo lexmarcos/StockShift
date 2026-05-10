@@ -1,4 +1,4 @@
-export interface DashboardMovementStatsPeriod {
+interface DashboardMovementStatsPeriod {
   entries: number;
   exits: number;
   transfers: number;
@@ -20,7 +20,7 @@ export interface DashboardRecentMovement {
   notes: string | null;
 }
 
-export interface DashboardStockByWarehouse {
+interface DashboardStockByWarehouse {
   warehouseId: string;
   warehouseName: string;
   batchCount: number;
@@ -28,7 +28,7 @@ export interface DashboardStockByWarehouse {
   productCount: number;
 }
 
-export interface DashboardStockByCategory {
+interface DashboardStockByCategory {
   categoryId: string;
   categoryName: string;
   batchCount: number;
