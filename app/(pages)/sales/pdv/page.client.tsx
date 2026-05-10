@@ -1,25 +1,29 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { usePdvModel } from "./pdv.model";
 import { PdvView } from "./pdv.view";
 
-export function PageClient() {
-  const searchParams = useSearchParams();
+interface PageClientProps {
+  infinitepayStatus: string | null;
+  infinitepayMessage: string | null;
+}
 
+export function PageClient({
+  infinitepayStatus,
+  infinitepayMessage,
+}: PageClientProps) {
   useEffect(() => {
-    const infinitepay = searchParams.get("infinitepay");
-    if (infinitepay === "success") {
+    if (infinitepayStatus === "success") {
       toast.success("Pagamento aprovado! Venda registrada com sucesso.");
       window.history.replaceState({}, "", "/sales/pdv");
-    } else if (infinitepay === "error") {
-      const message = searchParams.get("message") || "Pagamento não concluído.";
+    } else if (infinitepayStatus === "error") {
+      const message = infinitepayMessage || "Pagamento não concluído.";
       toast.error("Pagamento falhou: " + decodeURIComponent(message));
       window.history.replaceState({}, "", "/sales/pdv");
     }
-  }, [searchParams]);
+  }, [infinitepayMessage, infinitepayStatus]);
 
   const model = usePdvModel();
   return <PdvView {...model} />;

@@ -10,8 +10,7 @@ export const METHODS_WITH_INSTALLMENTS: PaymentMethod[] = ["CREDIT_CARD", "INSTA
 
 export const METHODS_WITH_PAYMENT_MODE: PaymentMethod[] = ["DEBIT_CARD", "CREDIT_CARD", "INSTALLMENT"];
 
-export const paymentModes = ["DIRECT", "TAP", "LINK"] as const;
-export type PaymentMode = (typeof paymentModes)[number];
+const paymentModes = ["DIRECT", "TAP", "LINK"] as const;
 
 export const pdvSchema = z.object({
   paymentMethod: z.enum(paymentMethods, { message: "Selecione a forma de pagamento" }),

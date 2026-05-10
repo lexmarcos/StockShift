@@ -28,7 +28,7 @@ import {
   SALE_STATUS_LABELS,
   formatCents,
 } from "../sales.types";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Dialog,
@@ -61,7 +61,7 @@ export const SaleDetailView = ({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+        <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
       </div>
     );
   }
@@ -98,14 +98,14 @@ export const SaleDetailView = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="mt-1 h-8 w-8 shrink-0 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                  className="mt-1 size-8 shrink-0 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="size-4" />
                 </Button>
               </Link>
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl md:text-2xl font-bold tracking-tighter text-white break-all">
+                  <h1 className="text-xl md:text-2xl font-semibold tracking-tighter text-white break-all">
                     {sale.code}
                   </h1>
                   <span
@@ -116,13 +116,13 @@ export const SaleDetailView = ({
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-neutral-500">
                   <span className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    {format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", {
+                    <Calendar className="size-3.5 shrink-0" />
+                    {format(parseISO(sale.createdAt), "dd/MM/yyyy HH:mm", {
                       locale: ptBR,
                     })}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Warehouse className="h-3.5 w-3.5 shrink-0" />
+                    <Warehouse className="size-3.5 shrink-0" />
                     {sale.warehouseName}
                   </span>
                 </div>
@@ -135,7 +135,7 @@ export const SaleDetailView = ({
                   variant="outline"
                   className="w-full md:w-auto h-10 rounded-[4px] border-rose-800/50 bg-rose-950/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 text-xs font-bold uppercase tracking-wide"
                 >
-                  <XCircle className="mr-2 h-4 w-4 shrink-0" /> Cancelar Venda
+                  <XCircle className="mr-2 size-4 shrink-0" /> Cancelar Venda
                 </Button>
               </PermissionGate>
             )}
@@ -145,7 +145,7 @@ export const SaleDetailView = ({
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4 md:p-5">
             <div className="flex items-center gap-3 border-b border-neutral-800/50 pb-3 mb-4">
               <CreditCard
-                className="h-5 w-5 shrink-0 text-blue-400"
+                className="size-5 shrink-0 text-blue-400"
                 strokeWidth={2}
               />
               <p className="text-sm font-bold text-white">
@@ -206,7 +206,7 @@ export const SaleDetailView = ({
           {sale.status === "CANCELLED" && sale.cancellationReason && (
             <div className="rounded-[4px] border border-rose-900/30 bg-rose-950/20 p-4 md:p-5">
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-500" />
+                <AlertTriangle className="size-4 shrink-0 text-rose-500" />
                 <p className="text-xs font-bold uppercase tracking-widest text-rose-400">
                   Venda Cancelada
                 </p>
@@ -217,7 +217,7 @@ export const SaleDetailView = ({
               {sale.cancelledAt && (
                 <p className="text-xs text-neutral-500 mt-4 border-t border-rose-900/20 pt-3">
                   Cancelada em{" "}
-                  {format(new Date(sale.cancelledAt), "dd/MM/yyyy HH:mm", {
+                  {format(parseISO(sale.cancelledAt), "dd/MM/yyyy HH:mm", {
                     locale: ptBR,
                   })}
                 </p>
@@ -229,7 +229,7 @@ export const SaleDetailView = ({
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
             <div className="px-4 py-3 md:px-5 md:py-4 border-b border-neutral-800/50 flex items-center gap-3">
               <ShoppingCart
-                className="h-5 w-5 shrink-0 text-blue-400"
+                className="size-5 shrink-0 text-blue-400"
                 strokeWidth={2}
               />
               <p className="text-sm font-bold text-white">

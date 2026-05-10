@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type {
   InfinitePayCallbackViewProps,
@@ -36,10 +36,10 @@ export function buildInfinitePayResultPath(result: InfinitePayConfirmResult): st
   return `/sales/infinitepay/result?${resultParams.toString()}`;
 }
 
-export function useInfinitePayCallbackModel(): InfinitePayCallbackViewProps {
+export function useInfinitePayCallbackModel(
+  callbackQueryString = "",
+): InfinitePayCallbackViewProps {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackQueryString = useMemo(() => searchParams.toString(), [searchParams]);
   const [isConfirming, setIsConfirming] = useState(true);
   const [hasError, setHasError] = useState(false);
 

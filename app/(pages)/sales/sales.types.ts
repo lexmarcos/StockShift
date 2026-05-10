@@ -7,11 +7,9 @@ export type PaymentMethod =
   | "BANK_TRANSFER"
   | "OTHER";
 
-export type PaymentMode = "DIRECT" | "TAP" | "LINK";
-
 export type SaleStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 
-export interface SaleItem {
+interface SaleItem {
   id: string;
   productId: string;
   productName: string;
@@ -41,7 +39,7 @@ export interface Sale {
   createdByUserId: string;
   createdAt: string;
   items: SaleItem[];
-  paymentMode: PaymentMode;
+  paymentMode: "DIRECT" | "TAP" | "LINK";
   paymentLink: string | null;
 }
 
@@ -57,7 +55,7 @@ export interface SaleSummary {
   createdByUserName: string;
 }
 
-export interface KpiPeriod {
+interface KpiPeriod {
   count: number;
   revenue: number;
   avgTicket: number;

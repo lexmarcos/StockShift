@@ -126,7 +126,7 @@ describe("useInfinitePayCallbackModel", () => {
       "order_id=sale-123&nsu=abc&aut=999&card_brand=visa",
     );
 
-    const { result } = renderHook(() => useInfinitePayCallbackModel());
+    const { result } = renderHook(() => useInfinitePayCallbackModel(fakeSearchParams.toString()));
 
     await waitFor(() => {
       expect(fakeApi.get).toHaveBeenCalledTimes(1);
@@ -156,7 +156,7 @@ describe("useInfinitePayCallbackModel", () => {
   it("redireciona para erro quando order_id estiver ausente", async () => {
     fakeSearchParams.setQuery("nsu=abc&aut=999");
 
-    renderHook(() => useInfinitePayCallbackModel());
+    renderHook(() => useInfinitePayCallbackModel(fakeSearchParams.toString()));
 
     await waitFor(() => {
       expect(fakeRouter.replace).toHaveBeenCalledWith(
@@ -171,7 +171,7 @@ describe("useInfinitePayCallbackModel", () => {
     fakeSearchParams.setQuery("order_id=sale-fail");
     fakeApi.get.mockImplementation(() => createRejectedJsonResponse(new Error("network")));
 
-    const { result } = renderHook(() => useInfinitePayCallbackModel());
+    const { result } = renderHook(() => useInfinitePayCallbackModel(fakeSearchParams.toString()));
 
     await waitFor(() => {
       expect(fakeApi.get).toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe("useInfinitePayCallbackModel", () => {
       });
     });
 
-    const { result } = renderHook(() => useInfinitePayCallbackModel());
+    const { result } = renderHook(() => useInfinitePayCallbackModel(fakeSearchParams.toString()));
 
     await waitFor(() => {
       expect(fakeApi.get).toHaveBeenCalled();

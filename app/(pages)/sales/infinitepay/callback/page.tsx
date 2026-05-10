@@ -7,10 +7,31 @@ export const metadata: Metadata = {
   description: "Processa o retorno de pagamento InfinitePay.",
 };
 
-export default function Page() {
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+const buildQueryString = (
+  params: Record<string, string | string[] | undefined>,
+): string => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => query.append(key, item));
+      return;
+    }
+    if (value) query.set(key, value);
+  });
+  return query.toString();
+};
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: PageSearchParams;
+}) {
+  const callbackQueryString = buildQueryString(await searchParams);
   return (
     <Suspense fallback={null}>
-      <PageClient />
+      <PageClient callbackQueryString={callbackQueryString} />
     </Suspense>
   );
 }

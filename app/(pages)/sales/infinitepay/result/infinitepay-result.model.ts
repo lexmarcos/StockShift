@@ -1,22 +1,28 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import type { SaleDetailResponse } from "../../sales.types";
 import { infinitePayResultStatusSchema } from "./infinitepay-result.schema";
 import type { InfinitePayResultViewProps } from "./infinitepay-result.types";
 
+interface InfinitePayResultModelParams {
+  saleId?: string | null;
+  status?: string | null;
+  message?: string | null;
+}
+
 function parseInfinitePayStatus(value: string | null) {
   const result = infinitePayResultStatusSchema.safeParse(value);
   return result.success ? result.data : "error";
 }
 
-export function useInfinitePayResultModel(): InfinitePayResultViewProps {
-  const searchParams = useSearchParams();
-  const saleId = searchParams.get("sale_id");
-  const status = parseInfinitePayStatus(searchParams.get("status"));
-  const message = searchParams.get("message");
+export function useInfinitePayResultModel({
+  saleId = null,
+  status: statusParam = null,
+  message = null,
+}: InfinitePayResultModelParams = {}): InfinitePayResultViewProps {
+  const status = parseInfinitePayStatus(statusParam);
 
   const { data, error, isLoading, mutate } = useSWR<SaleDetailResponse>(
     saleId ? `sales/${saleId}` : null,

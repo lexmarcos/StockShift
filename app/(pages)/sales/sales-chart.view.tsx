@@ -147,7 +147,8 @@ export const SalesChart = ({ data }: SalesChartProps) => {
             dataKey="count"
             stroke="#2563EB"
             strokeWidth={2}
-            dot={false}
+            dot={{ r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
             name="count"
           />
           <Line
@@ -156,7 +157,8 @@ export const SalesChart = ({ data }: SalesChartProps) => {
             dataKey="revenue"
             stroke="#059669"
             strokeWidth={2}
-            dot={false}
+            dot={{ r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 4, strokeWidth: 0 }}
             name="revenue"
           />
         </LineChart>

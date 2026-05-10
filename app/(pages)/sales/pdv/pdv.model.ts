@@ -150,15 +150,19 @@ export function usePdvModel(): PdvViewProps {
         const res = await api
           .get(`batches/warehouses/${warehouseId}/products/${productId}/batches`)
           .json<BatchesResponse>();
-        return (res.data || [])
-          .filter((b) => b.quantity > 0)
-          .map((b) => ({
-            batchId: b.id,
-            batchCode: b.batchCode,
-            quantity: b.quantity,
-            sellingPrice: b.sellingPrice,
-            expirationDate: b.expirationDate,
-          }));
+        return (res.data || []).flatMap((b) =>
+          b.quantity > 0
+            ? [
+                {
+                  batchId: b.id,
+                  batchCode: b.batchCode,
+                  quantity: b.quantity,
+                  sellingPrice: b.sellingPrice,
+                  expirationDate: b.expirationDate,
+                },
+              ]
+            : [],
+        );
       } catch { return []; }
     },
     [warehouseId],
@@ -418,9 +422,15 @@ export function usePdvModel(): PdvViewProps {
 }
 
 const getPdvProductsMissingImages = (products: ProductWithStock[]): string[] => {
-  return [...new Set(
-    products.filter((product) => !product.imageUrl).map((product) => product.id),
-  )];
+  const productIds = new Set<string>();
+
+  for (const product of products) {
+    if (!product.imageUrl) {
+      productIds.add(product.id);
+    }
+  }
+
+  return [...productIds];
 };
 
 const buildPdvImageCacheKey = (
