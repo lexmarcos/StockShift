@@ -38,18 +38,6 @@ export interface PermissionsResponse {
   data: Permission[];
 }
 
-export interface CreateRolePayload {
-  name: string;
-  description?: string;
-  permissionIds: string[];
-}
-
-export interface UpdateRolePayload {
-  name: string;
-  description?: string;
-  permissionIds: string[];
-}
-
 export interface DeleteRoleResponse {
   success: boolean;
   message: string;

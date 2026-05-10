@@ -16,7 +16,7 @@ export interface UsersResponse {
   data: User[];
 }
 
-export interface Role {
+interface Role {
   id: string;
   name: string;
   description: string;
@@ -29,7 +29,7 @@ export interface RolesResponse {
   data: Role[];
 }
 
-export interface Warehouse {
+interface Warehouse {
   id: string;
   name: string;
   isActive: boolean;
@@ -39,13 +39,6 @@ export interface WarehousesResponse {
   success: boolean;
   message: string | null;
   data: Warehouse[];
-}
-
-export interface CreateUserPayload {
-  email: string;
-  fullName: string;
-  roleIds: string[];
-  warehouseIds: string[];
 }
 
 export interface CreateUserResponse {
@@ -60,13 +53,6 @@ export interface CreateUserResponse {
     roles: string[];
     warehouses: string[];
   };
-}
-
-export interface UpdateUserPayload {
-  fullName: string;
-  isActive: boolean;
-  roleIds: string[];
-  warehouseIds: string[];
 }
 
 export interface UpdateUserResponse {

@@ -75,9 +75,9 @@ const DesktopActions = ({
       size="icon"
       onClick={() => openEditModal(user)}
       title="Editar usuário"
-      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
     >
-      <Pencil className="h-4 w-4" />
+      <Pencil className="size-4" />
     </Button>
     <Button
       variant="ghost"
@@ -92,13 +92,13 @@ const DesktopActions = ({
           : "Ativar usuário"
       }
       className={cn(
-        "h-8 w-8 rounded-[4px] disabled:opacity-30",
+        "size-8 rounded-[4px] disabled:opacity-30",
         user.isActive
           ? "text-neutral-500 hover:bg-amber-950/20 hover:text-amber-500"
           : "text-neutral-500 hover:bg-emerald-950/20 hover:text-emerald-500"
       )}
     >
-      {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+      {user.isActive ? <UserX className="size-4" /> : <UserCheck className="size-4" />}
     </Button>
   </div>
 );
@@ -119,9 +119,9 @@ const MobileActions = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal className="size-4" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -136,7 +136,7 @@ const MobileActions = ({
         onClick={() => openEditModal(user)}
         className="cursor-pointer focus:bg-neutral-800 focus:text-white"
       >
-        <Pencil className="mr-2 h-3.5 w-3.5" />
+        <Pencil className="mr-2 size-3.5" />
         Editar
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -153,12 +153,12 @@ const MobileActions = ({
       >
         {user.isActive ? (
           <>
-            <UserX className="mr-2 h-3.5 w-3.5" />
+            <UserX className="mr-2 size-3.5" />
             Desativar
           </>
         ) : (
           <>
-            <UserCheck className="mr-2 h-3.5 w-3.5" />
+            <UserCheck className="mr-2 size-3.5" />
             Ativar
           </>
         )}
@@ -327,7 +327,7 @@ export const UsersView = ({
     return (
       <PageContainer>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tighter text-white">
+          <h1 className="text-2xl font-semibold tracking-tighter text-white">
             Usuários
           </h1>
           <p className="mt-1 text-sm text-neutral-500">Sistema</p>
@@ -345,7 +345,7 @@ export const UsersView = ({
       <PageContainer>
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tighter text-white">
+            <h1 className="text-2xl font-semibold tracking-tighter text-white">
               Usuários
             </h1>
             <p className="mt-1 text-sm text-neutral-500">Sistema</p>
@@ -355,7 +355,7 @@ export const UsersView = ({
               onClick={openCreateModal}
               className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto"
             >
-              <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+              <Plus className="mr-2 size-4" strokeWidth={2.5} />
               NOVO USUÁRIO
             </Button>
           </div>
@@ -365,10 +365,10 @@ export const UsersView = ({
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
           <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
             <div className="text-neutral-500 absolute left-3">
-              <Search className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <Search className="size-3.5" strokeWidth={2.5} />
             </div>
             <Input
-              placeholder="Pesquisar por nome ou email..."
+              placeholder="Pesquisar por nome ou email…"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 hover:border-neutral-700"
@@ -382,7 +382,7 @@ export const UsersView = ({
 
         {/* Data Display */}
         {isLoading ? (
-          <LoadingState message="Carregando usuários..." />
+          <LoadingState message="Carregando usuários…" />
         ) : error ? (
           <ErrorState
             title="Falha na conexão"
@@ -462,7 +462,7 @@ export const UsersView = ({
                             </TableCell>
                             <TableCell className="py-3">
                               <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                                <Clock className="h-3 w-3" />
+                                <Clock className="size-3" />
                                 {formatDate(user.lastLogin)}
                               </div>
                             </TableCell>
@@ -502,18 +502,18 @@ export const UsersView = ({
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <div className="flex items-center gap-1.5">
-                            <Shield className="h-3 w-3 text-neutral-600" />
+                            <Shield className="size-3 text-neutral-600" />
                             <RoleBadges userRoles={user.roles} />
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <div className="flex items-center gap-1.5">
-                            <Warehouse className="h-3 w-3 text-neutral-600" />
+                            <Warehouse className="size-3 text-neutral-600" />
                             <WarehouseBadges userWarehouses={user.warehouses} />
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-neutral-600">
-                          <Clock className="h-3 w-3" />
+                          <Clock className="size-3" />
                           Último login: {formatDate(user.lastLogin)}
                         </div>
                       </div>
@@ -549,8 +549,8 @@ export const UsersView = ({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Criando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Criando…
                 </>
               ) : (
                 "Criar Usuário"
@@ -616,8 +616,8 @@ export const UsersView = ({
                   </FormLabel>
                   {isLoadingRoles ? (
                     <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Carregando roles...
+                      <Loader2 className="size-3 animate-spin" />
+                      Carregando roles…
                     </div>
                   ) : (
                     <div className="space-y-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
@@ -673,8 +673,8 @@ export const UsersView = ({
                   </FormLabel>
                   {isLoadingWarehouses ? (
                     <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Carregando armazéns...
+                      <Loader2 className="size-3 animate-spin" />
+                      Carregando armazéns…
                     </div>
                   ) : (
                     <div className="space-y-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 max-h-[150px] overflow-y-auto">
@@ -744,8 +744,8 @@ export const UsersView = ({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Salvando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Salvando…
                 </>
               ) : (
                 "Salvar Alterações"
@@ -815,8 +815,8 @@ export const UsersView = ({
                   </FormLabel>
                   {isLoadingRoles ? (
                     <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Carregando roles...
+                      <Loader2 className="size-3 animate-spin" />
+                      Carregando roles…
                     </div>
                   ) : (
                     <div className="space-y-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-3">
@@ -872,8 +872,8 @@ export const UsersView = ({
                   </FormLabel>
                   {isLoadingWarehouses ? (
                     <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Carregando armazéns...
+                      <Loader2 className="size-3 animate-spin" />
+                      Carregando armazéns…
                     </div>
                   ) : (
                     <div className="space-y-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 max-h-[150px] overflow-y-auto">
@@ -936,9 +936,9 @@ export const UsersView = ({
         }
       >
         <div className="space-y-4">
-          <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-3 py-3 text-xs text-amber-500">
+          <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 p-3 text-xs text-amber-500">
             <div className="flex items-center gap-2 font-bold uppercase tracking-wide">
-              <AlertTriangle className="h-3.5 w-3.5" />
+              <AlertTriangle className="size-3.5" />
               Atenção
             </div>
             <p className="mt-1 opacity-90">
@@ -954,12 +954,12 @@ export const UsersView = ({
               variant="outline"
               size="icon"
               onClick={handleCopyPassword}
-              className="h-10 w-10 rounded-[4px] border-neutral-700 bg-neutral-800 hover:bg-neutral-700"
+              className="size-10 rounded-[4px] border-neutral-700 bg-neutral-800 hover:bg-neutral-700"
             >
               {copiedPassword ? (
-                <Check className="h-4 w-4 text-emerald-500" />
+                <Check className="size-4 text-emerald-500" />
               ) : (
-                <Copy className="h-4 w-4 text-neutral-400" />
+                <Copy className="size-4 text-neutral-400" />
               )}
             </Button>
           </div>
