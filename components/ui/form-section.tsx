@@ -52,7 +52,7 @@ function FormSection({
         </div>
         {headerAction && <CardAction>{headerAction}</CardAction>}
       </CardHeader>
-      <CardContent className="space-y-5 px-5 py-5">{children}</CardContent>
+      <CardContent className="space-y-5 p-5">{children}</CardContent>
     </Card>
   )
 }

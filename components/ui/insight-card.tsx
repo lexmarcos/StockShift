@@ -36,11 +36,11 @@ function InsightCard({
       <div className="mb-3 flex items-center gap-2">
         <div
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-[4px]",
+            "flex size-8 items-center justify-center rounded-[4px]",
             colorMap[color]
           )}
         >
-          <Icon className="h-4 w-4" strokeWidth={2} />
+          <Icon className="size-4" strokeWidth={2} />
         </div>
         <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
           {label}

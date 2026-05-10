@@ -36,6 +36,9 @@ type MobileDrawerViewportStyle = CSSProperties & {
 
 const MOBILE_DRAWER_OFFSET = 12;
 const MOBILE_DRAWER_MIN_HEIGHT = 160;
+const PASSIVE_VISUAL_VIEWPORT_OPTIONS: AddEventListenerOptions = {
+  passive: true,
+};
 
 const getDefaultMobileDrawerStyle = (): MobileDrawerViewportStyle => ({
   "--responsive-modal-bottom": "0px",
@@ -77,7 +80,11 @@ const useMobileDrawerViewportStyle = (
     updateStyle();
     window.addEventListener("resize", updateStyle);
     viewport?.addEventListener("resize", updateStyle);
-    viewport?.addEventListener("scroll", updateStyle);
+    viewport?.addEventListener(
+      "scroll",
+      updateStyle,
+      PASSIVE_VISUAL_VIEWPORT_OPTIONS
+    );
 
     return () => {
       window.removeEventListener("resize", updateStyle);

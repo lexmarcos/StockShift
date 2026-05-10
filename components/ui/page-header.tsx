@@ -23,7 +23,7 @@ function PageHeader({
             {subtitle}
           </p>
         )}
-        <h1 className="text-2xl font-bold tracking-tight text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
           {title}
         </h1>
       </div>

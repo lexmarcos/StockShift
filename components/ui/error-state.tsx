@@ -23,8 +23,8 @@ function ErrorState({
       )}
       {...props}
     >
-      <AlertTriangle className="mb-4 h-8 w-8 text-rose-500" strokeWidth={2} />
-      <h3 className="mb-2 text-sm font-bold text-white">{title}</h3>
+      <AlertTriangle className="mb-4 size-8 text-rose-500" strokeWidth={2} />
+      <h3 className="mb-2 text-sm font-semibold text-white">{title}</h3>
       <p className="mb-6 max-w-sm text-xs text-neutral-500">{description}</p>
       {onRetry && (
         <Button

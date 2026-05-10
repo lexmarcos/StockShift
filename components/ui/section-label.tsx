@@ -19,7 +19,7 @@ function SectionLabel({
       )}
       {...props}
     >
-      {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />}
+      {Icon && <Icon className="size-3.5" strokeWidth={2.5} />}
       {children}
     </div>
   )
