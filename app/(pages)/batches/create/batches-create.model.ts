@@ -11,6 +11,9 @@ import {
 import type {
   BatchCreatePayload,
   BatchCreateResponse,
+  LatestBatchPriceSuggestion,
+  ProductBatchesResponse,
+  ProductBatchPriceSource,
   ProductLookupResponse,
   ProductSearchOption,
   ProductSearchResponse,
@@ -35,6 +38,15 @@ export const buildProductBarcodeUrl = (barcode: string): string | null => {
   return `products/barcode/${encodeURIComponent(trimmedBarcode)}`;
 };
 
+export const buildProductBatchesUrl = (
+  productId: string | null,
+): string | null => {
+  const trimmedProductId = productId?.trim();
+  if (!trimmedProductId) return null;
+
+  return `batches/product/${encodeURIComponent(trimmedProductId)}`;
+};
+
 export const limitProductSearchOptions = (
   products: ProductSearchOption[],
 ): ProductSearchOption[] => products.slice(0, PRODUCT_SEARCH_LIMIT);
@@ -42,6 +54,51 @@ export const limitProductSearchOptions = (
 export const formatProductOptionLabel = (
   product: ProductSearchOption,
 ): string => (product.sku ? `${product.name} (${product.sku})` : product.name);
+
+export const formatPriceFromCents = (cents: number | null): string => {
+  if (cents === null) return "Sem preço";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
+};
+
+export const findMostRecentProductBatch = (
+  batches: ProductBatchPriceSource[],
+): ProductBatchPriceSource | null => {
+  if (batches.length === 0) return null;
+
+  return [...batches].sort((firstBatch, secondBatch) => {
+    return getBatchCreatedTime(secondBatch) - getBatchCreatedTime(firstBatch);
+  })[0];
+};
+
+export const buildLatestBatchPriceSuggestion = (
+  batch: ProductBatchPriceSource | null,
+): LatestBatchPriceSuggestion | null => {
+  if (!batch) return null;
+
+  return {
+    batchCode: batch.batchCode?.trim() || batch.id,
+    createdAtLabel: formatBatchCreatedAt(batch.createdAt),
+    costPriceCents: batch.costPrice,
+    sellingPriceCents: batch.sellingPrice,
+    costPriceLabel: formatPriceFromCents(batch.costPrice),
+    sellingPriceLabel: formatPriceFromCents(batch.sellingPrice),
+  };
+};
+
+const getBatchCreatedTime = (batch: ProductBatchPriceSource): number => {
+  const timestamp = new Date(batch.createdAt).getTime();
+  if (Number.isFinite(timestamp)) return timestamp;
+  return 0;
+};
+
+const formatBatchCreatedAt = (createdAt: string): string => {
+  const timestamp = new Date(createdAt).getTime();
+  if (!Number.isFinite(timestamp)) return createdAt;
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(timestamp));
+};
 
 export const buildBatchPayload = (
   data: BatchCreateFormData,
@@ -120,6 +177,22 @@ export const useBatchCreateModel = () => {
   );
 
   const productOptions = limitProductSearchOptions(productsData?.data || []);
+  const productBatchesUrl = buildProductBatchesUrl(selectedProduct?.id ?? null);
+  const {
+    data: productBatchesData,
+    isLoading: isLatestBatchPriceLoading,
+    isValidating: isLatestBatchPriceValidating,
+  } = useSWR<ProductBatchesResponse>(
+    productBatchesUrl,
+    async (url: string) => {
+      const { api } = await import("@/lib/api");
+      return api.get(url).json<ProductBatchesResponse>();
+    },
+  );
+
+  const latestBatchPriceSuggestion = buildLatestBatchPriceSuggestion(
+    findMostRecentProductBatch(productBatchesData?.data ?? []),
+  );
 
   const clearProductSearchBlurTimeout = () => {
     if (!productSearchBlurTimeoutRef.current) return;
@@ -210,6 +283,26 @@ export const useBatchCreateModel = () => {
     updateQuantity((form.getValues("quantity") || 1) - 1);
   };
 
+  const onApplyLatestCostPrice = () => {
+    if (latestBatchPriceSuggestion?.costPriceCents === null) return;
+    if (latestBatchPriceSuggestion?.costPriceCents === undefined) return;
+
+    form.setValue("costPrice", latestBatchPriceSuggestion.costPriceCents, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const onApplyLatestSellingPrice = () => {
+    if (latestBatchPriceSuggestion?.sellingPriceCents === null) return;
+    if (latestBatchPriceSuggestion?.sellingPriceCents === undefined) return;
+
+    form.setValue("sellingPrice", latestBatchPriceSuggestion.sellingPriceCents, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
   const onSubmit = async (data: BatchCreateFormData) => {
     if (!warehouseId) {
       toast.error("Selecione um warehouse ativo para criar o batch");
@@ -255,5 +348,11 @@ export const useBatchCreateModel = () => {
     onQuantityIncrement,
     onQuantityDecrement,
     selectedProduct,
+    latestBatchPriceSuggestion,
+    isLatestBatchPriceLoading:
+      Boolean(productBatchesUrl) &&
+      (isLatestBatchPriceLoading || isLatestBatchPriceValidating),
+    onApplyLatestCostPrice,
+    onApplyLatestSellingPrice,
   };
 };

@@ -1,14 +1,24 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  buildLatestBatchPriceSuggestion,
   buildBatchPayload,
   buildProductBarcodeUrl,
+  buildProductBatchesUrl,
   buildProductSearchUrl,
+  findMostRecentProductBatch,
+  formatPriceFromCents,
   formatProductOptionLabel,
   limitProductSearchOptions,
   useBatchCreateModel,
 } from "./batches-create.model";
-import type { BatchCreatePayload, ProductSearchResponse, ProductSearchOption } from "./batches-create.types";
+import type {
+  BatchCreatePayload,
+  ProductBatchesResponse,
+  ProductBatchPriceSource,
+  ProductSearchResponse,
+  ProductSearchOption,
+} from "./batches-create.types";
 import type { BatchCreateFormData } from "./batches-create.schema";
 
 type JsonResponse<T> = {
@@ -153,6 +163,40 @@ const searchProductResponse: ProductSearchResponse = {
   data: [productWithSku, expiringProduct],
 };
 
+const olderProductBatch: ProductBatchPriceSource = {
+  id: "batch-old",
+  productId: "prod-1",
+  productName: "Café Expresso",
+  warehouseId: "wh-1",
+  warehouseName: "Central",
+  originStockMovementItemId: null,
+  originStockMovementId: null,
+  originStockMovementCode: null,
+  batchCode: "B-OLD",
+  quantity: 5,
+  manufacturedDate: "2026-01-01",
+  expirationDate: null,
+  costPrice: 800,
+  sellingPrice: 1100,
+  createdAt: "2026-01-02T10:00:00.000Z",
+  updatedAt: "2026-01-02T10:00:00.000Z",
+};
+
+const newestProductBatch: ProductBatchPriceSource = {
+  ...olderProductBatch,
+  id: "batch-new",
+  batchCode: "B-NEW",
+  costPrice: 1050,
+  sellingPrice: 1550,
+  createdAt: "2026-02-02T10:00:00.000Z",
+  updatedAt: "2026-02-02T10:00:00.000Z",
+};
+
+const productBatchesResponse: ProductBatchesResponse = {
+  success: true,
+  data: [olderProductBatch, newestProductBatch],
+};
+
 const validSubmitData: BatchCreateFormData = {
   productId: "prod-1",
   quantity: 2,
@@ -205,6 +249,12 @@ describe("batchCreate helpers", () => {
     expect(buildProductBarcodeUrl("789 1001")).toBe("products/barcode/789%201001");
   });
 
+  it("buildProductBatchesUrl monta endpoint de lotes por produto", () => {
+    expect(buildProductBatchesUrl(" prod-1 ")).toBe("batches/product/prod-1");
+    expect(buildProductBatchesUrl(" ")).toBeNull();
+    expect(buildProductBatchesUrl(null)).toBeNull();
+  });
+
   it("formata label de produto com SKU quando disponível", () => {
     expect(formatProductOptionLabel(productWithSku)).toBe("Café Expresso (CAFE-01)");
   });
@@ -221,6 +271,21 @@ describe("batchCreate helpers", () => {
     }));
     expect(limitProductSearchOptions(options)).toHaveLength(5);
   });
+
+  it("encontra lote mais recente do produto por createdAt", () => {
+    expect(
+      findMostRecentProductBatch([olderProductBatch, newestProductBatch])?.id,
+    ).toBe("batch-new");
+    expect(findMostRecentProductBatch([])).toBeNull();
+  });
+
+  it("normaliza sugestão de preço do lote mais recente", () => {
+    const suggestion = buildLatestBatchPriceSuggestion(newestProductBatch);
+    expect(formatPriceFromCents(1050)).toBe("R$\u00a010,50");
+    expect(suggestion?.batchCode).toBe("B-NEW");
+    expect(suggestion?.costPriceLabel).toBe("R$\u00a010,50");
+    expect(suggestion?.sellingPriceLabel).toBe("R$\u00a015,50");
+  });
 });
 
 describe("useBatchCreateModel", () => {
@@ -234,6 +299,13 @@ describe("useBatchCreateModel", () => {
   });
 
   it("deve selecionar e limpar produto corretamente", () => {
+    fakeSWR.setState("batches/product/prod-1", {
+      data: productBatchesResponse,
+      error: null,
+      isLoading: false,
+      isValidating: false,
+      mutate: vi.fn(),
+    });
     const { result } = renderHook(() => useBatchCreateModel());
 
     act(() => {
@@ -242,6 +314,7 @@ describe("useBatchCreateModel", () => {
     expect(result.current.selectedProduct?.id).toBe("prod-1");
     expect(result.current.form.getValues("productId")).toBe("prod-1");
     expect(result.current.productSearchQuery).toBe("Café Expresso (CAFE-01)");
+    expect(result.current.latestBatchPriceSuggestion?.batchCode).toBe("B-NEW");
 
     act(() => {
       result.current.onProductClear();
@@ -249,6 +322,29 @@ describe("useBatchCreateModel", () => {
     expect(result.current.selectedProduct).toBeNull();
     expect(result.current.form.getValues("productId")).toBe("");
     expect(result.current.productSearchQuery).toBe("");
+  });
+
+  it("aplica preços do lote mais recente nos campos de criação", () => {
+    fakeSWR.setState("batches/product/prod-1", {
+      data: productBatchesResponse,
+      error: null,
+      isLoading: false,
+      isValidating: false,
+      mutate: vi.fn(),
+    });
+    const { result } = renderHook(() => useBatchCreateModel());
+
+    act(() => {
+      result.current.onProductSelect(productWithSku);
+    });
+
+    act(() => {
+      result.current.onApplyLatestCostPrice();
+      result.current.onApplyLatestSellingPrice();
+    });
+
+    expect(result.current.form.getValues("costPrice")).toBe(1050);
+    expect(result.current.form.getValues("sellingPrice")).toBe(1550);
   });
 
   it("mantém produto selecionado quando busca recebe label igual ao produto atual", () => {

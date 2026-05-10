@@ -13,10 +13,14 @@ import {
   X,
   Minus,
   Plus,
+  History,
 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchCreateFormData } from "./batches-create.schema";
-import type { ProductSearchOption } from "./batches-create.types";
+import type {
+  LatestBatchPriceSuggestion,
+  ProductSearchOption,
+} from "./batches-create.types";
 import { cn } from "@/lib/utils";
 import {
   Form,
@@ -54,6 +58,11 @@ interface BatchCreateViewProps {
   selectedWarehouseId: string | null;
   onQuantityIncrement: () => void;
   onQuantityDecrement: () => void;
+  selectedProduct: ProductSearchOption | null;
+  latestBatchPriceSuggestion: LatestBatchPriceSuggestion | null;
+  isLatestBatchPriceLoading: boolean;
+  onApplyLatestCostPrice: () => void;
+  onApplyLatestSellingPrice: () => void;
 }
 
 export const BatchCreateView = ({
@@ -75,6 +84,11 @@ export const BatchCreateView = ({
   selectedWarehouseId,
   onQuantityIncrement,
   onQuantityDecrement,
+  selectedProduct,
+  latestBatchPriceSuggestion,
+  isLatestBatchPriceLoading,
+  onApplyLatestCostPrice,
+  onApplyLatestSellingPrice,
 }: BatchCreateViewProps) => {
   const { isSubmitting } = form.formState;
 
@@ -225,7 +239,7 @@ export const BatchCreateView = ({
                 </Card>
 
                 {/* Financials Card */}
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                <Card className="overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-emerald-500" />
@@ -235,14 +249,14 @@ export const BatchCreateView = ({
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-6">
-                    <div className="grid gap-5 md:grid-cols-3">
+                    <div className="grid items-start gap-5 md:grid-cols-3">
                       <FormField
                         control={form.control}
                         name="quantity"
                         render={({ field }) => {
                           const { onChange, value, ...rest } = field;
                           return (
-                            <FormItem>
+                            <FormItem className="self-start">
                               <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                 Quantidade{" "}
                                 <span className="text-rose-500">*</span>
@@ -287,7 +301,7 @@ export const BatchCreateView = ({
                         render={({ field }) => {
                           const { onChange, value, ...rest } = field;
                           return (
-                            <FormItem>
+                            <FormItem className="self-start">
                               <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                 Custo Unitário
                               </FormLabel>
@@ -300,6 +314,23 @@ export const BatchCreateView = ({
                                   className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                                 />
                               </FormControl>
+                              <LatestBatchPriceButton
+                                fieldLabel="Último custo"
+                                selectedProduct={selectedProduct}
+                                suggestion={latestBatchPriceSuggestion}
+                                priceLabel={
+                                  latestBatchPriceSuggestion?.costPriceLabel ??
+                                  null
+                                }
+                                isPriceAvailable={
+                                  latestBatchPriceSuggestion?.costPriceCents !==
+                                    null &&
+                                  latestBatchPriceSuggestion?.costPriceCents !==
+                                    undefined
+                                }
+                                isLoading={isLatestBatchPriceLoading}
+                                onApply={onApplyLatestCostPrice}
+                              />
                               <FormMessage className="text-xs text-rose-500" />
                             </FormItem>
                           );
@@ -311,7 +342,7 @@ export const BatchCreateView = ({
                         render={({ field }) => {
                           const { onChange, value, ...rest } = field;
                           return (
-                            <FormItem>
+                            <FormItem className="self-start">
                               <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                 Preço de Venda
                               </FormLabel>
@@ -324,6 +355,23 @@ export const BatchCreateView = ({
                                   className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
                                 />
                               </FormControl>
+                              <LatestBatchPriceButton
+                                fieldLabel="Última venda"
+                                selectedProduct={selectedProduct}
+                                suggestion={latestBatchPriceSuggestion}
+                                priceLabel={
+                                  latestBatchPriceSuggestion?.sellingPriceLabel ??
+                                  null
+                                }
+                                isPriceAvailable={
+                                  latestBatchPriceSuggestion?.sellingPriceCents !==
+                                    null &&
+                                  latestBatchPriceSuggestion?.sellingPriceCents !==
+                                    undefined
+                                }
+                                isLoading={isLatestBatchPriceLoading}
+                                onApply={onApplyLatestSellingPrice}
+                              />
                               <FormMessage className="text-xs text-rose-500" />
                             </FormItem>
                           );
@@ -372,9 +420,9 @@ export const BatchCreateView = ({
               </div>
 
               {/* Right Column - Secondary Info */}
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 {/* Dates Card */}
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+                <Card className="w-full min-w-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-amber-500" />
@@ -383,19 +431,19 @@ export const BatchCreateView = ({
                       </CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-6 space-y-5">
+                  <CardContent className="min-w-0 overflow-hidden pt-6 space-y-5">
                     <FormField
                       control={form.control}
                       name="manufacturedDate"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="min-w-0">
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Data de Fabricação
                           </FormLabel>
                           <FormControl>
                             <Input
                               type="date"
-                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                              className="block h-10 w-full min-w-0 max-w-full appearance-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
                           </FormControl>
@@ -407,14 +455,14 @@ export const BatchCreateView = ({
                       control={form.control}
                       name="expirationDate"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="min-w-0">
                           <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             Data de Validade
                           </FormLabel>
                           <FormControl>
                             <Input
                               type="date"
-                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                              className="block h-10 w-full min-w-0 max-w-full appearance-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
                           </FormControl>
@@ -495,3 +543,64 @@ export const BatchCreateView = ({
     </div>
   );
 };
+
+function LatestBatchPriceButton({
+  fieldLabel,
+  selectedProduct,
+  suggestion,
+  priceLabel,
+  isPriceAvailable,
+  isLoading,
+  onApply,
+}: {
+  fieldLabel: string;
+  selectedProduct: ProductSearchOption | null;
+  suggestion: LatestBatchPriceSuggestion | null;
+  priceLabel: string | null;
+  isPriceAvailable: boolean;
+  isLoading: boolean;
+  onApply: () => void;
+}) {
+  if (!selectedProduct) return null;
+
+  if (isLoading) {
+    return (
+      <div className="mt-2 flex h-8 items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-950 px-2 text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Buscando último lote
+      </div>
+    );
+  }
+
+  if (!suggestion) {
+    return (
+      <div className="mt-2 rounded-[4px] border border-neutral-800 bg-neutral-950 px-2 py-2 text-[10px] font-bold uppercase tracking-wide text-neutral-600">
+        Sem lote anterior
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={!isPriceAvailable}
+      onClick={onApply}
+      className="mt-2 block w-full rounded-[4px] border border-neutral-800 bg-neutral-950 px-2.5 py-2 text-left transition-none hover:border-blue-600 hover:bg-blue-950/20 disabled:pointer-events-none disabled:opacity-50"
+    >
+      <span className="flex min-w-0 items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <History className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+          <span className="truncate text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+            {fieldLabel}
+          </span>
+        </span>
+        <span className="shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 px-2 py-1 font-mono text-xs font-black leading-none text-white">
+          {priceLabel}
+        </span>
+      </span>
+      <span className="mt-1.5 block truncate font-mono text-[10px] text-neutral-600">
+        {suggestion.batchCode} - {suggestion.createdAtLabel}
+      </span>
+    </button>
+  );
+}

@@ -33,3 +33,37 @@ export interface BatchCreateResponse {
   message?: string | null;
   data: { id: string };
 }
+
+export interface ProductBatchPriceSource {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  originStockMovementItemId: string | null;
+  originStockMovementId: string | null;
+  originStockMovementCode: string | null;
+  batchCode: string | null;
+  quantity: number;
+  manufacturedDate: string | null;
+  expirationDate: string | null;
+  costPrice: number | null;
+  sellingPrice: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductBatchesResponse {
+  success: boolean;
+  message?: string | null;
+  data: ProductBatchPriceSource[];
+}
+
+export interface LatestBatchPriceSuggestion {
+  batchCode: string;
+  createdAtLabel: string;
+  costPriceCents: number | null;
+  sellingPriceCents: number | null;
+  costPriceLabel: string;
+  sellingPriceLabel: string;
+}
