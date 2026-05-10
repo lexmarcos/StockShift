@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useState,
   useEffect,
   ReactNode,
@@ -73,7 +73,7 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
 }
 
 export function useBreadcrumbContext() {
-  const context = useContext(BreadcrumbContext);
+  const context = use(BreadcrumbContext);
   if (context === undefined) {
     throw new Error(
       "useBreadcrumbContext must be used within a BreadcrumbProvider"

@@ -182,7 +182,7 @@ export const ImageDropzone = ({
               disabled={disabled}
               className="h-8 rounded-sm border-border/40 hover:bg-muted"
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="size-3 mr-1" />
               Remover
             </Button>
           </div>
@@ -234,7 +234,7 @@ export const ImageDropzone = ({
                 disabled={disabled}
                 className="h-8 rounded-sm border-border/40 hover:bg-muted"
               >
-                <X className="h-3 w-3 mr-1" />
+                <X className="size-3 mr-1" />
                 Remover
               </Button>
             </div>
@@ -251,7 +251,7 @@ export const ImageDropzone = ({
         <div className="relative rounded-sm border border-red-900/30 bg-red-950/10 p-4">
           <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-red-900/20 bg-red-950/5 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2 text-center">
-              <X className="h-8 w-8 text-red-700/70" />
+              <X className="size-8 text-red-700/70" />
               <p className="text-xs font-semibold uppercase tracking-wide text-red-700/80">
                 Imagem será removida ao salvar
               </p>
@@ -280,12 +280,12 @@ export const ImageDropzone = ({
       <div className={rootClassName}>
         <div className="relative rounded-sm border-2 border-dashed p-8 border-blue-600/40 bg-blue-950/10">
           <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-blue-600/10 border border-blue-600/30">
-              <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+            <div className="flex size-12 items-center justify-center rounded-sm bg-blue-600/10 border border-blue-600/30">
+              <Loader2 className="size-6 text-blue-500 animate-spin" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
-                Comprimindo imagem...
+                Comprimindo imagem…
               </p>
               <p className="text-[11px] text-muted-foreground/70 mt-1">
                 Otimizando para upload
@@ -318,11 +318,11 @@ export const ImageDropzone = ({
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         />
         <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
+          <div className="flex size-12 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
             {isDragging ? (
-              <Upload className="h-6 w-6 text-foreground/70" />
+              <Upload className="size-6 text-foreground/70" />
             ) : (
-              <ImageIcon className="h-6 w-6 text-foreground/70" />
+              <ImageIcon className="size-6 text-foreground/70" />
             )}
           </div>
           <div>

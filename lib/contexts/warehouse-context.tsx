@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, use, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 interface WarehouseContextValue {
@@ -15,7 +15,7 @@ const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const [selectedWarehouseId, setSelectedWarehouseIdState] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
+  const { push } = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -30,7 +30,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
       // Redirecionar para /sales após selecionar warehouse
-      router.push("/sales");
+      push("/sales");
     }
   };
 
@@ -46,7 +46,7 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useWarehouse = () => {
-  const context = useContext(WarehouseContext);
+  const context = use(WarehouseContext);
   if (!context) {
     throw new Error("useWarehouse must be used within WarehouseProvider");
   }

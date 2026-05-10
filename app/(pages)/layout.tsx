@@ -54,7 +54,7 @@ export default function PagesLayout({
   const { warehouseId } = useSelectedWarehouse();
   const { user, logout } = useAuth();
   const { selectedWarehouseId, setSelectedWarehouseId } = useWarehouse();
-  const router = useRouter();
+  const { replace } = useRouter();
 
   const { data: warehouses = [] } = useSWR<WarehouseData[]>(
     isOpen ? "mobile-warehouses" : null,
@@ -66,14 +66,14 @@ export default function PagesLayout({
 
   useEffect(() => {
     if (user?.mustChangePassword) {
-      router.replace("/change-password");
+      replace("/change-password");
       return;
     }
 
     if (warehouseId === null) {
-      router.replace("/warehouses");
+      replace("/warehouses");
     }
-  }, [warehouseId, user, router]);
+  }, [warehouseId, user, replace]);
 
   const handleWarehouseChange = async (id: string) => {
     try {
@@ -95,13 +95,13 @@ export default function PagesLayout({
   if (warehouseId === null) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
-          <Building2 className="h-8 w-8 text-blue-500" />
+        <div className="flex size-16 items-center justify-center rounded-[4px] bg-blue-600/10 border border-blue-900/50">
+          <Building2 className="size-8 text-blue-500" />
         </div>
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+          <Loader2 className="size-4 animate-spin text-blue-500" />
           <span className="text-sm text-neutral-400">
-            Redirecionando para seleção de armazém...
+            Redirecionando para seleção de armazém…
           </span>
         </div>
       </div>
@@ -133,7 +133,12 @@ export default function PagesLayout({
         inert={!isOpen}
         className={cn("fixed inset-0 z-50 md:hidden", !isOpen && "hidden")}
       >
-        <div className="absolute inset-0 bg-black/60" onClick={closeMenu} />
+        <button
+          type="button"
+          aria-label="Fechar sobreposição"
+          className="absolute inset-0 bg-black/60"
+          onClick={closeMenu}
+        />
         <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
           {/* Logo + close button */}
           <div className="mb-4 flex items-center justify-between">
@@ -148,10 +153,10 @@ export default function PagesLayout({
             <button
               type="button"
               onClick={closeMenu}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
+              className="inline-flex size-9 items-center justify-center rounded-sm border border-border/60 bg-foreground/5 text-foreground"
               aria-label="Fechar menu"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           </div>
 
@@ -164,7 +169,7 @@ export default function PagesLayout({
             >
               <SelectTrigger className="!h-11 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                 <div className="flex items-center gap-2">
-                  <Warehouse className="h-4 w-4 text-neutral-500" />
+                  <Warehouse className="size-4 text-neutral-500" />
                   <SelectValue placeholder="Armazém" />
                 </div>
               </SelectTrigger>
@@ -198,8 +203,8 @@ export default function PagesLayout({
           <div className="pt-4 mt-4 border-t border-border/40">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex w-full items-center gap-2 rounded-sm px-3 py-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
-                  <User className="h-4 w-4" />
+                <button className="flex w-full items-center gap-2 rounded-sm p-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground">
+                  <User className="size-4" />
                   <span className="truncate">{user?.fullName || "Perfil"}</span>
                 </button>
               </DropdownMenuTrigger>
@@ -219,7 +224,7 @@ export default function PagesLayout({
 
                 <DropdownMenuItem asChild className="text-xs uppercase tracking-wide focus:bg-neutral-800">
                   <Link href="/profile" onClick={closeMenu} className="flex cursor-pointer items-center gap-2 text-neutral-300">
-                    <User className="h-4 w-4" />
+                    <User className="size-4" />
                     Perfil
                   </Link>
                 </DropdownMenuItem>
@@ -231,7 +236,7 @@ export default function PagesLayout({
                   className="cursor-pointer text-xs uppercase tracking-wide text-rose-500 focus:bg-rose-950/50 focus:text-rose-500"
                 >
                   <div className="flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="size-4" />
                     Logout
                   </div>
                 </DropdownMenuItem>
