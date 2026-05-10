@@ -145,11 +145,11 @@ const STATUS_FILTER_OPTIONS: Array<{
   tone: string;
   icon: ReactNode;
 }> = [
-  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "expired", label: "Expirado", tone: "text-rose-400", icon: <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "expiring", label: "Expirando", tone: "text-amber-400", icon: <Clock className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "low", label: "Baixo estoque", tone: "text-blue-400", icon: <TrendingDown className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "ok", label: "Regular", tone: "text-emerald-400", icon: <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="size-3.5" strokeWidth={2.5} /> },
+  { value: "expired", label: "Expirado", tone: "text-rose-400", icon: <XCircle className="size-3.5" strokeWidth={2.5} /> },
+  { value: "expiring", label: "Expirando", tone: "text-amber-400", icon: <Clock className="size-3.5" strokeWidth={2.5} /> },
+  { value: "low", label: "Baixo estoque", tone: "text-blue-400", icon: <TrendingDown className="size-3.5" strokeWidth={2.5} /> },
+  { value: "ok", label: "Regular", tone: "text-emerald-400", icon: <CheckCircle2 className="size-3.5" strokeWidth={2.5} /> },
 ];
 
 const SORT_FILTER_OPTIONS: Array<{
@@ -248,11 +248,11 @@ const SortIcon = ({
   field: SortConfig["key"];
   sortConfig: SortConfig;
 }) => {
-  if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
+  if (sortConfig.key !== field) return <div className="size-3 opacity-0" />;
   return sortConfig.direction === "asc" ? (
-    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowUp className="ml-1 size-3 text-blue-500" />
   ) : (
-    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowDown className="ml-1 size-3 text-blue-500" />
   );
 };
 
@@ -293,7 +293,8 @@ export const BatchesView = ({
     ok: { activeBorder: "border-emerald-500/50", activeBg: "bg-emerald-500/10", activeText: "text-emerald-100" },
   };
 
-  const renderMobileFiltersPanel = (draft: BatchFilterDraft) => (
+  const draft = mobileFiltersDraft;
+  const mobileFiltersPanel = (
     <Drawer open={isMobileFiltersOpen} onOpenChange={onMobileFiltersOpenChange}>
       <DrawerContent
         className="border-neutral-800 bg-[#171717] text-neutral-100"
@@ -312,7 +313,7 @@ export const BatchesView = ({
         <div className="max-h-[68vh] overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-6">
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Status do lote
               </h3>
               <div className="grid grid-cols-3 gap-2">
@@ -346,7 +347,7 @@ export const BatchesView = ({
 
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                   Baixo estoque
                 </h3>
                 <span className="rounded-[4px] border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 font-mono text-xs font-black text-blue-300">
@@ -378,7 +379,7 @@ export const BatchesView = ({
             <div className="h-px bg-neutral-800/60" />
 
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Visualização
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -395,7 +396,7 @@ export const BatchesView = ({
                       : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
                   )}
                 >
-                  <Layers className="mr-2 h-3.5 w-3.5" />
+                  <Layers className="mr-2 size-3.5" />
                   Lista
                 </Button>
                 <Button
@@ -411,7 +412,7 @@ export const BatchesView = ({
                       : "border-neutral-800 bg-neutral-950/50 text-neutral-500 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white",
                   )}
                 >
-                  <Package className="mr-2 h-3.5 w-3.5" />
+                  <Package className="mr-2 size-3.5" />
                   Agrupar
                 </Button>
               </div>
@@ -420,7 +421,7 @@ export const BatchesView = ({
             <div className="h-px bg-neutral-800/60" />
 
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Ordenar por
               </h3>
               <Select
@@ -459,7 +460,7 @@ export const BatchesView = ({
             onClick={onClearMobileFilters}
             className="h-11 flex-1 rounded-[4px] border-neutral-700 bg-transparent text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-800 hover:text-white"
           >
-            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            <Trash2 className="mr-2 size-3.5" />
             Limpar
           </Button>
           <Button
@@ -481,7 +482,7 @@ export const BatchesView = ({
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                <h1 className="text-2xl font-semibold tracking-tighter text-white">
                   Lotes
                 </h1>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -491,7 +492,7 @@ export const BatchesView = ({
               <PermissionGate permission="batches:create">
                 <Link href="/batches/create" className="w-full md:w-auto">
                   <Button className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 size-4" />
                     Novo Lote
                   </Button>
                 </Link>
@@ -504,13 +505,13 @@ export const BatchesView = ({
                   <FilterToken
                     active={activeFilterCount > 0}
                     count={activeFilterCount}
-                    icon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+                    icon={<SlidersHorizontal className="size-3.5" />}
                     label="Filtros"
                     onClick={onOpenMobileFilters}
                   />
                   <FilterToken
                     active={filters.status !== "all"}
-                    icon={<Filter className="h-3.5 w-3.5" />}
+                    icon={<Filter className="size-3.5" />}
                     label="Status"
                     value={getStatusFilterLabel(filters.status)}
                     onClick={onOpenMobileFilters}
@@ -520,14 +521,14 @@ export const BatchesView = ({
                       sortConfig.key !== "createdAt" ||
                       sortConfig.direction !== "desc"
                     }
-                    icon={<ArrowDown className="h-3.5 w-3.5" />}
+                    icon={<ArrowDown className="size-3.5" />}
                     label="Ordem"
                     value={getSortLabel(sortConfig)}
                     onClick={onOpenMobileFilters}
                   />
                   <FilterToken
                     active={isGroupedByProduct}
-                    icon={<Layers className="h-3.5 w-3.5" />}
+                    icon={<Layers className="size-3.5" />}
                     label="Visão"
                     value={
                       isGroupedByProduct ? "Agrupado" : "Lista completa"
@@ -539,7 +540,7 @@ export const BatchesView = ({
                       filters.lowStockThreshold !==
                       DEFAULT_LOW_STOCK_THRESHOLD
                     }
-                    icon={<Package className="h-3.5 w-3.5" />}
+                    icon={<Package className="size-3.5" />}
                     label="Baixo"
                     value={`<= ${filters.lowStockThreshold} un.`}
                     onClick={onOpenMobileFilters}
@@ -553,8 +554,8 @@ export const BatchesView = ({
               {/* Total Batches */}
               <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-neutral-800 border border-neutral-700">
-                    <Layers className="h-3.5 w-3.5 text-neutral-400" />
+                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-neutral-800 border border-neutral-700">
+                    <Layers className="size-3.5 text-neutral-400" />
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Total de Lotes
@@ -573,8 +574,8 @@ export const BatchesView = ({
               {/* Expired */}
               <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
-                    <XCircle className="h-3.5 w-3.5 text-rose-500" />
+                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
+                    <XCircle className="size-3.5 text-rose-500" />
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Expirados
@@ -593,8 +594,8 @@ export const BatchesView = ({
               {/* Expiring */}
               <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
-                    <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
+                    <Calendar className="size-3.5 text-amber-500" />
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Expirando (30d)
@@ -613,8 +614,8 @@ export const BatchesView = ({
               {/* Low Stock */}
               <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-blue-500/10 border border-blue-500/20">
-                    <Package className="h-3.5 w-3.5 text-blue-500" />
+                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-blue-500/10 border border-blue-500/20">
+                    <Package className="size-3.5 text-blue-500" />
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Baixo Estoque
@@ -635,10 +636,10 @@ export const BatchesView = ({
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
               <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
                 <div className="text-neutral-500 absolute left-3">
-                  <Search className="h-3.5 w-3.5" />
+                  <Search className="size-3.5" />
                 </div>
                 <Input
-                  placeholder="Buscar por produto, SKU ou lote..."
+                  placeholder="Buscar por produto, SKU ou lote…"
                   value={filters.searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
@@ -654,7 +655,7 @@ export const BatchesView = ({
                 >
                   <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
-                      <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                      <Filter className="size-3.5 text-neutral-500" />
                       <SelectValue placeholder="Status" />
                     </div>
                   </SelectTrigger>
@@ -705,7 +706,7 @@ export const BatchesView = ({
                       : "text-neutral-400 hover:bg-neutral-800 hover:text-white",
                   )}
                 >
-                  <Layers className="h-3.5 w-3.5" />
+                  <Layers className="size-3.5" />
                   {isGroupedByProduct
                     ? "Lista Completa"
                     : "Agrupar por Produto"}
@@ -735,9 +736,9 @@ export const BatchesView = ({
             {/* Loading */}
             {isLoading && (
               <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <Loader2 className="size-8 animate-spin text-blue-600" />
                 <span className="text-xs uppercase tracking-wide text-neutral-500">
-                  Carregando lotes...
+                  Carregando lotes…
                 </span>
               </div>
             )}
@@ -745,9 +746,9 @@ export const BatchesView = ({
             {/* Error */}
             {error && (
               <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-                <AlertTriangle className="h-8 w-8 text-rose-500" />
+                <AlertTriangle className="size-8 text-rose-500" />
                 <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase text-rose-500">
+                  <h3 className="text-sm font-semibold uppercase text-rose-500">
                     Falha na conexão
                   </h3>
                   <p className="text-xs text-rose-500/70">
@@ -760,11 +761,11 @@ export const BatchesView = ({
             {/* Empty State */}
             {!isLoading && !error && batches.length === 0 && (
               <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
-                  <Layers className="h-8 w-8 text-neutral-600" />
+                <div className="flex size-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+                  <Layers className="size-8 text-neutral-600" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
                     {filters.searchQuery || filters.status !== "all"
                       ? "Nenhum resultado encontrado"
                       : "Nenhum lote cadastrado"}
@@ -787,7 +788,7 @@ export const BatchesView = ({
                   <PermissionGate permission="batches:create">
                     <Link href="/batches/create">
                       <Button className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
-                        <Plus className="mr-2 h-3.5 w-3.5" />
+                        <Plus className="mr-2 size-3.5" />
                         Primeiro Lote
                       </Button>
                     </Link>
@@ -810,7 +811,7 @@ export const BatchesView = ({
                         <AccordionTrigger className="py-3 text-left hover:no-underline">
                           <div className="flex w-full items-center justify-between gap-3 pr-2">
                             <div className="space-y-0.5">
-                              <h3 className="text-sm font-bold text-white">
+                              <h3 className="text-sm font-semibold text-white">
                                 {group.productName}
                               </h3>
                               <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-500">
@@ -1016,10 +1017,10 @@ export const BatchesView = ({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                                      className="size-8 rounded-[4px] hover:bg-neutral-800 text-neutral-400 hover:text-white"
                                       aria-label="Ver detalhes"
                                     >
-                                      <Eye className="h-4 w-4" />
+                                      <Eye className="size-4" />
                                     </Button>
                                   </Link>
                                 </div>
@@ -1122,7 +1123,7 @@ export const BatchesView = ({
         </div>
       </main>
 
-      {renderMobileFiltersPanel(mobileFiltersDraft)}
+      {mobileFiltersPanel}
     </div>
   );
 };

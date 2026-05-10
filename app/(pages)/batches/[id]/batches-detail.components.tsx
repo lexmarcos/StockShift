@@ -50,7 +50,7 @@ export const StatusBadge = ({ status }: { status: BatchStatusView }) => {
         status.badgeClass,
       )}
     >
-      <Icon className="mr-1.5 h-3.5 w-3.5" />
+      <Icon className="mr-1.5 size-3.5" />
       {status.label}
     </Badge>
   );
@@ -87,11 +87,11 @@ export const MetricTile = ({
       </div>
       <div
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border",
+          "flex size-9 shrink-0 items-center justify-center rounded-[4px] border",
           toneClass,
         )}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="size-4" />
       </div>
     </div>
     <p className="mt-3 border-t border-neutral-800 pt-3 text-xs text-neutral-500">
@@ -111,7 +111,7 @@ interface InfoRowProps {
 export const InfoRow = ({ label, value, icon: Icon }: InfoRowProps) => (
   <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4">
     <div className="mb-2 flex items-center gap-2 text-neutral-500">
-      <Icon className="h-3.5 w-3.5" />
+      <Icon className="size-3.5" />
       <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
     </div>
     <p className="break-words font-mono text-sm font-bold text-white">{value}</p>
@@ -136,7 +136,7 @@ export const TimelineStep = ({
   <div className="relative pl-5">
     <span
       className={cn(
-        "absolute left-[-5px] top-1 h-2.5 w-2.5 rounded-[2px] border border-[#171717]",
+        "absolute left-[-5px] top-1 size-2.5 rounded-[2px] border border-[#171717]",
         toneClass,
       )}
     />
@@ -158,7 +158,7 @@ export const OriginSection = ({ movementId, movementCode }: OriginSectionProps) 
     return (
       <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4">
         <div className="mb-2 flex items-center gap-2 text-neutral-500">
-          <GitBranch className="h-3.5 w-3.5" />
+          <GitBranch className="size-3.5" />
           <span className="text-[10px] font-bold uppercase tracking-widest">Origem</span>
         </div>
         <p className="text-sm text-neutral-500">Criado manualmente</p>
@@ -172,7 +172,7 @@ export const OriginSection = ({ movementId, movementCode }: OriginSectionProps) 
       className="group block rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 hover:border-blue-500/40"
     >
       <div className="mb-2 flex items-center gap-2 text-neutral-500 group-hover:text-blue-400">
-        <GitBranch className="h-3.5 w-3.5" />
+        <GitBranch className="size-3.5" />
         <span className="text-[10px] font-bold uppercase tracking-widest">Origem</span>
       </div>
       <p className="break-words font-mono text-sm font-bold text-white group-hover:text-blue-300">
@@ -206,7 +206,7 @@ export const BatchActions = ({
           variant="outline"
           className="h-9 rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
         >
-          <Pencil className="mr-2 h-3.5 w-3.5" />
+          <Pencil className="mr-2 size-3.5" />
           Editar
         </Button>
       </Link>
@@ -219,7 +219,7 @@ export const BatchActions = ({
             variant="outline"
             className="h-9 rounded-[4px] border-rose-900/60 bg-transparent text-xs font-bold uppercase tracking-wide text-rose-400 hover:border-rose-700 hover:bg-rose-950/40"
           >
-            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            <Trash2 className="mr-2 size-3.5" />
             Excluir
           </Button>
         </AlertDialogTrigger>

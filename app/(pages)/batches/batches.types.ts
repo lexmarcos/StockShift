@@ -18,7 +18,7 @@ export interface Batch {
   updatedAt: string;
 }
 
-export type BatchStatusKind = "expired" | "expiring" | "low" | "ok";
+type BatchStatusKind = "expired" | "expiring" | "low" | "ok";
 
 export interface BatchStatus {
   kind: BatchStatusKind;

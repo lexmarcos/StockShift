@@ -42,6 +42,11 @@ interface ProductDetailViewProps {
   batchesError: Error | null;
 }
 
+const PRODUCT_DETAIL_CURRENCY_FORMATTER = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
 export const ProductDetailView = ({
   product,
   batches,
@@ -80,10 +85,7 @@ export const ProductDetailView = ({
 
   const formatCurrency = (value?: number | null) => {
     if (value === null || value === undefined) return "—";
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
+    return PRODUCT_DETAIL_CURRENCY_FORMATTER.format(value);
   };
 
   if (isLoading) {
@@ -117,7 +119,7 @@ export const ProductDetailView = ({
           <PermissionGate permission="products:update">
             <Link href={`/products/${product.id}/edit`}>
               <Button className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
-                <Pencil className="mr-2 h-3.5 w-3.5" />
+                <Pencil className="mr-2 size-3.5" />
                 Editar
               </Button>
             </Link>
@@ -140,9 +142,9 @@ export const ProductDetailView = ({
                 )}
               >
                 {product.active ? (
-                  <ShieldCheck className="mr-1 h-3 w-3" />
+                  <ShieldCheck className="mr-1 size-3" />
                 ) : (
-                  <ShieldOff className="mr-1 h-3 w-3" />
+                  <ShieldOff className="mr-1 size-3" />
                 )}
                 {product.active ? "Ativo" : "Inativo"}
               </Badge>
@@ -162,7 +164,7 @@ export const ProductDetailView = ({
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-neutral-700">
-                  <Package className="h-20 w-20 stroke-1 mb-3" />
+                  <Package className="size-20 stroke-1 mb-3" />
                   <span className="text-[10px] uppercase tracking-widest font-bold text-neutral-600">
                     Sem Imagem
                   </span>
@@ -178,9 +180,9 @@ export const ProductDetailView = ({
                 </span>
                 <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
                   {product.isKit ? (
-                    <Layers className="h-3 w-3 text-purple-500" />
+                    <Layers className="size-3 text-purple-500" />
                   ) : (
-                    <Box className="h-3 w-3 text-blue-500" />
+                    <Box className="size-3 text-blue-500" />
                   )}
                   {product.isKit ? "Kit" : "Un."}
                 </div>
@@ -192,7 +194,7 @@ export const ProductDetailView = ({
                 <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
                   <Clock
                     className={cn(
-                      "h-3 w-3",
+                      "size-3",
                       product.hasExpiration
                         ? "text-amber-500"
                         : "text-neutral-600"
@@ -217,7 +219,7 @@ export const ProductDetailView = ({
         <div className="space-y-6 lg:col-span-8">
           {/* Description Card */}
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-6">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-3">
+            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-3">
               Descrição
             </h2>
             <p className="text-sm leading-relaxed text-neutral-400">
@@ -230,7 +232,7 @@ export const ProductDetailView = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* SKU */}
             <DataField
-              icon={<Hash className="h-4 w-4" />}
+              icon={<Hash className="size-4" />}
               label="SKU"
               value={product.sku || "NÃO DEFINIDO"}
               mono
@@ -243,7 +245,7 @@ export const ProductDetailView = ({
 
             {/* Barcode */}
             <DataField
-              icon={<Barcode className="h-4 w-4" />}
+              icon={<Barcode className="size-4" />}
               label="Código de Barras"
               badge={product.barcodeType || undefined}
               value={product.barcode || "NÃO CADASTRADO"}
@@ -257,14 +259,14 @@ export const ProductDetailView = ({
 
             {/* Category */}
             <DataField
-              icon={<Tag className="h-4 w-4 text-emerald-500" />}
+              icon={<Tag className="size-4 text-emerald-500" />}
               label="Categoria"
               value={product.categoryName || "Sem Categoria"}
             />
 
             {/* Brand */}
             <DataField
-              icon={<Building2 className="h-4 w-4 text-amber-500" />}
+              icon={<Building2 className="size-4 text-amber-500" />}
               label="Marca / Fabricante"
               value={product.brand?.name || "Genérico"}
             />
@@ -272,7 +274,7 @@ export const ProductDetailView = ({
 
           {/* System Metadata */}
           <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
-            <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+            <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
               Metadados
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -301,7 +303,7 @@ export const ProductDetailView = ({
                   className="flex items-center gap-2 rounded-[4px] bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-[11px] font-mono text-neutral-500 hover:text-neutral-300 hover:border-neutral-700 w-full max-w-full group"
                 >
                   <span className="truncate">{product.id}</span>
-                  <Copy className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-100" />
+                  <Copy className="size-3 shrink-0 opacity-0 group-hover:opacity-100" />
                 </button>
               </div>
             </div>
@@ -313,8 +315,8 @@ export const ProductDetailView = ({
       {product.attributes && Object.keys(product.attributes).length > 0 && (
         <div className="mb-8 rounded-[4px] border border-neutral-800 bg-[#171717]">
           <div className="border-b border-neutral-800 px-5 py-4 flex items-center gap-2">
-            <QrCode className="h-4 w-4 text-blue-500" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+            <QrCode className="size-4 text-blue-500" />
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
               Especificações Técnicas
             </h3>
             <Badge className="ml-auto rounded-[4px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
@@ -345,8 +347,8 @@ export const ProductDetailView = ({
       <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
         <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
           <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-amber-500" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+            <Layers className="size-4 text-amber-500" />
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
               Lotes do Produto
             </h3>
           </div>
@@ -372,7 +374,7 @@ export const ProductDetailView = ({
 
         {!isLoadingBatches && !batchesError && batches.length === 0 && (
           <div className="px-5 py-10 text-center">
-            <Package className="mx-auto mb-3 h-10 w-10 text-neutral-800" strokeWidth={1.5} />
+            <Package className="mx-auto mb-3 size-10 text-neutral-800" strokeWidth={1.5} />
             <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
               Nenhum lote cadastrado
             </p>
@@ -407,7 +409,7 @@ export const ProductDetailView = ({
 
                   {/* Warehouse */}
                   <div className="col-span-3 flex items-center gap-1.5 min-w-0">
-                    <Warehouse className="h-3 w-3 shrink-0 text-neutral-600" />
+                    <Warehouse className="size-3 shrink-0 text-neutral-600" />
                     <span className="text-xs text-neutral-400 truncate">
                       {batch.warehouseName}
                     </span>
@@ -425,7 +427,7 @@ export const ProductDetailView = ({
 
                   {/* Expiration Date */}
                   <div className="col-span-2 flex items-center justify-end gap-1.5">
-                    <Calendar className="h-3 w-3 text-neutral-600" />
+                    <Calendar className="size-3 text-neutral-600" />
                     <span className="text-xs font-mono text-neutral-400 tabular-nums">
                       {formatDate(batch.expirationDate)}
                     </span>
@@ -436,7 +438,7 @@ export const ProductDetailView = ({
                     <span className="text-xs font-mono text-neutral-400 tabular-nums">
                       {formatCurrency(batch.sellingPrice)}
                     </span>
-                    <ChevronRight className="h-3.5 w-3.5 text-neutral-700 group-hover:text-neutral-400" />
+                    <ChevronRight className="size-3.5 text-neutral-700 group-hover:text-neutral-400" />
                   </div>
                 </Link>
               ))}
@@ -479,7 +481,7 @@ function DataField({
 }) {
   return (
     <div className="group flex items-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 hover:border-neutral-700">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-neutral-800 text-neutral-400 group-hover:text-white">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-[4px] bg-neutral-800 text-neutral-400 group-hover:text-white">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
@@ -512,7 +514,7 @@ function DataField({
               className="shrink-0 text-neutral-700 hover:text-neutral-300"
               aria-label={`Copiar ${label}`}
             >
-              <Copy className="h-3 w-3" />
+              <Copy className="size-3" />
             </button>
           )}
         </div>

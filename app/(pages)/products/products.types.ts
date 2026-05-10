@@ -1,4 +1,6 @@
-export interface Brand {
+import type { Dispatch, SetStateAction } from "react";
+
+interface Brand {
   id: string;
   name: string;
   logoUrl: string | null;
@@ -35,7 +37,7 @@ export interface Batch {
   expirationDate: string | null;
 }
 
-export interface ProductsPageable {
+interface ProductsPageable {
   pageNumber: number;
   pageSize: number;
   sort: string[];
@@ -86,7 +88,7 @@ export interface ProductsViewProps {
   error: Error | null;
   requiresWarehouse: boolean;
   filters: ProductFilters;
-  setFilters: (filters: ProductFilters) => void;
+  setFilters: Dispatch<SetStateAction<ProductFilters>>;
   pagination: {
     page: number;
     pageSize: number;

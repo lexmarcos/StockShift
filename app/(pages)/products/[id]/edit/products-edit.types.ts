@@ -1,4 +1,4 @@
-export interface Batch {
+interface Batch {
   id: string;
   productId: string;
   productName: string;

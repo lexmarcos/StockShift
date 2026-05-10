@@ -37,7 +37,6 @@ export const BatchesDetailView = ({
   isLoading,
   error,
   status,
-  daysToExpire,
   formattedCostPrice,
   formattedSellingPrice,
   formattedCostTotal,
@@ -104,11 +103,11 @@ export const BatchesDetailView = ({
             Produto vinculado
           </p>
           <Link href={`/products/${batch.productId}`} className="group block">
-            <h2 className="break-words text-2xl font-bold text-white md:text-3xl">
+            <h2 className="break-words text-2xl font-semibold text-white md:text-3xl">
               {batch.productName}
             </h2>
             <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-neutral-500 group-hover:text-blue-400">
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="size-3" />
               Abrir produto
             </span>
           </Link>
@@ -155,7 +154,7 @@ export const BatchesDetailView = ({
                 </div>
               </div>
               <StatusIcon
-                className={cn("h-8 w-8 shrink-0", status.textClass)}
+                className={cn("size-8 shrink-0", status.textClass)}
               />
             </div>
 
@@ -217,8 +216,8 @@ export const BatchesDetailView = ({
         {/* Location */}
         <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
           <div className="mb-5 flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-400" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+            <MapPin className="size-4 text-blue-400" />
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
               Localização
             </h3>
           </div>
@@ -231,7 +230,7 @@ export const BatchesDetailView = ({
               {batch.warehouseName}
             </p>
             <span className="mt-1 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-neutral-500 group-hover:text-blue-400">
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="size-3" />
               Abrir armazém
             </span>
           </Link>
@@ -247,8 +246,8 @@ export const BatchesDetailView = ({
         {/* Lifecycle / Timeline */}
         <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
           <div className="mb-5 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-amber-400" />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+            <Clock className="size-4 text-amber-400" />
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
               Ciclo de vida
             </h3>
           </div>

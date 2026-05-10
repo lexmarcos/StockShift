@@ -44,9 +44,9 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { BrandFormData } from "./brands.schema";
 import { Brand, SortConfig } from "./brands.types";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -85,11 +85,11 @@ const SortIcon = ({
   field: SortConfig["key"];
   sortConfig: SortConfig;
 }) => {
-  if (sortConfig.key !== field) return <div className="w-3 h-3 opacity-0" />;
+  if (sortConfig.key !== field) return <div className="size-3 opacity-0" />;
   return sortConfig.direction === "asc" ? (
-    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowUp className="ml-1 size-3 text-blue-500" />
   ) : (
-    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowDown className="ml-1 size-3 text-blue-500" />
   );
 };
 
@@ -114,20 +114,13 @@ export const BrandsView = ({
   confirmDelete,
   isDeleting,
 }: BrandsViewProps) => {
-  const [logoPreview, setLogoPreview] = useState<string>("");
-  const [logoError, setLogoError] = useState(false);
+  const [failedLogoPreview, setFailedLogoPreview] = useState<string | null>(
+    null,
+  );
 
   const logoUrl = form.watch("logoUrl");
-
-  useEffect(() => {
-    if (logoUrl && logoUrl.trim()) {
-      setLogoPreview(logoUrl);
-      setLogoError(false);
-    } else {
-      setLogoPreview("");
-      setLogoError(false);
-    }
-  }, [logoUrl]);
+  const logoPreview = logoUrl?.trim() ?? "";
+  const logoError = failedLogoPreview === logoPreview;
 
 
   return (
@@ -138,7 +131,7 @@ export const BrandsView = ({
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                <h1 className="text-2xl font-semibold tracking-tighter text-white">
                   Marcas
                 </h1>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -150,7 +143,7 @@ export const BrandsView = ({
                   onClick={openCreateModal}
                   className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)] md:w-auto"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   Nova Marca
                 </Button>
               </PermissionGate>
@@ -159,9 +152,9 @@ export const BrandsView = ({
             {/* Bottom Row: Search & Filters */}
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-neutral-500" />
                 <Input
-                  placeholder="Pesquisar marcas..."
+                  placeholder="Pesquisar marcas…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 md:h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
@@ -222,18 +215,18 @@ export const BrandsView = ({
         {/* State Layers */}
         {isLoading && (
           <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/30 animate-pulse">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <Loader2 className="size-8 animate-spin text-blue-600" />
             <span className="text-xs uppercase tracking-wide text-neutral-500">
-              Acessando Diretório...
+              Acessando Diretório…
             </span>
           </div>
         )}
 
         {error && (
           <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10 p-6 text-center">
-            <AlertTriangle className="h-8 w-8 text-rose-500" />
+            <AlertTriangle className="size-8 text-rose-500" />
             <div>
-              <h3 className="text-sm font-bold uppercase text-rose-500">
+              <h3 className="text-sm font-semibold uppercase text-rose-500">
                 Erro de Sincronização
               </h3>
               <p className="text-xs text-rose-500/70 mt-1">
@@ -253,11 +246,11 @@ export const BrandsView = ({
 
         {!isLoading && !error && brands.length === 0 && (
           <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/20">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800 shadow-inner">
-              <Tag className="h-8 w-8 text-neutral-600" />
+            <div className="flex size-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800 shadow-inner">
+              <Tag className="size-8 text-neutral-600" />
             </div>
             <div className="text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
                 {searchQuery
                   ? "Nenhum Registro Encontrado"
                   : "Nenhuma Marca Registrada"}
@@ -282,7 +275,7 @@ export const BrandsView = ({
                   onClick={openCreateModal}
                   className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white"
                 >
-                  <Plus className="mr-2 h-3.5 w-3.5" /> Registrar Marca
+                  <Plus className="mr-2 size-3.5" /> Registrar Marca
                 </Button>
               </PermissionGate>
             )}
@@ -328,7 +321,7 @@ export const BrandsView = ({
                       className="group border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-all"
                     >
                       <TableCell>
-                        <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner transition-colors group-hover:border-neutral-700">
+                        <div className="relative flex size-12 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner transition-colors group-hover:border-neutral-700">
                           {brand.logoUrl ? (
                             <Image
                               src={brand.logoUrl}
@@ -339,7 +332,7 @@ export const BrandsView = ({
                               className="object-cover"
                             />
                           ) : (
-                            <ImageIcon className="h-5 w-5 text-neutral-700" />
+                            <ImageIcon className="size-5 text-neutral-700" />
                           )}
                         </div>
                       </TableCell>
@@ -350,7 +343,7 @@ export const BrandsView = ({
                       </TableCell>
                       <TableCell>
                         <span className="font-mono text-xs text-neutral-500 uppercase">
-                          {format(new Date(brand.createdAt), "dd MMM, yyyy", {
+                          {format(parseISO(brand.createdAt), "dd MMM, yyyy", {
                             locale: ptBR,
                           })}
                         </span>
@@ -362,9 +355,9 @@ export const BrandsView = ({
                               variant="ghost"
                               size="icon"
                               onClick={() => openEditModal(brand)}
-                              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                              className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="size-4" />
                             </Button>
                           </PermissionGate>
                           <PermissionGate permission="brands:delete">
@@ -372,9 +365,9 @@ export const BrandsView = ({
                               variant="ghost"
                               size="icon"
                               onClick={() => openDeleteDialog(brand)}
-                              className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                              className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </PermissionGate>
                         </div>
@@ -394,7 +387,7 @@ export const BrandsView = ({
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-800 rounded-l-[4px]" />
 
-                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner">
+                  <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner">
                     {brand.logoUrl ? (
                       <Image
                         src={brand.logoUrl}
@@ -405,18 +398,18 @@ export const BrandsView = ({
                         className="object-cover"
                       />
                     ) : (
-                      <ImageIcon className="h-7 w-7 text-neutral-700" />
+                      <ImageIcon className="size-7 text-neutral-700" />
                     )}
                   </div>
 
                   <div className="flex flex-1 flex-col min-w-0">
-                    <h3 className="font-bold text-white tracking-tight truncate">
+                    <h3 className="font-semibold text-white tracking-tight truncate">
                       {brand.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Calendar className="h-3 w-3 text-neutral-500" />
+                      <Calendar className="size-3 text-neutral-500" />
                       <span className="font-mono text-[9px] text-neutral-500 uppercase">
-                        {format(new Date(brand.createdAt), "dd/MM/yyyy", {
+                        {format(parseISO(brand.createdAt), "dd/MM/yyyy", {
                           locale: ptBR,
                         })}
                       </span>
@@ -428,9 +421,9 @@ export const BrandsView = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 shrink-0 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                        className="size-9 shrink-0 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                       >
-                        <MoreHorizontal className="h-5 w-5" />
+                        <MoreHorizontal className="size-5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -442,7 +435,7 @@ export const BrandsView = ({
                           onClick={() => openEditModal(brand)}
                           className="focus:bg-neutral-800"
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
+                          <Pencil className="mr-2 size-4" /> Editar
                         </DropdownMenuItem>
                       </PermissionGate>
                       <PermissionGate permission="brands:delete">
@@ -450,7 +443,7 @@ export const BrandsView = ({
                           onClick={() => openDeleteDialog(brand)}
                           className="text-rose-500 focus:bg-rose-950/20"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          <Trash2 className="mr-2 size-4" /> Excluir
                         </DropdownMenuItem>
                       </PermissionGate>
                     </DropdownMenuContent>
@@ -486,9 +479,9 @@ export const BrandsView = ({
               className="rounded-[4px] bg-blue-600 px-8 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-blue-700 shadow-lg"
             >
               {form.formState.isSubmitting ? (
-                <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                <Loader2 className="size-3 animate-spin mr-2" />
               ) : (
-                <Plus className="h-3 w-3 mr-2" />
+                <Plus className="size-3 mr-2" />
               )}
               {selectedBrand ? "Salvar Alterações" : "Confirmar Registro"}
             </Button>
@@ -556,12 +549,12 @@ export const BrandsView = ({
                       sizes="240px"
                       unoptimized
                       className="rounded-[2px] object-contain shadow-sm"
-                      onError={() => setLogoError(true)}
+                      onError={() => setFailedLogoPreview(logoPreview)}
                     />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 opacity-30 text-neutral-500">
-                    <XCircle className="h-8 w-8" />
+                    <XCircle className="size-8" />
                     <span className="text-[9px] uppercase font-bold">
                       Imagem Inválida
                     </span>
@@ -594,7 +587,7 @@ export const BrandsView = ({
               disabled={isDeleting}
               className="rounded-[4px] bg-rose-600 text-[10px] font-bold uppercase text-white hover:bg-rose-700 border-none"
             >
-              {isDeleting ? "Processando..." : "Confirmar Exclusão"}
+              {isDeleting ? "Processando…" : "Confirmar Exclusão"}
             </Button>
           </>
         }

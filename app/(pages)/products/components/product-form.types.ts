@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { ProductCreateFormData, AiFillData } from "../create/products-create.types";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
 
-export interface Category {
+interface Category {
   id: string;
   name: string;
   parentCategoryName?: string | null;
@@ -13,7 +13,7 @@ export interface Category {
   } | null;
 }
 
-export interface Brand {
+interface Brand {
   id: string;
   name: string;
   logoUrl?: string;
@@ -109,5 +109,3 @@ export interface ProductFormProps {
   isFormReady?: boolean; // Optional - only needed in edit mode to prevent race conditions
   batchesDrawer?: BatchesDrawerProps;
 }
-
-export type { ProductCreateFormData, CustomAttribute };

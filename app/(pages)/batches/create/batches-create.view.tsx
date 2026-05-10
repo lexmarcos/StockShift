@@ -103,7 +103,7 @@ export const BatchCreateView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Box className="h-4 w-4 text-blue-500" />
+                      <Box className="size-4 text-blue-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Identificação e Origem
                       </CardTitle>
@@ -122,7 +122,7 @@ export const BatchCreateView = ({
                           <div className="relative">
                             <div className="flex gap-2">
                               <div className="relative flex-1">
-                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500" />
                                 <FormControl>
                                   <Input
                                     value={productSearchQuery}
@@ -143,10 +143,10 @@ export const BatchCreateView = ({
                                     type="button"
                                     variant="ghost"
                                     onClick={onProductClear}
-                                    className="absolute right-1 top-1 h-8 w-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                    className="absolute right-1 top-1 size-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
                                     aria-label="Limpar produto"
                                   >
-                                    <X className="h-4 w-4" />
+                                    <X className="size-4" />
                                   </Button>
                                 )}
                               </div>
@@ -154,10 +154,10 @@ export const BatchCreateView = ({
                                 type="button"
                                 variant="outline"
                                 onClick={openScanner}
-                                className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                className="size-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                 aria-label="Ler código de barras"
                               >
-                                <Scan className="h-4 w-4" />
+                                <Scan className="size-4" />
                               </Button>
                             </div>
 
@@ -167,8 +167,8 @@ export const BatchCreateView = ({
                                 <div className="absolute left-0 right-12 top-12 z-30 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
                                   {isProductSearchLoading && (
                                     <div className="flex h-10 items-center gap-2 px-3 text-xs text-neutral-500">
-                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                      Buscando produtos...
+                                      <Loader2 className="size-3.5 animate-spin" />
+                                      Buscando produtos…
                                     </div>
                                   )}
                                   {!isProductSearchLoading &&
@@ -187,7 +187,7 @@ export const BatchCreateView = ({
                                           <span
                                             role="img"
                                             aria-label={`Foto de ${product.name}`}
-                                            className="h-10 w-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
+                                            className="size-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
                                             style={{
                                               backgroundImage: `url("${product.imageUrl}")`,
                                             }}
@@ -196,9 +196,9 @@ export const BatchCreateView = ({
                                           <span
                                             role="img"
                                             aria-label="Produto sem foto"
-                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
+                                            className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
                                           >
-                                            <Box className="h-4 w-4" />
+                                            <Box className="size-4" />
                                           </span>
                                         )}
                                         <span className="min-w-0">
@@ -228,7 +228,7 @@ export const BatchCreateView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-emerald-500" />
+                      <DollarSign className="size-4 text-emerald-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Financeiro e Estoque
                       </CardTitle>
@@ -252,10 +252,10 @@ export const BatchCreateView = ({
                                   type="button"
                                   variant="outline"
                                   onClick={onQuantityDecrement}
-                                  className="h-10 w-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  className="size-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                   aria-label="Diminuir quantidade"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <Minus className="size-4" />
                                 </Button>
                                 <FormControl>
                                   <NumberInput
@@ -270,10 +270,10 @@ export const BatchCreateView = ({
                                   type="button"
                                   variant="outline"
                                   onClick={onQuantityIncrement}
-                                  className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  className="size-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                   aria-label="Aumentar quantidade"
                                 >
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="size-4" />
                                 </Button>
                               </div>
                               <FormMessage className="text-xs text-rose-500" />
@@ -377,7 +377,7 @@ export const BatchCreateView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-amber-500" />
+                      <Calendar className="size-4 text-amber-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Vigência
                       </CardTitle>
@@ -429,7 +429,7 @@ export const BatchCreateView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-neutral-500" />
+                      <FileText className="size-4 text-neutral-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Observações
                       </CardTitle>
@@ -443,7 +443,7 @@ export const BatchCreateView = ({
                         <FormItem>
                           <FormControl>
                             <Textarea
-                              placeholder="Detalhes adicionais sobre o lote..."
+                              placeholder="Detalhes adicionais sobre o lote…"
                               className="min-h-[120px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
@@ -476,12 +476,12 @@ export const BatchCreateView = ({
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                        Salvando...
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                        Salvando…
                       </>
                     ) : (
                       <>
-                        <PackagePlus className="mr-2 h-3.5 w-3.5" />
+                        <PackagePlus className="mr-2 size-3.5" />
                         Criar Lote
                       </>
                     )}

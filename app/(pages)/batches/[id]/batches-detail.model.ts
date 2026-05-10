@@ -64,6 +64,11 @@ const STATUS_MAP: Record<BatchStatusKind, BatchStatusView> = {
   },
 };
 
+const BATCH_DETAIL_CURRENCY_FORMATTER = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
 /* ─── Pure Functions ─── */
 
 const parseSafeDate = (value: string | null | undefined): Date | null => {
@@ -93,10 +98,7 @@ export const computeBatchStatus = (
 
 export const formatCentsToBRL = (cents: number | null | undefined): string => {
   if (cents === null || cents === undefined) return "-";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(cents / 100);
+  return BATCH_DETAIL_CURRENCY_FORMATTER.format(cents / 100);
 };
 
 export const formatCentsTotal = (

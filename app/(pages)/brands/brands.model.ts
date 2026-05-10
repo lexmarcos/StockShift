@@ -56,7 +56,7 @@ export const useBrandsModel = () => {
     }
 
     // Sort
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = filtered.toSorted((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
