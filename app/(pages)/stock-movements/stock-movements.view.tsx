@@ -47,7 +47,6 @@ import {
   SortField,
   SortOrder,
   StockMovementType,
-  StockMovementFilterDraft,
   DateFilterPreset,
 } from "./stock-movements.types";
 import {
@@ -55,7 +54,7 @@ import {
   MANUAL_MOVEMENT_TYPE_LABELS,
   MANUAL_OUT_MOVEMENT_TYPES,
 } from "./stock-movements.constants";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   DropdownMenu,
@@ -160,9 +159,9 @@ const MovementActions = ({ movement }: { movement: StockMovement }) => (
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal className="size-4" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -178,7 +177,7 @@ const MovementActions = ({ movement }: { movement: StockMovement }) => (
           href={`/stock-movements/${movement.id}`}
           className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
         >
-          <Eye className="mr-2 h-3.5 w-3.5" /> Ver Detalhes
+          <Eye className="mr-2 size-3.5" /> Ver Detalhes
         </Link>
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -207,12 +206,12 @@ const CreateMovementDropdown = ({
           }`}
         >
           {isIn ? (
-            <ArrowDownRight className="mr-2 h-4 w-4" />
+            <ArrowDownRight className="mr-2 size-4" />
           ) : (
-            <ArrowUpRight className="mr-2 h-4 w-4" />
+            <ArrowUpRight className="mr-2 size-4" />
           )}
           {label}
-          <ChevronDown className="ml-2 h-3.5 w-3.5" />
+          <ChevronDown className="ml-2 size-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -230,9 +229,9 @@ const CreateMovementDropdown = ({
               className="flex w-full cursor-pointer items-center focus:bg-neutral-800 focus:text-white"
             >
               {isIn ? (
-                <ArrowDownRight className="mr-2 h-3.5 w-3.5 text-emerald-500" />
+                <ArrowDownRight className="mr-2 size-3.5 text-emerald-500" />
               ) : (
-                <ArrowUpRight className="mr-2 h-3.5 w-3.5 text-rose-500" />
+                <ArrowUpRight className="mr-2 size-3.5 text-rose-500" />
               )}
               {MANUAL_MOVEMENT_TYPE_LABELS[type]}
             </Link>
@@ -312,7 +311,7 @@ export const StockMovementsView = ({
         color: "text-emerald-500",
         bg: "bg-emerald-500/10",
         border: "border-emerald-500/20",
-        icon: <ArrowDownRight className="w-3.5 h-3.5 mr-1" />,
+        icon: <ArrowDownRight className="size-3.5 mr-1" />,
       };
     }
     return {
@@ -320,7 +319,7 @@ export const StockMovementsView = ({
       color: "text-rose-500",
       bg: "bg-rose-500/10",
       border: "border-rose-500/20",
-      icon: <ArrowUpRight className="w-3.5 h-3.5 mr-1" />,
+      icon: <ArrowUpRight className="size-3.5 mr-1" />,
     };
   };
 
@@ -328,8 +327,8 @@ export const StockMovementsView = ({
 
 
 
-  const renderMobileFiltersPanel = (draft: StockMovementFilterDraft) => {
-    return (
+  const draft = mobileFiltersDraft;
+  const mobileFiltersPanel = (
       <Drawer
         direction="bottom"
         open={isMobileFiltersOpen}
@@ -408,11 +407,15 @@ export const StockMovementsView = ({
 
                 {draft.datePreset === "CUSTOM" ? (
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    <label className="space-y-1.5">
+                    <label
+                      htmlFor="stock-movements-mobile-date-from"
+                      className="space-y-1.5"
+                    >
                       <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                         Data inicial
                       </span>
                       <Input
+                        id="stock-movements-mobile-date-from"
                         type="date"
                         value={draft.dateFrom ?? ""}
                         onChange={(event) =>
@@ -421,11 +424,15 @@ export const StockMovementsView = ({
                         className="h-11 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-semibold text-neutral-300 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0 hover:border-neutral-700 transition-colors"
                       />
                     </label>
-                    <label className="space-y-1.5">
+                    <label
+                      htmlFor="stock-movements-mobile-date-to"
+                      className="space-y-1.5"
+                    >
                       <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                         Data final
                       </span>
                       <Input
+                        id="stock-movements-mobile-date-to"
                         type="date"
                         value={draft.dateTo ?? ""}
                         onChange={(event) =>
@@ -477,9 +484,9 @@ export const StockMovementsView = ({
               type="button"
               variant="outline"
               onClick={onClearMobileFilters}
-              className="h-12 flex-1 rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              className="h-12 flex-1 rounded-[4px] border-neutral-800 bg-[#171717] text-xs font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 hover:text-rose-400 hover:bg-neutral-800 transition-colors"
             >
-              <Trash2 className="mr-2 h-3.5 w-3.5" />
+              <Trash2 className="mr-2 size-3.5" />
               Limpar
             </Button>
             <Button
@@ -492,8 +499,7 @@ export const StockMovementsView = ({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-    );
-  };
+  );
 
   const activeFilterCount = getActiveFilterCount(filters);
 
@@ -505,7 +511,7 @@ export const StockMovementsView = ({
             {/* Actions Bar */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                <h1 className="text-2xl font-semibold tracking-tighter text-white">
                   Movimentações
                 </h1>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -524,13 +530,13 @@ export const StockMovementsView = ({
             <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max gap-2">
                 <FilterToken
-                  icon={<Filter className="h-3.5 w-3.5" />}
+                  icon={<Filter className="size-3.5" />}
                   label="Filtros"
                   badge={activeFilterCount || undefined}
                   onClick={onOpenMobileFilters}
                 />
                 <FilterToken
-                  icon={<CalendarDays className="h-3.5 w-3.5" />}
+                  icon={<CalendarDays className="size-3.5" />}
                   label={getDateSummary(
                     filters.datePreset,
                     filters.dateFrom,
@@ -539,7 +545,7 @@ export const StockMovementsView = ({
                   onClick={onOpenMobileFilters}
                 />
                 <FilterToken
-                  icon={<ArrowUpDown className="h-3.5 w-3.5" />}
+                  icon={<ArrowUpDown className="size-3.5" />}
                   label={getSortLabel(filters.sortBy, filters.sortOrder)}
                   onClick={onOpenMobileFilters}
                 />
@@ -557,7 +563,7 @@ export const StockMovementsView = ({
                 >
                   <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
-                      <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                      <Filter className="size-3.5 text-neutral-500" />
                       <SelectValue placeholder="Tipo" />
                     </div>
                   </SelectTrigger>
@@ -590,7 +596,7 @@ export const StockMovementsView = ({
                 >
                   <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 transition-colors hover:border-neutral-700 focus:border-blue-600 focus:ring-0 md:w-[190px]">
                     <div className="flex items-center gap-2">
-                      <CalendarDays className="h-3.5 w-3.5 text-neutral-500" />
+                      <CalendarDays className="size-3.5 text-neutral-500" />
                       <SelectValue />
                     </div>
                   </SelectTrigger>
@@ -642,7 +648,7 @@ export const StockMovementsView = ({
                 >
                   <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                     <div className="flex items-center gap-2">
-                      <ArrowUpDown className="h-3.5 w-3.5 text-neutral-500" />
+                      <ArrowUpDown className="size-3.5 text-neutral-500" />
                       <SelectValue />
                     </div>
                   </SelectTrigger>
@@ -696,9 +702,9 @@ export const StockMovementsView = ({
                         className="h-48 text-center text-neutral-500"
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                          <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
                           <span className="text-[10px] uppercase font-bold tracking-widest">
-                            Carregando movimentações...
+                            Carregando movimentações…
                           </span>
                         </div>
                       </TableCell>
@@ -710,7 +716,7 @@ export const StockMovementsView = ({
                         className="h-48 text-center text-neutral-500"
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <Layers className="h-8 w-8 text-neutral-700" />
+                          <Layers className="size-8 text-neutral-700" />
                           <span className="text-[10px] uppercase font-bold tracking-widest">
                             Nenhuma movimentação encontrada
                           </span>
@@ -732,9 +738,9 @@ export const StockMovementsView = ({
                           </TableCell>
                           <TableCell className="py-4">
                             <div className="flex items-center text-sm text-neutral-400">
-                              <Calendar className="mr-2 h-3.5 w-3.5" />
+                              <Calendar className="mr-2 size-3.5" />
                               {format(
-                                new Date(movement.createdAt),
+                                parseISO(movement.createdAt),
                                 "dd/MM/yyyy HH:mm",
                                 {
                                   locale: ptBR,
@@ -781,9 +787,9 @@ export const StockMovementsView = ({
           <div className="md:hidden space-y-4">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center p-8 gap-2">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
                 <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">
-                  Carregando...
+                  Carregando…
                 </span>
               </div>
             ) : movements.length === 0 ? (
@@ -815,7 +821,7 @@ export const StockMovementsView = ({
                           Data
                         </span>
                         <span className="text-sm text-neutral-300 mt-0.5">
-                          {format(new Date(movement.createdAt), "dd/MM/yyyy", {
+                          {format(parseISO(movement.createdAt), "dd/MM/yyyy", {
                             locale: ptBR,
                           })}
                         </span>
@@ -877,7 +883,7 @@ export const StockMovementsView = ({
           </div>
         </div>
       </main>
-      {renderMobileFiltersPanel(mobileFiltersDraft)}
+      {mobileFiltersPanel}
     </div>
   );
 };

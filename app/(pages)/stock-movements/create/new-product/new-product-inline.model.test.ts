@@ -159,7 +159,7 @@ beforeEach(() => {
 
 describe("useNewProductInlineModel", () => {
   it("inicializa estado para criação com formulário limpo e sem edição", () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     expect(result.current.mode).toBe("inline");
     expect(result.current.isInlineEdit).toBe(false);
@@ -197,7 +197,7 @@ describe("useNewProductInlineModel", () => {
     });
     editItemQuery = "0";
 
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     expect(result.current.isInlineEdit).toBe(true);
     expect(result.current.form.getValues("name")).toBe("Produto Antigo");
@@ -209,7 +209,7 @@ describe("useNewProductInlineModel", () => {
   });
 
   it("controla a lista de atributos customizados (adicionar, editar, remover)", () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     act(() => {
       result.current.addCustomAttribute();
@@ -234,7 +234,7 @@ describe("useNewProductInlineModel", () => {
   });
 
   it("bloqueia envio com atributo customizado incompleto", async () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     act(() => {
       result.current.addCustomAttribute();
@@ -261,7 +261,7 @@ describe("useNewProductInlineModel", () => {
         },
       ],
     });
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     await act(async () => {
       await result.current.onSubmit(
@@ -291,7 +291,7 @@ describe("useNewProductInlineModel", () => {
       ],
     });
     currentDraft = initial;
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     await act(async () => {
       await result.current.onSubmit(
@@ -349,7 +349,7 @@ describe("useNewProductInlineModel", () => {
       ],
     });
     editItemQuery = "0";
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     await act(async () => {
       await result.current.onSubmit(
@@ -385,7 +385,7 @@ describe("useNewProductInlineModel", () => {
     movementType = "PURCHASE_IN";
     currentDraft = null;
 
-    renderHook(() => useNewProductInlineModel());
+    renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
@@ -401,7 +401,7 @@ describe("useNewProductInlineModel", () => {
       items: [{ quantity: 1, productName: "Apenas 1 item", newProductData: { name: "Apenas 1 item" } }],
     });
 
-    renderHook(() => useNewProductInlineModel());
+    renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
@@ -410,7 +410,7 @@ describe("useNewProductInlineModel", () => {
   });
 
   it("alterna estado do scanner e registra barcode escaneado", () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     expect(result.current.isScannerOpen).toBe(false);
     act(() => {
@@ -430,7 +430,7 @@ describe("useNewProductInlineModel", () => {
   });
 
   it("controla quantidade com incremento e decremento sem ficar negativa", () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     act(() => {
       result.current.onQuantityIncrement?.();
@@ -445,7 +445,7 @@ describe("useNewProductInlineModel", () => {
   });
 
   it("controla modal de IA e preenche dados do produto inline", () => {
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
     const image = new File(["img"], "produto.png", { type: "image/png" });
 
     act(() => {
@@ -482,7 +482,7 @@ describe("useNewProductInlineModel", () => {
     loadingBrands = true;
     currentDraft = createDraft();
 
-    const { result } = renderHook(() => useNewProductInlineModel());
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     expect(result.current.isLoadingCategories).toBe(true);
     expect(result.current.isLoadingBrands).toBe(true);

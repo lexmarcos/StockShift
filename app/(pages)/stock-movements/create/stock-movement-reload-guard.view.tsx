@@ -26,8 +26,8 @@ export function StockMovementReloadGuardView({
       <AlertDialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200 shadow-none">
         <AlertDialogHeader>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[4px] border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              <TriangleAlert className="h-4 w-4" strokeWidth={2.5} />
+            <span className="flex size-8 items-center justify-center rounded-[4px] border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <TriangleAlert className="size-4" strokeWidth={2.5} />
             </span>
             <AlertDialogTitle className="text-base font-bold text-white">
               Recarregar a tela?
@@ -49,7 +49,7 @@ export function StockMovementReloadGuardView({
             onClick={onConfirmReload}
             className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
           >
-            <RotateCcw className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
+            <RotateCcw className="mr-2 size-3.5" strokeWidth={2.5} />
             Recarregar e perder dados
           </AlertDialogAction>
         </AlertDialogFooter>

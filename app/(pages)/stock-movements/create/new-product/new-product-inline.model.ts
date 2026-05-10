@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/components/breadcrumb";
@@ -36,6 +36,11 @@ const buildReturnHref = (type: string | null): string => {
   return `/stock-movements/create?type=${type}`;
 };
 
+interface NewProductInlineModelParams {
+  movementType?: string | null;
+  editItem?: string | null;
+}
+
 const parseEditItemIndex = (value: string | null): number | null => {
   if (!value) return null;
   const index = Number(value);
@@ -46,9 +51,11 @@ const buildCustomAttributes = (
   attributes: Record<string, string> | undefined,
 ): CustomAttribute[] => {
   if (!attributes) return [];
-  return Object.entries(attributes)
-    .filter(([key]) => key !== "weight" && key !== "dimensions")
-    .map(([key, value]) => ({ id: `inline-${key}`, key, value }));
+  return Object.entries(attributes).flatMap(([key, value]) =>
+    key === "weight" || key === "dimensions"
+      ? []
+      : [{ id: `inline-${key}`, key, value }],
+  );
 };
 
 const resolveInitialProductImage = (
@@ -135,11 +142,12 @@ const updateProductInMovementDraft = (
   });
 };
 
-export const useNewProductInlineModel = (): ProductFormProps => {
+export const useNewProductInlineModel = ({
+  movementType = null,
+  editItem = null,
+}: NewProductInlineModelParams = {}): ProductFormProps => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const movementType = searchParams.get("type");
-  const editItemIndex = parseEditItemIndex(searchParams.get("editItem"));
+  const editItemIndex = parseEditItemIndex(editItem);
   const cancelHref = buildReturnHref(movementType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initialDraftRef = useRef(readStockMovementDraft());

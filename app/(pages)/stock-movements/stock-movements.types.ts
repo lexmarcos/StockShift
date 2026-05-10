@@ -10,7 +10,7 @@ export type StockMovementType =
   | "TRANSFER_IN"
   | "TRANSFER_OUT";
 
-export type StockMovementDirection = "IN" | "OUT";
+type StockMovementDirection = "IN" | "OUT";
 
 export interface StockMovementItem {
   id: string;
@@ -39,7 +39,7 @@ export interface StockMovement {
   items: StockMovementItem[];
 }
 
-export interface Pageable {
+interface Pageable {
   pageNumber: number;
   pageSize: number;
   sort: string[];

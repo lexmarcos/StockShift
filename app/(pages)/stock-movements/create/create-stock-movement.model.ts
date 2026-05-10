@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
@@ -124,6 +124,10 @@ interface ProductByBarcodeResponse {
   data: StockMovementProductOption;
 }
 
+interface CreateStockMovementModelParams {
+  typeParam?: string | null;
+}
+
 const PRODUCT_SEARCH_LIMIT = 5;
 
 const EMPTY_EXISTING_BATCH_FORM: ExistingProductBatchFormState = {
@@ -179,9 +183,10 @@ export const filterStockMovementProductOptions = (
     .slice(0, PRODUCT_SEARCH_LIMIT);
 };
 
-export function useCreateStockMovementModel(): CreateStockMovementViewProps {
+export function useCreateStockMovementModel({
+  typeParam = null,
+}: CreateStockMovementModelParams = {}): CreateStockMovementViewProps {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedProduct, setSelectedProduct] =
@@ -200,7 +205,6 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
   const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
-  const typeParam = searchParams.get("type");
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
     : undefined;
@@ -245,9 +249,6 @@ export function useCreateStockMovementModel(): CreateStockMovementViewProps {
       notes: draft.notes,
       items: draft.items,
     });
-    setSelectedProductId(draft.selectedProductId);
-    setItemQuantity(draft.itemQuantity);
-
     setSelectedProductId("");
     setItemQuantity("");
 

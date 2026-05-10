@@ -59,7 +59,7 @@ export function StockMovementBatchDataModal({
       <div className="space-y-5 pb-2 pt-2">
         <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
-            <PackageCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+            <PackageCheck className="size-4 shrink-0 text-emerald-500" />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">
                 {form.productName || "Produto"}
@@ -73,10 +73,14 @@ export function StockMovementBatchDataModal({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <label
+              htmlFor="stock-movement-batch-quantity"
+              className="text-[10px] font-bold uppercase tracking-wider text-neutral-400"
+            >
               Quantidade
             </label>
             <NumberInput
+              id="stock-movement-batch-quantity"
               value={form.quantity ? Number(form.quantity) : undefined}
               onValueChange={(value) =>
                 onQuantityChange(value !== undefined ? String(value) : "")
@@ -86,11 +90,15 @@ export function StockMovementBatchDataModal({
             />
           </div>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              <CalendarDays className="h-3 w-3" />
+            <label
+              htmlFor="stock-movement-batch-manufactured-date"
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400"
+            >
+              <CalendarDays className="size-3" />
               Fabricação
             </label>
             <Input
+              id="stock-movement-batch-manufactured-date"
               type="date"
               value={form.manufacturedDate}
               onChange={(event) => onManufacturedDateChange(event.target.value)}
@@ -98,11 +106,15 @@ export function StockMovementBatchDataModal({
             />
           </div>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              <CalendarDays className="h-3 w-3" />
+            <label
+              htmlFor="stock-movement-batch-expiration-date"
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400"
+            >
+              <CalendarDays className="size-3" />
               Validade
             </label>
             <Input
+              id="stock-movement-batch-expiration-date"
               type="date"
               value={form.expirationDate}
               onChange={(event) => onExpirationDateChange(event.target.value)}
@@ -110,11 +122,15 @@ export function StockMovementBatchDataModal({
             />
           </div>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              <DollarSign className="h-3 w-3" />
+            <label
+              htmlFor="stock-movement-batch-cost-price"
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400"
+            >
+              <DollarSign className="size-3" />
               Preço de custo
             </label>
             <CurrencyInput
+              id="stock-movement-batch-cost-price"
               value={form.costPrice}
               onValueChange={onCostPriceChange}
               placeholder="0,00"
@@ -122,11 +138,15 @@ export function StockMovementBatchDataModal({
             />
           </div>
           <div className="space-y-2 md:col-start-2">
-            <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              <DollarSign className="h-3 w-3" />
+            <label
+              htmlFor="stock-movement-batch-selling-price"
+              className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400"
+            >
+              <DollarSign className="size-3" />
               Preço de venda
             </label>
             <CurrencyInput
+              id="stock-movement-batch-selling-price"
               value={form.sellingPrice}
               onValueChange={onSellingPriceChange}
               placeholder="0,00"

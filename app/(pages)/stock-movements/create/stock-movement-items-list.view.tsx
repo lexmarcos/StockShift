@@ -57,7 +57,7 @@ const canEditExistingBatchData = (
   return isInMovement && Boolean(item.productId) && !item.newProductData;
 };
 
-const renderNewProductBadge = (item: StockMovementListItem) => {
+const NewProductBadge = ({ item }: { item: StockMovementListItem }) => {
   if (!item.newProductData) return null;
   return (
     <span className="rounded-[2px] border border-blue-500/30 bg-blue-600/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-400">
@@ -117,7 +117,7 @@ export function StockMovementItemsList({
                 onEditNewProductItem={onEditNewProductItem}
                 onEditExistingProductBatchData={onEditExistingProductBatchData}
                 onRemoveItem={onRemoveItem}
-                buttonSizeClass="h-9 w-9"
+                buttonSizeClass="size-9"
               />
             ))}
           </div>
@@ -182,9 +182,9 @@ function MovementItemActions({
           size="icon"
           aria-label="Editar item"
           onClick={editItem}
-          className={`${buttonSizeClass} rounded-[4px] text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400`}
+          className={`${buttonSizeClass} rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-blue-400`}
         >
-          <Pencil className="h-4 w-4" strokeWidth={2} />
+          <Pencil className="size-4" strokeWidth={2} />
         </Button>
       )}
       <Button
@@ -193,9 +193,9 @@ function MovementItemActions({
         size="icon"
         aria-label="Remover item"
         onClick={() => onRemoveItem(index)}
-        className={`${buttonSizeClass} rounded-[4px] text-neutral-500 hover:bg-rose-500/10 hover:text-rose-500`}
+        className={`${buttonSizeClass} rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500`}
       >
-        <Trash2 className="h-4 w-4" strokeWidth={2} />
+        <Trash2 className="size-4" strokeWidth={2} />
       </Button>
     </div>
   );
@@ -210,7 +210,7 @@ function MobileMovementItem(props: MovementItemActionProps) {
           <p className="truncate text-sm font-bold text-white">
             {item.productName || "Produto"}
           </p>
-          {renderNewProductBadge(item)}
+          <NewProductBadge item={item} />
         </div>
         <p className="mt-1 text-xs text-neutral-500">
           Qtd:{" "}
@@ -247,7 +247,7 @@ function DesktopMovementItemsTable({
             <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
               Quantidade
             </th>
-            <th className="w-24 px-3 py-3" />
+            <th className="w-24 p-3" />
           </tr>
         </thead>
         <tbody>
@@ -262,7 +262,7 @@ function DesktopMovementItemsTable({
                     <span className="truncate">
                       {item.productName || "Produto"}
                     </span>
-                    {renderNewProductBadge(item)}
+                    <NewProductBadge item={item} />
                   </div>
                   <BatchSummary item={item} />
                 </div>
@@ -270,12 +270,12 @@ function DesktopMovementItemsTable({
               <td className="px-5 py-3.5 text-right font-mono text-sm font-bold tracking-tighter text-white">
                 {item.quantity}
               </td>
-              <td className="px-3 py-3.5">
+              <td className="p-3.5">
                 <MovementItemActions
                   {...actionProps}
                   item={item}
                   index={index}
-                  buttonSizeClass="h-8 w-8"
+                  buttonSizeClass="size-8"
                 />
               </td>
             </tr>

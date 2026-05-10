@@ -39,7 +39,7 @@ export function StockMovementScanner({
         <DrawerHeader className="border-b border-neutral-800 px-4 py-3 text-left">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
-              <ScanLine className="h-4 w-4 text-blue-400" strokeWidth={2.5} />
+              <ScanLine className="size-4 text-blue-400" strokeWidth={2.5} />
               <div className="min-w-0">
                 <DrawerTitle className="text-sm font-bold uppercase tracking-wide text-white">
                   Scanner de Produto
@@ -54,15 +54,15 @@ export function StockMovementScanner({
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8 rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              className="size-8 rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
             >
-              <X className="h-4 w-4" strokeWidth={2} />
+              <X className="size-4" strokeWidth={2} />
             </Button>
           </div>
         </DrawerHeader>
 
         <div className="p-4">
-          <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
+          <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
             <Scanner
               onScan={handleScan}
               onError={handleError}
@@ -85,7 +85,7 @@ export function StockMovementScanner({
                 video: { objectFit: "cover" },
               }}
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-black/80 px-4 py-3">
+            <div className="absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/80 px-4 py-3">
               <p className="text-center text-[10px] font-bold uppercase tracking-wide text-blue-300">
                 Leitura contínua ativa
               </p>

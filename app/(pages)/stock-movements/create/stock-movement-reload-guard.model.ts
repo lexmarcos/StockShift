@@ -6,7 +6,7 @@ import type {
   UseStockMovementReloadGuardModelParams,
 } from "./stock-movement-reload-guard.types";
 
-export const STOCK_MOVEMENT_RELOAD_WARNING =
+const STOCK_MOVEMENT_RELOAD_WARNING =
   "Ao recarregar esta tela, os dados preenchidos serão perdidos.";
 
 export const isStockMovementReloadShortcut = (
