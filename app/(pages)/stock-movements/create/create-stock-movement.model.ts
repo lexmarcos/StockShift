@@ -41,6 +41,11 @@ const getOptionalText = (value: string | undefined): string | undefined => {
   return trimmedValue || undefined;
 };
 
+const resolveExistingProductBatchQuantity = (value: string): number => {
+  const quantity = Number(value);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
+};
+
 const buildExistingProductItemPayload = (
   item: CreateStockMovementSchema["items"][number],
 ) => {
@@ -513,6 +518,30 @@ export function useCreateStockMovementModel({
     }));
   };
 
+  const updateExistingProductBatchQuantity = (
+    calculateNextQuantity: (quantity: number) => number,
+  ): void => {
+    setExistingProductBatchForm((current) => {
+      const currentQuantity = resolveExistingProductBatchQuantity(
+        current.quantity,
+      );
+      const nextQuantity = Math.max(calculateNextQuantity(currentQuantity), 0);
+      return {
+        ...current,
+        quantity: nextQuantity > 0 ? String(nextQuantity) : "",
+        error: null,
+      };
+    });
+  };
+
+  const handleExistingProductBatchQuantityIncrement = (): void => {
+    updateExistingProductBatchQuantity((quantity) => quantity + 1);
+  };
+
+  const handleExistingProductBatchQuantityDecrement = (): void => {
+    updateExistingProductBatchQuantity((quantity) => quantity - 1);
+  };
+
   const handleApplyExistingProductSalePriceSuggestion = (): void => {
     if (!existingProductSalePriceSuggestion) return;
     updateExistingProductBatchForm({
@@ -795,6 +824,10 @@ export function useCreateStockMovementModel({
     onExistingProductBatchOpenChange: handleExistingProductBatchOpenChange,
     onExistingProductBatchQuantityChange: (quantity: string) =>
       updateExistingProductBatchForm({ quantity }),
+    onExistingProductBatchQuantityIncrement:
+      handleExistingProductBatchQuantityIncrement,
+    onExistingProductBatchQuantityDecrement:
+      handleExistingProductBatchQuantityDecrement,
     onExistingProductBatchManufacturedDateChange: (manufacturedDate: string) =>
       updateExistingProductBatchForm({ manufacturedDate }),
     onExistingProductBatchExpirationDateChange: (expirationDate: string) =>

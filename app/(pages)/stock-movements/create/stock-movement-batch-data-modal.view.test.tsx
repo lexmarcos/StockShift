@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { StockMovementBatchDataModal } from "./stock-movement-batch-data-modal.view";
 import type { ExistingProductBatchFormState } from "./create-stock-movement.types";
 
@@ -45,11 +45,16 @@ const openBatchForm: ExistingProductBatchFormState = {
 
 describe("StockMovementBatchDataModal", () => {
   it("renderiza campos e ações de dados do lote", () => {
+    const quantityIncrement = vi.fn();
+    const quantityDecrement = vi.fn();
+
     render(
       <StockMovementBatchDataModal
         form={openBatchForm}
         onOpenChange={vi.fn()}
         onQuantityChange={vi.fn()}
+        onQuantityIncrement={quantityIncrement}
+        onQuantityDecrement={quantityDecrement}
         onManufacturedDateChange={vi.fn()}
         onExpirationDateChange={vi.fn()}
         onCostPriceChange={vi.fn()}
@@ -73,6 +78,10 @@ describe("StockMovementBatchDataModal", () => {
     expect(screen.getByText("Dados do lote")).toBeTruthy();
     expect(screen.getByText("Café Torrado")).toBeTruthy();
     expect(screen.getByText("Quantidade")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar quantidade" }));
+    fireEvent.click(screen.getByRole("button", { name: "Diminuir quantidade" }));
+    expect(quantityIncrement).toHaveBeenCalledTimes(1);
+    expect(quantityDecrement).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Fabricação")).toBeTruthy();
     expect(screen.getByText("Validade")).toBeTruthy();
     expect(screen.getByText("Preço de custo")).toBeTruthy();

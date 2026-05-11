@@ -673,6 +673,30 @@ describe("useCreateStockMovementModel", () => {
     });
   });
 
+  it("incrementa e decrementa quantidade no formulário de dados do lote", () => {
+    const { result } = renderHook(() => useCreateStockMovementModel());
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onExistingProductBatchQuantityIncrement();
+      result.current.onExistingProductBatchQuantityIncrement();
+    });
+    expect(result.current.existingProductBatchForm.quantity).toBe("2");
+
+    act(() => {
+      result.current.onExistingProductBatchQuantityDecrement();
+    });
+    expect(result.current.existingProductBatchForm.quantity).toBe("1");
+
+    act(() => {
+      result.current.onExistingProductBatchQuantityDecrement();
+      result.current.onExistingProductBatchQuantityDecrement();
+    });
+    expect(result.current.existingProductBatchForm.quantity).toBe("");
+  });
+
   it("busca preço do último lote no warehouse atual ao abrir dados do lote", () => {
     fakeSWR.setState("batches/warehouses/wh-1/products/p-1/batches", {
       data: productBatchesResponse,

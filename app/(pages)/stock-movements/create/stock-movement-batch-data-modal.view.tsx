@@ -6,6 +6,7 @@ import {
   History,
   Minus,
   PackageCheck,
+  Plus,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -26,6 +27,8 @@ interface StockMovementBatchDataModalProps {
   form: ExistingProductBatchFormState;
   onOpenChange: (open: boolean) => void;
   onQuantityChange: (quantity: string) => void;
+  onQuantityIncrement: () => void;
+  onQuantityDecrement: () => void;
   onManufacturedDateChange: (date: string) => void;
   onExpirationDateChange: (date: string) => void;
   onCostPriceChange: (price?: number) => void;
@@ -45,6 +48,8 @@ export function StockMovementBatchDataModal({
   form,
   onOpenChange,
   onQuantityChange,
+  onQuantityIncrement,
+  onQuantityDecrement,
   onManufacturedDateChange,
   onExpirationDateChange,
   onCostPriceChange,
@@ -109,15 +114,35 @@ export function StockMovementBatchDataModal({
             >
               Quantidade
             </label>
-            <NumberInput
-              id="stock-movement-batch-quantity"
-              value={form.quantity ? Number(form.quantity) : undefined}
-              onValueChange={(value) =>
-                onQuantityChange(value !== undefined ? String(value) : "")
-              }
-              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 font-mono text-sm text-white focus:border-blue-600"
-              placeholder="0"
-            />
+            <div className="flex">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onQuantityDecrement}
+                className="h-10 w-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                aria-label="Diminuir quantidade"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <NumberInput
+                id="stock-movement-batch-quantity"
+                value={form.quantity ? Number(form.quantity) : undefined}
+                onValueChange={(value) =>
+                  onQuantityChange(value !== undefined ? String(value) : "")
+                }
+                className="h-10 min-w-0 flex-1 rounded-none border-x-0 border-neutral-800 bg-neutral-900 text-center font-mono text-sm text-white focus:border-blue-600"
+                placeholder="0"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onQuantityIncrement}
+                className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                aria-label="Aumentar quantidade"
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <label

@@ -137,6 +137,8 @@ export interface CreateStockMovementViewProps {
   existingProductBatchForm: ExistingProductBatchFormState;
   onExistingProductBatchOpenChange: (open: boolean) => void;
   onExistingProductBatchQuantityChange: (quantity: string) => void;
+  onExistingProductBatchQuantityIncrement: () => void;
+  onExistingProductBatchQuantityDecrement: () => void;
   onExistingProductBatchManufacturedDateChange: (date: string) => void;
   onExistingProductBatchExpirationDateChange: (date: string) => void;
   onExistingProductBatchCostPriceChange: (price?: number) => void;

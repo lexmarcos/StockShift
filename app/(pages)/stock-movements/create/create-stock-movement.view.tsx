@@ -70,6 +70,8 @@ export function CreateStockMovementView({
   existingProductBatchForm,
   onExistingProductBatchOpenChange,
   onExistingProductBatchQuantityChange,
+  onExistingProductBatchQuantityIncrement,
+  onExistingProductBatchQuantityDecrement,
   onExistingProductBatchManufacturedDateChange,
   onExistingProductBatchExpirationDateChange,
   onExistingProductBatchCostPriceChange,
@@ -108,6 +110,8 @@ export function CreateStockMovementView({
         form={existingProductBatchForm}
         onOpenChange={onExistingProductBatchOpenChange}
         onQuantityChange={onExistingProductBatchQuantityChange}
+        onQuantityIncrement={onExistingProductBatchQuantityIncrement}
+        onQuantityDecrement={onExistingProductBatchQuantityDecrement}
         onManufacturedDateChange={onExistingProductBatchManufacturedDateChange}
         onExpirationDateChange={onExistingProductBatchExpirationDateChange}
         onCostPriceChange={onExistingProductBatchCostPriceChange}
