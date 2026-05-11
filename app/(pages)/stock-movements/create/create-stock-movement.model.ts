@@ -46,6 +46,16 @@ const resolveExistingProductBatchQuantity = (value: string): number => {
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
 };
 
+const isExistingProductBatchDateRangeInvalid = (
+  manufacturedDate: string,
+  expirationDate: string,
+): boolean => {
+  const optionalManufacturedDate = getOptionalText(manufacturedDate);
+  const optionalExpirationDate = getOptionalText(expirationDate);
+  if (!optionalManufacturedDate || !optionalExpirationDate) return false;
+  return new Date(optionalExpirationDate) < new Date(optionalManufacturedDate);
+};
+
 const buildExistingProductItemPayload = (
   item: CreateStockMovementSchema["items"][number],
 ) => {
@@ -575,16 +585,6 @@ export function useCreateStockMovementModel({
       return;
     }
 
-    if (!existingProductBatchForm.manufacturedDate) {
-      updateExistingProductBatchForm({ error: "Informe a data de fabricação." });
-      return;
-    }
-
-    if (!existingProductBatchForm.expirationDate) {
-      updateExistingProductBatchForm({ error: "Informe a data de validade." });
-      return;
-    }
-
     if (existingProductBatchForm.costPrice === undefined || existingProductBatchForm.costPrice < 0) {
       updateExistingProductBatchForm({ error: "Informe um preço de custo válido." });
       return;
@@ -595,10 +595,12 @@ export function useCreateStockMovementModel({
       return;
     }
 
-    const mDate = new Date(existingProductBatchForm.manufacturedDate);
-    const eDate = new Date(existingProductBatchForm.expirationDate);
-
-    if (eDate < mDate) {
+    if (
+      isExistingProductBatchDateRangeInvalid(
+        existingProductBatchForm.manufacturedDate,
+        existingProductBatchForm.expirationDate,
+      )
+    ) {
       updateExistingProductBatchForm({ error: "A data de validade não pode ser anterior à data de fabricação." });
       return;
     }

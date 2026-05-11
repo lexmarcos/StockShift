@@ -795,6 +795,33 @@ describe("useCreateStockMovementModel", () => {
     expect(result.current.selectedProductId).toBe("");
   });
 
+  it("confirma dados de lote sem exigir fabricação ou validade", () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onExistingProductBatchQuantityChange("2");
+      result.current.onExistingProductBatchCostPriceChange(1290);
+      result.current.onExistingProductBatchSellingPriceChange(2490);
+    });
+    act(() => {
+      result.current.onConfirmExistingProductBatchData();
+    });
+
+    expect(result.current.items[0]).toMatchObject({
+      productId: "p-1",
+      productName: "Café Torrado",
+      quantity: 2,
+      costPrice: 1290,
+      sellingPrice: 2490,
+    });
+    expect(result.current.existingProductBatchForm.error).toBeNull();
+  });
+
   it("edita dados de lote de produto existente de entrada", () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
