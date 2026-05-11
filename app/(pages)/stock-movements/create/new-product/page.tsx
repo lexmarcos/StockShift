@@ -7,10 +7,27 @@ export const metadata: Metadata = {
   description: "Cadastre produto durante uma movimentação de estoque.",
 };
 
-export default function Page() {
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+const firstSearchParam = (
+  value: string | string[] | undefined,
+): string | null => {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+};
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: PageSearchParams;
+}) {
+  const params = await searchParams;
   return (
     <Suspense fallback={null}>
-      <PageClient />
+      <PageClient
+        movementType={firstSearchParam(params.type)}
+        editItem={firstSearchParam(params.editItem)}
+      />
     </Suspense>
   );
 }

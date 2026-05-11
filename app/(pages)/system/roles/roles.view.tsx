@@ -80,9 +80,9 @@ const DesktopActions = ({
       onClick={() => openPermissionsModal(role)}
       title="Ver permissões da role"
       aria-label={`Ver permissões da role ${role.name}`}
-      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
     >
-      <Eye className="h-4 w-4" />
+      <Eye className="size-4" />
     </Button>
     <Button
       variant="ghost"
@@ -90,9 +90,9 @@ const DesktopActions = ({
       onClick={() => openEditModal(role)}
       disabled={role.isSystemRole}
       title={role.isSystemRole ? "Roles de sistema não podem ser editadas" : "Editar role"}
-      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
+      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
     >
-      <Pencil className="h-4 w-4" />
+      <Pencil className="size-4" />
     </Button>
     <Button
       variant="ghost"
@@ -100,9 +100,9 @@ const DesktopActions = ({
       onClick={() => openDeleteModal(role)}
       disabled={role.isSystemRole}
       title={role.isSystemRole ? "Roles de sistema não podem ser deletadas" : "Deletar role"}
-      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500 disabled:opacity-30"
+      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500 disabled:opacity-30"
     >
-      <Trash2 className="h-4 w-4" />
+      <Trash2 className="size-4" />
     </Button>
   </div>
 );
@@ -123,9 +123,9 @@ const MobileActions = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal className="size-4" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -140,7 +140,7 @@ const MobileActions = ({
         onClick={() => openPermissionsModal(role)}
         className="cursor-pointer"
       >
-        <Eye className="mr-2 h-3.5 w-3.5" />
+        <Eye className="mr-2 size-3.5" />
         Ver permissões
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -151,7 +151,7 @@ const MobileActions = ({
           role.isSystemRole && "cursor-not-allowed opacity-50"
         )}
       >
-        <Pencil className="mr-2 h-3.5 w-3.5" />
+        <Pencil className="mr-2 size-3.5" />
         Editar
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -162,7 +162,7 @@ const MobileActions = ({
           role.isSystemRole && "cursor-not-allowed opacity-50"
         )}
       >
-        <Trash2 className="mr-2 h-3.5 w-3.5" />
+        <Trash2 className="mr-2 size-3.5" />
         Deletar
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -190,8 +190,8 @@ const PermissionSelector = ({
         </FormLabel>
         {isLoadingPermissions ? (
           <div className="flex items-center gap-2 py-2 text-xs text-neutral-500">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Carregando permissões...
+            <Loader2 className="size-3 animate-spin" />
+            Carregando permissões…
           </div>
         ) : permissions.length === 0 ? (
           <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 text-xs text-neutral-500">
@@ -207,7 +207,7 @@ const PermissionSelector = ({
               >
                 <AccordionTrigger className="px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:no-underline">
                   <div className="flex items-center gap-2">
-                    <Key className="h-3.5 w-3.5 text-neutral-500" />
+                    <Key className="size-3.5 text-neutral-500" />
                     {resource}
                     <Badge
                       variant="outline"
@@ -312,7 +312,7 @@ export const RolesView = ({
     return (
       <PageContainer>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tighter text-white">
+          <h1 className="text-2xl font-semibold tracking-tighter text-white">
             Roles
           </h1>
           <p className="mt-1 text-sm text-neutral-500">Sistema</p>
@@ -330,7 +330,7 @@ export const RolesView = ({
       <PageContainer>
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tighter text-white">
+            <h1 className="text-2xl font-semibold tracking-tighter text-white">
               Roles
             </h1>
             <p className="mt-1 text-sm text-neutral-500">Sistema</p>
@@ -340,7 +340,7 @@ export const RolesView = ({
               onClick={openCreateModal}
               className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto"
             >
-              <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+              <Plus className="mr-2 size-4" strokeWidth={2.5} />
               NOVA ROLE
             </Button>
           </div>
@@ -350,10 +350,10 @@ export const RolesView = ({
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
           <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
             <div className="text-neutral-500 absolute left-3">
-              <Search className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <Search className="size-3.5" strokeWidth={2.5} />
             </div>
             <Input
-              placeholder="Pesquisar por nome ou descrição..."
+              placeholder="Pesquisar por nome ou descrição…"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 hover:border-neutral-700"
@@ -367,7 +367,7 @@ export const RolesView = ({
 
         {/* Data Display */}
         {isLoading ? (
-          <LoadingState message="Carregando roles..." />
+          <LoadingState message="Carregando roles…" />
         ) : error ? (
           <ErrorState
             title="Falha na conexão"
@@ -420,7 +420,7 @@ export const RolesView = ({
                             <TableCell className="py-3">
                               <div className="flex items-center gap-2">
                                 <Shield className={cn(
-                                  "h-4 w-4",
+                                  "size-4",
                                   role.isSystemRole ? "text-blue-500" : "text-neutral-500"
                                 )} />
                                 <span className="font-medium text-white">
@@ -438,7 +438,7 @@ export const RolesView = ({
                                 className="h-7 rounded-[4px] px-2 text-neutral-400 hover:bg-neutral-800 hover:text-white"
                                 title="Ver permissões da role"
                               >
-                                <Key className="mr-1.5 h-3 w-3" />
+                                <Key className="mr-1.5 size-3" />
                                 <span className="text-[10px] font-bold">
                                   {role.permissions.length}
                                 </span>
@@ -450,7 +450,7 @@ export const RolesView = ({
                                   variant="outline"
                                   className="rounded-[2px] border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-500"
                                 >
-                                  <Lock className="h-3 w-3 mr-1" />
+                                  <Lock className="size-3 mr-1" />
                                   SISTEMA
                                 </Badge>
                               ) : (
@@ -482,7 +482,7 @@ export const RolesView = ({
                           <div className="flex-1 pr-2">
                             <div className="flex items-center gap-2">
                               <Shield className={cn(
-                                "h-4 w-4",
+                                "size-4",
                                 role.isSystemRole ? "text-blue-500" : "text-neutral-500"
                               )} />
                               <h3 className="font-semibold text-white">
@@ -501,14 +501,14 @@ export const RolesView = ({
                                 variant="outline"
                                 className="rounded-[2px] border-blue-500/20 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-500"
                               >
-                                <Lock className="h-3 w-3" />
+                                <Lock className="size-3" />
                               </Badge>
                             )}
                             <MobileActions role={role} openPermissionsModal={openPermissionsModal} openEditModal={openEditModal} openDeleteModal={openDeleteModal} />
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Key className="h-3 w-3 text-neutral-600" />
+                          <Key className="size-3 text-neutral-600" />
                           <button
                             type="button"
                             onClick={() => openPermissionsModal(role)}
@@ -557,8 +557,8 @@ export const RolesView = ({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Criando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Criando…
                 </>
               ) : (
                 "Criar Role"
@@ -604,7 +604,7 @@ export const RolesView = ({
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Descreva as responsabilidades desta role..."
+                      placeholder="Descreva as responsabilidades desta role…"
                       rows={2}
                       className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 resize-none"
                     />
@@ -647,8 +647,8 @@ export const RolesView = ({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Salvando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Salvando…
                 </>
               ) : (
                 "Salvar Alterações"
@@ -694,7 +694,7 @@ export const RolesView = ({
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Descreva as responsabilidades desta role..."
+                      placeholder="Descreva as responsabilidades desta role…"
                       rows={2}
                       className="rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 resize-none"
                     />
@@ -736,8 +736,8 @@ export const RolesView = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Deletando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Deletando…
                 </>
               ) : (
                 "Deletar"
@@ -747,9 +747,9 @@ export const RolesView = ({
         }
       >
         <div className="space-y-4">
-          <div className="rounded-[4px] border border-rose-900/30 bg-rose-950/10 px-3 py-3 text-xs text-rose-500">
+          <div className="rounded-[4px] border border-rose-900/30 bg-rose-950/10 p-3 text-xs text-rose-500">
             <div className="flex items-center gap-2 font-bold uppercase tracking-wide">
-              <AlertTriangle className="h-3.5 w-3.5" />
+              <AlertTriangle className="size-3.5" />
               Atenção
             </div>
             <p className="mt-1 opacity-90">

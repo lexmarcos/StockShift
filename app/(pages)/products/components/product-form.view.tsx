@@ -95,7 +95,7 @@ const BatchModeSwitch = ({
       >
         <div className="space-y-0.5">
           <FormLabel className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white">
-            <Zap className="h-3 w-3 text-amber-500" />
+            <Zap className="size-3 text-amber-500" />
             {isInlineMode ? "Modo em lote" : "Modo Contínuo"}
           </FormLabel>
           {!compact && (
@@ -245,7 +245,7 @@ export const ProductForm = ({
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-0 justify-between">
                       <div className="flex items-center gap-2">
-                        <Box className="h-4 w-4 text-blue-500" />
+                        <Box className="size-4 text-blue-500" />
                         <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                           Informações Básicas
                         </CardTitle>
@@ -258,7 +258,7 @@ export const ProductForm = ({
                             onClick={openAiModal}
                             className="w-full md:w-fit h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_15px_-5px_rgba(37,99,235,0.3)]"
                           >
-                            <Sparkles className="h-3 w-3" />
+                            <Sparkles className="size-3" />
                             Pegar dados de uma foto
                           </Button>
                         </PermissionGate>
@@ -295,7 +295,7 @@ export const ProductForm = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                              <Barcode className="h-3 w-3" /> Código de Barras
+                              <Barcode className="size-3" /> Código de Barras
                             </FormLabel>
                             <div className="flex gap-2">
                               <FormControl>
@@ -309,9 +309,9 @@ export const ProductForm = ({
                                 type="button"
                                 variant="outline"
                                 onClick={openScanner}
-                                className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 hover:bg-neutral-800 hover:text-white"
+                                className="size-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 hover:bg-neutral-800 hover:text-white"
                               >
-                                <Scan className="h-4 w-4" />
+                                <Scan className="size-4" />
                               </Button>
                             </div>
                             <FormMessage className="text-xs text-rose-500" />
@@ -330,7 +330,7 @@ export const ProductForm = ({
                           </FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Especificações técnicas, detalhes de uso, etc..."
+                              placeholder="Especificações técnicas, detalhes de uso, etc…"
                               className="min-h-[100px] resize-y rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
@@ -346,7 +346,7 @@ export const ProductForm = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Ruler className="h-4 w-4 text-blue-500" />
+                      <Ruler className="size-4 text-blue-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Dimensões e Atributos
                       </CardTitle>
@@ -360,7 +360,7 @@ export const ProductForm = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                              <Scale className="h-3 w-3" /> Peso
+                              <Scale className="size-3" /> Peso
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -379,7 +379,7 @@ export const ProductForm = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                              <Box className="h-3 w-3" /> Dimensões (C x L x A)
+                              <Box className="size-3" /> Dimensões (C x L x A)
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -395,7 +395,7 @@ export const ProductForm = ({
                     </div>
 
                     <div className="pt-4 border-t border-neutral-800">
-                      <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-white mb-4">
                         Atributos Personalizados
                       </h4>
                       <CustomAttributesBuilder
@@ -413,7 +413,7 @@ export const ProductForm = ({
                   <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                     <CardHeader className="border-b border-neutral-800 pb-4">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-emerald-500" />
+                        <DollarSign className="size-4 text-emerald-500" />
                         <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                           Estoque e Precificação
                         </CardTitle>
@@ -542,10 +542,10 @@ export const ProductForm = ({
                                           type="button"
                                           variant="outline"
                                           onClick={onQuantityDecrement}
-                                          className="h-10 w-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                          className="size-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                           aria-label="Diminuir quantidade"
                                         >
-                                          <Minus className="h-4 w-4" />
+                                          <Minus className="size-4" />
                                         </Button>
                                         <FormControl>
                                           <NumberInput
@@ -561,10 +561,10 @@ export const ProductForm = ({
                                           type="button"
                                           variant="outline"
                                           onClick={onQuantityIncrement}
-                                          className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                          className="size-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                           aria-label="Aumentar quantidade"
                                         >
-                                          <Plus className="h-4 w-4" />
+                                          <Plus className="size-4" />
                                         </Button>
                                       </div>
                                     ) : (
@@ -591,7 +591,7 @@ export const ProductForm = ({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                                  <Calendar className="h-3 w-3" /> Fabricação
+                                  <Calendar className="size-3" /> Fabricação
                                 </FormLabel>
                                 <FormControl>
                                   <Input
@@ -610,7 +610,7 @@ export const ProductForm = ({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                                  <Calendar className="h-3 w-3" /> Validade
+                                  <Calendar className="size-3" /> Validade
                                 </FormLabel>
                                 <FormControl>
                                   <Input
@@ -659,7 +659,7 @@ export const ProductForm = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-amber-500" />
+                      <Tag className="size-4 text-amber-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Categorização
                       </CardTitle>
@@ -673,7 +673,7 @@ export const ProductForm = ({
                         render={({ field }) => (
                           <FormItem className="space-y-1.5">
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                              <Layers className="h-3 w-3 text-amber-500/70" />
+                              <Layers className="size-3 text-amber-500/70" />
                               Categoria
                             </FormLabel>
                             <Select
@@ -683,7 +683,7 @@ export const ProductForm = ({
                             >
                               <FormControl>
                                 <SelectTrigger className="w-full h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0 focus:border-blue-600 transition-colors">
-                                  <SelectValue placeholder="Selecione a categoria..." />
+                                  <SelectValue placeholder="Selecione a categoria…" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300 max-h-[300px]">
@@ -694,12 +694,12 @@ export const ProductForm = ({
                                         value={field.value}
                                         className="text-xs"
                                       >
-                                        Carregando...
+                                        Carregando…
                                       </SelectItem>
                                     )}
                                     <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                      Carregando...
+                                      <Loader2 className="mr-2 size-3 animate-spin" />
+                                      Carregando…
                                     </div>
                                   </>
                                 ) : (
@@ -714,7 +714,7 @@ export const ProductForm = ({
                                         className="text-xs focus:bg-neutral-800 focus:text-white py-2.5"
                                       >
                                         <div className="flex items-center gap-2">
-                                          <div className="h-2 w-2 rounded-full bg-amber-500/50" />
+                                          <div className="size-2 rounded-full bg-amber-500/50" />
                                           {parentName ? (
                                             <span className="inline-flex items-center gap-1">
                                               <span className="text-neutral-500">
@@ -746,7 +746,7 @@ export const ProductForm = ({
                         render={({ field }) => (
                           <FormItem className="space-y-1.5">
                             <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-                              <CheckCircle2 className="h-3 w-3 text-blue-500/70" />
+                              <CheckCircle2 className="size-3 text-blue-500/70" />
                               Marca / Fabricante
                             </FormLabel>
                             <Select
@@ -756,7 +756,7 @@ export const ProductForm = ({
                             >
                               <FormControl>
                                 <SelectTrigger className="w-full h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0 focus:border-blue-600 transition-colors">
-                                  <SelectValue placeholder="Selecione a marca..." />
+                                  <SelectValue placeholder="Selecione a marca…" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300 max-h-[300px]">
@@ -767,12 +767,12 @@ export const ProductForm = ({
                                         value={field.value}
                                         className="text-xs"
                                       >
-                                        Carregando...
+                                        Carregando…
                                       </SelectItem>
                                     )}
                                     <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                      Carregando...
+                                      <Loader2 className="mr-2 size-3 animate-spin" />
+                                      Carregando…
                                     </div>
                                   </>
                                 ) : (
@@ -790,10 +790,10 @@ export const ProductForm = ({
                                             width={16}
                                             height={16}
                                             unoptimized
-                                            className="h-4 w-4 object-contain rounded-[2px]"
+                                            className="size-4 object-contain rounded-[2px]"
                                           />
                                         ) : (
-                                          <div className="h-4 w-4 rounded-[2px] bg-neutral-800 flex items-center justify-center text-[8px] font-bold text-neutral-500">
+                                          <div className="size-4 rounded-[2px] bg-neutral-800 flex items-center justify-center text-[8px] font-bold text-neutral-500">
                                             {brand.name.substring(0, 1)}
                                           </div>
                                         )}
@@ -816,7 +816,7 @@ export const ProductForm = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Settings2 className="h-4 w-4 text-neutral-500" />
+                      <Settings2 className="size-4 text-neutral-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Configurações
                       </CardTitle>
@@ -915,12 +915,12 @@ export const ProductForm = ({
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      Salvando...
+                      <Loader2 className="mr-2 size-3.5 animate-spin" />
+                      Salvando…
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+                      <CheckCircle2 className="mr-2 size-3.5" />
                       {submitLabel}
                     </>
                   )}
@@ -942,8 +942,8 @@ export const ProductForm = ({
               <DrawerHeader className="border-b border-neutral-800 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800">
-                      <Layers className="h-4 w-4 text-blue-500" />
+                    <div className="flex size-8 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800">
+                      <Layers className="size-4 text-blue-500" />
                     </div>
                     <div>
                       <DrawerTitle className="text-sm font-bold uppercase tracking-wide text-white">
@@ -959,9 +959,9 @@ export const ProductForm = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                      className="size-8 rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="size-4" />
                     </Button>
                   </DrawerClose>
                 </div>
@@ -970,9 +970,9 @@ export const ProductForm = ({
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 {batchesDrawerState.isLoading && (
                   <div className="flex items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-6">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-600" />
+                    <Loader2 className="mr-2 size-4 animate-spin text-blue-600" />
                     <span className="text-xs text-neutral-400">
-                      Carregando lotes...
+                      Carregando lotes…
                     </span>
                   </div>
                 )}
@@ -1184,8 +1184,8 @@ export const ProductForm = ({
                                     {batchesDrawerState.updatingBatchId ===
                                     batch.id ? (
                                       <>
-                                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                                        Salvando...
+                                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                                        Salvando…
                                       </>
                                     ) : (
                                       "Salvar Alterações"

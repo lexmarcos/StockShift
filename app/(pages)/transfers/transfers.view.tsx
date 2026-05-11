@@ -24,6 +24,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { SectionLabel } from "@/components/ui/section-label";
 import { Transfer, TransferStatus } from "./transfers.types";
 import { cn } from "@/lib/utils";
+import { format, parseISO } from "date-fns";
 
 interface TransfersViewProps {
   transfers: Transfer[];
@@ -97,7 +98,7 @@ export function TransfersView({
     <PageContainer>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tighter text-white">
+          <h1 className="text-2xl font-semibold tracking-tighter text-white">
             Transferências
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
@@ -112,7 +113,7 @@ export function TransfersView({
                 className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
               >
                 <Link href="/transfers/new">
-                  <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+                  <Plus className="mr-2 size-4" strokeWidth={2.5} />
                   Nova Transferência
                 </Link>
               </Button>
@@ -134,13 +135,13 @@ export function TransfersView({
         >
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-[4px]",
+              "flex size-10 items-center justify-center rounded-[4px]",
               activeTab === "outgoing"
                 ? "bg-blue-600/20 text-blue-400"
                 : "bg-neutral-800 text-neutral-500",
             )}
           >
-            <Send className="h-5 w-5" strokeWidth={2} />
+            <Send className="size-5" strokeWidth={2} />
           </div>
           <div className="text-left">
             <p
@@ -171,13 +172,13 @@ export function TransfersView({
         >
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-[4px]",
+              "flex size-10 items-center justify-center rounded-[4px]",
               activeTab === "incoming"
                 ? "bg-blue-600/20 text-blue-400"
                 : "bg-neutral-800 text-neutral-500",
             )}
           >
-            <Inbox className="h-5 w-5" strokeWidth={2} />
+            <Inbox className="size-5" strokeWidth={2} />
           </div>
           <div className="text-left">
             <p
@@ -290,7 +291,7 @@ export function TransfersView({
                         >
                           {config.showCheckIcon && (
                             <CheckCircle2
-                              className="h-3 w-3"
+                              className="size-3"
                               strokeWidth={2.5}
                             />
                           )}
@@ -304,7 +305,7 @@ export function TransfersView({
                           {transfer.sourceWarehouseName}
                         </span>
                         <ArrowRight
-                          className="h-3.5 w-3.5 flex-shrink-0 text-neutral-600"
+                          className="size-3.5 flex-shrink-0 text-neutral-600"
                           strokeWidth={2.5}
                         />
                         <span className="truncate max-w-[140px] sm:max-w-none">
@@ -315,21 +316,21 @@ export function TransfersView({
                       {/* Meta info */}
                       <div className="flex items-center gap-4 text-xs text-neutral-500">
                         <div className="flex items-center gap-1.5">
-                          <Package className="h-3.5 w-3.5" strokeWidth={2} />
+                          <Package className="size-3.5" strokeWidth={2} />
                           <span>{transfer.items?.length || 0} itens</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" strokeWidth={2} />
+                          <Calendar className="size-3.5" strokeWidth={2} />
                           <span>
-                            {new Date(transfer.createdAt).toLocaleDateString()}
+                            {format(parseISO(transfer.createdAt), "dd/MM/yyyy")}
                           </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Arrow indicator (desktop) */}
-                    <div className="hidden sm:flex items-center justify-center h-10 w-10 rounded-[4px] bg-neutral-800/50 group-hover:bg-blue-600/20 group-hover:text-blue-400 text-neutral-600">
-                      <ArrowRight className="h-5 w-5" strokeWidth={2} />
+                    <div className="hidden sm:flex items-center justify-center size-10 rounded-[4px] bg-neutral-800/50 group-hover:bg-neutral-800 group-hover:text-blue-400 text-neutral-600">
+                      <ArrowRight className="size-5" strokeWidth={2} />
                     </div>
                   </div>
                 </div>

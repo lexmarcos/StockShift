@@ -50,12 +50,6 @@ export function buildInfinitePayCallbackUrl(origin: string): string {
   return `${origin.replace(/\/+$/, "")}${INFINITEPAY_CALLBACK_PATH}`;
 }
 
-export const INFINITEPAY_PAYMENT_METHODS = new Set([
-  "DEBIT_CARD",
-  "CREDIT_CARD",
-  "INSTALLMENT",
-]);
-
 export function mapPaymentMethodToInfinitePay(
   method: string,
 ): "credit" | "debit" {

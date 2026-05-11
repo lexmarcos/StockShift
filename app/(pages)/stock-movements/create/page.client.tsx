@@ -5,8 +5,14 @@ import { CreateStockMovementView } from "./create-stock-movement.view";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import { StockMovementReloadGuard } from "./stock-movement-reload-guard";
 
-function CreateStockMovementContent() {
-  const model = useCreateStockMovementModel();
+interface CreateStockMovementContentProps {
+  typeParam: string | null;
+}
+
+function CreateStockMovementContent({
+  typeParam,
+}: CreateStockMovementContentProps) {
+  const model = useCreateStockMovementModel({ typeParam });
   return (
     <>
       <StockMovementReloadGuard />
@@ -15,10 +21,10 @@ function CreateStockMovementContent() {
   );
 }
 
-export function PageClient() {
+export function PageClient({ typeParam }: CreateStockMovementContentProps) {
   return (
     <Suspense fallback={null}>
-      <CreateStockMovementContent />
+      <CreateStockMovementContent typeParam={typeParam} />
     </Suspense>
   );
 }

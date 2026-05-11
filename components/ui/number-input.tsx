@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { NumericFormat, type NumberFormatValues } from "react-number-format";
 import { Input } from "./input";
 
-export type NumberInputMode = "integer" | "float";
+type NumberInputMode = "integer" | "float";
 
 export type NumberInputProps = Omit<
   ComponentProps<typeof Input>,

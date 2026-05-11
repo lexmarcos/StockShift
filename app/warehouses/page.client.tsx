@@ -9,13 +9,13 @@ import { useAuth } from "@/lib/contexts/auth-context";
 export function PageClient() {
   const model = useWarehousesModel();
   const { user } = useAuth();
-  const router = useRouter();
+  const { replace } = useRouter();
 
   useEffect(() => {
     if (user?.mustChangePassword) {
-      router.replace("/change-password");
+      replace("/change-password");
     }
-  }, [user, router]);
+  }, [user, replace]);
 
   if (user?.mustChangePassword) return null;
 

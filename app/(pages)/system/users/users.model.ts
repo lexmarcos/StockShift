@@ -15,6 +15,17 @@ import {
   UpdateUserResponse,
 } from "./users.types";
 
+const getMatchingRoleIds = (roles: { id: string; name: string }[], user: User): string[] =>
+  roles.flatMap((role) => (user.roles.includes(role.name) ? [role.id] : []));
+
+const getMatchingWarehouseIds = (
+  warehouses: { id: string; name: string }[],
+  user: User,
+): string[] =>
+  warehouses.flatMap((warehouse) =>
+    user.warehouses.includes(warehouse.name) ? [warehouse.id] : [],
+  );
+
 export const useUsersModel = () => {
   const { isAdmin, user: currentUser, isLoading: isLoadingAdmin } = useAuth();
 
@@ -119,14 +130,8 @@ export const useUsersModel = () => {
   // Populate edit form when roles and warehouses are loaded
   useEffect(() => {
     if (selectedUser && isEditModalOpen && roles.length > 0 && warehouses.length > 0 && !editFormPopulated) {
-      // Map role names to IDs
-      const userRoleIds = roles
-        .filter((r) => selectedUser.roles.includes(r.name))
-        .map((r) => r.id);
-      // Map warehouse names to IDs
-      const userWarehouseIds = warehouses
-        .filter((w) => selectedUser.warehouses.includes(w.name))
-        .map((w) => w.id);
+      const userRoleIds = getMatchingRoleIds(roles, selectedUser);
+      const userWarehouseIds = getMatchingWarehouseIds(warehouses, selectedUser);
 
       editForm.reset({
         fullName: selectedUser.fullName,
@@ -204,14 +209,8 @@ export const useUsersModel = () => {
 
   const toggleUserStatus = async (user: User) => {
     try {
-      // Map role names to IDs
-      const userRoleIds = roles
-        .filter((r) => user.roles.includes(r.name))
-        .map((r) => r.id);
-      // Map warehouse names to IDs
-      const userWarehouseIds = warehouses
-        .filter((w) => user.warehouses.includes(w.name))
-        .map((w) => w.id);
+      const userRoleIds = getMatchingRoleIds(roles, user);
+      const userWarehouseIds = getMatchingWarehouseIds(warehouses, user);
 
       const response = await api
         .put(`users/${user.id}`, {

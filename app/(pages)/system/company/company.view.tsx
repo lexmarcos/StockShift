@@ -128,11 +128,11 @@ export const CompanyView = ({
       <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
         <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
           <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-950/30 ring-1 ring-rose-900/50">
-              <Loader2 className="h-8 w-8 text-rose-500" />
+            <div className="flex size-20 items-center justify-center rounded-full bg-rose-950/30 ring-1 ring-rose-900/50">
+              <Loader2 className="size-8 text-rose-500" />
             </div>
             <div className="text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wide text-rose-500">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-rose-500">
                 Erro de Acesso
               </h3>
               <p className="mt-1 max-w-xs text-xs text-rose-500/70">
@@ -151,7 +151,7 @@ export const CompanyView = ({
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-lg font-bold uppercase tracking-wide text-white">
+            <h1 className="text-lg font-semibold uppercase tracking-wide text-white">
               Configurações da Empresa
             </h1>
             <p className="mt-1 text-xs text-neutral-500">
@@ -164,7 +164,7 @@ export const CompanyView = ({
             <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
               <CardHeader className="border-b border-neutral-800 pb-4">
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-blue-500" />
+                  <Building2 className="size-4 text-blue-500" />
                   <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                     Dados da Empresa
                   </CardTitle>
@@ -173,7 +173,7 @@ export const CompanyView = ({
               <CardContent className="pt-6">
                 {isLoadingCompany ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                    <Loader2 className="size-6 animate-spin text-blue-500" />
                   </div>
                 ) : (
                   <Form {...companyForm}>
@@ -276,8 +276,8 @@ export const CompanyView = ({
                       >
                         {isUpdatingCompany ? (
                           <>
-                            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                            Salvando...
+                            <Loader2 className="mr-2 size-3.5 animate-spin" />
+                            Salvando…
                           </>
                         ) : (
                           "Salvar Dados da Empresa"
@@ -293,7 +293,7 @@ export const CompanyView = ({
             <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
               <CardHeader className="border-b border-neutral-800 pb-4">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-emerald-500" />
+                  <CreditCard className="size-4 text-emerald-500" />
                   <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                     InfinitePay
                   </CardTitle>
@@ -302,7 +302,7 @@ export const CompanyView = ({
               <CardContent className="pt-6">
                 {isLoadingInfinitePay ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+                    <Loader2 className="size-6 animate-spin text-emerald-500" />
                   </div>
                 ) : (
                   <Form {...infinitePayForm}>
@@ -380,8 +380,8 @@ export const CompanyView = ({
                         >
                           {isUpdatingInfinitePay ? (
                             <>
-                              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                              Salvando...
+                              <Loader2 className="mr-2 size-3.5 animate-spin" />
+                              Salvando…
                             </>
                           ) : (
                             "Salvar Configuração"

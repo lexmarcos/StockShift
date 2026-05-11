@@ -16,7 +16,7 @@ import {
   AlertCircle,
   Link2,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type {
@@ -40,12 +40,17 @@ const ALL_TYPE_LABELS: Record<StockMovementType, string> = {
   TRANSFER_OUT: "Transf. Saída",
 };
 
-const formatCurrency = (cents: number | null | undefined): string => {
-  if (cents === null || cents === undefined) return "-";
-  return new Intl.NumberFormat("pt-BR", {
+const STOCK_MOVEMENT_DETAIL_CURRENCY_FORMATTER = new Intl.NumberFormat(
+  "pt-BR",
+  {
     style: "currency",
     currency: "BRL",
-  }).format(cents / 100);
+  },
+);
+
+const formatCurrency = (cents: number | null | undefined): string => {
+  if (cents === null || cents === undefined) return "-";
+  return STOCK_MOVEMENT_DETAIL_CURRENCY_FORMATTER.format(cents / 100);
 };
 
 const getDirectionConfig = (direction: "IN" | "OUT") => {
@@ -55,7 +60,7 @@ const getDirectionConfig = (direction: "IN" | "OUT") => {
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
-      icon: <ArrowDownRight className="w-3.5 h-3.5 mr-1" />,
+      icon: <ArrowDownRight className="size-3.5 mr-1" />,
     };
   }
   return {
@@ -63,7 +68,7 @@ const getDirectionConfig = (direction: "IN" | "OUT") => {
     color: "text-rose-500",
     bg: "bg-rose-500/10",
     border: "border-rose-500/20",
-    icon: <ArrowUpRight className="w-3.5 h-3.5 mr-1" />,
+    icon: <ArrowUpRight className="size-3.5 mr-1" />,
   };
 };
 
@@ -145,7 +150,7 @@ export const StockMovementDetailView = ({
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-neutral-200 font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#0A0A0A] text-neutral-200 font-sans selection:bg-neutral-700 selection:text-white">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           {/* Header */}
@@ -201,9 +206,9 @@ const LoadingState = () => (
     <div className="h-14 border-b border-[#262626] bg-[#0A0A0A]" />
     <div className="flex-1 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+        <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
         <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-500">
-          Carregando movimentação...
+          Carregando movimentação…
         </span>
       </div>
     </div>
@@ -216,14 +221,14 @@ const ErrorState = () => (
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4">
         <Link
           href="/stock-movements"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] border border-[#262626] bg-[#171717] hover:bg-[#262626] transition-colors"
+          className="inline-flex size-8 items-center justify-center rounded-[4px] border border-[#262626] bg-[#171717] hover:bg-[#262626] transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 text-neutral-400" />
+          <ArrowLeft className="size-4 text-neutral-400" />
         </Link>
       </div>
     </header>
     <main className="flex-1 flex flex-col items-center justify-center p-8 text-neutral-400">
-      <AlertCircle className="h-12 w-12 mb-4 text-rose-500/50" />
+      <AlertCircle className="size-12 mb-4 text-rose-500/50" />
       <h2 className="text-lg font-semibold text-neutral-200">
         Movimentação não encontrada
       </h2>
@@ -235,7 +240,7 @@ const ErrorState = () => (
           variant="outline"
           className="rounded-[4px] border-neutral-800 bg-transparent text-white hover:bg-neutral-900"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 size-4" />
           Voltar para Movimentações
         </Button>
       </Link>
@@ -277,14 +282,14 @@ const HeaderSection = ({
         </span>
         <span className="text-xs text-neutral-500">•</span>
         <span className="text-sm text-neutral-500">
-          {format(new Date(movement.createdAt), "dd/MM/yyyy 'às' HH:mm", {
+          {format(parseISO(movement.createdAt), "dd/MM/yyyy 'às' HH:mm", {
             locale: ptBR,
           })}
         </span>
       </div>
     </div>
     <div className="ml-11 md:ml-0 flex items-center gap-2 text-sm text-neutral-400">
-      <Package className="h-4 w-4 text-neutral-500" />
+      <Package className="size-4 text-neutral-500" />
       <span>
         {totalQuantity} un. em {movement.items.length} item(ns)
       </span>
@@ -312,8 +317,8 @@ const FinancialCard = ({
     <div className="rounded-[4px] border border-[#262626] bg-[#171717]">
       <div className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="h-4 w-4 text-emerald-500" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+          <DollarSign className="size-4 text-emerald-500" />
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
             {isPurchase ? "Resumo Financeiro da Compra" : "Resumo Financeiro"}
           </h3>
         </div>
@@ -390,8 +395,8 @@ const ProductsAndLotsCard = ({
     <div className="rounded-[4px] border border-[#262626] bg-[#171717]">
       <div className="flex items-center justify-between border-b border-[#262626] px-5 py-4">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-amber-500" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+          <Layers className="size-4 text-amber-500" />
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
             Produtos e Lotes
           </h3>
         </div>
@@ -425,9 +430,9 @@ const ProductGroup = ({
 }) => (
   <div className="rounded-[4px] border border-[#262626] bg-neutral-900/30 overflow-hidden">
     {/* Product Header */}
-    <div className="flex flex-col gap-3 border-b border-[#262626] bg-neutral-900/60 px-3 py-3 md:flex-row md:items-center md:justify-between md:px-4">
+    <div className="flex flex-col gap-3 border-b border-[#262626] bg-neutral-900/60 p-3 md:flex-row md:items-center md:justify-between md:px-4">
       <div className="flex min-w-0 items-start gap-3 md:items-center">
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-neutral-800">
+        <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-neutral-800">
           {product.productImageUrl ? (
             <Image
               src={product.productImageUrl}
@@ -438,7 +443,7 @@ const ProductGroup = ({
               className="object-cover"
             />
           ) : (
-            <Package className="h-5 w-5 text-blue-500" />
+            <Package className="size-5 text-blue-500" />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -465,7 +470,7 @@ const ProductGroup = ({
           href={`/products/${product.productId}`}
           className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:bg-[#262626] md:flex-none md:w-auto"
         >
-          <Package className="h-3.5 w-3.5" />
+          <Package className="size-3.5" />
           Ver produto
         </Link>
         {product.items[0]?.batchId && (
@@ -473,7 +478,7 @@ const ProductGroup = ({
             href={`/batches/${product.items[0].batchId}`}
             className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[4px] border border-[#262626] bg-[#171717] px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:bg-[#262626] md:flex-none md:w-auto"
           >
-            <Layers className="h-3.5 w-3.5" />
+            <Layers className="size-3.5" />
             Ver lote
           </Link>
         )}
@@ -509,7 +514,7 @@ const BatchRow = ({
   const totalSale = unitSale !== null ? unitSale * item.quantity : null;
 
   return (
-    <div className="flex flex-col gap-3 px-3 py-3 text-sm md:flex-row md:items-center md:justify-between md:px-4 md:py-2.5">
+    <div className="flex flex-col gap-3 p-3 text-sm md:flex-row md:items-center md:justify-between md:px-4 md:py-2.5">
       <span className="inline-flex w-fit items-center rounded-[4px] border border-neutral-800 bg-[#0A0A0A] px-2 py-1 text-xs text-neutral-300 md:inline md:border-0 md:bg-transparent md:p-0 md:text-neutral-400">
         {item.quantity} un.
       </span>
@@ -517,7 +522,7 @@ const BatchRow = ({
       {displayPrices && (
         <div className="grid w-full grid-cols-1 gap-2 text-xs md:flex md:w-auto md:items-center md:gap-4">
           {unitCost !== null && (
-            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] px-2 py-2 md:border-0 md:bg-transparent md:p-0">
+            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] p-2 md:border-0 md:bg-transparent md:p-0">
               <span className="text-neutral-500">Custo:</span>
               <span className="font-mono text-neutral-300">
                 {formatCurrency(totalCost)}
@@ -525,7 +530,7 @@ const BatchRow = ({
             </div>
           )}
           {unitSale !== null && (
-            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] px-2 py-2 md:border-0 md:bg-transparent md:p-0">
+            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] p-2 md:border-0 md:bg-transparent md:p-0">
               <span className="text-neutral-500">Venda:</span>
               <span className="font-mono text-neutral-300">
                 {formatCurrency(totalSale)}
@@ -533,7 +538,7 @@ const BatchRow = ({
             </div>
           )}
           {totalCost !== null && totalSale !== null && (
-            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] px-2 py-2 md:border-0 md:bg-transparent md:p-0">
+            <div className="flex items-center justify-between gap-2 rounded-[4px] border border-neutral-800 bg-[#0A0A0A] p-2 md:border-0 md:bg-transparent md:p-0">
               <span className="text-neutral-500">Lucro:</span>
               <span
                 className={cn(
@@ -567,8 +572,8 @@ const InfoCard = ({
 }) => (
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5 space-y-4">
     <div className="flex items-center gap-2 mb-2 text-white">
-      <Warehouse className="h-4 w-4 text-neutral-500" />
-      <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+      <Warehouse className="size-4 text-neutral-500" />
+      <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
         Informações
       </h3>
     </div>
@@ -595,7 +600,7 @@ const InfoCard = ({
       <div className="flex justify-between items-center pb-3 border-b border-[#262626]">
         <span className="text-xs text-neutral-500">Criado em</span>
         <span className="text-xs font-mono text-neutral-300">
-          {format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", {
+          {format(parseISO(movement.createdAt), "dd/MM/yyyy HH:mm", {
             locale: ptBR,
           })}
         </span>
@@ -603,7 +608,7 @@ const InfoCard = ({
       <div className="flex justify-between items-center">
         <span className="text-xs text-neutral-500">Atualizado em</span>
         <span className="text-xs font-mono text-neutral-300">
-          {format(new Date(movement.updatedAt), "dd/MM/yyyy HH:mm", {
+          {format(parseISO(movement.updatedAt), "dd/MM/yyyy HH:mm", {
             locale: ptBR,
           })}
         </span>
@@ -625,8 +630,8 @@ const ReferenceCard = ({
   return (
     <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
       <div className="flex items-center gap-2 mb-3 text-purple-500">
-        <Link2 className="h-4 w-4 text-purple-500" />
-        <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+        <Link2 className="size-4 text-purple-500" />
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
           Referência
         </h3>
       </div>
@@ -662,8 +667,8 @@ const ReferenceCard = ({
 const NotesCard = ({ notes }: { notes: string }) => (
   <div className="rounded-[4px] border border-[#262626] bg-[#171717] p-5">
     <div className="flex items-center gap-2 mb-3">
-      <FileText className="h-4 w-4 text-amber-500" />
-      <h3 className="text-xs font-bold uppercase tracking-widest text-white">
+      <FileText className="size-4 text-amber-500" />
+      <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
         Observações
       </h3>
     </div>

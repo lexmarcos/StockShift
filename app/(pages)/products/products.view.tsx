@@ -82,10 +82,10 @@ const STOCK_FILTER_OPTIONS: Array<{
   tone: string;
   icon: ReactNode;
 }> = [
-  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "inStock", label: "Com estoque", tone: "text-emerald-400", icon: <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "lowStock", label: "Baixo estoque", tone: "text-amber-400", icon: <TrendingDown className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "outOfStock", label: "Sem estoque", tone: "text-rose-400", icon: <XCircle className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="size-3.5" strokeWidth={2.5} /> },
+  { value: "inStock", label: "Com estoque", tone: "text-emerald-400", icon: <CheckCircle2 className="size-3.5" strokeWidth={2.5} /> },
+  { value: "lowStock", label: "Baixo estoque", tone: "text-amber-400", icon: <TrendingDown className="size-3.5" strokeWidth={2.5} /> },
+  { value: "outOfStock", label: "Sem estoque", tone: "text-rose-400", icon: <XCircle className="size-3.5" strokeWidth={2.5} /> },
 ];
 
 const ACTIVE_FILTER_OPTIONS: Array<{
@@ -94,9 +94,9 @@ const ACTIVE_FILTER_OPTIONS: Array<{
   tone: string;
   icon: ReactNode;
 }> = [
-  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "active", label: "Ativos", tone: "text-emerald-400", icon: <Power className="h-3.5 w-3.5" strokeWidth={2.5} /> },
-  { value: "inactive", label: "Inativos", tone: "text-neutral-400", icon: <PowerOff className="h-3.5 w-3.5" strokeWidth={2.5} /> },
+  { value: "all", label: "Todos", tone: "text-neutral-200", icon: <LayoutList className="size-3.5" strokeWidth={2.5} /> },
+  { value: "active", label: "Ativos", tone: "text-emerald-400", icon: <Power className="size-3.5" strokeWidth={2.5} /> },
+  { value: "inactive", label: "Inativos", tone: "text-neutral-400", icon: <PowerOff className="size-3.5" strokeWidth={2.5} /> },
 ];
 
 const SORT_FILTER_OPTIONS: Array<{
@@ -250,11 +250,11 @@ const SortIcon = ({
   sortBy: SortField;
   sortOrder: SortOrder;
 }) => {
-  if (sortBy !== field) return <div className="w-3 h-3 opacity-0" />;
+  if (sortBy !== field) return <div className="size-3 opacity-0" />;
   return sortOrder === "asc" ? (
-    <ArrowUp className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowUp className="ml-1 size-3 text-blue-500" />
   ) : (
-    <ArrowDown className="ml-1 h-3 w-3 text-blue-500" />
+    <ArrowDown className="ml-1 size-3 text-blue-500" />
   );
 };
 
@@ -270,9 +270,9 @@ const ProductActions = ({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal className="size-4" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -288,7 +288,7 @@ const ProductActions = ({
           href={`/products/${product.id}`}
           className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
         >
-          <Eye className="mr-2 h-3.5 w-3.5" /> Detalhes
+          <Eye className="mr-2 size-3.5" /> Detalhes
         </Link>
       </DropdownMenuItem>
       <PermissionGate permission="products:update">
@@ -297,16 +297,16 @@ const ProductActions = ({
             href={`/products/${product.id}/edit`}
             className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
           >
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+            <Pencil className="mr-2 size-3.5" /> Editar
           </Link>
         </DropdownMenuItem>
       </PermissionGate>
-      <PermissionGate permission="products:delete">
+      <PermissionGate permission="batches:delete">
         <DropdownMenuItem
           onClick={() => onOpenDeleteDialog(product)}
           className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
         >
-          <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
+          <Trash2 className="mr-2 size-3.5" /> Remover do armazém
         </DropdownMenuItem>
       </PermissionGate>
     </DropdownMenuContent>
@@ -328,8 +328,8 @@ const InsightCards = ({
     {/* Total Items */}
     <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:h-6 md:w-6">
-          <BarChart3 className="h-5 w-5 text-blue-500 md:h-3.5 md:w-3.5" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:size-6">
+          <BarChart3 className="size-5 text-blue-500 md:size-3.5" />
         </div>
         <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
           Total Geral
@@ -348,8 +348,8 @@ const InsightCards = ({
     {/* Low Stock */}
     <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:h-6 md:w-6">
-          <AlertCircle className="h-5 w-5 text-amber-500 md:h-3.5 md:w-3.5" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:size-6">
+          <AlertCircle className="size-5 text-amber-500 md:size-3.5" />
         </div>
         <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
           Baixo Estoque
@@ -368,8 +368,8 @@ const InsightCards = ({
     {/* Out of Stock */}
     <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:h-6 md:w-6">
-          <XCircle className="h-5 w-5 text-rose-500 md:h-3.5 md:w-3.5" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:size-6">
+          <XCircle className="size-5 text-rose-500 md:size-3.5" />
         </div>
         <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
           Sem Estoque
@@ -388,8 +388,8 @@ const InsightCards = ({
     {/* Top Category */}
     <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:h-6 md:w-6">
-          <Tag className="h-5 w-5 text-emerald-500 md:h-3.5 md:w-3.5" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:size-6">
+          <Tag className="size-5 text-emerald-500 md:size-3.5" />
         </div>
         <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
           Top Categoria
@@ -451,9 +451,9 @@ export const ProductsView = ({
   ).length;
   const outOfStockCount = filteredProducts.filter((p) => p.totalQuantity === 0).length;
 
-  const categories = filteredProducts
-    .map((p) => p.categoryName)
-    .filter(Boolean) as string[];
+  const categories = filteredProducts.flatMap((product) =>
+    product.categoryName ? [product.categoryName] : [],
+  );
   const topCategory =
     categories.length > 0
       ? categories
@@ -475,7 +475,7 @@ export const ProductsView = ({
 
 
   // ── Mobile filter drawer ──
-  const renderMobileFiltersPanel = () => (
+  const mobileFiltersPanel = (
     <Drawer open={isMobileFiltersOpen} onOpenChange={onMobileFiltersOpenChange}>
       <DrawerContent
         className="border-neutral-800 bg-[#171717] text-neutral-100"
@@ -495,7 +495,7 @@ export const ProductsView = ({
           <div className="space-y-6">
             {/* Stock status */}
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Nível de estoque
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -529,7 +529,7 @@ export const ProductsView = ({
 
             {/* Active status */}
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Status do produto
               </h3>
               <div className="grid grid-cols-3 gap-2">
@@ -563,7 +563,7 @@ export const ProductsView = ({
 
             {/* Sort order */}
             <section className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Ordenar por
               </h3>
               <Select
@@ -599,7 +599,7 @@ export const ProductsView = ({
             onClick={onClearMobileFilters}
             className="h-11 flex-1 rounded-[4px] border-neutral-700 bg-transparent text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-800 hover:text-white"
           >
-            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            <Trash2 className="mr-2 size-3.5" />
             Limpar
           </Button>
           <Button
@@ -623,7 +623,7 @@ export const ProductsView = ({
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tighter text-white">
+                  <h1 className="text-2xl font-semibold tracking-tighter text-white">
                     Produtos
                   </h1>
                   <p className="text-sm text-neutral-500 mt-1">
@@ -639,27 +639,27 @@ export const ProductsView = ({
                     <FilterToken
                       active={activeFilterCount > 0}
                       count={activeFilterCount}
-                      icon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+                      icon={<SlidersHorizontal className="size-3.5" />}
                       label="Filtros"
                       onClick={onOpenMobileFilters}
                     />
                     <FilterToken
                       active={filters.stockStatus !== "all"}
-                      icon={<Package className="h-3.5 w-3.5" />}
+                      icon={<Package className="size-3.5" />}
                       label="Estoque"
                       value={getStockFilterLabel(filters.stockStatus)}
                       onClick={onOpenMobileFilters}
                     />
                     <FilterToken
                       active={filters.activeStatus !== "all"}
-                      icon={<Power className="h-3.5 w-3.5" />}
+                      icon={<Power className="size-3.5" />}
                       label="Status"
                       value={getActiveFilterLabel(filters.activeStatus)}
                       onClick={onOpenMobileFilters}
                     />
                     <FilterToken
                       active={filters.sortBy !== "name" || filters.sortOrder !== "asc"}
-                      icon={<ArrowDownUp className="h-3.5 w-3.5" />}
+                      icon={<ArrowDownUp className="size-3.5" />}
                       label="Ordem"
                       value={getSortLabel(filters.sortBy, filters.sortOrder)}
                       onClick={onOpenMobileFilters}
@@ -685,7 +685,7 @@ export const ProductsView = ({
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:h-12 w-full">
                 <div className="relative h-12 flex-1 min-w-[200px] flex items-center">
                   <div className="text-neutral-500 absolute left-3">
-                    <Search className="h-3.5 w-3.5" />
+                    <Search className="size-3.5" />
                   </div>
                   <Input
                     placeholder="Pesquisar no inventário (nome, SKU, código)..."
@@ -700,12 +700,15 @@ export const ProductsView = ({
                   <Select
                     value={filters.stockStatus}
                     onValueChange={(value) =>
-                      setFilters({ ...filters, stockStatus: value as StockStatus })
+                      setFilters((current) => ({
+                        ...current,
+                        stockStatus: value as StockStatus,
+                      }))
                     }
                   >
                     <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                       <div className="flex items-center gap-2">
-                        <Package className="h-3.5 w-3.5 text-neutral-500" />
+                        <Package className="size-3.5 text-neutral-500" />
                         <SelectValue placeholder="Estoque" />
                       </div>
                     </SelectTrigger>
@@ -749,7 +752,7 @@ export const ProductsView = ({
                   >
                     <SelectTrigger className="h-12 w-full md:w-[150px] rounded-[4px] border-neutral-800 bg-[#171717] text-[10px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700 transition-colors">
                       <div className="flex items-center gap-2">
-                        <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                        <Filter className="size-3.5 text-neutral-500" />
                         <SelectValue />
                       </div>
                     </SelectTrigger>
@@ -838,9 +841,9 @@ export const ProductsView = ({
               {/* Loading */}
               {isLoading && (
                 <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                  <Loader2 className="size-8 animate-spin text-blue-600" />
                   <span className="text-xs uppercase tracking-wide text-neutral-500">
-                    Carregando dados...
+                    Carregando dados…
                   </span>
                 </div>
               )}
@@ -848,9 +851,9 @@ export const ProductsView = ({
               {/* Error */}
               {error && (
                 <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-                  <AlertTriangle className="h-8 w-8 text-rose-500" />
+                  <AlertTriangle className="size-8 text-rose-500" />
                   <div className="text-center">
-                    <h3 className="text-sm font-bold uppercase text-rose-500">
+                    <h3 className="text-sm font-semibold uppercase text-rose-500">
                       Falha na conexão
                     </h3>
                     <p className="text-xs text-rose-500/70">
@@ -863,11 +866,11 @@ export const ProductsView = ({
               {/* Empty State */}
               {!isLoading && !error && filteredProducts.length === 0 && (
                 <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
-                    <Package className="h-8 w-8 text-neutral-600" />
+                  <div className="flex size-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+                    <Package className="size-8 text-neutral-600" />
                   </div>
                   <div className="text-center">
-                    <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
                       {filters.searchQuery || filters.stockStatus !== "all" || filters.activeStatus !== "all"
                         ? "Nenhum resultado encontrado"
                         : "Nenhum produto cadastrado"}
@@ -986,10 +989,10 @@ export const ProductsView = ({
                                     asChild
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                    className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                                   >
                                     <Link href={`/products/${product.id}`}>
-                                      <Eye className="h-4 w-4" />
+                                      <Eye className="size-4" />
                                     </Link>
                                   </Button>
                                   <PermissionGate permission="products:update">
@@ -997,25 +1000,25 @@ export const ProductsView = ({
                                       asChild
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                                      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                                     >
                                       <Link
                                         href={`/products/${product.id}/edit`}
                                       >
-                                        <Pencil className="h-4 w-4" />
+                                        <Pencil className="size-4" />
                                       </Link>
                                     </Button>
                                   </PermissionGate>
-                                  <PermissionGate permission="products:delete">
+                                  <PermissionGate permission="batches:delete">
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       onClick={() =>
                                         onOpenDeleteDialog(product)
                                       }
-                                      className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                                      className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className="size-4" />
                                     </Button>
                                   </PermissionGate>
                                 </div>
@@ -1086,9 +1089,9 @@ export const ProductsView = ({
                           size="sm"
                           onClick={() => onPageChange(pagination.page - 1)}
                           disabled={pagination.page === 0}
-                          className="h-8 w-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
+                          className="size-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="size-4" />
                         </Button>
                         <Button
                           variant="outline"
@@ -1097,9 +1100,9 @@ export const ProductsView = ({
                           disabled={
                             pagination.page >= pagination.totalPages - 1
                           }
-                          className="h-8 w-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
+                          className="size-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -1112,7 +1115,7 @@ export const ProductsView = ({
       </div>
 
       {/* Mobile Filter Drawer */}
-      {renderMobileFiltersPanel()}
+      {mobileFiltersPanel}
 
       {/* Delete Confirmation Modals */}
       <ResponsiveModal
@@ -1121,7 +1124,7 @@ export const ProductsView = ({
           if (!open) onCloseDeleteDialog();
         }}
         title="Confirmar exclusão"
-        description={`Tem certeza que deseja excluir o produto ${deleteProduct?.name}? Esta ação removerá o produto e todos os lotes associados.`}
+        description={`Tem certeza que deseja remover ${deleteProduct?.name} deste armazém? Esta ação apagará os lotes associados ao armazém atual.`}
         maxWidth="sm:max-w-[450px]"
         footer={
           <>
@@ -1140,11 +1143,11 @@ export const ProductsView = ({
             >
               {isDeletingProduct ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Removendo...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Removendo…
                 </>
               ) : (
-                "Excluir"
+                "Remover"
               )}
             </Button>
           </>
@@ -1153,20 +1156,20 @@ export const ProductsView = ({
         <div className="space-y-4">
           {isCheckingDeleteBatches && (
             <div className="flex items-center gap-2 rounded-[4px] border border-blue-900/30 bg-blue-950/10 px-3 py-2 text-xs text-blue-500">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Verificando estoque...
+              <Loader2 className="size-3.5 animate-spin" />
+              Verificando estoque…
             </div>
           )}
 
           {!isCheckingDeleteBatches && deleteBatches.length > 0 && (
-            <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-3 py-3 text-xs text-amber-500">
+            <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 p-3 text-xs text-amber-500">
               <div className="flex items-center gap-2 font-bold uppercase tracking-wide">
-                <AlertTriangle className="h-3.5 w-3.5" />
+                <AlertTriangle className="size-3.5" />
                 Estoque Existente
               </div>
               <p className="mt-1 opacity-90">
-                Ainda existe estoque deste produto. A exclusão irá apagar todos
-                os lotes associados.
+                Ainda existe estoque deste produto neste armazém. A remoção irá
+                apagar os lotes associados ao armazém atual.
               </p>
               <div className="mt-2 space-y-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
                 {deleteBatches.map((batch) => (
@@ -1190,7 +1193,7 @@ export const ProductsView = ({
           if (!open) onCloseSecondConfirm();
         }}
         title="Confirmação Final"
-        description={`Tem certeza que deseja excluir? O produto ${deleteProduct?.name} será removido do sistema.`}
+        description={`Tem certeza que deseja remover ${deleteProduct?.name} deste armazém?`}
         maxWidth="sm:max-w-[400px]"
         footer={
           <>
@@ -1208,11 +1211,11 @@ export const ProductsView = ({
             >
               {isDeletingProduct ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Removendo...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Removendo…
                 </>
               ) : (
-                "Confirmar Exclusão"
+                "Confirmar Remoção"
               )}
             </Button>
           </>
@@ -1220,8 +1223,8 @@ export const ProductsView = ({
       >
         <div className="py-2">
           <p className="text-xs text-neutral-500">
-            Esta é a última confirmação antes de remover o produto e seus lotes
-            do sistema.
+            Esta é a última confirmação antes de apagar os lotes deste produto
+            no armazém atual.
           </p>
         </div>
       </ResponsiveModal>

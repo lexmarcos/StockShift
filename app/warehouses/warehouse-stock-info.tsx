@@ -15,7 +15,7 @@ export const WarehouseStockInfo = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-4">
-        <Loader2 className="h-4 w-4 text-neutral-600 animate-spin" />
+        <Loader2 className="size-4 text-neutral-600 animate-spin" />
       </div>
     );
   }
@@ -29,7 +29,7 @@ export const WarehouseStockInfo = ({
     <div className="grid grid-cols-3 divide-x divide-neutral-800">
       <div className="flex flex-col items-center justify-center py-3 px-2">
         <div className="flex items-center gap-1.5 mb-1">
-          <Package className="h-3 w-3 text-neutral-500" />
+          <Package className="size-3 text-neutral-500" />
         </div>
         <span className="text-lg font-bold tracking-tighter text-white tabular-nums">
           {productCount}
@@ -41,7 +41,7 @@ export const WarehouseStockInfo = ({
 
       <div className="flex flex-col items-center justify-center py-3 px-2">
         <div className="flex items-center gap-1.5 mb-1">
-          <Boxes className="h-3 w-3 text-neutral-500" />
+          <Boxes className="size-3 text-neutral-500" />
         </div>
         <span className="text-lg font-bold tracking-tighter text-white tabular-nums">
           {batchCount}
@@ -53,7 +53,7 @@ export const WarehouseStockInfo = ({
 
       <div className="flex flex-col items-center justify-center py-3 px-2">
         <div className="flex items-center gap-1.5 mb-1">
-          <Archive className="h-3 w-3 text-neutral-500" />
+          <Archive className="size-3 text-neutral-500" />
         </div>
         <span className={`text-lg font-bold tracking-tighter tabular-nums ${hasStock ? "text-emerald-500" : "text-neutral-500"}`}>
           {totalQuantity.toLocaleString("pt-BR")}

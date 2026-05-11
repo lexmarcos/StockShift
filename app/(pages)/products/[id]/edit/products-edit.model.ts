@@ -79,7 +79,6 @@ export const useProductEditModel = (productId: string) => {
   const [updatingBatchId, setUpdatingBatchId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const loadedProductIdRef = useRef<string | null>(null);
-  const [isFormReady, setIsFormReady] = useState(false);
 
   // Fetch product data
   const { data: productData, isLoading: isLoadingProduct } =
@@ -197,17 +196,19 @@ export const useProductEditModel = (productId: string) => {
     });
 
     loadedProductIdRef.current = product.id;
-    setIsFormReady(true);
-
     // Extract custom attributes (excluding weight and dimensions)
     if (product.attributes) {
-      const attrs = Object.entries(product.attributes)
-        .filter(([key]) => key !== "weight" && key !== "dimensions")
-        .map(([key, value]) => ({
-          id: crypto.randomUUID(),
-          key,
-          value,
-        }));
+      const attrs = Object.entries(product.attributes).flatMap(([key, value]) =>
+        key === "weight" || key === "dimensions"
+          ? []
+          : [
+              {
+                id: crypto.randomUUID(),
+                key,
+                value,
+              },
+            ],
+      );
       setCustomAttributes(attrs);
     } else {
       setCustomAttributes([]);
@@ -247,6 +248,9 @@ export const useProductEditModel = (productId: string) => {
   }, [batchesData, replaceBatchFields]);
 
   const product = productData?.data || null;
+  const isFormReady = Boolean(
+    product && loadedProductIdRef.current === product.id,
+  );
 
   const selectedCategory = useMemo(() => {
     if (!product) return null;
@@ -296,8 +300,8 @@ export const useProductEditModel = (productId: string) => {
   }, [brandsData, selectedBrand]);
 
   const addCustomAttribute = () => {
-    setCustomAttributes([
-      ...customAttributes,
+    setCustomAttributes((current) => [
+      ...current,
       { id: crypto.randomUUID(), key: "", value: "" },
     ]);
   };

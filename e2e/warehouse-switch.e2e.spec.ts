@@ -127,16 +127,14 @@ test.describe("Warehouse Switch E2E", () => {
     expect(secondSelectedWarehouseId).toBe(mockWarehouses[1].id);
     expect(secondSelectedWarehouseId).not.toBe(firstSelectedWarehouseId);
 
-    const payloadWarehouseIds = switchWarehousePayloads
-      .map((payload) => {
-        try {
-          const parsed = JSON.parse(payload) as { warehouseId?: string };
-          return parsed.warehouseId ?? null;
-        } catch {
-          return null;
-        }
-      })
-      .filter((id): id is string => id !== null);
+    const payloadWarehouseIds = switchWarehousePayloads.flatMap((payload) => {
+      try {
+        const parsed = JSON.parse(payload) as { warehouseId?: string };
+        return parsed.warehouseId ? [parsed.warehouseId] : [];
+      } catch {
+        return [];
+      }
+    });
 
     expect(payloadWarehouseIds).toContain(mockWarehouses[0].id);
     expect(payloadWarehouseIds).toContain(mockWarehouses[1].id);

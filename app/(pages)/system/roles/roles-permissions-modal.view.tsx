@@ -49,11 +49,11 @@ export function RolePermissionsModal({
               <div className="flex items-center gap-2">
                 <ShieldCheck
                   className={cn(
-                    "h-4 w-4",
+                    "size-4",
                     role?.isSystemRole ? "text-blue-500" : "text-neutral-500",
                   )}
                 />
-                <h2 className="truncate text-base font-bold text-white">
+                <h2 className="truncate text-base font-semibold text-white">
                   {role?.name ?? "Role"}
                 </h2>
               </div>
@@ -69,7 +69,7 @@ export function RolePermissionsModal({
                   variant="outline"
                   className="rounded-[2px] border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-500"
                 >
-                  <Lock className="mr-1 h-3 w-3" />
+                  <Lock className="mr-1 size-3" />
                   Sistema
                 </Badge>
               )}
@@ -98,8 +98,8 @@ export function RolePermissionsModal({
                   >
                     <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2">
                       <div className="flex min-w-0 items-center gap-2">
-                        <Key className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
-                        <h3 className="truncate text-xs font-bold uppercase tracking-wide text-neutral-300">
+                        <Key className="size-3.5 shrink-0 text-neutral-500" />
+                        <h3 className="truncate text-xs font-semibold uppercase tracking-wide text-neutral-300">
                           {resource}
                         </h3>
                       </div>
@@ -136,7 +136,7 @@ function PermissionRow({ permission }: { permission: Permission }) {
 
   return (
     <div className="flex items-start gap-3 px-3 py-2.5">
-      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+      <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-600" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-neutral-200">{action}</span>

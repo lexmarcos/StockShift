@@ -22,7 +22,7 @@ export function PageClient() {
             <div className="flex items-center gap-3">
               <Link
                 href="/products"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
+                className="inline-flex size-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
               >
                 <span className="sr-only">Voltar</span>
               </Link>
@@ -32,9 +32,9 @@ export function PageClient() {
         <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
+              <Loader2 className="mx-auto size-8 animate-spin text-muted-foreground mb-3" />
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Carregando produto...
+                Carregando produto…
               </p>
             </div>
           </div>
@@ -51,7 +51,7 @@ export function PageClient() {
             <div className="flex items-center gap-3">
               <Link
                 href="/products"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
+                className="inline-flex size-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
               >
                 <span className="sr-only">Voltar</span>
               </Link>
@@ -61,7 +61,7 @@ export function PageClient() {
         <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+              <AlertCircle className="mx-auto size-8 text-muted-foreground mb-3" />
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Produto não encontrado
               </p>

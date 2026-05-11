@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useEffect,
   useState,
   ReactNode,
@@ -62,7 +62,7 @@ const fetcher = (url: string) => api.get(url).json<MeResponse>();
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [baseUser, setBaseUserState] = useState<BaseUser | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const router = useRouter();
+  const { push } = useRouter();
   const pathname = usePathname();
 
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
@@ -132,9 +132,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(USER_STORAGE_KEY);
       localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
       setBaseUserState(null);
-      router.push("/login");
+      push("/login");
     }
-  }, [router]);
+  }, [push]);
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
@@ -189,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = use(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within AuthProvider");
   }

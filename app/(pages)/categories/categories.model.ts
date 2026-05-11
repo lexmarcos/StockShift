@@ -58,13 +58,18 @@ export const useCategoriesModel = () => {
     depth: number = 0
   ): CategoryTree[] {
     return categories
-      .filter((cat) => cat.parentCategoryId === parentCategoryId)
-      .map((cat) => ({
+      .reduce<CategoryTree[]>((children, cat) => {
+        if (cat.parentCategoryId !== parentCategoryId) return children;
+
+        children.push({
         ...cat,
         depth,
         children: buildTree(categories, cat.id, depth + 1),
         productCount: 0,
-      }))
+        });
+
+        return children;
+      }, [])
       .sort((a, b) => {
         const comparison = a.name.localeCompare(b.name);
         return sortConfig.direction === "asc" ? comparison : -comparison;

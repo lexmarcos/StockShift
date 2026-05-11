@@ -39,8 +39,8 @@ export interface DeleteCategoryResponse {
   data: null;
 }
 
-export type SortKey = "name" | "createdAt";
-export type SortDirection = "asc" | "desc";
+type SortKey = "name" | "createdAt";
+type SortDirection = "asc" | "desc";
 
 export interface SortConfig {
   key: SortKey;

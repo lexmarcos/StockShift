@@ -104,11 +104,11 @@ export const WarehousesView = ({
             {/* Top Row: Title & Action */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-blue-600">
-                  <Building2 className="h-4.5 w-4.5 text-white" />
+                <div className="flex size-9 items-center justify-center rounded-[4px] bg-blue-600">
+                  <Building2 className="size-4.5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-base font-bold tracking-tight text-white uppercase">
+                  <h1 className="text-base font-semibold tracking-tight text-white uppercase">
                     Armazéns
                   </h1>
                   <p className="text-[10px] text-neutral-500 uppercase tracking-wide">
@@ -122,7 +122,7 @@ export const WarehousesView = ({
                   onClick={openCreateModal}
                   className="hidden md:flex h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   Novo Armazém
                 </Button>
               </PermissionGate>
@@ -131,9 +131,9 @@ export const WarehousesView = ({
             {/* Bottom Row: Search & Filters */}
             <div className="flex flex-col md:flex-row gap-3 items-center">
               <div className="relative flex-1 w-full md:max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-neutral-500" />
                 <Input
-                  placeholder="Buscar por nome, código ou cidade..."
+                  placeholder="Buscar por nome, código ou cidade…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 h-9 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
@@ -174,9 +174,9 @@ export const WarehousesView = ({
             {/* Loading State */}
             {isLoading && (
               <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/50">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <Loader2 className="size-8 animate-spin text-blue-600" />
                 <span className="text-xs uppercase tracking-wide text-neutral-500">
-                  Carregando armazéns...
+                  Carregando armazéns…
                 </span>
               </div>
             )}
@@ -184,9 +184,9 @@ export const WarehousesView = ({
             {/* Error State */}
             {error && (
               <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-                <AlertTriangle className="h-8 w-8 text-rose-500" />
+                <AlertTriangle className="size-8 text-rose-500" />
                 <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase text-rose-500">
+                  <h3 className="text-sm font-semibold uppercase text-rose-500">
                     Erro de Carregamento
                   </h3>
                   <p className="text-xs text-rose-500/70">
@@ -199,11 +199,11 @@ export const WarehousesView = ({
             {/* Empty State */}
             {!isLoading && !error && warehouses.length === 0 && (
               <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/30">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800">
-                  <Building className="h-8 w-8 text-neutral-600" />
+                <div className="flex size-20 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800">
+                  <Building className="size-8 text-neutral-600" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
                     {searchQuery || statusFilter !== "all"
                       ? "Nenhum resultado"
                       : "Nenhum armazém"}
@@ -220,7 +220,7 @@ export const WarehousesView = ({
                       onClick={openCreateModal}
                       className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                     >
-                      <Plus className="mr-2 h-3.5 w-3.5" />
+                      <Plus className="mr-2 size-3.5" />
                       Criar Primeiro Armazém
                     </Button>
                   </PermissionGate>
@@ -237,7 +237,14 @@ export const WarehousesView = ({
                   return (
                     <div
                       key={warehouse.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onSelectWarehouse(warehouse.id)}
+                      onKeyDown={(event) => {
+                        if (event.key !== "Enter" && event.key !== " ") return;
+                        event.preventDefault();
+                        onSelectWarehouse(warehouse.id);
+                      }}
                       className={cn(
                         "group relative flex flex-col rounded-[4px] border bg-[#171717] cursor-pointer overflow-hidden",
                         isSelected
@@ -253,7 +260,7 @@ export const WarehousesView = ({
                           {/* Icon */}
                           <div
                             className={cn(
-                              "flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border",
+                              "flex size-11 shrink-0 items-center justify-center rounded-[4px] border",
                               warehouse.isActive
                                 ? "bg-blue-600/10 border-blue-600/30"
                                 : "bg-neutral-800/50 border-neutral-700",
@@ -261,7 +268,7 @@ export const WarehousesView = ({
                           >
                             <Building2
                               className={cn(
-                                "h-5 w-5",
+                                "size-5",
                                 warehouse.isActive
                                   ? "text-blue-500"
                                   : "text-neutral-500",
@@ -283,14 +290,14 @@ export const WarehousesView = ({
                                 {warehouse.code}
                               </span>
                               {isSelected && (
-                                <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
+                                <CheckCircle2 className="size-3.5 text-blue-500" />
                               )}
                             </div>
-                            <h3 className="text-sm font-bold text-white truncate leading-tight">
+                            <h3 className="text-sm font-semibold text-white truncate leading-tight">
                               {warehouse.name}
                             </h3>
                             <div className="flex items-center gap-1.5 mt-1.5">
-                              <MapPin className="h-3 w-3 text-neutral-600 shrink-0" />
+                              <MapPin className="size-3 text-neutral-600 shrink-0" />
                               <span className="text-[11px] text-neutral-400 truncate">
                                 {warehouse.address
                                   ? `${warehouse.address}, ${warehouse.city} - ${warehouse.state}`
@@ -306,10 +313,10 @@ export const WarehousesView = ({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white shrink-0"
+                              className="size-7 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white shrink-0"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <MoreVertical className="h-4 w-4" />
+                              <MoreVertical className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
@@ -324,7 +331,7 @@ export const WarehousesView = ({
                                 }}
                                 className="text-xs focus:bg-neutral-800 focus:text-white cursor-pointer"
                               >
-                                <Edit className="mr-2 h-3.5 w-3.5" />
+                                <Edit className="mr-2 size-3.5" />
                                 Editar
                               </DropdownMenuItem>
                             </PermissionGate>
@@ -336,7 +343,7 @@ export const WarehousesView = ({
                                 }}
                                 className="text-xs text-rose-500 focus:bg-rose-950/20 focus:text-rose-400 cursor-pointer"
                               >
-                                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                <Trash2 className="mr-2 size-3.5" />
                                 Excluir
                               </DropdownMenuItem>
                             </PermissionGate>
@@ -356,7 +363,7 @@ export const WarehousesView = ({
                         >
                           <span
                             className={cn(
-                              "h-1.5 w-1.5 rounded-full",
+                              "size-1.5 rounded-full",
                               warehouse.isActive
                                 ? "bg-emerald-500"
                                 : "bg-neutral-600",
@@ -386,10 +393,10 @@ export const WarehousesView = ({
       <PermissionGate permission="warehouses:create">
         <Button
           onClick={openCreateModal}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40"
+          className="fixed bottom-6 right-6 size-14 rounded-[4px] bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:hidden z-40"
           size="icon"
         >
-          <Plus className="h-7 w-7" />
+          <Plus className="size-7" />
         </Button>
       </PermissionGate>
 
@@ -421,8 +428,8 @@ export const WarehousesView = ({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Salvando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Salvando…
                 </>
               ) : (
                 "Salvar Dados"
@@ -460,7 +467,7 @@ export const WarehousesView = ({
 
             {/* Location */}
             <div className="space-y-4 pt-2 border-t border-neutral-800">
-              <h4 className="text-xs font-bold uppercase tracking-wide text-white mb-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-white mb-2">
                 Localização
               </h4>
 
@@ -581,8 +588,8 @@ export const WarehousesView = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Deletando...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Deletando…
                 </>
               ) : (
                 "Confirmar Exclusão"

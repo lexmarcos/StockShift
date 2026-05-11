@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export function Breadcrumb() {
   const { breadcrumb } = useBreadcrumbContext();
-  const router = useRouter();
+  const { back } = useRouter();
 
   if (!breadcrumb) return null;
 
@@ -21,12 +21,12 @@ export function Breadcrumb() {
           <Button
             type="button"
             aria-label="Voltar"
-            onClick={() => router.back()}
+            onClick={back}
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-[4px] border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+            className="size-9 rounded-[4px] border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
           </Button>
 
           <div>
@@ -39,7 +39,7 @@ export function Breadcrumb() {
                 {breadcrumb.subsection}
               </span>
             </div>
-            <h1 className="mt-0.5 text-sm font-bold uppercase tracking-wide text-white">
+            <h1 className="mt-0.5 text-sm font-semibold uppercase tracking-wide text-white">
               {breadcrumb.title}
             </h1>
           </div>

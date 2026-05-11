@@ -43,8 +43,8 @@ const FormField = <
 }
 
 const useFormField = () => {
-  const fieldContext = React.useContext(FormFieldContext)
-  const itemContext = React.useContext(FormItemContext)
+  const fieldContext = React.use(FormFieldContext)
+  const itemContext = React.use(FormItemContext)
   const { getFieldState } = useFormContext()
   const formState = useFormState({ name: fieldContext.name })
   const fieldState = getFieldState(fieldContext.name, formState)
@@ -156,7 +156,6 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
 }
 
 export {
-  useFormField,
   Form,
   FormItem,
   FormLabel,

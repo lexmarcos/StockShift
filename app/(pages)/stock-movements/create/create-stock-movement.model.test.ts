@@ -442,7 +442,7 @@ describe("helpers de produto", () => {
 
 describe("useCreateStockMovementModel", () => {
   it("inicializa com tipo manual válido e carrega produtos", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     expect(result.current.form.getValues("type")).toBe("PURCHASE_IN");
     expect(result.current.products).toEqual(movementProducts);
@@ -459,7 +459,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("impede inicialização sem tipo válido e redireciona", () => {
     fakeSearchParams.setType(null);
-    renderHook(() => useCreateStockMovementModel());
+    renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     expect(fakeToast.error).toHaveBeenCalledWith(
       "Selecione o tipo de movimentação antes de continuar.",
@@ -475,7 +475,7 @@ describe("useCreateStockMovementModel", () => {
       }),
     );
 
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     expect(fakeStorage.readStockMovementDraft).toHaveBeenCalledTimes(1);
     expect(fakeStorage.clearStockMovementDraft).toHaveBeenCalledTimes(1);
@@ -502,7 +502,7 @@ describe("useCreateStockMovementModel", () => {
     vi.useFakeTimers();
 
     try {
-      const { result } = renderHook(() => useCreateStockMovementModel());
+      const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
       act(() => {
         result.current.onProductSearchFocus();
@@ -521,7 +521,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("mantém produto selecionado quando busca bate com rótulo completo", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -532,7 +532,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("limpa produto selecionado quando busca muda", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -546,7 +546,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("limpa seleção e estado de busca", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -561,7 +561,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("adiciona item válido em saída e valida quantidade/produto", () => {
     fakeSearchParams.setType("USAGE");
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onAddItem();
@@ -607,7 +607,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("abre dados de lote antes de adicionar produto existente em compra", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -630,7 +630,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("confirma dados de lote e adiciona item com datas e preços", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -665,7 +665,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("edita dados de lote de produto existente de entrada", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.form.setValue("items", [
@@ -700,7 +700,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("bloqueia criação de novo produto fora dos tipos de entrada", () => {
     fakeSearchParams.setType("USAGE");
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onCreateNewProduct();
@@ -713,7 +713,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("redireciona para inclusão de produto novo em movimento de entrada", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -734,7 +734,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("adiciona item por código de barras em saída e impede duplicado imediato", async () => {
     fakeSearchParams.setType("USAGE");
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     fakeApi.get.mockImplementation((url: string) => {
       if (url === "products/barcode/7891000000004") {
@@ -780,7 +780,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("abre dados de lote por código de barras em ajuste de entrada", async () => {
     fakeSearchParams.setType("ADJUSTMENT_IN");
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     await act(async () => {
       await result.current.onBarcodeScan("7891000000004");
@@ -798,7 +798,7 @@ describe("useCreateStockMovementModel", () => {
   it("mostra erro com ação para criação quando produto não existe", async () => {
     fakeApi.get.mockRejectedValue(new Error("não encontrado"));
 
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     await act(async () => {
       await result.current.onBarcodeScan("7891009999999");
@@ -815,7 +815,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("mostra aviso sem ação para tipo de saída", async () => {
     fakeSearchParams.setType("USAGE");
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
     fakeApi.get.mockRejectedValue(new Error("não encontrado"));
 
     await act(async () => {
@@ -830,7 +830,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("abre editor de produto novo quando o item do índice é válido", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.form.setValue("items", [
@@ -858,7 +858,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("não abre editor quando item não possui produto novo", () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     act(() => {
       result.current.form.setValue("items", [
@@ -878,7 +878,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("envia movimentação sem produto novo com sucesso", async () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
     const payload = createSubmitPayload();
 
     await act(async () => {
@@ -905,7 +905,7 @@ describe("useCreateStockMovementModel", () => {
   });
 
   it("envia payload multipart quando há imagem inline", async () => {
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
     const payload = createInlineSubmitPayload();
 
     await act(async () => {
@@ -922,7 +922,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("mostra erro no envio e mantém estado", async () => {
     fakeApi.post.mockRejectedValue(new Error("Falha ao salvar"));
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     await act(async () => {
       await result.current.onSubmit(createSubmitPayload());
@@ -935,7 +935,7 @@ describe("useCreateStockMovementModel", () => {
 
   it("não envia quando tipo não foi selecionado", async () => {
     fakeSearchParams.setType(null);
-    const { result } = renderHook(() => useCreateStockMovementModel());
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     await act(async () => {
       await result.current.onSubmit(createSubmitPayload());

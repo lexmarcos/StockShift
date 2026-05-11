@@ -144,16 +144,22 @@ export const useValidateTransferModel = (transferId: string) => {
     if (!transferId) return;
 
     // Calculate discrepancies locally based on scanned vs expected quantities
-    const localDiscrepancies: DiscrepancyItem[] = expectedItems
-      .filter((item) => item.scannedQuantity !== item.expectedQuantity)
-      .map((item) => ({
-        productName: item.productName,
-        quantitySent: item.expectedQuantity,
-        quantityReceived: item.scannedQuantity,
-        difference: item.scannedQuantity - item.expectedQuantity,
-        discrepancyType:
-          item.scannedQuantity > item.expectedQuantity ? "OVERAGE" : "SHORTAGE",
-      }));
+    const localDiscrepancies: DiscrepancyItem[] = expectedItems.flatMap((item) =>
+      item.scannedQuantity === item.expectedQuantity
+        ? []
+        : [
+            {
+              productName: item.productName,
+              quantitySent: item.expectedQuantity,
+              quantityReceived: item.scannedQuantity,
+              difference: item.scannedQuantity - item.expectedQuantity,
+              discrepancyType:
+                item.scannedQuantity > item.expectedQuantity
+                  ? "OVERAGE"
+                  : "SHORTAGE",
+            },
+          ],
+    );
 
     setDiscrepancies(localDiscrepancies);
     setShowFinishModal(true);

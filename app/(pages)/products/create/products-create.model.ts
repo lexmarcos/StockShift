@@ -122,8 +122,8 @@ export const useProductCreateModel = () => {
   }, [form]);
 
   const addCustomAttribute = () => {
-    setCustomAttributes([
-      ...customAttributes,
+    setCustomAttributes((current) => [
+      ...current,
       { id: crypto.randomUUID(), key: "", value: "" },
     ]);
   };

@@ -50,14 +50,14 @@ export function ValidateTransferView({
     return (
       <PageContainer>
         <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-          <div className="relative h-16 w-16">
+          <div className="relative size-16">
             <div className="absolute inset-0 animate-ping rounded-full border-2 border-blue-600/30" />
             <div className="absolute inset-2 animate-pulse rounded-full border-2 border-blue-600/50" />
             <div className="absolute inset-4 rounded-full bg-blue-600/20" />
-            <Truck className="absolute inset-0 m-auto h-6 w-6 text-blue-500" />
+            <Truck className="absolute inset-0 m-auto size-6 text-blue-500" />
           </div>
           <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
-            Carregando validação...
+            Carregando validação…
           </p>
         </div>
       </PageContainer>
@@ -111,7 +111,7 @@ export function ValidateTransferView({
         <div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
           {/* Circular Progress */}
           <div className="relative flex items-center justify-center">
-            <svg className="h-32 w-32 -rotate-90" viewBox="0 0 120 120">
+            <svg className="size-32 -rotate-90" viewBox="0 0 120 120">
               {/* Background circle */}
               <circle
                 cx="60"
@@ -149,7 +149,7 @@ export function ValidateTransferView({
           <div className="grid flex-1 grid-cols-3 gap-4 md:max-w-md">
             <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
               <div className="mb-1 flex items-center justify-center gap-1">
-                <Target className="h-4 w-4 text-blue-500" strokeWidth={2} />
+                <Target className="size-4 text-blue-500" strokeWidth={2} />
               </div>
               <p className="font-mono text-2xl font-bold tracking-tighter text-white">
                 {totalExpected}
@@ -160,7 +160,7 @@ export function ValidateTransferView({
             </div>
             <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
               <div className="mb-1 flex items-center justify-center gap-1">
-                <Zap className="h-4 w-4 text-amber-500" strokeWidth={2} />
+                <Zap className="size-4 text-amber-500" strokeWidth={2} />
               </div>
               <p className="font-mono text-2xl font-bold tracking-tighter text-white">
                 {totalScanned}
@@ -172,7 +172,7 @@ export function ValidateTransferView({
             <div className="rounded-[4px] border border-neutral-800 bg-neutral-900/50 p-4 text-center">
               <div className="mb-1 flex items-center justify-center gap-1">
                 <CheckCircle2
-                  className="h-4 w-4 text-emerald-500"
+                  className="size-4 text-emerald-500"
                   strokeWidth={2}
                 />
               </div>
@@ -190,8 +190,8 @@ export function ValidateTransferView({
       {/* ── Scanner Input Section ── */}
       <div className="mb-6 rounded-[4px] border-l-4 border-l-blue-600 border border-neutral-800 bg-[#171717] p-5">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[4px] border border-blue-600/50 bg-blue-600/10">
-            <ScanLine className="h-5 w-5 text-blue-400" strokeWidth={2} />
+          <div className="flex size-10 items-center justify-center rounded-[4px] border border-blue-600/50 bg-blue-600/10">
+            <ScanLine className="size-5 text-blue-400" strokeWidth={2} />
           </div>
           <div>
             <p className="text-sm font-bold text-white">Scanner de Validação</p>
@@ -207,7 +207,7 @@ export function ValidateTransferView({
               ref={inputRef}
               value={barcode}
               onChange={(e) => onBarcodeChange(e.target.value)}
-              placeholder="Digite ou escaneie o código..."
+              placeholder="Digite ou escaneie o código…"
               className="h-12 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 pl-4 pr-12 font-mono text-sm text-white placeholder:text-neutral-600 focus:border-blue-600"
               autoComplete="off"
               disabled={isProcessing}
@@ -218,9 +218,9 @@ export function ValidateTransferView({
               variant="ghost"
               size="icon"
               onClick={() => setShowScanner(true)}
-              className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-[4px] text-neutral-500 hover:bg-blue-600/10 hover:text-blue-400"
+              className="absolute right-2 top-1/2 size-8 -translate-y-1/2 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-blue-400"
             >
-              <Camera className="h-5 w-5" strokeWidth={2} />
+              <Camera className="size-5" strokeWidth={2} />
             </Button>
           </div>
           <Button
@@ -229,7 +229,7 @@ export function ValidateTransferView({
             className="h-12 rounded-[4px] bg-blue-600 px-6 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
           >
             {isProcessing ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             ) : (
               "VALIDAR"
             )}
@@ -248,7 +248,7 @@ export function ValidateTransferView({
           <div className="flex items-start gap-4">
             <div
               className={cn(
-                "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[4px]",
+                "flex size-12 flex-shrink-0 items-center justify-center rounded-[4px]",
                 lastScanResult.valid
                   ? "border border-emerald-600/50 bg-emerald-600/10"
                   : "border border-rose-600/50 bg-rose-600/10"
@@ -256,11 +256,11 @@ export function ValidateTransferView({
             >
               {lastScanResult.valid ? (
                 <Check
-                  className="h-6 w-6 text-emerald-500"
+                  className="size-6 text-emerald-500"
                   strokeWidth={2.5}
                 />
               ) : (
-                <X className="h-6 w-6 text-rose-500" strokeWidth={2.5} />
+                <X className="size-6 text-rose-500" strokeWidth={2.5} />
               )}
             </div>
             <div className="min-w-0 flex-1">
@@ -339,7 +339,7 @@ export function ValidateTransferView({
                   <div className="flex items-center gap-4">
                     <div
                       className={cn(
-                        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[4px]",
+                        "flex size-10 flex-shrink-0 items-center justify-center rounded-[4px]",
                         isComplete
                           ? "border border-emerald-600/50 bg-emerald-600/10 text-emerald-500"
                           : isOverage
@@ -348,11 +348,11 @@ export function ValidateTransferView({
                       )}
                     >
                       {isComplete ? (
-                        <Check className="h-5 w-5" strokeWidth={2.5} />
+                        <Check className="size-5" strokeWidth={2.5} />
                       ) : isOverage ? (
-                        <AlertTriangle className="h-5 w-5" strokeWidth={2} />
+                        <AlertTriangle className="size-5" strokeWidth={2} />
                       ) : (
-                        <Package className="h-5 w-5" strokeWidth={2} />
+                        <Package className="size-5" strokeWidth={2} />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -385,7 +385,7 @@ export function ValidateTransferView({
                     >
                       {item.scannedQuantity} / {item.expectedQuantity}
                     </div>
-                    <ChevronRight className="h-4 w-4 text-neutral-600" />
+                    <ChevronRight className="size-4 text-neutral-600" />
                   </div>
                 </div>
               </div>
@@ -411,7 +411,7 @@ export function ValidateTransferView({
           </Button>
         }
       >
-        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
+        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
           <Scanner
             onScan={handleCameraScan}
             onError={(error) => console.error("Camera error:", error)}
@@ -446,16 +446,16 @@ export function ValidateTransferView({
 
           {/* Corner markers */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-6 top-6 h-8 w-8 border-l-2 border-t-2 border-blue-500" />
-            <div className="absolute right-6 top-6 h-8 w-8 border-r-2 border-t-2 border-blue-500" />
-            <div className="absolute bottom-6 left-6 h-8 w-8 border-b-2 border-l-2 border-blue-500" />
-            <div className="absolute bottom-6 right-6 h-8 w-8 border-b-2 border-r-2 border-blue-500" />
+            <div className="absolute left-6 top-6 size-8 border-l-2 border-t-2 border-blue-500" />
+            <div className="absolute right-6 top-6 size-8 border-r-2 border-t-2 border-blue-500" />
+            <div className="absolute bottom-6 left-6 size-8 border-b-2 border-l-2 border-blue-500" />
+            <div className="absolute bottom-6 right-6 size-8 border-b-2 border-r-2 border-blue-500" />
           </div>
 
           {/* Instructions overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
             <div className="flex items-center justify-center gap-2 text-center">
-              <ScanLine className="h-4 w-4 text-blue-400" />
+              <ScanLine className="size-4 text-blue-400" />
               <span className="text-xs font-bold uppercase tracking-wide text-blue-400">
                 Leitura Automática Ativa
               </span>
@@ -486,7 +486,7 @@ export function ValidateTransferView({
             }
             className="h-11 flex-1 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 sm:flex-none sm:px-8"
           >
-            <CheckCircle2 className="mr-2 h-4 w-4" strokeWidth={2} />
+            <CheckCircle2 className="mr-2 size-4" strokeWidth={2} />
             Finalizar Validação
           </Button>
         </div>
@@ -513,7 +513,7 @@ export function ValidateTransferView({
               disabled={isFinishing}
               className="rounded-[4px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
             >
-              {isFinishing ? "Processando..." : "Confirmar e Finalizar"}
+              {isFinishing ? "Processando…" : "Confirmar e Finalizar"}
             </Button>
           </div>
         }
@@ -521,9 +521,9 @@ export function ValidateTransferView({
         <div className="space-y-4 py-2">
           {discrepancies.length === 0 ? (
             <div className="flex items-center gap-4 rounded-[4px] border border-emerald-600/30 bg-emerald-600/10 p-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-600/20">
+              <div className="flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-600/20">
                 <CheckCircle2
-                  className="h-6 w-6 text-emerald-500"
+                  className="size-6 text-emerald-500"
                   strokeWidth={2}
                 />
               </div>
@@ -539,7 +539,7 @@ export function ValidateTransferView({
           ) : (
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-amber-500">
-                <AlertCircle className="h-4 w-4" strokeWidth={2} />
+                <AlertCircle className="size-4" strokeWidth={2} />
                 <span className="text-xs font-bold uppercase tracking-wide">
                   {discrepancies.length} Discrepância
                   {discrepancies.length > 1 ? "s" : ""} Encontrada

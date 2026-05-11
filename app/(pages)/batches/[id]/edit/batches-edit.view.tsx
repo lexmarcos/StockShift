@@ -80,7 +80,7 @@ export const BatchEditView = ({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] px-4 py-10 text-xs text-neutral-500">
-        Carregando...
+        Carregando…
       </div>
     );
   }
@@ -95,7 +95,7 @@ export const BatchEditView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Box className="h-4 w-4 text-blue-500" />
+                      <Box className="size-4 text-blue-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Identificação e Origem
                       </CardTitle>
@@ -160,7 +160,7 @@ export const BatchEditView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-emerald-500" />
+                      <DollarSign className="size-4 text-emerald-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Financeiro e Estoque
                       </CardTitle>
@@ -183,10 +183,10 @@ export const BatchEditView = ({
                                   type="button"
                                   variant="outline"
                                   onClick={handleQuantityDecrement}
-                                  className="h-10 w-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  className="size-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                   aria-label="Diminuir quantidade"
                                 >
-                                  <Minus className="h-4 w-4" />
+                                  <Minus className="size-4" />
                                 </Button>
                                 <FormControl>
                                   <NumberInput
@@ -201,10 +201,10 @@ export const BatchEditView = ({
                                   type="button"
                                   variant="outline"
                                   onClick={handleQuantityIncrement}
-                                  className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                                  className="size-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                                   aria-label="Aumentar quantidade"
                                 >
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="size-4" />
                                 </Button>
                               </div>
                               <FormMessage className="text-xs text-rose-500" />
@@ -307,7 +307,7 @@ export const BatchEditView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-amber-500" />
+                      <Calendar className="size-4 text-amber-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Vigência
                       </CardTitle>
@@ -350,7 +350,7 @@ export const BatchEditView = ({
                             />
                           </FormControl>
                           <FormDescription className="text-[10px] text-neutral-500 flex items-center gap-1">
-                            <AlertCircle className="h-3 w-3" />
+                            <AlertCircle className="size-3" />
                             Mantenha vazio quando o produto não tiver validade.
                           </FormDescription>
                           <FormMessage className="text-xs text-rose-500" />
@@ -363,7 +363,7 @@ export const BatchEditView = ({
                 <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
                   <CardHeader className="border-b border-neutral-800 pb-4">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-neutral-500" />
+                      <FileText className="size-4 text-neutral-500" />
                       <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
                         Observações
                       </CardTitle>
@@ -377,7 +377,7 @@ export const BatchEditView = ({
                         <FormItem>
                           <FormControl>
                             <Textarea
-                              placeholder="Detalhes adicionais sobre o lote..."
+                              placeholder="Detalhes adicionais sobre o lote…"
                               className="min-h-[120px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
                               {...field}
                             />
@@ -411,12 +411,12 @@ export const BatchEditView = ({
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                        Salvando...
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                        Salvando…
                       </>
                     ) : (
                       <>
-                        <Save className="mr-2 h-3.5 w-3.5" />
+                        <Save className="mr-2 size-3.5" />
                         Salvar Lote
                       </>
                     )}

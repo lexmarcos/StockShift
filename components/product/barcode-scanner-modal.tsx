@@ -47,7 +47,7 @@ export const BarcodeScannerModal = ({
     >
       <div className="flex flex-col gap-4">
         {/* Scanner Area */}
-        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
+        <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
           <Scanner
             onScan={handleScan}
             onError={handleError}
@@ -80,7 +80,7 @@ export const BarcodeScannerModal = ({
           {/* Overlay Instructions - Corporate Solid */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
             <div className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717]/90 backdrop-blur-sm p-3">
-              <AlertCircle className="h-4 w-4 text-neutral-500 flex-shrink-0" />
+              <AlertCircle className="size-4 text-neutral-500 flex-shrink-0" />
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wide text-white">
                   Leitura Automática

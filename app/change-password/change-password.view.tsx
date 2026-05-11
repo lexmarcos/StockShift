@@ -26,18 +26,18 @@ export const ChangePasswordView = ({
   isLoading,
 }: ChangePasswordViewProps) => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-blue-500/30">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-neutral-700 selection:text-white">
       {/* Brand / Logo Area */}
       <div className="mb-8 flex flex-col items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)]">
-          <Box className="h-8 w-8" />
+        <div className="flex size-16 items-center justify-center rounded-[4px] bg-blue-600 font-bold text-white shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)]">
+          <Box className="size-8" />
         </div>
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight uppercase text-white">
+          <h1 className="text-2xl font-semibold tracking-tight uppercase text-white">
             StockShift
           </h1>
           <div className="mt-1 flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+            <span className="size-1.5 rounded-full bg-amber-500"></span>
             Ação Necessária
           </div>
         </div>
@@ -46,7 +46,7 @@ export const ChangePasswordView = ({
       {/* Alert Banner */}
       <div className="mb-4 w-full max-w-sm flex items-start gap-3 rounded-[4px] border border-amber-500/30 bg-amber-500/10 px-4 py-3">
         <ShieldAlert
-          className="mt-0.5 h-4 w-4 shrink-0 text-amber-500"
+          className="mt-0.5 size-4 shrink-0 text-amber-500"
           strokeWidth={2}
         />
         <div>
@@ -62,8 +62,8 @@ export const ChangePasswordView = ({
 
       <Card className="w-full max-w-sm rounded-[4px] border border-neutral-800 bg-[#171717] shadow-xl">
         <CardHeader className="space-y-1 pb-6 pt-8 text-center">
-          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-[4px] border border-neutral-700 bg-neutral-900">
-            <KeyRound className="h-5 w-5 text-blue-500" strokeWidth={2} />
+          <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-[4px] border border-neutral-700 bg-neutral-900">
+            <KeyRound className="size-5 text-blue-500" strokeWidth={2} />
           </div>
           <CardTitle className="text-lg font-bold uppercase tracking-wide text-white">
             Alterar Senha
@@ -85,7 +85,7 @@ export const ChangePasswordView = ({
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                        <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600" />
                         <Input
                           type="password"
                           placeholder="••••••••"
@@ -110,7 +110,7 @@ export const ChangePasswordView = ({
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                          <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600" />
                           <Input
                             type="password"
                             placeholder="Mínimo 6 caracteres"
@@ -134,7 +134,7 @@ export const ChangePasswordView = ({
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                          <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600" />
                           <Input
                             type="password"
                             placeholder="Repita a nova senha"
@@ -156,8 +156,8 @@ export const ChangePasswordView = ({
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Alterando senha...
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Alterando senha…
                   </>
                 ) : (
                   "Confirmar nova senha"

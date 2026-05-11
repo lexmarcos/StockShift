@@ -1,6 +1,4 @@
-import { RegisterFormData } from "./register.schema";
-
-export type { RegisterFormData };
+export {};
 
 export interface RegisterResponse {
   success: boolean;
@@ -15,10 +13,4 @@ export interface RegisterResponse {
     tokenType: string;
     expiresIn: number;
   };
-}
-
-export interface RegisterErrorResponse {
-  success: false;
-  message: string;
-  data: null;
 }

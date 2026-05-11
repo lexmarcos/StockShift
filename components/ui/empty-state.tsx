@@ -25,10 +25,10 @@ function EmptyState({
       )}
       {...props}
     >
-      <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900">
-        <Icon className="h-8 w-8 text-neutral-600" strokeWidth={2} />
+      <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-neutral-900">
+        <Icon className="size-8 text-neutral-600" strokeWidth={2} />
       </div>
-      <h3 className="mb-2 text-sm font-bold text-white">{title}</h3>
+      <h3 className="mb-2 text-sm font-semibold text-white">{title}</h3>
       <p className="mb-6 max-w-sm text-xs text-neutral-500">{description}</p>
       {action && (
         <Button

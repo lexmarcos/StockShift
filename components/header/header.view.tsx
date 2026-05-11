@@ -40,9 +40,9 @@ export const HeaderView = ({
             variant="outline"
             size="icon"
             onClick={onToggleMobileMenu}
-            className="flex md:hidden h-10 w-10 items-center justify-center rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
+            className="flex md:hidden size-10 items-center justify-center rounded-[4px] text-neutral-400 hover:bg-neutral-800 hover:text-white"
           >
-            <Menu className="h-10 w-10 text" strokeWidth={2.5}/>
+            <Menu className="size-5" strokeWidth={2.5} />
           </Button>
 
           <Image
@@ -66,7 +66,7 @@ export const HeaderView = ({
             >
               <SelectTrigger className="!h-9 w-[180px] rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase tracking-wide text-neutral-300 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                 <div className="flex items-center gap-2">
-                  <Warehouse className="h-4 w-4 text-neutral-500" />
+                  <Warehouse className="size-4 text-neutral-500" />
                   <SelectValue placeholder="Armazém" />
                 </div>
               </SelectTrigger>
@@ -92,9 +92,9 @@ export const HeaderView = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-800 hover:text-white"
+                className="size-10 rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-800 hover:text-white"
               >
-                <User className="h-5 w-5" />
+                <User className="size-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -113,7 +113,7 @@ export const HeaderView = ({
 
               <DropdownMenuItem asChild className="text-xs uppercase tracking-wide focus:bg-neutral-800">
                 <Link href="/profile" className="flex cursor-pointer items-center gap-2 text-neutral-300">
-                  <User className="h-4 w-4" />
+                  <User className="size-4" />
                   Perfil
                 </Link>
               </DropdownMenuItem>
@@ -125,7 +125,7 @@ export const HeaderView = ({
                 className="cursor-pointer text-xs uppercase tracking-wide text-rose-500 focus:bg-rose-950/50 focus:text-rose-500"
               >
                 <div className="flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="size-4" />
                   Logout
                 </div>
               </DropdownMenuItem>

@@ -58,7 +58,7 @@ import {
   SALE_STATUS_LABELS,
   formatCents,
 } from "./sales.types";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   DropdownMenu,
@@ -197,9 +197,9 @@ const SaleActions = ({ sale }: { sale: SaleSummary }) => (
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal className="size-4" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -215,7 +215,7 @@ const SaleActions = ({ sale }: { sale: SaleSummary }) => (
           href={`/sales/${sale.id}`}
           className="cursor-pointer focus:bg-neutral-800 focus:text-white flex items-center w-full"
         >
-          <Eye className="mr-2 h-3.5 w-3.5" /> Ver Detalhes
+          <Eye className="mr-2 size-3.5" /> Ver Detalhes
         </Link>
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -274,8 +274,8 @@ export const SalesView = ({
 }: SalesViewProps) => {
 
 
-  const renderMobileFiltersPanel = (draft: SaleFilterDraft) => {
-    return (
+  const draft = mobileFiltersDraft;
+  const mobileFiltersPanel = (
       <Drawer
         direction="bottom"
         open={isMobileFiltersOpen}
@@ -302,16 +302,16 @@ export const SalesView = ({
                 onClick={onClearMobileFilters}
                 className="h-9 rounded-[4px] px-2 text-xs font-bold text-rose-500 hover:bg-rose-500/10 hover:text-rose-400"
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                <Trash2 className="mr-1.5 size-3.5" />
                 Limpar
               </Button>
               <DrawerClose asChild>
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-9 w-9 rounded-[4px] p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  className="size-9 rounded-[4px] p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 </Button>
               </DrawerClose>
             </div>
@@ -320,7 +320,7 @@ export const SalesView = ({
           <div className="overflow-y-auto px-5 pb-2 pt-3">
             <div className="space-y-7">
               <div>
-                <h3 className="mb-3 text-sm font-bold text-white">Status</h3>
+                <h3 className="mb-3 text-sm font-semibold text-white">Status</h3>
                 <div className="flex flex-wrap gap-2">
                   {STATUS_FILTER_OPTIONS.map((option) => {
                     const isSelected = draft.status === option.value;
@@ -346,7 +346,7 @@ export const SalesView = ({
               </div>
 
               <div>
-                <h3 className="mb-3 text-sm font-bold text-white">
+                <h3 className="mb-3 text-sm font-semibold text-white">
                   Pagamento
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -377,7 +377,7 @@ export const SalesView = ({
               </div>
 
               <div>
-                <h3 className="mb-3 text-sm font-bold text-white">Período</h3>
+                <h3 className="mb-3 text-sm font-semibold text-white">Período</h3>
                 <Select
                   value={draft.datePreset}
                   onValueChange={(value) =>
@@ -404,11 +404,15 @@ export const SalesView = ({
 
                 {draft.datePreset === "CUSTOM" ? (
                   <div className="mt-4 grid grid-cols-1 gap-3">
-                    <label className="space-y-1.5">
+                    <label
+                      htmlFor="sales-mobile-date-from"
+                      className="space-y-1.5"
+                    >
                       <span className="text-xs font-medium text-neutral-400">
                         Data inicial
                       </span>
                       <Input
+                        id="sales-mobile-date-from"
                         type="date"
                         value={draft.dateFrom ?? ""}
                         onChange={(event) =>
@@ -420,11 +424,15 @@ export const SalesView = ({
                         className="h-12 rounded-[4px] border-neutral-700 bg-neutral-900/30 text-neutral-200 [color-scheme:dark] focus-visible:border-blue-600 focus-visible:ring-0"
                       />
                     </label>
-                    <label className="space-y-1.5">
+                    <label
+                      htmlFor="sales-mobile-date-to"
+                      className="space-y-1.5"
+                    >
                       <span className="text-xs font-medium text-neutral-400">
                         Data final
                       </span>
                       <Input
+                        id="sales-mobile-date-to"
                         type="date"
                         value={draft.dateTo ?? ""}
                         onChange={(event) =>
@@ -453,8 +461,7 @@ export const SalesView = ({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-    );
-  };
+  );
 
   const activeFilterCount = getActiveFilterCount(filters);
 
@@ -465,7 +472,7 @@ export const SalesView = ({
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                <h1 className="text-2xl font-semibold tracking-tighter text-white">
                   Vendas
                 </h1>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -475,7 +482,7 @@ export const SalesView = ({
               <PermissionGate permission="sales:create">
                 <Link href="/sales/pdv" className="w-full md:w-auto">
                   <Button className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto">
-                    <Plus className="mr-2 h-4 w-4" /> Nova Venda
+                    <Plus className="mr-2 size-4" /> Nova Venda
                   </Button>
                 </Link>
               </PermissionGate>
@@ -484,13 +491,13 @@ export const SalesView = ({
             <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max gap-2">
                 <FilterToken
-                  icon={<Filter className="h-3.5 w-3.5" />}
+                  icon={<Filter className="size-3.5" />}
                   label="Filtros"
                   badge={activeFilterCount || undefined}
                   onClick={onOpenMobileFilters}
                 />
                 <FilterToken
-                  icon={<CalendarDays className="h-3.5 w-3.5" />}
+                  icon={<CalendarDays className="size-3.5" />}
                   label={getDateSummary(
                     filters.datePreset,
                     filters.dateFrom,
@@ -499,7 +506,7 @@ export const SalesView = ({
                   onClick={onOpenMobileFilters}
                 />
                 <FilterToken
-                  icon={<CreditCard className="h-3.5 w-3.5" />}
+                  icon={<CreditCard className="size-3.5" />}
                   label={
                     filters.paymentMethod && filters.paymentMethod !== "ALL"
                       ? PAYMENT_METHOD_LABELS[filters.paymentMethod]
@@ -519,7 +526,7 @@ export const SalesView = ({
               >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                   <div className="flex items-center gap-2">
-                    <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                    <Filter className="size-3.5 text-neutral-500" />
                     <SelectValue placeholder="Status" />
                   </div>
                 </SelectTrigger>
@@ -556,7 +563,7 @@ export const SalesView = ({
               >
                 <SelectTrigger className="h-12 w-full md:w-[200px] rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 focus:border-blue-600 focus:ring-0 hover:border-neutral-700">
                   <div className="flex items-center gap-2">
-                    <Filter className="h-3.5 w-3.5 text-neutral-500" />
+                    <Filter className="size-3.5 text-neutral-500" />
                     <SelectValue placeholder="Pagamento" />
                   </div>
                 </SelectTrigger>
@@ -587,7 +594,7 @@ export const SalesView = ({
               >
                 <SelectTrigger className="h-12 w-full rounded-[4px] border-neutral-800 bg-[#171717] text-[12px] font-bold uppercase tracking-widest text-neutral-400 hover:border-neutral-700 focus:border-blue-600 focus:ring-0 md:w-[190px]">
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="h-3.5 w-3.5 text-neutral-500" />
+                    <CalendarDays className="size-3.5 text-neutral-500" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
@@ -656,7 +663,7 @@ export const SalesView = ({
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {dashboardLoading ? (
                 <div className="col-span-3 flex items-center justify-center py-6">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                  <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
                 </div>
               ) : (
                 dashboardData && (
@@ -689,7 +696,7 @@ export const SalesView = ({
           {/* Monthly Chart */}
           {dashboardData && dashboardData.dailyChart.length > 0 && (
             <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
-              <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
                 Vendas do Mês
               </h3>
               <SalesChart data={dashboardData.dailyChart} />
@@ -733,9 +740,9 @@ export const SalesView = ({
                         className="h-48 text-center text-neutral-500"
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                          <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
                           <span className="text-[10px] uppercase font-bold tracking-widest">
-                            Carregando vendas...
+                            Carregando vendas…
                           </span>
                         </div>
                       </TableCell>
@@ -747,7 +754,7 @@ export const SalesView = ({
                         className="h-48 text-center text-neutral-500"
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <ShoppingCart className="h-8 w-8 text-neutral-700" />
+                          <ShoppingCart className="size-8 text-neutral-700" />
                           <span className="text-[10px] uppercase font-bold tracking-widest">
                             Nenhuma venda encontrada
                           </span>
@@ -772,9 +779,9 @@ export const SalesView = ({
                           </TableCell>
                           <TableCell className="py-4">
                             <div className="flex items-center text-sm text-neutral-400">
-                              <Calendar className="mr-2 h-3.5 w-3.5" />
+                              <Calendar className="mr-2 size-3.5" />
                               {format(
-                                new Date(sale.createdAt),
+                                parseISO(sale.createdAt),
                                 "dd/MM/yyyy HH:mm",
                                 { locale: ptBR },
                               )}
@@ -818,9 +825,9 @@ export const SalesView = ({
           <div className="md:hidden space-y-4">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center p-8 gap-2">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+                <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
                 <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest">
-                  Carregando...
+                  Carregando…
                 </span>
               </div>
             ) : sales.length === 0 ? (
@@ -852,7 +859,7 @@ export const SalesView = ({
                           Data
                         </span>
                         <span className="text-sm text-neutral-300 mt-0.5">
-                          {format(new Date(sale.createdAt), "dd/MM/yyyy", {
+                          {format(parseISO(sale.createdAt), "dd/MM/yyyy", {
                             locale: ptBR,
                           })}
                         </span>
@@ -917,7 +924,7 @@ export const SalesView = ({
           </div>
         </div>
       </main>
-      {renderMobileFiltersPanel(mobileFiltersDraft)}
+      {mobileFiltersPanel}
     </div>
   );
 };

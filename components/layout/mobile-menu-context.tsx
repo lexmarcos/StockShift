@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, use, useMemo, useState } from "react";
 
 type MobileMenuContextValue = {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export const MobileMenuProvider = ({
 };
 
 export const useMobileMenu = () => {
-  const context = useContext(MobileMenuContext);
+  const context = use(MobileMenuContext);
   if (!context) {
     throw new Error("useMobileMenu must be used within MobileMenuProvider");
   }

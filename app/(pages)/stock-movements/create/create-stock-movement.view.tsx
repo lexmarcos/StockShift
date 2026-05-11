@@ -118,7 +118,7 @@ export function CreateStockMovementView({
               : "border-neutral-800 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300"
           }`}
         >
-          <FileText className="h-3.5 w-3.5" />
+          <FileText className="size-3.5" />
           {notesValue ? "Editar Obs." : "Observações"}
         </Button>
       </div>
@@ -149,7 +149,7 @@ export function CreateStockMovementView({
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Ex: Consumo na produção do dia, ajuste de inventário..."
+                        placeholder="Ex: Consumo na produção do dia, ajuste de inventário…"
                         className="min-h-[150px] w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600"
                         {...field}
                       />
@@ -172,12 +172,12 @@ export function CreateStockMovementView({
             >
               {isOutMovement ? (
                 <TrendingDown
-                  className="h-4 w-4 flex-shrink-0 text-rose-500"
+                  className="size-4 flex-shrink-0 text-rose-500"
                   strokeWidth={2}
                 />
               ) : (
                 <TrendingUp
-                  className="h-4 w-4 flex-shrink-0 text-emerald-500"
+                  className="size-4 flex-shrink-0 text-emerald-500"
                   strokeWidth={2}
                 />
               )}
@@ -209,14 +209,18 @@ export function CreateStockMovementView({
             <div className="space-y-4">
               <div className="flex flex-col gap-4 md:flex-row">
                 <div className="min-w-0 flex-1 space-y-2">
-                  <label className="text-xs font-bold text-neutral-400">
+                  <label
+                    htmlFor="stock-movement-product-search"
+                    className="text-xs font-bold text-neutral-400"
+                  >
                     PRODUTO
                   </label>
                   <div className="relative">
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500" />
                         <Input
+                          id="stock-movement-product-search"
                           value={productSearchQuery}
                           onChange={(event) =>
                             onProductSearchChange(event.target.value)
@@ -226,7 +230,7 @@ export function CreateStockMovementView({
                           disabled={isLoadingProducts}
                           placeholder={
                             isLoadingProducts
-                              ? "Carregando produtos..."
+                              ? "Carregando produtos…"
                               : "Pesquisar produto por nome, SKU ou código"
                           }
                           className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 pl-9 pr-9 text-sm text-white focus:border-blue-600 disabled:opacity-40"
@@ -236,10 +240,10 @@ export function CreateStockMovementView({
                             type="button"
                             variant="ghost"
                             onClick={onProductClear}
-                            className="absolute right-1 top-1 h-8 w-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                            className="absolute right-1 top-1 size-8 rounded-[4px] p-0 text-neutral-500 hover:bg-neutral-800 hover:text-white"
                             aria-label="Limpar produto"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="size-4" />
                           </Button>
                         )}
                       </div>
@@ -247,10 +251,10 @@ export function CreateStockMovementView({
                         type="button"
                         variant="outline"
                         onClick={() => onScannerOpenChange(true)}
-                        className="h-10 w-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
+                        className="size-10 shrink-0 rounded-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
                         aria-label="Ler código de barras"
                       >
-                        <ScanLine className="h-4 w-4" strokeWidth={2.5} />
+                        <ScanLine className="size-4" strokeWidth={2.5} />
                       </Button>
                     </div>
 
@@ -259,8 +263,8 @@ export function CreateStockMovementView({
                         <div className="absolute left-0 right-12 top-12 z-30 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
                           {isProductSearchLoading && (
                             <div className="flex h-10 items-center gap-2 px-3 text-xs text-neutral-500">
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              Buscando produtos...
+                              <Loader2 className="size-3.5 animate-spin" />
+                              Buscando produtos…
                             </div>
                           )}
                           {!isProductSearchLoading &&
@@ -277,7 +281,7 @@ export function CreateStockMovementView({
                                   <span
                                     role="img"
                                     aria-label={`Foto de ${product.name}`}
-                                    className="h-10 w-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
+                                    className="size-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
                                     style={{
                                       backgroundImage: `url("${product.imageUrl}")`,
                                     }}
@@ -286,9 +290,9 @@ export function CreateStockMovementView({
                                   <span
                                     role="img"
                                     aria-label="Produto sem foto"
-                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
+                                    className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-500"
                                   >
-                                    <Package className="h-4 w-4" />
+                                    <Package className="size-4" />
                                   </span>
                                 )}
                                 <span className="min-w-0">
@@ -310,11 +314,15 @@ export function CreateStockMovementView({
                 </div>
 
                 <div className="space-y-2 md:w-48">
-                  <label className="text-xs font-bold text-neutral-400">
+                  <label
+                    htmlFor="stock-movement-item-quantity"
+                    className="text-xs font-bold text-neutral-400"
+                  >
                     QUANTIDADE
                   </label>
                   <div className="flex items-center gap-3">
                     <NumberInput
+                      id="stock-movement-item-quantity"
                       value={itemQuantity ? Number(itemQuantity) : undefined}
                       onValueChange={(val) =>
                         onQuantityChange(val !== undefined ? String(val) : "")
@@ -327,7 +335,7 @@ export function CreateStockMovementView({
                       onClick={onAddItem}
                       className="h-10 flex-shrink-0 rounded-[4px] bg-blue-600 px-5 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                     >
-                      <Plus className="mr-2 h-4 w-4" strokeWidth={2.5} />
+                      <Plus className="mr-2 size-4" strokeWidth={2.5} />
                       Add
                     </Button>
                   </div>
@@ -342,7 +350,7 @@ export function CreateStockMovementView({
                       onClick={onCreateNewProduct}
                       className="h-9 rounded-[4px] border-white bg-white text-xs font-bold uppercase tracking-wide text-black hover:bg-neutral-200 hover:text-black"
                     >
-                      <Plus className="mr-2 h-3.5 w-3.5" strokeWidth={2.5} />
+                      <Plus className="mr-2 size-3.5" strokeWidth={2.5} />
                       Criar Novo Produto
                     </Button>
                   </PermissionGate>
@@ -352,7 +360,7 @@ export function CreateStockMovementView({
               {addItemError && (
                 <div className="flex items-center gap-2 rounded-[4px] border border-rose-900/30 bg-rose-950/10 px-4 py-3">
                   <AlertCircle
-                    className="h-4 w-4 flex-shrink-0 text-rose-500"
+                    className="size-4 flex-shrink-0 text-rose-500"
                     strokeWidth={2}
                   />
                   <p className="text-xs font-medium text-rose-400">
@@ -419,8 +427,8 @@ export function CreateStockMovementView({
                     disabled={isSubmitting || isLoadingProducts}
                     className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
                   >
-                    <Save className="mr-2 h-4 w-4" strokeWidth={2} />
-                    {isSubmitting ? "REGISTRANDO..." : "REGISTRAR MOVIMENTAÇÃO"}
+                    <Save className="mr-2 size-4" strokeWidth={2} />
+                    {isSubmitting ? "REGISTRANDO…" : "REGISTRAR MOVIMENTAÇÃO"}
                   </Button>
                 </PermissionGate>
               </div>

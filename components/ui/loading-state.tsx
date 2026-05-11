@@ -18,7 +18,7 @@ function LoadingState({
       )}
       {...props}
     >
-      <Loader2 className="mb-3 h-8 w-8 animate-spin text-blue-600" strokeWidth={2} />
+      <Loader2 className="mb-3 size-8 animate-spin text-blue-600" strokeWidth={2} />
       <p className="text-xs text-neutral-500">{message}</p>
     </div>
   )

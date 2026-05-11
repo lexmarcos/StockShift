@@ -75,9 +75,3 @@ export interface AiFillData {
   detectedCategory?: string;
   detectedBrand?: string;
 }
-
-export interface AnalyzeImageResponse {
-  success: boolean;
-  message: string | null;
-  data: AiFillData;
-}

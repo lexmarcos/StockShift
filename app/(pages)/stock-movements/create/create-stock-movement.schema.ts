@@ -7,7 +7,7 @@ const inlineProductImageSchema = z.object({
   dataUrl: z.string().min(1),
 });
 
-export const inlineProductSchema = z.object({
+const inlineProductSchema = z.object({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   description: z.string().optional(),
   barcode: z.string().optional(),
@@ -24,7 +24,7 @@ export const inlineProductSchema = z.object({
   image: inlineProductImageSchema.optional(),
 });
 
-export const movementItemSchema = z.object({
+const movementItemSchema = z.object({
   productId: z.string().uuid("Produto inválido").optional(),
   quantity: z.number().positive("Quantidade deve ser maior que zero"),
   productName: z.string().optional(), // UI helper

@@ -5,8 +5,16 @@ import { ProductForm } from "../../../products/components/product-form.view";
 import { useNewProductInlineModel } from "./new-product-inline.model";
 import { StockMovementReloadGuard } from "../stock-movement-reload-guard";
 
-function NewProductInlineContent() {
-  const model = useNewProductInlineModel();
+interface NewProductInlineContentProps {
+  movementType: string | null;
+  editItem: string | null;
+}
+
+function NewProductInlineContent({
+  movementType,
+  editItem,
+}: NewProductInlineContentProps) {
+  const model = useNewProductInlineModel({ movementType, editItem });
   return (
     <>
       <StockMovementReloadGuard />
@@ -15,10 +23,10 @@ function NewProductInlineContent() {
   );
 }
 
-export function PageClient() {
+export function PageClient(props: NewProductInlineContentProps) {
   return (
     <Suspense fallback={null}>
-      <NewProductInlineContent />
+      <NewProductInlineContent {...props} />
     </Suspense>
   );
 }

@@ -157,7 +157,7 @@ export const CategoriesView = ({
               if (hasChildren) toggleNode(node.id);
             }}
             className={cn(
-              "flex h-9 w-9 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
+              "flex size-9 md:size-8 shrink-0 items-center justify-center rounded-[4px] border border-transparent transition-all",
               hasChildren
                 ? "cursor-pointer bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-600 hover:text-white"
                 : "invisible",
@@ -167,16 +167,16 @@ export const CategoriesView = ({
           >
             {hasChildren &&
               (isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="size-4" />
               ) : (
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="size-4" />
               ))}
           </button>
 
           {/* Icon */}
           <Icon
             className={cn(
-              "h-5 w-5 shrink-0 transition-colors",
+              "size-5 shrink-0 transition-colors",
               isExpanded
                 ? "text-blue-500"
                 : "text-neutral-500 group-hover:text-neutral-300",
@@ -184,9 +184,14 @@ export const CategoriesView = ({
           />
 
           {/* Content Info */}
-          <div
-            className="flex-1 min-w-0 flex flex-col justify-center cursor-pointer"
-            onClick={() => hasChildren && toggleNode(node.id)}
+          <button
+            type="button"
+            disabled={!hasChildren}
+            className={cn(
+              "flex-1 min-w-0 flex flex-col justify-center text-left",
+              hasChildren ? "cursor-pointer" : "cursor-default",
+            )}
+            onClick={() => toggleNode(node.id)}
           >
             <div className="flex items-center gap-2">
               <span
@@ -209,7 +214,7 @@ export const CategoriesView = ({
                 </Badge>
               )}
             </div>
-          </div>
+          </button>
 
           {/* Actions */}
           <div className="flex items-center gap-1">
@@ -223,9 +228,9 @@ export const CategoriesView = ({
                     e.stopPropagation();
                     openEditModal(node);
                   }}
-                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                  className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="size-4" />
                 </Button>
               </PermissionGate>
               <PermissionGate permission="categories:delete">
@@ -236,9 +241,9 @@ export const CategoriesView = ({
                     e.stopPropagation();
                     openDeleteDialog(node);
                   }}
-                  className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                  className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="size-4" />
                 </Button>
               </PermissionGate>
             </div>
@@ -252,7 +257,7 @@ export const CategoriesView = ({
                     size="icon"
                     className="rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus:opacity-100"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="size-4" />
                     <span className="sr-only">Ações</span>
                   </Button>
                 </DropdownMenuTrigger>
@@ -269,7 +274,7 @@ export const CategoriesView = ({
                       onClick={() => openEditModal(node)}
                       className="cursor-pointer focus:bg-neutral-800 focus:text-white"
                     >
-                      <Edit className="mr-2 h-3.5 w-3.5" />
+                      <Edit className="mr-2 size-3.5" />
                       Editar
                     </DropdownMenuItem>
                   </PermissionGate>
@@ -278,7 +283,7 @@ export const CategoriesView = ({
                       onClick={() => openDeleteDialog(node)}
                       className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
                     >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      <Trash2 className="mr-2 size-3.5" />
                       Excluir
                     </DropdownMenuItem>
                   </PermissionGate>
@@ -314,8 +319,8 @@ export const CategoriesView = ({
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-800 group-hover:bg-blue-600 transition-colors rounded-l-[4px]" />
 
         {/* Icon Box */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800 group-hover:border-neutral-700 transition-colors">
-          <Tag className="h-4 w-4 text-neutral-500 group-hover:text-blue-500" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[4px] bg-neutral-900 border border-neutral-800 group-hover:border-neutral-700 transition-colors">
+          <Tag className="size-4 text-neutral-500 group-hover:text-blue-500" />
         </div>
 
         {/* Content */}
@@ -362,9 +367,9 @@ export const CategoriesView = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => openEditModal(node)}
-                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+                className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="size-4" />
               </Button>
             </PermissionGate>
             <PermissionGate permission="categories:delete">
@@ -372,9 +377,9 @@ export const CategoriesView = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => openDeleteDialog(node)}
-                className="h-8 w-8 rounded-[4px] text-neutral-500 hover:bg-rose-950/20 hover:text-rose-500"
+                className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-rose-500"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="size-4" />
               </Button>
             </PermissionGate>
           </div>
@@ -388,7 +393,7 @@ export const CategoriesView = ({
                   size="icon"
                   className="rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
                 >
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="size-4" />
                   <span className="sr-only">Ações</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -405,7 +410,7 @@ export const CategoriesView = ({
                     onClick={() => openEditModal(node)}
                     className="cursor-pointer focus:bg-neutral-800 focus:text-white"
                   >
-                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    <Edit className="mr-2 size-3.5" />
                     Editar
                   </DropdownMenuItem>
                 </PermissionGate>
@@ -414,7 +419,7 @@ export const CategoriesView = ({
                     onClick={() => openDeleteDialog(node)}
                     className="cursor-pointer text-rose-500 focus:bg-rose-950/20 focus:text-rose-400"
                   >
-                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    <Trash2 className="mr-2 size-3.5" />
                     Excluir
                   </DropdownMenuItem>
                 </PermissionGate>
@@ -434,7 +439,7 @@ export const CategoriesView = ({
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tighter text-white">
+                <h1 className="text-2xl font-semibold tracking-tighter text-white">
                   Categorias
                 </h1>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -446,7 +451,7 @@ export const CategoriesView = ({
                   onClick={openCreateModal}
                   className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] md:w-auto"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   Nova Categoria
                 </Button>
               </PermissionGate>
@@ -455,9 +460,9 @@ export const CategoriesView = ({
             {/* Filters Toolbar */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-neutral-500" />
                 <Input
-                  placeholder="Buscar..."
+                  placeholder="Buscar…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-10 w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-9 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
@@ -472,13 +477,13 @@ export const CategoriesView = ({
                   onClick={() => setViewMode("tree")}
                   title="Visualização em Árvore"
                   className={cn(
-                    "h-9 w-9 rounded-[2px]",
+                    "size-9 rounded-[2px]",
                     viewMode === "tree"
                       ? "bg-neutral-800 text-white shadow-sm"
                       : "text-neutral-500 hover:text-neutral-300",
                   )}
                 >
-                  <FolderTree className="h-4 w-4" />
+                  <FolderTree className="size-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -486,13 +491,13 @@ export const CategoriesView = ({
                   onClick={() => setViewMode("flat")}
                   title="Visualização em Lista"
                   className={cn(
-                    "h-9 w-9 rounded-[2px]",
+                    "size-9 rounded-[2px]",
                     viewMode === "flat"
                       ? "bg-neutral-800 text-white shadow-sm"
                       : "text-neutral-500 hover:text-neutral-300",
                   )}
                 >
-                  <List className="h-4 w-4" />
+                  <List className="size-4" />
                 </Button>
               </div>
             </div>
@@ -505,14 +510,14 @@ export const CategoriesView = ({
                 onClick={expandAll}
                 className="text-[10px] uppercase font-bold text-neutral-500 hover:text-blue-500 transition-colors flex items-center gap-1"
               >
-                <Maximize2 className="h-3 w-3" /> Expandir Tudo
+                <Maximize2 className="size-3" /> Expandir Tudo
               </button>
               <span className="text-neutral-800">|</span>
               <button
                 onClick={collapseAll}
                 className="text-[10px] uppercase font-bold text-neutral-500 hover:text-neutral-300 transition-colors flex items-center gap-1"
               >
-                <Minimize2 className="h-3 w-3" /> Recolher Tudo
+                <Minimize2 className="size-3" /> Recolher Tudo
               </button>
             </div>
           )}
@@ -523,9 +528,9 @@ export const CategoriesView = ({
         {/* Loading State */}
         {isLoading && (
           <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-neutral-800 bg-[#171717]/30 animate-pulse">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <Loader2 className="size-8 animate-spin text-blue-600" />
             <span className="text-xs uppercase tracking-wide text-neutral-500">
-              Sincronizando...
+              Sincronizando…
             </span>
           </div>
         )}
@@ -533,9 +538,9 @@ export const CategoriesView = ({
         {/* Error State */}
         {error && (
           <div className="flex h-64 w-full flex-col items-center justify-center gap-4 rounded-[4px] border border-rose-900/30 bg-rose-950/10">
-            <AlertTriangle className="h-8 w-8 text-rose-500" />
+            <AlertTriangle className="size-8 text-rose-500" />
             <div className="text-center">
-              <h3 className="text-sm font-bold uppercase text-rose-500">
+              <h3 className="text-sm font-semibold uppercase text-rose-500">
                 Falha na conexão
               </h3>
               <p className="text-xs text-rose-500/70">
@@ -545,7 +550,7 @@ export const CategoriesView = ({
             <Button
               variant="outline"
               onClick={() => window.location.reload()}
-              className="border-rose-900/30 text-rose-500 hover:bg-rose-950/20"
+              className="border-rose-900/30 text-rose-500 hover:bg-neutral-800"
             >
               Tentar Novamente
             </Button>
@@ -558,11 +563,11 @@ export const CategoriesView = ({
           flatCategories.length === 0 &&
           !searchQuery && (
             <div className="flex h-96 w-full flex-col items-center justify-center gap-6 rounded-[4px] border border-dashed border-neutral-800 bg-[#171717]/20">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
-                <Box className="h-8 w-8 text-neutral-600" />
+              <div className="flex size-20 items-center justify-center rounded-full bg-neutral-900 ring-1 ring-neutral-800">
+                <Box className="size-8 text-neutral-600" />
               </div>
               <div className="text-center">
-                <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-300">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-300">
                   Catálogo Vazio
                 </h3>
                 <p className="mt-1 max-w-xs text-xs text-neutral-500">
@@ -574,7 +579,7 @@ export const CategoriesView = ({
                   onClick={openCreateModal}
                   className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
                 >
-                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  <Plus className="mr-2 size-3.5" />
                   Criar Primeira Categoria
                 </Button>
               </PermissionGate>
@@ -584,7 +589,7 @@ export const CategoriesView = ({
         {/* No Results */}
         {!isLoading && !error && flatCategories.length === 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
-            <Search className="h-12 w-12 mb-4 opacity-20" />
+            <Search className="size-12 mb-4 opacity-20" />
             <p className="text-sm">
               Nenhum resultado para &quot;{searchQuery}&quot;
             </p>
@@ -644,9 +649,9 @@ export const CategoriesView = ({
               className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
             >
               {form.formState.isSubmitting ? (
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="mr-2 size-3.5 animate-spin" />
               ) : (
-                <Plus className="mr-2 h-3.5 w-3.5" />
+                <Plus className="mr-2 size-3.5" />
               )}
               {selectedCategory ? "Salvar" : "Criar"}
             </Button>
@@ -695,7 +700,7 @@ export const CategoriesView = ({
                   >
                     <FormControl>
                       <SelectTrigger className="w-full md:w-auto rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0">
-                        <SelectValue placeholder="Selecione..." />
+                        <SelectValue placeholder="Selecione…" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-300">
@@ -706,17 +711,19 @@ export const CategoriesView = ({
                         <span className="text-blue-500 font-bold mr-2">●</span>{" "}
                         RAIZ (Sem Pai)
                       </SelectItem>
-                      {allCategories
-                        .filter((cat) => cat.id !== selectedCategory?.id)
-                        .map((cat) => (
-                          <SelectItem
-                            key={cat.id}
-                            value={cat.id}
-                            className="text-sm"
-                          >
-                            {cat.name}
-                          </SelectItem>
-                        ))}
+                      {allCategories.flatMap((cat) =>
+                        cat.id === selectedCategory?.id
+                          ? []
+                          : [
+                              <SelectItem
+                                key={cat.id}
+                                value={cat.id}
+                                className="text-sm"
+                              >
+                                {cat.name}
+                              </SelectItem>,
+                            ],
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-xs text-rose-500" />
@@ -768,7 +775,7 @@ export const CategoriesView = ({
               disabled={isDeleting}
               className="rounded-[4px] bg-rose-600 text-white hover:bg-rose-700 border-none"
             >
-              {isDeleting ? "Excluindo..." : "Sim, excluir"}
+              {isDeleting ? "Excluindo…" : "Sim, excluir"}
             </Button>
           </>
         }
@@ -780,7 +787,7 @@ export const CategoriesView = ({
           flatCategories.find((c) => c.id === categoryToDelete.id)!.children
             .length > 0 ? (
             <div className="flex items-center p-3 bg-rose-950/20 border border-rose-900/30 rounded-[2px] text-rose-400 text-xs font-bold">
-              <AlertTriangle className="h-4 w-4 mr-2 shrink-0" />
+              <AlertTriangle className="size-4 mr-2 shrink-0" />
               Esta categoria contém subcategorias que também serão afetadas.
             </div>
           ) : (

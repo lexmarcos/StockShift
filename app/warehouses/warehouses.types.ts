@@ -53,7 +53,7 @@ export interface WarehouseStockSummariesResponse {
   data: WarehouseStockSummary[];
 }
 
-export type SortKey = 'name' | 'createdAt';
+type SortKey = 'name' | 'createdAt';
 
 export interface SortConfig {
   key: SortKey;

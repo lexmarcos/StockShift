@@ -51,7 +51,7 @@ export const LoginView = ({
   onCaptchaExpire,
 }: LoginViewProps) => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-blue-500/30">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-neutral-700 selection:text-white">
 
       {/* Brand / Logo Area */}
       <div className="mb-8 flex flex-col items-center gap-3">
@@ -64,7 +64,7 @@ export const LoginView = ({
           className="h-auto w-[210px]"
         />
         <div className="flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           Sistema de Gestão
         </div>
       </div>
@@ -81,7 +81,7 @@ export const LoginView = ({
         <CardContent className="pb-8">
           {errorMessage && (
             <Alert variant="destructive" className="mb-6 border-none bg-rose-500/10 text-rose-500 border border-rose-500 text-left">
-              <AlertCircle className="h-4 w-4 text-rose-500" />
+              <AlertCircle className="size-4 text-rose-500" />
               <AlertTitle className="text-xs font-bold uppercase tracking-wider text-rose-500">Erro de Acesso</AlertTitle>
               <AlertDescription className="text-xs mt-1 text-rose-400">
                 {errorMessage}
@@ -99,7 +99,7 @@ export const LoginView = ({
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">E-mail Corporativo</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600 transition-colors group-focus-within:text-blue-500" />
+                        <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600 transition-colors group-focus-within:text-blue-500" />
                         <Input
                           placeholder="usuario@empresa.com"
                           className="pl-10 h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-700 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
@@ -119,7 +119,7 @@ export const LoginView = ({
                     <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Senha de Acesso</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                        <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600" />
                         <Input
                           type="password"
                           placeholder="••••••••"
@@ -155,8 +155,8 @@ export const LoginView = ({
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Autenticando...
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Autenticando…
                   </>
                 ) : (
                   "Entrar no Sistema"
@@ -186,8 +186,8 @@ export const LoginView = ({
       {/* Debug Messages - Only show if there are messages */}
       {debugMessages && debugMessages.length > 0 && (
         <div className="mt-8 w-full max-w-md rounded-[4px] border border-neutral-800 bg-[#171717] p-4 text-xs font-mono">
-          <h3 className="mb-2 font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
-            <Info className="h-3 w-3" /> Logs do Sistema
+          <h3 className="mb-2 font-semibold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+            <Info className="size-3" /> Logs do Sistema
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
             {debugMessages.map((msg) => (

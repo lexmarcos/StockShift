@@ -9,8 +9,9 @@ const toDisplayLabel = (value: string): string => {
   return value
     .replace(/[_-]+/g, " ")
     .split(" ")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .flatMap((part) =>
+      part ? [part.charAt(0).toUpperCase() + part.slice(1)] : [],
+    )
     .join(" ");
 };
 
@@ -19,7 +20,12 @@ const parseCode = (
 ): { resource?: string; action?: string; scope?: string } => {
   if (!code) return {};
 
-  const parts = code.split(":").map((part) => part.trim()).filter(Boolean);
+  const parts = code
+    .split(":")
+    .flatMap((part) => {
+      const trimmedPart = part.trim();
+      return trimmedPart ? [trimmedPart] : [];
+    });
   if (parts.length === 0) return {};
 
   if (parts.length === 1) {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, type ChangeEvent, type DragEvent } from "react";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,17 +86,22 @@ export const CompanyLogoUpload = ({
           className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
         />
         <div className="pointer-events-none relative z-20 grid gap-4 sm:grid-cols-[112px_1fr] sm:items-center">
-          <div className="flex aspect-square h-28 w-28 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
+          <div className="flex aspect-square size-28 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
             {activeLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={activeLogoUrl} alt="Logo da empresa" className="h-full w-full object-contain p-2" />
+              <Image
+                src={activeLogoUrl}
+                alt="Logo da empresa"
+                width={112}
+                height={112}
+                className="h-full w-full object-contain p-2"
+              />
             ) : (
-              <ImageIcon className="h-8 w-8 text-neutral-600" />
+              <ImageIcon className="size-8 text-neutral-600" />
             )}
           </div>
           <div className="min-w-0 space-y-2">
             <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4 text-blue-500" />
+              <Upload className="size-4 text-blue-500" />
               <p className="text-xs font-bold uppercase tracking-wide text-white">
                 {logoFile ? logoFile.name : "Enviar logo da empresa"}
               </p>
@@ -116,7 +122,7 @@ export const CompanyLogoUpload = ({
                 }}
                 className="pointer-events-auto h-8 rounded-[4px] border-neutral-800 bg-transparent text-xs text-neutral-300 hover:bg-neutral-800"
               >
-                <X className="mr-1 h-3 w-3" />
+                <X className="mr-1 size-3" />
                 Remover seleção
               </Button>
             )}

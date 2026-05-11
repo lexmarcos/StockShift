@@ -31,7 +31,7 @@ export function useTransfersModel() {
       return transfer.destinationWarehouseId === warehouseId;
     });
 
-    return [...filtered].sort(
+    return filtered.toSorted(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );

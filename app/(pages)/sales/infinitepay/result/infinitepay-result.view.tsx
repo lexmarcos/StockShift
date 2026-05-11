@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   AlertTriangle,
@@ -78,12 +78,12 @@ export function InfinitePayResultView({
       <div className="mx-auto flex max-w-3xl flex-col gap-5">
         <section className={`rounded-[4px] border p-5 ${copy.borderClassName}`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <ResultIcon className={`h-9 w-9 shrink-0 ${copy.iconClassName}`} />
+            <ResultIcon className={`size-9 shrink-0 ${copy.iconClassName}`} />
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                 InfinitePay
               </p>
-              <h1 className="mt-1 text-2xl font-bold text-white">
+              <h1 className="mt-1 text-2xl font-semibold text-white">
                 {copy.title}
               </h1>
               <p className="mt-2 text-sm text-neutral-400">
@@ -92,7 +92,7 @@ export function InfinitePayResultView({
             </div>
             <Button asChild className="rounded-[4px] bg-blue-600 text-white hover:bg-blue-500">
               <Link href="/sales">
-                Ver vendas <ArrowRight className="h-4 w-4" />
+                Ver vendas <ArrowRight className="size-4" />
               </Link>
             </Button>
           </div>
@@ -114,7 +114,7 @@ export function InfinitePayResultView({
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Resumo da venda
                   </p>
-                  <h2 className="mt-1 text-xl font-bold text-white">
+                  <h2 className="mt-1 text-xl font-semibold text-white">
                     {sale.code}
                   </h2>
                 </div>
@@ -126,7 +126,7 @@ export function InfinitePayResultView({
 
             <div className="grid gap-4 border-b border-neutral-800 p-5 sm:grid-cols-3">
               <div className="flex items-start gap-3">
-                <CreditCard className="mt-0.5 h-4 w-4 text-blue-400" />
+                <CreditCard className="mt-0.5 size-4 text-blue-400" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Pagamento
@@ -137,7 +137,7 @@ export function InfinitePayResultView({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Warehouse className="mt-0.5 h-4 w-4 text-blue-400" />
+                <Warehouse className="mt-0.5 size-4 text-blue-400" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Depósito
@@ -148,13 +148,13 @@ export function InfinitePayResultView({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <ReceiptText className="mt-0.5 h-4 w-4 text-blue-400" />
+                <ReceiptText className="mt-0.5 size-4 text-blue-400" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Data
                   </p>
                   <p className="mt-1 text-sm font-medium text-white">
-                    {format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", {
+                    {format(parseISO(sale.createdAt), "dd/MM/yyyy HH:mm", {
                       locale: ptBR,
                     })}
                   </p>
@@ -172,7 +172,7 @@ export function InfinitePayResultView({
               <div className="divide-y divide-neutral-800">
                 {sale.items.map((item) => (
                   <div key={item.id} className="flex gap-3 py-3 first:pt-0">
-                    <Package className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
+                    <Package className="mt-0.5 size-4 shrink-0 text-neutral-500" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-white">
                         {item.productName}

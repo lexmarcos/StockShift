@@ -60,10 +60,10 @@ export const CustomAttributesBuilder = ({
             variant="ghost"
             size="icon"
             onClick={() => onRemove(index)}
-            className="h-9 w-9 text-muted-foreground hover:text-destructive transition-colors mb-0.5"
+            className="size-9 text-muted-foreground hover:text-destructive transition-colors mb-0.5"
             aria-label="Remover atributo"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </div>
       ))}
@@ -75,7 +75,7 @@ export const CustomAttributesBuilder = ({
         onClick={onAdd}
         className="w-full mt-2"
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Plus className="size-4 mr-2" />
         Adicionar Atributo
       </Button>
     </div>

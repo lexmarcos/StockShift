@@ -76,9 +76,11 @@ export function useNewTransferModel(): NewTransferViewProps {
     async (url: string) => api.get(url).json<BatchListResponse>()
   );
 
-  const warehouses = (warehousesData?.data || [])
-    .filter((w) => w.id !== currentWarehouseId)
-    .map((w) => ({ id: w.id, name: w.name }));
+  const warehouses = (warehousesData?.data || []).flatMap((warehouse) =>
+    warehouse.id === currentWarehouseId
+      ? []
+      : [{ id: warehouse.id, name: warehouse.name }],
+  );
 
   const rawProducts = productsData?.data;
   const products = (
@@ -91,13 +93,17 @@ export function useNewTransferModel(): NewTransferViewProps {
   const rawBatches = batchesData?.data;
   const batches = (
     Array.isArray(rawBatches) ? rawBatches : rawBatches?.content || []
-  )
-    .filter((b) => b.productId === selectedProductId)
-    .map((b) => ({
-      id: b.id,
-      code: b.code,
-      quantity: b.quantity,
-    }));
+  ).flatMap((batch) =>
+    batch.productId === selectedProductId
+      ? [
+          {
+            id: batch.id,
+            code: batch.code,
+            quantity: batch.quantity,
+          },
+        ]
+      : [],
+  );
 
   const handleProductChange = (productId: string) => {
     setSelectedProductId(productId);

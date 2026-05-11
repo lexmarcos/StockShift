@@ -1,7 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useEffect, useCallback } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { PointerEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
@@ -69,6 +74,19 @@ const PAYMENT_METHOD_ICONS: Record<PaymentMethod, LucideIcon> = {
   OTHER: Banknote,
 };
 
+const subscribeOnlineStatus = (onStoreChange: () => void): (() => void) => {
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+};
+
+const getOnlineSnapshot = (): boolean => navigator.onLine;
+
+const getServerOnlineSnapshot = (): boolean => true;
+
 export const PdvView = ({
   form,
   cart,
@@ -102,17 +120,6 @@ export const PdvView = ({
   favorites,
 }: PdvViewProps) => {
   const formRef = useRef<HTMLFormElement>(null);
-  const [totalPulse, setTotalPulse] = useState(false);
-  const prevCartLength = useRef(cart.length);
-
-  useEffect(() => {
-    if (cart.length > prevCartLength.current) {
-      setTotalPulse(true);
-      const timer = setTimeout(() => setTotalPulse(false), 400);
-      return () => clearTimeout(timer);
-    }
-    prevCartLength.current = cart.length;
-  }, [cart.length]);
 
   const selectedPayment = form.watch("paymentMethod");
   const selectedMode = form.watch("paymentMode");
@@ -131,7 +138,7 @@ export const PdvView = ({
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-24 font-sans text-neutral-200">
-      <div className="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl p-4 md:px-6 lg:px-8">
         <Form {...form}>
           <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
 
@@ -203,7 +210,7 @@ export const PdvView = ({
             <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
               {cart.length} {cart.length === 1 ? "item" : "itens"}
             </span>
-            <span className={`text-xl font-bold font-mono text-white transition-colors duration-300 ${totalPulse ? "text-emerald-400" : ""}`}>
+            <span className="text-xl font-bold font-mono text-white">
               {formatCents(total)}
             </span>
           </div>
@@ -213,7 +220,7 @@ export const PdvView = ({
             disabled={cart.length === 0}
             className="h-12 px-8 rounded-[4px] bg-blue-600 text-sm font-bold uppercase tracking-wide text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
+            <ShoppingCart className="mr-2 size-4" />
             Finalizar Venda
           </Button>
         </div>
@@ -225,29 +232,21 @@ export const PdvView = ({
 /* ─── Header ─── */
 
 function PdvHeader() {
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    setIsOnline(navigator.onLine);
-    const onOnline = () => setIsOnline(true);
-    const onOffline = () => setIsOnline(false);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-    return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-    };
-  }, []);
+  const isOnline = useSyncExternalStore(
+    subscribeOnlineStatus,
+    getOnlineSnapshot,
+    getServerOnlineSnapshot,
+  );
 
   return (
     <div className="mb-4 flex items-center justify-between">
       <div>
-        <h1 className="text-lg font-bold text-white">PDV</h1>
+        <h1 className="text-lg font-semibold text-white">PDV</h1>
         <div className="flex items-center gap-1.5 mt-0.5">
           {isOnline ? (
-            <Wifi className="h-3 w-3 text-emerald-500" />
+            <Wifi className="size-3 text-emerald-500" />
           ) : (
-            <WifiOff className="h-3 w-3 text-rose-500" />
+            <WifiOff className="size-3 text-rose-500" />
           )}
           <span className="text-[10px] text-neutral-500 uppercase tracking-wider">
             {isOnline ? "Online" : "Offline"}
@@ -281,13 +280,12 @@ function SearchBar({
     <div className="space-y-2">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
           <Input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar produto..."
+            placeholder="Buscar produto…"
             className="h-11 pl-10 pr-10 rounded-[4px] border-neutral-800 bg-[#171717] text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-            autoFocus
           />
           {searchQuery && (
             <button
@@ -295,7 +293,7 @@ function SearchBar({
               onClick={() => onSearchChange("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
@@ -303,9 +301,9 @@ function SearchBar({
           type="button"
           variant="outline"
           onClick={onOpenBarcode}
-          className="h-11 w-11 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:bg-neutral-800 shrink-0 p-0"
+          className="size-11 rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-400 hover:text-white hover:bg-neutral-800 shrink-0 p-0"
         >
-          <ScanBarcode className="h-5 w-5" />
+          <ScanBarcode className="size-5" />
         </Button>
       </div>
 
@@ -314,7 +312,7 @@ function SearchBar({
         <div className="rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
           {isSearching ? (
             <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+              <Loader2 className="size-5 animate-spin text-blue-500" />
             </div>
           ) : searchResults.length === 0 ? (
             <div className="py-6 text-center">
@@ -353,7 +351,7 @@ function ProductSearchRow({ product, onAdd }: ProductSearchRowProps) {
       onClick={() => onAdd(product)}
       className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-800/50 transition-colors"
     >
-      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
+      <div className="relative size-9 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
@@ -364,7 +362,7 @@ function ProductSearchRow({ product, onAdd }: ProductSearchRowProps) {
             className="object-cover"
           />
         ) : (
-          <Package className="h-4 w-4 text-neutral-700" />
+          <Package className="size-4 text-neutral-700" />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -401,7 +399,7 @@ function FavoritesGrid({ favorites, onAddProduct }: FavoritesGridProps) {
             onClick={() => onAddProduct(product)}
             className="flex flex-col items-center gap-1.5 rounded-[4px] border border-neutral-800 bg-[#171717] p-2 hover:border-blue-600 transition-colors"
           >
-            <div className="relative h-10 w-10 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
+            <div className="relative size-10 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
@@ -412,7 +410,7 @@ function FavoritesGrid({ favorites, onAddProduct }: FavoritesGridProps) {
                   className="object-cover"
                 />
               ) : (
-                <Package className="h-4 w-4 text-neutral-700" />
+                <Package className="size-4 text-neutral-700" />
               )}
             </div>
             <span className="text-[10px] font-bold text-neutral-400 text-center leading-tight truncate w-full">
@@ -447,7 +445,7 @@ function CartDisplay({
   if (cart.length === 0) {
     return (
       <div className="mt-8 py-12 text-center">
-        <ShoppingCart className="h-8 w-8 text-neutral-800 mx-auto mb-3" />
+        <ShoppingCart className="size-8 text-neutral-800 mx-auto mb-3" />
         <p className="text-xs text-neutral-600 uppercase tracking-widest">
           Carrinho vazio
         </p>
@@ -541,7 +539,7 @@ function CartItemCard({
         onPointerCancel={resetSwipe}
       >
         {/* Thumbnail */}
-        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
+        <div className="relative size-11 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
           {item.productImageUrl ? (
             <Image
               src={item.productImageUrl}
@@ -552,7 +550,7 @@ function CartItemCard({
               className="object-cover"
             />
           ) : (
-            <ImageIcon className="h-4 w-4 text-neutral-700" />
+            <ImageIcon className="size-4 text-neutral-700" />
           )}
         </div>
 
@@ -567,7 +565,7 @@ function CartItemCard({
             >
               <PopoverTrigger asChild>
                 <button type="button" className="ml-2 text-neutral-500 hover:text-blue-400 inline-flex items-center gap-0.5">
-                  <ArrowLeftRight className="h-3 w-3" />
+                  <ArrowLeftRight className="size-3" />
                   {item.batchCode}
                 </button>
               </PopoverTrigger>
@@ -608,9 +606,9 @@ function CartItemCard({
           <button
             type="button"
             onClick={() => onUpdateQuantity(index, item.quantity - 1)}
-            className="h-7 w-7 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-700"
+            className="size-7 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-700"
           >
-            <Minus className="h-3 w-3" />
+            <Minus className="size-3" />
           </button>
           <span className="w-8 text-center text-sm font-bold font-mono text-white">
             {item.quantity}
@@ -618,9 +616,9 @@ function CartItemCard({
           <button
             type="button"
             onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-            className="h-7 w-7 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-700"
+            className="size-7 rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-700"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="size-3" />
           </button>
         </div>
 
@@ -683,12 +681,12 @@ function BarcodeDrawer({ open, onClose, onScan }: BarcodeDrawerProps) {
       <DrawerContent className="bg-[#171717] border-neutral-800 max-h-[70vh]">
         <DrawerHeader className="border-b border-neutral-800 pb-3">
           <DrawerTitle className="text-sm font-bold uppercase tracking-wide text-white flex items-center gap-2">
-            <ScanBarcode className="h-4 w-4 text-blue-500" />
+            <ScanBarcode className="size-4 text-blue-500" />
             Scanner de Código
           </DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 pt-4">
-          <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-black">
+          <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
             <Scanner
               onScan={onScan}
               onError={(err: unknown) => console.error("Camera error:", err)}
@@ -763,9 +761,9 @@ function SaleDrawer({
                     window.dispatchEvent(ev);
                   }, 100);
                 } : undefined}
-                className="h-6 w-6 rounded-[4px] text-neutral-400 hover:text-white"
+                className="size-6 rounded-[4px] text-neutral-400 hover:text-white"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="size-4" />
               </button>
             )}
             {step === "sale-type" && "Tipo de Venda"}
@@ -819,7 +817,7 @@ function SaleTypeStep({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-3 flex items-center justify-between">
+      <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 flex items-center justify-between">
         <span className="text-xs text-neutral-500">Total</span>
         <span className="text-lg font-bold font-mono text-white">{formatCents(total)}</span>
       </div>
@@ -832,7 +830,7 @@ function SaleTypeStep({
           onClick={onGoToInPerson}
           className="flex flex-col items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-5 hover:border-blue-600 transition-colors"
         >
-          <Smartphone className="h-6 w-6 text-blue-400" />
+          <Smartphone className="size-6 text-blue-400" />
           <span className="text-xs font-bold uppercase tracking-wide">Presencial</span>
           <span className="text-[10px] text-neutral-500 text-center">Cliente presente</span>
         </button>
@@ -842,7 +840,7 @@ function SaleTypeStep({
           onClick={onGoToLinkPayment}
           className="flex flex-col items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-900 p-5 hover:border-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <QrCode className="h-6 w-6 text-blue-400" />
+          <QrCode className="size-6 text-blue-400" />
           <span className="text-xs font-bold uppercase tracking-wide">Link</span>
           <span className="text-[10px] text-neutral-500 text-center">Enviar ao cliente</span>
         </button>
@@ -891,8 +889,8 @@ function LinkPaymentStep({
   if (!saleDrawerData) {
     return (
       <div className="py-8 text-center">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-500 mx-auto mb-3" />
-        <p className="text-xs text-neutral-500">Gerando link de pagamento...</p>
+        <Loader2 className="size-6 animate-spin text-blue-500 mx-auto mb-3" />
+        <p className="text-xs text-neutral-500">Gerando link de pagamento…</p>
       </div>
     );
   }
@@ -905,13 +903,13 @@ function LinkPaymentStep({
             <p className="text-sm font-bold text-white">{saleDrawerData.saleCode}</p>
             <p className="text-lg font-bold font-mono text-blue-400">{formatCents(saleDrawerData.total)}</p>
           </div>
-          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          <CheckCircle2 className="size-5 text-emerald-500" />
         </div>
       </div>
 
       <div className="rounded-[4px] border border-blue-600/40 bg-blue-600/10 p-4">
         <div className="mb-3 flex items-center justify-center gap-2 border-b border-blue-500/20 pb-3">
-          <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+          <Loader2 className="size-4 animate-spin text-blue-400" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">
             Aguardando pagamento
           </p>
@@ -931,7 +929,7 @@ function LinkPaymentStep({
           onClick={handleCopy}
           className="h-10 rounded-[4px] bg-neutral-800 text-xs font-bold uppercase tracking-wide text-white hover:bg-neutral-700"
         >
-          <Copy className="mr-1.5 h-3.5 w-3.5" />
+          <Copy className="mr-1.5 size-3.5" />
           Copiar
         </Button>
         <Button
@@ -947,7 +945,7 @@ function LinkPaymentStep({
           aria-label="Compartilhar link de pagamento"
           className="h-10 rounded-[4px] bg-neutral-800 text-xs font-bold uppercase tracking-wide text-white hover:bg-neutral-700"
         >
-          <Share2 className="h-3.5 w-3.5" />
+          <Share2 className="size-3.5" />
         </Button>
       </div>
 
@@ -981,7 +979,7 @@ function InPersonStep({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-3 flex items-center justify-between">
+      <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 p-3 flex items-center justify-between">
         <span className="text-xs text-neutral-500">Total</span>
         <span className="text-lg font-bold font-mono text-white">{formatCents(total)}</span>
       </div>
@@ -1010,7 +1008,7 @@ function InPersonStep({
                         : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:border-neutral-700"
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="size-5" />
                     <span className="text-[9px] font-bold uppercase tracking-wide leading-tight text-center">
                       {PAYMENT_METHOD_LABELS[method]}
                     </span>
@@ -1072,12 +1070,12 @@ function InPersonStep({
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Registrando...
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            Registrando…
           </>
         ) : (
           <>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
+            <CheckCircle2 className="mr-2 size-4" />
             Realizar Venda
           </>
         )}
