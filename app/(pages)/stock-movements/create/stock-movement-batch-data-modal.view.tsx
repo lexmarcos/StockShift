@@ -1,12 +1,26 @@
 "use client";
 
-import { CalendarDays, DollarSign, PackageCheck } from "lucide-react";
+import {
+  CalendarDays,
+  DollarSign,
+  History,
+  Minus,
+  PackageCheck,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
-import type { ExistingProductBatchFormState } from "./create-stock-movement.types";
+import { cn } from "@/lib/utils";
+import type {
+  ExistingProductBatchFormState,
+  ExistingProductProfitSummary,
+  ExistingProductProfitSummaryKind,
+  ExistingProductPriceSuggestion,
+} from "./create-stock-movement.types";
 
 interface StockMovementBatchDataModalProps {
   form: ExistingProductBatchFormState;
@@ -16,7 +30,15 @@ interface StockMovementBatchDataModalProps {
   onExpirationDateChange: (date: string) => void;
   onCostPriceChange: (price?: number) => void;
   onSellingPriceChange: (price?: number) => void;
+  onApplyCostPriceSuggestion: () => void;
+  onApplySalePriceSuggestion: () => void;
   onConfirm: () => void;
+  costPriceSuggestion: ExistingProductPriceSuggestion | null;
+  salePriceSuggestion: ExistingProductPriceSuggestion | null;
+  isPriceSuggestionLoading: boolean;
+  shouldShowMissingCostPriceSuggestion: boolean;
+  shouldShowMissingSalePriceSuggestion: boolean;
+  profitSummary: ExistingProductProfitSummary;
 }
 
 export function StockMovementBatchDataModal({
@@ -27,7 +49,15 @@ export function StockMovementBatchDataModal({
   onExpirationDateChange,
   onCostPriceChange,
   onSellingPriceChange,
+  onApplyCostPriceSuggestion,
+  onApplySalePriceSuggestion,
   onConfirm,
+  costPriceSuggestion,
+  salePriceSuggestion,
+  isPriceSuggestionLoading,
+  shouldShowMissingCostPriceSuggestion,
+  shouldShowMissingSalePriceSuggestion,
+  profitSummary,
 }: StockMovementBatchDataModalProps) {
   return (
     <ResponsiveModal
@@ -51,7 +81,7 @@ export function StockMovementBatchDataModal({
             onClick={onConfirm}
             className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
           >
-            Confirmar
+            Adicionar lote à movimentação
           </Button>
         </>
       }
@@ -136,6 +166,13 @@ export function StockMovementBatchDataModal({
               placeholder="0,00"
               className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white focus:border-blue-600"
             />
+            <PriceSuggestionArea
+              title="Último preço de custo"
+              suggestion={costPriceSuggestion}
+              isLoading={isPriceSuggestionLoading}
+              shouldShowMissingSuggestion={shouldShowMissingCostPriceSuggestion}
+              onApply={onApplyCostPriceSuggestion}
+            />
           </div>
           <div className="space-y-2 md:col-start-2">
             <label
@@ -145,12 +182,22 @@ export function StockMovementBatchDataModal({
               <DollarSign className="size-3" />
               Preço de venda
             </label>
-            <CurrencyInput
-              id="stock-movement-batch-selling-price"
-              value={form.sellingPrice}
-              onValueChange={onSellingPriceChange}
-              placeholder="0,00"
-              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm font-bold text-emerald-500 focus:border-emerald-600"
+            <div className="relative">
+              <CurrencyInput
+                id="stock-movement-batch-selling-price"
+                value={form.sellingPrice}
+                onValueChange={onSellingPriceChange}
+                placeholder="0,00"
+                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 pr-[140px] text-sm font-bold text-emerald-500 focus:border-emerald-600"
+              />
+              <ProfitTags summary={profitSummary} />
+            </div>
+            <PriceSuggestionArea
+              title="Último preço de venda"
+              suggestion={salePriceSuggestion}
+              isLoading={isPriceSuggestionLoading}
+              shouldShowMissingSuggestion={shouldShowMissingSalePriceSuggestion}
+              onApply={onApplySalePriceSuggestion}
             />
           </div>
         </div>
@@ -164,3 +211,138 @@ export function StockMovementBatchDataModal({
     </ResponsiveModal>
   );
 }
+
+function PriceSuggestionArea({
+  title,
+  suggestion,
+  isLoading,
+  shouldShowMissingSuggestion,
+  onApply,
+}: {
+  title: string;
+  suggestion: ExistingProductPriceSuggestion | null;
+  isLoading: boolean;
+  shouldShowMissingSuggestion: boolean;
+  onApply: () => void;
+}) {
+  if (isLoading) {
+    return <PriceSuggestionLoading />;
+  }
+
+  if (!suggestion) {
+    return shouldShowMissingSuggestion ? <MissingPriceSuggestion /> : null;
+  }
+
+  return (
+    <PriceSuggestionCard title={title} suggestion={suggestion} onApply={onApply} />
+  );
+}
+
+function PriceSuggestionLoading() {
+  return (
+    <div className="flex items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-950 px-3 py-2">
+      <History className="h-3.5 w-3.5 shrink-0 animate-pulse text-blue-500/50" />
+      <span className="text-[11px] font-medium text-neutral-500">
+        Buscando último preço...
+      </span>
+    </div>
+  );
+}
+
+function MissingPriceSuggestion() {
+  return null;
+}
+
+function PriceSuggestionCard({
+  title,
+  suggestion,
+  onApply,
+}: {
+  title: string;
+  suggestion: ExistingProductPriceSuggestion;
+  onApply: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[4px] border border-neutral-800 bg-neutral-950 px-3 py-2">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <History className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+        <p className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className="truncate text-[11px] font-medium text-neutral-400">
+            {title}
+          </span>
+          <span className="shrink-0 font-mono text-[11px] font-bold text-white">
+            {suggestion.priceLabel}
+          </span>
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onApply}
+        className="h-6 shrink-0 rounded-[4px] border-blue-900/40 bg-blue-600/10 px-2.5 text-[10px] font-bold uppercase tracking-wide text-blue-400 hover:bg-blue-600/20 hover:text-blue-300"
+      >
+        Usar preço
+      </Button>
+    </div>
+  );
+}
+
+function ProfitTags({
+  summary,
+}: {
+  summary: ExistingProductProfitSummary;
+}) {
+  if (summary.kind === "incomplete") return null;
+
+  const Icon = profitSummaryIconByKind[summary.kind];
+  const style = profitSummaryStyleByKind[summary.kind];
+
+  return (
+    <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+      <div className={cn("flex h-7 items-center gap-1.5 rounded-[4px] border px-2", style.card)}>
+        <Icon className={cn("h-3.5 w-3.5 shrink-0", style.icon)} />
+        <span className={cn("text-[11px] font-bold tracking-wide", style.value)}>
+          {summary.unitResultLabel}
+        </span>
+      </div>
+      <div className={cn("flex h-7 items-center rounded-[4px] border px-2", style.card)}>
+        <span className={cn("text-[11px] font-bold tracking-wide", style.value)}>
+          {summary.marginLabel}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const profitSummaryStyleByKind: Record<
+  ExistingProductProfitSummaryKind,
+  { card: string; icon: string; value: string }
+> = {
+  incomplete: {
+    card: "border-neutral-800 bg-neutral-950",
+    icon: "text-neutral-500",
+    value: "text-neutral-300",
+  },
+  loss: {
+    card: "border-rose-900/40 bg-rose-950/10",
+    icon: "text-rose-500",
+    value: "text-rose-400",
+  },
+  profit: {
+    card: "border-emerald-900/40 bg-emerald-950/10",
+    icon: "text-emerald-500",
+    value: "text-emerald-400",
+  },
+  zero: {
+    card: "border-neutral-800 bg-neutral-950",
+    icon: "text-neutral-500",
+    value: "text-neutral-300",
+  },
+};
+
+const profitSummaryIconByKind = {
+  incomplete: Minus,
+  loss: TrendingDown,
+  profit: TrendingUp,
+  zero: Minus,
+} satisfies Record<ExistingProductProfitSummaryKind, typeof Minus>;

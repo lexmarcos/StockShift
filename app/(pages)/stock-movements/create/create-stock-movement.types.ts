@@ -48,6 +48,54 @@ export interface ExistingProductBatchFormState {
   error: string | null;
 }
 
+export interface StockMovementProductBatchPriceSource {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  warehouseName: string;
+  batchCode: string | null;
+  quantity: number;
+  manufacturedDate: string | null;
+  expirationDate: string | null;
+  costPrice: number | null;
+  sellingPrice: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StockMovementProductBatchesResponse {
+  success: boolean;
+  message?: string | null;
+  data: StockMovementProductBatchPriceSource[];
+}
+
+export interface ExistingProductPriceSuggestion {
+  batchCode: string;
+  createdAtLabel: string;
+  priceCents: number;
+  priceLabel: string;
+}
+
+export type ExistingProductProfitSummaryKind =
+  | "incomplete"
+  | "profit"
+  | "zero"
+  | "loss";
+
+export interface ExistingProductProfitSummary {
+  kind: ExistingProductProfitSummaryKind;
+  title: string;
+  description?: string;
+  costPriceLabel?: string;
+  sellingPriceLabel?: string;
+  unitResultCaption?: string;
+  unitResultLabel?: string;
+  marginLabel?: string;
+  totalResultCaption?: string;
+  totalResultLabel?: string;
+}
+
 export interface StockMovementProductOption {
   id: string;
   name: string;
@@ -93,7 +141,15 @@ export interface CreateStockMovementViewProps {
   onExistingProductBatchExpirationDateChange: (date: string) => void;
   onExistingProductBatchCostPriceChange: (price?: number) => void;
   onExistingProductBatchSellingPriceChange: (price?: number) => void;
+  onApplyExistingProductCostPriceSuggestion: () => void;
+  onApplyExistingProductSalePriceSuggestion: () => void;
   onConfirmExistingProductBatchData: () => void;
+  existingProductCostPriceSuggestion: ExistingProductPriceSuggestion | null;
+  existingProductSalePriceSuggestion: ExistingProductPriceSuggestion | null;
+  isExistingProductPriceSuggestionLoading: boolean;
+  shouldShowMissingCostPriceSuggestion: boolean;
+  shouldShowMissingSalePriceSuggestion: boolean;
+  existingProductProfitSummary: ExistingProductProfitSummary;
   items: Array<{
     id: string;
     productId?: string;

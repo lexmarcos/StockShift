@@ -9,7 +9,11 @@ import {
 } from "./create-stock-movement.model";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
 import type { StockMovementDraft } from "./create-stock-movement.storage";
-import type { StockMovementProductOption } from "./create-stock-movement.types";
+import type {
+  StockMovementProductBatchPriceSource,
+  StockMovementProductBatchesResponse,
+  StockMovementProductOption,
+} from "./create-stock-movement.types";
 
 type JsonResponse<T> = { json: () => Promise<T> };
 type ProductListResponse = { success: boolean; data: StockMovementProductOption[] };
@@ -48,7 +52,7 @@ const fakeSWR = vi.hoisted(() => {
 
     public reset(): void {
       this.responses.clear();
-      this.defaultState.mutate.mockClear();
+      (this.defaultState.mutate as import("vitest").Mock).mockClear();
       this.hook.mockClear();
     }
   }
@@ -58,7 +62,7 @@ const fakeSWR = vi.hoisted(() => {
 
 const fakeApi = vi.hoisted(() => {
   class FakeApi {
-    public readonly get = vi.fn<(url: string) => Promise<JsonResponse<unknown>>>();
+    public readonly get = vi.fn<(url: string) => JsonResponse<unknown>>();
     public readonly post = vi.fn<(url: string, body: { json?: unknown; body?: unknown }) => Promise<unknown>>();
   }
 
@@ -106,6 +110,15 @@ const fakeToast = vi.hoisted(() => {
   return new FakeToast();
 });
 
+const fakeSelectedWarehouse = vi.hoisted(() => {
+  class FakeSelectedWarehouse {
+    public warehouseId: string | null = "wh-1";
+    public readonly setWarehouseId = vi.fn<(warehouseId: string | null) => void>();
+  }
+
+  return new FakeSelectedWarehouse();
+});
+
 const fakeStorage = vi.hoisted(() => {
   class FakeStorage {
     private draftState: StockMovementDraft | null = null;
@@ -146,13 +159,14 @@ const fakeBreadcrumb = vi.hoisted(() => {
 });
 
 vi.mock("swr", () => ({
-  default: (...args: unknown[]) => fakeSWR.hook(...args),
+  default: (key: string | null, fetcher?: unknown) =>
+    fakeSWR.hook(key, fetcher),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: (...args: unknown[]) => fakeRouter.push(...args),
-    replace: (...args: unknown[]) => fakeRouter.replace(...args),
+    push: (url: string) => fakeRouter.push(url),
+    replace: (url: string) => fakeRouter.replace(url),
   }),
   useSearchParams: () => ({
     get: (key: string) => fakeSearchParams.get(key),
@@ -166,6 +180,10 @@ vi.mock("sonner", () => ({
 vi.mock("@/components/breadcrumb", () => ({
   useBreadcrumb: (payload: Parameters<typeof fakeBreadcrumb.useBreadcrumb>[0]) =>
     fakeBreadcrumb.useBreadcrumb(payload),
+}));
+
+vi.mock("@/hooks/use-selected-warehouse", () => ({
+  useSelectedWarehouse: () => fakeSelectedWarehouse,
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -225,6 +243,36 @@ const validExistingProductUuid = "123e4567-e89b-12d3-a456-426614174000";
 const productListResponse: ProductListResponse = {
   success: true,
   data: movementProducts,
+};
+
+const olderProductBatch: StockMovementProductBatchPriceSource = {
+  id: "batch-old",
+  productId: "p-1",
+  productName: "Café Torrado",
+  warehouseId: "wh-1",
+  warehouseName: "Central",
+  batchCode: "LOTE-OLD",
+  quantity: 4,
+  manufacturedDate: "2026-01-01",
+  expirationDate: "2026-12-31",
+  costPrice: 7250,
+  sellingPrice: 12490,
+  createdAt: "2026-01-10T10:00:00.000Z",
+  updatedAt: "2026-01-10T10:00:00.000Z",
+};
+
+const newestProductBatch: StockMovementProductBatchPriceSource = {
+  ...olderProductBatch,
+  id: "batch-new",
+  batchCode: "LOTE-NEW",
+  sellingPrice: 12990,
+  createdAt: "2026-03-10T10:00:00.000Z",
+  updatedAt: "2026-03-10T10:00:00.000Z",
+};
+
+const productBatchesResponse: StockMovementProductBatchesResponse = {
+  success: true,
+  data: [olderProductBatch, newestProductBatch],
 };
 
 const barcodeIndex: Record<string, StockMovementProductOption> = {
@@ -316,6 +364,8 @@ beforeEach(() => {
   fakeRouter.replace.mockClear();
   fakeToast.success.mockClear();
   fakeToast.error.mockClear();
+  fakeSelectedWarehouse.warehouseId = "wh-1";
+  fakeSelectedWarehouse.setWarehouseId.mockClear();
   fakeBreadcrumb.useBreadcrumb.mockClear();
   fakeSWR.reset();
   fakeSWR.setState("products", {
@@ -377,7 +427,7 @@ describe("helpers de produto", () => {
   it("marca produto inline como expirável somente quando validade foi preenchida", () => {
     const payload = buildMovementPayload("PURCHASE_IN", createInlineSubmitPayload());
 
-    expect(payload.items[0].newProduct?.hasExpiration).toBe(true);
+    expect("newProduct" in payload.items[0] && payload.items[0].newProduct?.hasExpiration).toBe(true);
   });
 
   it("envia dados de lote em item de produto existente quando preenchidos", () => {
@@ -612,21 +662,83 @@ describe("useCreateStockMovementModel", () => {
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
     });
-    act(() => {
-      result.current.onQuantityChange("2");
-    });
-    act(() => {
-      result.current.onAddItem();
-    });
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.existingProductBatchForm).toMatchObject({
       isOpen: true,
       productId: "p-1",
       productName: "Café Torrado",
-      quantity: "2",
+      quantity: "",
       editingIndex: null,
     });
+  });
+
+  it("busca preço do último lote no warehouse atual ao abrir dados do lote", () => {
+    fakeSWR.setState("batches/warehouses/wh-1/products/p-1/batches", {
+      data: productBatchesResponse,
+      error: null,
+      isLoading: false,
+      mutate: vi.fn(),
+    });
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/p-1/batches",
+      expect.any(Function),
+    );
+    expect(result.current.existingProductSalePriceSuggestion).toMatchObject({
+      batchCode: "LOTE-NEW",
+      priceCents: 12990,
+      priceLabel: "R$\u00a0129,90",
+    });
+  });
+
+  it("aplica sugestão de venda sem bloquear edição manual posterior", () => {
+    fakeSWR.setState("batches/warehouses/wh-1/products/p-1/batches", {
+      data: productBatchesResponse,
+      error: null,
+      isLoading: false,
+      mutate: vi.fn(),
+    });
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onApplyExistingProductSalePriceSuggestion();
+    });
+    expect(result.current.existingProductBatchForm.sellingPrice).toBe(12990);
+
+    act(() => {
+      result.current.onExistingProductBatchSellingPriceChange(13990);
+    });
+    expect(result.current.existingProductBatchForm.sellingPrice).toBe(13990);
+  });
+
+  it("não busca sugestão quando não há warehouse atual no contexto", () => {
+    fakeSelectedWarehouse.warehouseId = null;
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+
+    expect(fakeSWR.hook).not.toHaveBeenCalledWith(
+      "batches/warehouses/wh-1/products/p-1/batches",
+      expect.any(Function),
+    );
+    expect(result.current.existingProductSalePriceSuggestion).toBeNull();
   });
 
   it("confirma dados de lote e adiciona item com datas e preços", () => {
@@ -636,12 +748,7 @@ describe("useCreateStockMovementModel", () => {
       result.current.onProductSelect(movementProducts[0]);
     });
     act(() => {
-      result.current.onQuantityChange("2");
-    });
-    act(() => {
-      result.current.onAddItem();
-    });
-    act(() => {
+      result.current.onExistingProductBatchQuantityChange("2");
       result.current.onExistingProductBatchManufacturedDateChange("2026-04-01");
       result.current.onExistingProductBatchExpirationDateChange("2026-12-31");
       result.current.onExistingProductBatchCostPriceChange(1290);
@@ -684,6 +791,7 @@ describe("useCreateStockMovementModel", () => {
       result.current.onExistingProductBatchQuantityChange("3");
       result.current.onExistingProductBatchManufacturedDateChange("2026-04-01");
       result.current.onExistingProductBatchCostPriceChange(1290);
+      result.current.onExistingProductBatchSellingPriceChange(2490);
     });
     act(() => {
       result.current.onConfirmExistingProductBatchData();
@@ -695,6 +803,7 @@ describe("useCreateStockMovementModel", () => {
       manufacturedDate: "2026-04-01",
       expirationDate: "2026-12-31",
       costPrice: 1290,
+      sellingPrice: 2490,
     });
   });
 
@@ -791,7 +900,7 @@ describe("useCreateStockMovementModel", () => {
       isOpen: true,
       productId: "p-4",
       productName: "Copo Térmico",
-      quantity: "1",
+      quantity: "",
     });
   });
 

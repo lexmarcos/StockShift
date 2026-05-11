@@ -47,6 +47,7 @@ export function CreateStockMovementView({
   isSubmitting,
   isFooterVisible,
   itemQuantity,
+  selectedProductId,
   productSearchQuery,
   productOptions,
   isProductOptionsOpen,
@@ -73,7 +74,15 @@ export function CreateStockMovementView({
   onExistingProductBatchExpirationDateChange,
   onExistingProductBatchCostPriceChange,
   onExistingProductBatchSellingPriceChange,
+  onApplyExistingProductCostPriceSuggestion,
+  onApplyExistingProductSalePriceSuggestion,
   onConfirmExistingProductBatchData,
+  existingProductCostPriceSuggestion,
+  existingProductSalePriceSuggestion,
+  isExistingProductPriceSuggestionLoading,
+  shouldShowMissingCostPriceSuggestion,
+  shouldShowMissingSalePriceSuggestion,
+  existingProductProfitSummary,
   items,
 }: CreateStockMovementViewProps) {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
@@ -103,7 +112,15 @@ export function CreateStockMovementView({
         onExpirationDateChange={onExistingProductBatchExpirationDateChange}
         onCostPriceChange={onExistingProductBatchCostPriceChange}
         onSellingPriceChange={onExistingProductBatchSellingPriceChange}
+        onApplyCostPriceSuggestion={onApplyExistingProductCostPriceSuggestion}
+        onApplySalePriceSuggestion={onApplyExistingProductSalePriceSuggestion}
         onConfirm={onConfirmExistingProductBatchData}
+        costPriceSuggestion={existingProductCostPriceSuggestion}
+        salePriceSuggestion={existingProductSalePriceSuggestion}
+        isPriceSuggestionLoading={isExistingProductPriceSuggestionLoading}
+        shouldShowMissingCostPriceSuggestion={shouldShowMissingCostPriceSuggestion}
+        shouldShowMissingSalePriceSuggestion={shouldShowMissingSalePriceSuggestion}
+        profitSummary={existingProductProfitSummary}
       />
 
       <div className="mb-6 flex justify-end">
@@ -203,8 +220,8 @@ export function CreateStockMovementView({
           <FormSection
             icon={Package}
             iconColor="text-blue-400"
-            title="Adicionar Produto"
-            description="Selecione o produto e informe a quantidade"
+            title="Selecionar produto"
+            description="Busque ou escaneie o produto para adicionar à movimentação"
           >
             <div className="space-y-4">
               <div className="flex flex-col gap-4 md:flex-row">
@@ -313,33 +330,47 @@ export function CreateStockMovementView({
                   </div>
                 </div>
 
-                <div className="space-y-2 md:w-48">
-                  <label
-                    htmlFor="stock-movement-item-quantity"
-                    className="text-xs font-bold text-neutral-400"
-                  >
-                    QUANTIDADE
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <NumberInput
-                      id="stock-movement-item-quantity"
-                      value={itemQuantity ? Number(itemQuantity) : undefined}
-                      onValueChange={(val) =>
-                        onQuantityChange(val !== undefined ? String(val) : "")
-                      }
-                      className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 font-mono text-sm tracking-tighter text-white focus:border-blue-600"
-                      placeholder="0"
-                    />
-                    <Button
-                      type="button"
-                      onClick={onAddItem}
-                      className="h-10 flex-shrink-0 rounded-[4px] bg-blue-600 px-5 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                {!isInMovement ? (
+                  <div className="space-y-2 md:w-48">
+                    <label
+                      htmlFor="stock-movement-item-quantity"
+                      className="text-xs font-bold text-neutral-400"
                     >
-                      <Plus className="mr-2 size-4" strokeWidth={2.5} />
-                      Add
-                    </Button>
+                      QUANTIDADE
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <NumberInput
+                        id="stock-movement-item-quantity"
+                        value={itemQuantity ? Number(itemQuantity) : undefined}
+                        onValueChange={(val) =>
+                          onQuantityChange(val !== undefined ? String(val) : "")
+                        }
+                        className="h-10 w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 font-mono text-sm tracking-tighter text-white focus:border-blue-600"
+                        placeholder="0"
+                      />
+                      <Button
+                        type="button"
+                        onClick={onAddItem}
+                        className="h-10 flex-shrink-0 rounded-[4px] bg-blue-600 px-5 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
+                      >
+                        <Plus className="mr-2 size-4" strokeWidth={2.5} />
+                        Add
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  selectedProductId && (
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        onClick={onAddItem}
+                        className="h-10 w-full flex-shrink-0 rounded-[4px] bg-blue-600 px-5 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
+                      >
+                        Preencher dados do lote
+                      </Button>
+                    </div>
+                  )
+                )}
               </div>
               <div className="flex flex-col justify-end gap-2 sm:flex-row">
                 {!isOutMovement && (
