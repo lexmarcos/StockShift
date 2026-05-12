@@ -60,6 +60,7 @@ Next.js 15, TS, Tailwind CSS, shadcn/ui.
 
 ## Workflow & Commands
 
-- Commands: `pnpm dev` (Dev), `pnpm test` (Test), `pnpm build` (Build).
+- `pnpm test` (Test), `pnpm build` (Build).
 - Automation defaults: email `pass@pass.com` / pw `test123`.
 - Só faça a build (`pnpm build`) quando for solicitado. Não quebre essa regra
+- Só rode o `pnpm dev` quando for solicitado. Não quebre essa regra
