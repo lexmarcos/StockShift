@@ -275,62 +275,54 @@ export function TransfersView({
                 href={`/transfers/${transfer.id}`}
                 className="block group"
               >
-                <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4 cursor-pointer hover:bg-neutral-800/50 sm:p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-2">
-                      {/* Code + Status badge */}
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-sm font-bold tracking-tighter text-neutral-300 bg-neutral-800/60 px-2 py-0.5 rounded-[4px]">
-                          {transfer.code}
-                        </span>
-                        <Badge
-                          className={cn(
-                            "rounded-[2px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
-                            config.badgeClassName,
-                          )}
-                        >
-                          {config.showCheckIcon && (
-                            <CheckCircle2
-                              className="size-3"
-                              strokeWidth={2.5}
-                            />
-                          )}
-                          {config.label}
-                        </Badge>
-                      </div>
-
-                      {/* Warehouses */}
-                      <div className="flex items-center gap-2 text-sm font-medium text-neutral-300">
-                        <span className="truncate max-w-[140px] sm:max-w-none">
-                          {transfer.sourceWarehouseName}
-                        </span>
-                        <ArrowRight
-                          className="size-3.5 flex-shrink-0 text-neutral-600"
+                <div className="flex flex-col gap-4 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:bg-neutral-800/50">
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-[4px] bg-neutral-900 px-2.5 py-1 font-mono text-sm font-bold text-white">
+                      {transfer.code}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-[2px] border px-2 py-1 text-[10px] font-bold uppercase tracking-widest gap-1 shrink-0",
+                        config.badgeClassName,
+                      )}
+                    >
+                      {config.showCheckIcon && (
+                        <CheckCircle2
+                          className="size-3.5"
                           strokeWidth={2.5}
                         />
-                        <span className="truncate max-w-[140px] sm:max-w-none">
-                          {transfer.destinationWarehouseName}
-                        </span>
-                      </div>
+                      )}
+                      {config.label}
+                    </Badge>
+                  </div>
 
-                      {/* Meta info */}
-                      <div className="flex items-center gap-4 text-xs text-neutral-500">
-                        <div className="flex items-center gap-1.5">
-                          <Package className="size-3.5" strokeWidth={2} />
-                          <span>{transfer.items?.length || 0} itens</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="size-3.5" strokeWidth={2} />
-                          <span>
-                            {format(parseISO(transfer.createdAt), "dd/MM/yyyy")}
-                          </span>
-                        </div>
-                      </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2 text-sm font-bold text-white">
+                      <span className="truncate">
+                        {transfer.sourceWarehouseName}
+                      </span>
+                      <ArrowRight
+                        className="size-3.5 shrink-0 text-neutral-500"
+                        strokeWidth={2.5}
+                      />
+                      <span className="truncate">
+                        {transfer.destinationWarehouseName}
+                      </span>
                     </div>
 
-                    {/* Arrow indicator (desktop) */}
-                    <div className="hidden sm:flex items-center justify-center size-10 rounded-[4px] bg-neutral-800/50 group-hover:bg-neutral-800 group-hover:text-blue-400 text-neutral-600">
-                      <ArrowRight className="size-5" strokeWidth={2} />
+                    <div className="flex items-center gap-3 text-xs text-neutral-500">
+                      <div className="flex items-center gap-1.5">
+                        <Package className="size-3.5" strokeWidth={2} />
+                        <span>{transfer.items?.length || 0} itens</span>
+                      </div>
+                      <div className="h-3 w-px bg-neutral-800" />
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="size-3.5" strokeWidth={2} />
+                        <span>
+                          {format(parseISO(transfer.createdAt), "dd/MM/yyyy")}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

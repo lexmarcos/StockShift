@@ -40,6 +40,9 @@ import {
   CreditCard,
   Trash2,
   X,
+  CheckCircle2,
+  ChevronRight,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -840,58 +843,50 @@ export const SalesView = ({
               sales.map((sale) => {
                 const s = getStatusStyle(sale.status);
                 return (
-                  <div
+                  <Link
                     key={sale.id}
-                    className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
+                    href={`/sales/${sale.id}`}
+                    className="flex flex-col gap-4 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:bg-neutral-800/50"
                   >
                     <div className="flex items-center justify-between">
-                      <Link
-                        href={`/sales/${sale.id}`}
-                        className="font-mono text-base font-bold text-white hover:text-blue-400"
-                      >
-                        {sale.code}
-                      </Link>
-                      <SaleActions sale={sale} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                          Data
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-base font-bold text-white">
+                          {sale.code}
                         </span>
-                        <span className="text-sm text-neutral-300 mt-0.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-[2px] border px-2 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 ${s.bg} ${s.color} ${s.border}`}
+                        >
+                          {sale.status === "COMPLETED" && (
+                            <CheckCircle2 className="size-3.5" strokeWidth={2.5} />
+                          )}
+                          {SALE_STATUS_LABELS[sale.status]}
+                        </span>
+                      </div>
+                      <ChevronRight className="size-4 shrink-0 text-neutral-500" strokeWidth={2.5} />
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex items-center gap-1.5 text-neutral-400">
+                        <Calendar className="size-4" strokeWidth={2} />
+                        <span>
                           {format(parseISO(sale.createdAt), "dd/MM/yyyy", {
                             locale: ptBR,
                           })}
                         </span>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                          Total
-                        </span>
-                        <span className="text-sm font-bold text-white mt-0.5">
-                          {formatCents(sale.total)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                          Vendedor
-                        </span>
-                        <span className="text-sm text-neutral-300 mt-0.5">
-                          {sale.createdByUserName || "—"}
+                      <span className="text-neutral-600">&bull;</span>
+                      <span className="font-medium text-white">
+                        {formatCents(sale.total)}
+                      </span>
+                      <span className="text-neutral-600">&bull;</span>
+                      <div className="flex items-center gap-1.5 text-neutral-400">
+                        <User className="size-4" strokeWidth={2} />
+                        <span className="truncate max-w-[100px] sm:max-w-none">
+                          {sale.createdByUserName || "Admin"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between mt-2 pt-3 border-t border-neutral-800">
-                      <span className="text-xs font-medium text-neutral-400">
-                        {PAYMENT_METHOD_LABELS[sale.paymentMethod]}
-                      </span>
-                      <span
-                        className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} ${s.border}`}
-                      >
-                        {SALE_STATUS_LABELS[sale.status]}
-                      </span>
-                    </div>
-                  </div>
+                  </Link>
                 );
               })
             )}
