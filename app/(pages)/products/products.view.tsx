@@ -375,6 +375,61 @@ const InsightCards = ({
   </div>
 );
 
+const MobileInsightCards = ({
+  totalElements,
+  outOfStockCount,
+  isOutOfStockActive,
+  onOutOfStockKpiClick,
+}: {
+  totalElements: number;
+  outOfStockCount: number;
+  isOutOfStockActive: boolean;
+  onOutOfStockKpiClick: () => void;
+}) => (
+  <>
+    <div className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-3">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-blue-500/30 bg-blue-500/10">
+        <BarChart3 className="size-5 text-blue-500" strokeWidth={2} />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          Total Geral
+        </div>
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <span className="font-mono text-xl font-bold tracking-tight text-white">
+            {totalElements}
+          </span>
+          <span className="text-xs font-medium text-neutral-400">itens</span>
+        </div>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={onOutOfStockKpiClick}
+      className="flex items-center gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-3 text-left"
+    >
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-rose-500/30 bg-rose-500/10">
+        <XCircle className="size-5 text-rose-500" strokeWidth={2} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          Sem Estoque
+          {isOutOfStockActive && (
+            <span className="size-1.5 shrink-0 rounded-[1px] bg-blue-500" />
+          )}
+        </div>
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <span className="font-mono text-xl font-bold tracking-tight text-white">
+            {outOfStockCount}
+          </span>
+          <span className="text-xs font-medium text-neutral-400">itens</span>
+        </div>
+      </div>
+    </button>
+  </>
+);
+
 export const ProductsView = ({
   filteredProducts,
   isLoading,
@@ -636,9 +691,9 @@ export const ProductsView = ({
               {/* Mobile Insight Cards */}
               <div
                 data-slot="mobile-product-kpis"
-                className="md:hidden"
+                className="grid grid-cols-2 gap-2 md:hidden"
               >
-                <InsightCards
+                <MobileInsightCards
                   totalElements={pagination.totalElements}
                   outOfStockCount={outOfStockCount}
                   isOutOfStockActive={filters.stockStatus === "outOfStock"}

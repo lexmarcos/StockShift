@@ -11,7 +11,6 @@ import {
   Package,
   Pencil,
   Trash2,
-  Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
