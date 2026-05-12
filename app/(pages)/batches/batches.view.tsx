@@ -500,9 +500,9 @@ export const BatchesView = ({
               </PermissionGate>
             </div>
 
-            <div className="md:hidden">
-              <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex min-w-max gap-2 pb-1">
+            <div className="relative -mx-4 md:hidden">
+              <div className="overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex min-w-max gap-2 pb-1 pr-8">
                   <FilterToken
                     active={activeFilterCount > 0}
                     count={activeFilterCount}
@@ -548,6 +548,7 @@ export const BatchesView = ({
                   />
                 </div>
               </div>
+              <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-[#0A0A0A] to-transparent" />
             </div>
 
             {/* Row 1: Insight Cards */}

@@ -528,29 +528,32 @@ export const StockMovementsView = ({
               <CreateMovementActions />
             </div>
 
-            <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
-              <div className="flex min-w-max gap-2">
-                <FilterToken
-                  icon={<Filter className="size-3.5" />}
-                  label="Filtros"
-                  badge={activeFilterCount || undefined}
-                  onClick={onOpenMobileFilters}
-                />
-                <FilterToken
-                  icon={<CalendarDays className="size-3.5" />}
-                  label={getDateSummary(
-                    filters.datePreset,
-                    filters.dateFrom,
-                    filters.dateTo,
-                  )}
-                  onClick={onOpenMobileFilters}
-                />
-                <FilterToken
-                  icon={<ArrowUpDown className="size-3.5" />}
-                  label={getSortLabel(filters.sortBy, filters.sortOrder)}
-                  onClick={onOpenMobileFilters}
-                />
+            <div className="relative -mx-4 md:hidden">
+              <div className="overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex min-w-max gap-2 pr-8">
+                  <FilterToken
+                    icon={<Filter className="size-3.5" />}
+                    label="Filtros"
+                    badge={activeFilterCount || undefined}
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    icon={<CalendarDays className="size-3.5" />}
+                    label={getDateSummary(
+                      filters.datePreset,
+                      filters.dateFrom,
+                      filters.dateTo,
+                    )}
+                    onClick={onOpenMobileFilters}
+                  />
+                  <FilterToken
+                    icon={<ArrowUpDown className="size-3.5" />}
+                    label={getSortLabel(filters.sortBy, filters.sortOrder)}
+                    onClick={onOpenMobileFilters}
+                  />
+                </div>
               </div>
+              <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-[#0A0A0A] to-transparent" />
             </div>
 
             {/* Desktop Filters */}

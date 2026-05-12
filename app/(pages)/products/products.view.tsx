@@ -634,37 +634,40 @@ export const ProductsView = ({
 
               {/* Mobile Filter Tokens */}
               <div className="md:hidden">
-                <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <div className="flex min-w-max gap-2 pb-1">
-                    <FilterToken
-                      active={activeFilterCount > 0}
-                      count={activeFilterCount}
-                      icon={<SlidersHorizontal className="size-3.5" />}
-                      label="Filtros"
-                      onClick={onOpenMobileFilters}
-                    />
-                    <FilterToken
-                      active={filters.stockStatus !== "all"}
-                      icon={<Package className="size-3.5" />}
-                      label="Estoque"
-                      value={getStockFilterLabel(filters.stockStatus)}
-                      onClick={onOpenMobileFilters}
-                    />
-                    <FilterToken
-                      active={filters.activeStatus !== "all"}
-                      icon={<Power className="size-3.5" />}
-                      label="Status"
-                      value={getActiveFilterLabel(filters.activeStatus)}
-                      onClick={onOpenMobileFilters}
-                    />
-                    <FilterToken
-                      active={filters.sortBy !== "name" || filters.sortOrder !== "asc"}
-                      icon={<ArrowDownUp className="size-3.5" />}
-                      label="Ordem"
-                      value={getSortLabel(filters.sortBy, filters.sortOrder)}
-                      onClick={onOpenMobileFilters}
-                    />
+                <div className="relative -mx-4">
+                  <div className="overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex min-w-max gap-2 pb-1 pr-8">
+                      <FilterToken
+                        active={activeFilterCount > 0}
+                        count={activeFilterCount}
+                        icon={<SlidersHorizontal className="size-3.5" />}
+                        label="Filtros"
+                        onClick={onOpenMobileFilters}
+                      />
+                      <FilterToken
+                        active={filters.stockStatus !== "all"}
+                        icon={<Package className="size-3.5" />}
+                        label="Estoque"
+                        value={getStockFilterLabel(filters.stockStatus)}
+                        onClick={onOpenMobileFilters}
+                      />
+                      <FilterToken
+                        active={filters.activeStatus !== "all"}
+                        icon={<Power className="size-3.5" />}
+                        label="Status"
+                        value={getActiveFilterLabel(filters.activeStatus)}
+                        onClick={onOpenMobileFilters}
+                      />
+                      <FilterToken
+                        active={filters.sortBy !== "name" || filters.sortOrder !== "asc"}
+                        icon={<ArrowDownUp className="size-3.5" />}
+                        label="Ordem"
+                        value={getSortLabel(filters.sortBy, filters.sortOrder)}
+                        onClick={onOpenMobileFilters}
+                      />
+                    </div>
                   </div>
+                  <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-[#0A0A0A] to-transparent" />
                 </div>
               </div>
 
