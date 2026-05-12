@@ -1,16 +1,26 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   DateFilterPreset,
-  KpiPeriodKey,
+  DailyChartEntry,
   SaleFilterDraft,
+  SaleSummary,
   SalesResponse,
   SaleFilters,
-  SalesDashboardResponse,
+  SalesMetricsData,
+  SalesKpiSummary,
 } from "./sales.types";
+
+export interface SalesMetricsDateRange {
+  dateFrom: string;
+  dateTo: string;
+  isDefaultCurrentMonth: boolean;
+}
+
+const SALES_ANALYTICS_PAGE_SIZE = 200;
 
 const formatDateInputValue = (date: Date): string => {
   const year = date.getFullYear();
@@ -65,6 +75,234 @@ const buildDefaultFilters = (): SaleFilters => ({
   pageSize: 20,
 });
 
+const parseDateInputValue = (value: string): Date => {
+  const pattern = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!pattern.test(value)) {
+    throw new Error(`Invalid date input "${value}". Expected YYYY-MM-DD.`);
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+
+  if (formatDateInputValue(parsedDate) !== value) {
+    throw new Error(`Invalid date input "${value}". Expected valid YYYY-MM-DD.`);
+  }
+
+  return parsedDate;
+};
+
+const normalizeSalesMetricsDateRange = (
+  dateFrom: string,
+  dateTo: string,
+  isDefaultCurrentMonth: boolean,
+): SalesMetricsDateRange => {
+  const startDate = parseDateInputValue(dateFrom);
+  const endDate = parseDateInputValue(dateTo);
+
+  if (startDate <= endDate) {
+    return { dateFrom, dateTo, isDefaultCurrentMonth };
+  }
+
+  return {
+    dateFrom: dateTo,
+    dateTo: dateFrom,
+    isDefaultCurrentMonth,
+  };
+};
+
+export const resolveSalesMetricsDateRange = (
+  filters: SaleFilters,
+): SalesMetricsDateRange => {
+  const monthRange = getDateRangeForPreset("THIS_MONTH");
+  const presetRange = getDateRangeForPreset(filters.datePreset);
+  const dateFrom = filters.dateFrom ?? presetRange.dateFrom;
+  const dateTo = filters.dateTo ?? presetRange.dateTo;
+
+  if (dateFrom && dateTo) {
+    return normalizeSalesMetricsDateRange(dateFrom, dateTo, false);
+  }
+
+  if (dateFrom || dateTo) {
+    const boundary = dateFrom ?? dateTo ?? "";
+    return normalizeSalesMetricsDateRange(boundary, boundary, false);
+  }
+
+  return normalizeSalesMetricsDateRange(
+    monthRange.dateFrom ?? "",
+    monthRange.dateTo ?? "",
+    true,
+  );
+};
+
+const appendSalesRequestFilters = (
+  params: URLSearchParams,
+  filters: SaleFilters,
+) => {
+  if (filters.status && filters.status !== "ALL") {
+    params.append("status", filters.status);
+  }
+
+  if (filters.paymentMethod && filters.paymentMethod !== "ALL") {
+    params.append("paymentMethod", filters.paymentMethod);
+  }
+
+  if (filters.dateFrom) {
+    params.append("dateFrom", `${filters.dateFrom}T00:00:00`);
+  }
+
+  if (filters.dateTo) {
+    params.append("dateTo", `${filters.dateTo}T23:59:59`);
+  }
+};
+
+const buildSalesRequestUrl = (
+  warehouseId: string,
+  filters: SaleFilters,
+): string => {
+  const params = new URLSearchParams();
+  params.append("warehouseId", warehouseId);
+  params.append("page", filters.page.toString());
+  params.append("size", filters.pageSize.toString());
+  appendSalesRequestFilters(params, filters);
+
+  return `sales?${params.toString()}`;
+};
+
+export const buildSalesMetricsRequestUrl = (
+  warehouseId: string,
+  filters: SaleFilters,
+  range: SalesMetricsDateRange,
+): string => {
+  const metricsFilters: SaleFilters = {
+    ...filters,
+    page: 0,
+    pageSize: SALES_ANALYTICS_PAGE_SIZE,
+    dateFrom: range.dateFrom,
+    dateTo: range.dateTo,
+  };
+  const params = new URLSearchParams();
+  params.append("warehouseId", warehouseId);
+  params.append("page", "0");
+  params.append("size", SALES_ANALYTICS_PAGE_SIZE.toString());
+  appendSalesRequestFilters(params, metricsFilters);
+
+  return `sales?${params.toString()}`;
+};
+
+const buildSalesMetricsPageUrl = (url: string, page: number): string => {
+  const [pathname, query = ""] = url.split("?");
+  const params = new URLSearchParams(query);
+  params.set("page", page.toString());
+
+  return `${pathname}?${params.toString()}`;
+};
+
+const fetchSalesResponse = async (url: string): Promise<SalesResponse> =>
+  api.get(url).json<SalesResponse>();
+
+const fetchRemainingSalesMetricsPages = async (
+  firstUrl: string,
+  firstResponse: SalesResponse,
+): Promise<SaleSummary[]> => {
+  const totalPages = firstResponse.data.totalPages;
+
+  if (totalPages <= 1) return [];
+
+  const pageUrls = Array.from({ length: totalPages - 1 }, (_, index) =>
+    buildSalesMetricsPageUrl(firstUrl, index + 1),
+  );
+  const pageResponses = await Promise.all(pageUrls.map(fetchSalesResponse));
+
+  return pageResponses.flatMap((response) => response.data.content);
+};
+
+const buildSalesKpiSummary = (sales: SaleSummary[]): SalesKpiSummary => {
+  const count = sales.length;
+  const revenue = sales.reduce((total, sale) => total + sale.total, 0);
+  const avgTicket = count > 0 ? Math.round(revenue / count) : 0;
+
+  return { count, revenue, avgTicket };
+};
+
+const buildDateRangeChartEntries = (
+  range: SalesMetricsDateRange,
+): DailyChartEntry[] => {
+  const entries: DailyChartEntry[] = [];
+  const currentDate = parseDateInputValue(range.dateFrom);
+  const endDate = parseDateInputValue(range.dateTo);
+
+  while (currentDate <= endDate) {
+    entries.push({ date: formatDateInputValue(currentDate), count: 0, revenue: 0 });
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return entries;
+};
+
+const getSaleDateInputValue = (sale: SaleSummary): string =>
+  formatDateInputValue(new Date(sale.createdAt));
+
+const buildSalesDailyChart = (
+  sales: SaleSummary[],
+  range: SalesMetricsDateRange,
+): DailyChartEntry[] => {
+  const entries = buildDateRangeChartEntries(range);
+  const entriesByDate = new Map(entries.map((entry) => [entry.date, entry]));
+
+  sales.forEach((sale) => {
+    const entry = entriesByDate.get(getSaleDateInputValue(sale));
+    if (!entry) return;
+    entry.count += 1;
+    entry.revenue += sale.total;
+  });
+
+  return entries;
+};
+
+export const buildSalesMetricsData = (
+  sales: SaleSummary[],
+  range: SalesMetricsDateRange,
+): SalesMetricsData => ({
+  kpiSummary: buildSalesKpiSummary(sales),
+  dailyChart: buildSalesDailyChart(sales, range),
+});
+
+const formatDateSummaryValue = (value: string): string => {
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+export const buildSalesMetricsTitle = (
+  range: SalesMetricsDateRange,
+): string => {
+  if (range.isDefaultCurrentMonth) {
+    return "Vendas do mês atual";
+  }
+
+  if (range.dateFrom === range.dateTo) {
+    return `Vendas de ${formatDateSummaryValue(range.dateFrom)}`;
+  }
+
+  return `Vendas de ${formatDateSummaryValue(range.dateFrom)} a ${formatDateSummaryValue(range.dateTo)}`;
+};
+
+const fetchSalesMetricsData = async (
+  url: string,
+  range: SalesMetricsDateRange,
+): Promise<SalesMetricsData> => {
+  const firstResponse = await fetchSalesResponse(url);
+  const remainingSales = await fetchRemainingSalesMetricsPages(
+    url,
+    firstResponse,
+  );
+
+  return buildSalesMetricsData(
+    [...firstResponse.data.content, ...remainingSales],
+    range,
+  );
+};
+
 const extractFilterDraft = (filters: SaleFilters): SaleFilterDraft => ({
   status: filters.status ?? "ALL",
   paymentMethod: filters.paymentMethod ?? "ALL",
@@ -99,31 +337,27 @@ export const useSalesModel = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [mobileFiltersDraft, setMobileFiltersDraft] =
     useState<SaleFilterDraft>(buildDefaultFilterDraft);
-  const [kpiPeriod, setKpiPeriod] = useState<KpiPeriodKey>("today");
 
   const url = useMemo(() => {
     if (!warehouseId) return null;
 
-    const params = new URLSearchParams();
-    params.append("warehouseId", warehouseId);
-    params.append("page", filters.page.toString());
-    params.append("size", filters.pageSize.toString());
-
-    if (filters.status && filters.status !== "ALL") {
-      params.append("status", filters.status);
-    }
-    if (filters.paymentMethod && filters.paymentMethod !== "ALL") {
-      params.append("paymentMethod", filters.paymentMethod);
-    }
-    if (filters.dateFrom) {
-      params.append("dateFrom", `${filters.dateFrom}T00:00:00`);
-    }
-    if (filters.dateTo) {
-      params.append("dateTo", `${filters.dateTo}T23:59:59`);
-    }
-
-    return `sales?${params.toString()}`;
+    return buildSalesRequestUrl(warehouseId, filters);
   }, [warehouseId, filters]);
+
+  const salesMetricsRange = useMemo(
+    () => resolveSalesMetricsDateRange(filters),
+    [filters],
+  );
+
+  const salesMetricsUrl = useMemo(() => {
+    if (!warehouseId) return null;
+
+    return buildSalesMetricsRequestUrl(
+      warehouseId,
+      filters,
+      salesMetricsRange,
+    );
+  }, [warehouseId, filters, salesMetricsRange]);
 
   const { data, error, isLoading } = useSWR<SalesResponse>(url, async (url: string) => {
     try {
@@ -135,15 +369,13 @@ export const useSalesModel = () => {
     }
   });
 
-  const dashboardUrl = warehouseId ? `sales/dashboard?warehouseId=${warehouseId}` : null;
-
-  const { data: dashboardData, isLoading: dashboardLoading } = useSWR<SalesDashboardResponse | undefined>(
-    dashboardUrl,
+  const { data: salesMetricsData, isLoading: salesMetricsLoading } = useSWR<SalesMetricsData | undefined>(
+    salesMetricsUrl,
     async (url: string) => {
       try {
-        return await api.get(url).json<SalesDashboardResponse>();
+        return await fetchSalesMetricsData(url, salesMetricsRange);
       } catch (err) {
-        console.error("Erro ao carregar dashboard:", err);
+        console.error("Erro ao carregar métricas de vendas:", err);
         return undefined;
       }
     }
@@ -230,10 +462,6 @@ export const useSalesModel = () => {
     setMobileFiltersDraft((prev) => ({ ...prev, [key]: value }));
   };
 
-  const onKpiPeriodChange = useCallback((period: KpiPeriodKey) => {
-    setKpiPeriod(period);
-  }, []);
-
   return {
     sales,
     isLoading,
@@ -242,8 +470,6 @@ export const useSalesModel = () => {
     mobileFiltersDraft,
     isMobileFiltersOpen,
     pagination,
-    kpiPeriod,
-    onKpiPeriodChange,
     onPageChange,
     onFilterChange,
     onDatePresetChange,
@@ -255,7 +481,8 @@ export const useSalesModel = () => {
     onMobileDatePresetChange,
     onMobileDateInputChange,
     onMobileFilterDraftChange,
-    dashboardData: dashboardData?.data || null,
-    dashboardLoading,
+    salesMetricsData: salesMetricsData || null,
+    salesMetricsLoading,
+    salesMetricsTitle: buildSalesMetricsTitle(salesMetricsRange),
   };
 };

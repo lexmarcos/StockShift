@@ -55,13 +55,11 @@ export interface SaleSummary {
   createdByUserName: string;
 }
 
-interface KpiPeriod {
+export interface SalesKpiSummary {
   count: number;
   revenue: number;
   avgTicket: number;
 }
-
-export type KpiPeriodKey = "today" | "week" | "month";
 
 export interface DailyChartEntry {
   date: string;
@@ -69,19 +67,9 @@ export interface DailyChartEntry {
   revenue: number;
 }
 
-export interface SalesDashboardData {
-  kpis: {
-    today: KpiPeriod;
-    week: KpiPeriod;
-    month: KpiPeriod;
-  };
+export interface SalesMetricsData {
+  kpiSummary: SalesKpiSummary;
   dailyChart: DailyChartEntry[];
-}
-
-export interface SalesDashboardResponse {
-  success: boolean;
-  message: string;
-  data: SalesDashboardData;
 }
 
 export interface SalesResponse {

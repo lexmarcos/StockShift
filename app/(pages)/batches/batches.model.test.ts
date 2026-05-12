@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   deriveBatchStatus,
@@ -34,6 +34,21 @@ const baseBatch: Batch = {
   notes: "",
   createdAt: "2026-01-01T10:00:00Z",
   updatedAt: "2026-01-01T10:00:00Z",
+};
+
+const formatDateInputValue = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const buildRelativeDateInput = (daysFromToday: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromToday);
+
+  return formatDateInputValue(date);
 };
 
 const setupSWRMocks = () => {
@@ -195,7 +210,11 @@ describe("useBatchesModel", () => {
       data: {
         data: [
           { ...baseBatch, id: "expired", expirationDate: "2020-01-01" },
-          { ...baseBatch, id: "expiring", expirationDate: "2026-05-10" },
+          {
+            ...baseBatch,
+            id: "expiring",
+            expirationDate: buildRelativeDateInput(10),
+          },
           { ...baseBatch, id: "low", quantity: 2, expirationDate: "" },
         ],
       },

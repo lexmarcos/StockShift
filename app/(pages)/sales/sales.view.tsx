@@ -46,17 +46,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
-import { InsightCard } from "@/components/ui/insight-card";
 import { SalesChart } from "./sales-chart.view";
 import {
   SaleSummary,
   SaleStatus,
-  SalesDashboardData,
+  SalesMetricsData,
   SaleFilters,
   SaleFilterDraft,
   PaymentMethod,
   DateFilterPreset,
-  KpiPeriodKey,
   PAYMENT_METHOD_LABELS,
   SALE_STATUS_LABELS,
   formatCents,
@@ -85,10 +83,9 @@ interface SalesViewProps {
     totalPages: number;
     totalElements: number;
   };
-  dashboardData: SalesDashboardData | null;
-  dashboardLoading: boolean;
-  kpiPeriod: KpiPeriodKey;
-  onKpiPeriodChange: (period: KpiPeriodKey) => void;
+  salesMetricsData: SalesMetricsData | null;
+  salesMetricsLoading: boolean;
+  salesMetricsTitle: string;
   onPageChange: (page: number) => void;
   onFilterChange: <K extends keyof SaleFilters>(
     key: K,
@@ -259,10 +256,9 @@ export const SalesView = ({
   mobileFiltersDraft,
   isMobileFiltersOpen,
   pagination,
-  dashboardData,
-  dashboardLoading,
-  kpiPeriod,
-  onKpiPeriodChange,
+  salesMetricsData,
+  salesMetricsLoading,
+  salesMetricsTitle,
   onPageChange,
   onFilterChange,
   onDatePresetChange,
@@ -642,70 +638,89 @@ export const SalesView = ({
 
           {/* KPI Cards */}
           <div className="space-y-3">
-            {/* Period Toggle */}
-            <div className="flex items-center gap-1 rounded-[4px] border border-neutral-800 bg-[#171717] p-1 w-full md:w-fit">
-              {(
-                [
-                  { key: "today", label: "Hoje" },
-                  { key: "week", label: "Semana" },
-                  { key: "month", label: "Mês" },
-                ] as const
-              ).map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => onKpiPeriodChange(key)}
-                  className={`flex-1 md:flex-initial rounded-[4px] px-4 py-1.5 text-xs font-bold uppercase tracking-wide ${
-                    kpiPeriod === key
-                      ? "bg-blue-600 text-white"
-                      : "text-neutral-500 hover:text-neutral-300"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="flex min-h-12 items-center gap-2 rounded-[4px] border border-neutral-800 bg-[#171717] px-4 text-xs font-bold uppercase tracking-widest text-neutral-300">
+              <CalendarDays className="size-4 shrink-0 text-blue-500" />
+              <span>{salesMetricsTitle}</span>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {dashboardLoading ? (
-                <div className="col-span-3 flex items-center justify-center py-6">
-                  <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+            {salesMetricsLoading ? (
+              <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5 flex items-center justify-center py-6">
+                <div className="size-6 animate-spin rounded-full border-2 border-neutral-500 border-t-blue-500" />
+              </div>
+            ) : salesMetricsData ? (
+              <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4 sm:p-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex items-center justify-between gap-6 min-w-max">
+                  {/* Item 1 */}
+                  <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] bg-blue-500/10 text-blue-400">
+                      <ShoppingCart className="size-5 sm:size-6" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                        Vendas
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1.5">
+                        <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+                          {salesMetricsData.kpiSummary.count}
+                        </span>
+                        <span className="text-xs font-medium text-neutral-400">
+                          vendas
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-10 w-[1px] shrink-0 bg-neutral-800" />
+
+                  {/* Item 2 */}
+                  <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] bg-emerald-500/10 text-emerald-400">
+                      <DollarSign className="size-5 sm:size-6" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                        Faturamento
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1.5">
+                        <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+                          {formatCents(salesMetricsData.kpiSummary.revenue)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-10 w-[1px] shrink-0 bg-neutral-800" />
+
+                  {/* Item 3 */}
+                  <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] bg-amber-500/10 text-amber-400">
+                      <TrendingUp className="size-5 sm:size-6" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                        Ticket Médio
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1.5">
+                        <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+                          {formatCents(salesMetricsData.kpiSummary.avgTicket)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                dashboardData && (
-                  <>
-                    <InsightCard
-                      icon={ShoppingCart}
-                      color="blue"
-                      label="Vendas"
-                      value={dashboardData.kpis[kpiPeriod].count}
-                      suffix="vendas"
-                    />
-                    <InsightCard
-                      icon={DollarSign}
-                      color="emerald"
-                      label="Faturamento"
-                      value={formatCents(dashboardData.kpis[kpiPeriod].revenue)}
-                    />
-                    <InsightCard
-                      icon={TrendingUp}
-                      color="amber"
-                      label="Ticket Médio"
-                      value={formatCents(dashboardData.kpis[kpiPeriod].avgTicket)}
-                    />
-                  </>
-                )
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Monthly Chart */}
-          {dashboardData && dashboardData.dailyChart.length > 0 && (
+          {salesMetricsData && salesMetricsData.dailyChart.length > 0 && (
             <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-4">
               <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                Vendas do Mês
+                Evolução diária
               </h3>
-              <SalesChart data={dashboardData.dailyChart} />
+              <SalesChart data={salesMetricsData.dailyChart} />
             </div>
           )}
 
