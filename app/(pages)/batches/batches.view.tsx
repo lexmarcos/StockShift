@@ -53,6 +53,7 @@ import {
   XCircle,
   ArrowUp,
   ArrowDown,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1043,29 +1044,28 @@ export const BatchesView = ({
                       const style = getStatusStyle(status.kind);
 
                       return (
-                        <div
+                        <Link
+                          href={`/batches/${batch.id}`}
                           key={batch.id}
-                          className={cn(
-                            "flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4",
-                          )}
+                          className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:bg-neutral-800/50"
                         >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-semibold text-white">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex flex-col gap-1.5">
+                              <h3 className="font-bold text-base text-white leading-tight">
                                 {batch.productName}
                               </h3>
-                              <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
-                                <span className="font-mono">
+                              <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                                <span className="uppercase">
                                   {batch.batchNumber || "SEM LOTE"}
                                 </span>
-                                <span>•</span>
-                                <span>{batch.warehouseName}</span>
+                                <span className="text-neutral-600">&bull;</span>
+                                <span className="truncate">{batch.warehouseName}</span>
                               </div>
                             </div>
                             <Badge
                               variant="outline"
                               className={cn(
-                                "rounded-[2px] border px-1.5 py-0.5 text-[10px] font-bold uppercase",
+                                "shrink-0 rounded-[2px] border px-2 py-1 text-[10px] font-bold uppercase",
                                 style.bg,
                                 style.color,
                                 style.border,
@@ -1075,44 +1075,31 @@ export const BatchesView = ({
                             </Badge>
                           </div>
 
-                          <div className="flex items-center justify-between text-xs border-t border-neutral-800 pt-3 mt-1">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">
-                                Validade
-                              </span>
-                              <span className="text-neutral-300 font-mono">
+                          <div className="mt-1 flex items-center justify-between border-t border-neutral-800 pt-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-neutral-500">Validade</span>
+                              <span className="text-sm text-neutral-400">
                                 {formatDate(batch.expirationDate)}
                               </span>
                             </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">
-                                Status
-                              </span>
-                              <span
-                                className={cn(
-                                  "font-bold uppercase",
-                                  style.color,
-                                )}
-                              >
-                                {status.label}
-                              </span>
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-end text-right">
+                                <span className="mb-0.5 text-[10px] font-medium leading-none text-neutral-500">
+                                  Status
+                                </span>
+                                <span
+                                  className={cn(
+                                    "text-xs font-bold uppercase leading-none",
+                                    style.color,
+                                  )}
+                                >
+                                  {status.label}
+                                </span>
+                              </div>
+                              <ChevronRight className="size-4 text-neutral-500" />
                             </div>
                           </div>
-
-                          <div className="flex items-center gap-2 pt-2">
-                            <Link
-                              href={`/batches/${batch.id}`}
-                              className="flex-1"
-                            >
-                              <Button
-                                variant="outline"
-                                className="h-8 w-full rounded-[4px] border-neutral-800 bg-neutral-900 text-xs font-medium uppercase text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                              >
-                                Detalhes
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>

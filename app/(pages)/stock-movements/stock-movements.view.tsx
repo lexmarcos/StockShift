@@ -38,6 +38,7 @@ import {
   ArrowUpDown,
   CalendarDays,
   Trash2,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
@@ -802,35 +803,29 @@ export const StockMovementsView = ({
               movements.map((movement) => {
                 const dirStatus = getDirectionStatus(movement.direction);
                 return (
-                  <div
+                  <Link
+                    href={`/stock-movements/${movement.id}`}
                     key={movement.id}
-                    className="flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4"
+                    className="flex flex-col gap-4 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:bg-neutral-800/50"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-base font-bold text-white">
-                          {movement.code}
-                        </span>
-                      </div>
-                      <MovementActions movement={movement} />
+                      <span className="font-mono text-base font-bold text-white">
+                        {movement.code}
+                      </span>
+                      <ChevronRight className="size-4 text-neutral-500" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                          Data
-                        </span>
-                        <span className="text-sm text-neutral-300 mt-0.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-sm text-neutral-400">
+                        <span>{MOVEMENT_TYPE_LABELS[movement.type] || movement.type}</span>
+                        <span className="text-neutral-600">&bull;</span>
+                        <span>
                           {format(parseISO(movement.createdAt), "dd/MM/yyyy", {
                             locale: ptBR,
                           })}
                         </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                          Quantidade
-                        </span>
-                        <span className="text-sm text-neutral-300 mt-0.5">
+                        <span className="text-neutral-600">&bull;</span>
+                        <span>
                           {movement.items?.reduce(
                             (acc, item) => acc + item.quantity,
                             0,
@@ -838,20 +833,14 @@ export const StockMovementsView = ({
                           un.
                         </span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2 pt-3 border-t border-neutral-800">
-                      <span className="text-xs font-medium text-neutral-400">
-                        {MOVEMENT_TYPE_LABELS[movement.type] || movement.type}
-                      </span>
                       <span
-                        className={`inline-flex items-center rounded-[2px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}
+                        className={`inline-flex shrink-0 items-center rounded-[2px] border px-2 py-1 text-[10px] font-bold uppercase tracking-widest ${dirStatus.bg} ${dirStatus.color} ${dirStatus.border}`}
                       >
                         {dirStatus.icon}
                         {dirStatus.label}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 );
               })
             )}
