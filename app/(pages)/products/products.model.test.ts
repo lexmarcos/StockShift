@@ -271,6 +271,18 @@ describe("useProductsModel - delete flow", () => {
     expect(result.current.pagination.totalElements).toBe(1);
   });
 
+  it("filters products without stock from KPI action", () => {
+    const { result } = renderHook(() => useProductsModel());
+
+    act(() => {
+      result.current.onPageChange(2);
+      result.current.onOutOfStockKpiClick();
+    });
+
+    expect(result.current.filters.stockStatus).toBe("outOfStock");
+    expect(result.current.filters.page).toBe(0);
+  });
+
   it("closes both delete dialogs and clears transient state", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({

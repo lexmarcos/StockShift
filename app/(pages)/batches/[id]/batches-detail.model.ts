@@ -153,6 +153,16 @@ export const formatQuantityDisplay = (quantity: number): string => {
   return Number.isInteger(quantity) ? `${quantity}` : quantity.toFixed(2);
 };
 
+export const resolveBatchDetailTitle = (
+  batch: BatchDetail | null,
+  hasError: boolean,
+  isLoading: boolean,
+): string => {
+  if (batch) return batch.batchCode;
+  if (isLoading && !hasError) return "Carregando...";
+  return "Lote não encontrado";
+};
+
 /* ─── Hook ─── */
 
 export const useBatchDetailModel = (batchId: string) => {
@@ -165,13 +175,19 @@ export const useBatchDetailModel = (batchId: string) => {
     async (url: string) => {
       const { api } = await import("@/lib/api");
       return await api.get(url).json<BatchDetailResponse>();
-    }
+    },
+    {
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 
   const batch: BatchDetail | null = data?.data ?? null;
+  const hasError = Boolean(error);
 
   useBreadcrumb({
-    title: batch?.batchCode || "Carregando...",
+    title: resolveBatchDetailTitle(batch, hasError, isLoading),
     backUrl: "/batches",
   });
 
@@ -192,15 +208,15 @@ export const useBatchDetailModel = (batchId: string) => {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao remover lote";
       toast.error(message);
+      mutate();
     } finally {
       setIsDeleting(false);
-      mutate();
     }
   };
 
   return {
     batch,
-    isLoading,
+    isLoading: isLoading && !hasError,
     error,
     status,
     daysToExpire,

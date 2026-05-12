@@ -158,6 +158,14 @@ export const useProductsModel = () => {
     setFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
   };
 
+  const onOutOfStockKpiClick = () => {
+    setFilters((prev) => ({
+      ...prev,
+      stockStatus: "outOfStock",
+      page: 0,
+    }));
+  };
+
   // Mobile filter handlers
   const onOpenMobileFilters = () => {
     setMobileFiltersDraft(buildFilterDraft(filters));
@@ -304,6 +312,7 @@ export const useProductsModel = () => {
     onPageSizeChange,
     onSearchChange,
     onSortChange,
+    onOutOfStockKpiClick,
     onMobileFiltersOpenChange,
     onOpenMobileFilters,
     onApplyMobileFilters,

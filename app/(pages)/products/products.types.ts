@@ -101,6 +101,7 @@ export interface ProductsViewProps {
   onPageSizeChange: (pageSize: number) => void;
   onSearchChange: (search: string) => void;
   onSortChange: (sortBy: SortField, sortOrder: SortOrder) => void;
+  onOutOfStockKpiClick: () => void;
   onMobileFiltersOpenChange: (open: boolean) => void;
   onOpenMobileFilters: () => void;
   onApplyMobileFilters: () => void;

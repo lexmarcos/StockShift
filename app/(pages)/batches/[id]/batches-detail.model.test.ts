@@ -11,6 +11,7 @@ import {
   formatCentsTotal,
   formatExpirationLabel,
   formatQuantityDisplay,
+  resolveBatchDetailTitle,
 } from "./batches-detail.model";
 import type { BatchDetail, BatchDetailResponse } from "./batches-detail.types";
 
@@ -79,7 +80,11 @@ const fakeSWR = vi.hoisted(() => {
     private readonly responses = new Map<string | null, SwrState<unknown>>();
 
     public readonly hook = vi.fn<
-      (key: string | null, _fetcher?: unknown) => SwrState<unknown>
+      (
+        key: string | null,
+        _fetcher?: unknown,
+        _options?: unknown,
+      ) => SwrState<unknown>
     >((key) => this.responses.get(key) ?? this.fallback);
 
     public setState<T>(key: string | null, state: SwrState<T>): void {
@@ -98,7 +103,13 @@ const fakeSWR = vi.hoisted(() => {
 /* ─── Mocks ─── */
 
 vi.mock("swr", () => ({
-  default: (...args: Parameters<(key: string | null, fetcher?: unknown) => SwrState<unknown>>) =>
+  default: (...args: Parameters<
+    (
+      key: string | null,
+      fetcher?: unknown,
+      options?: unknown,
+    ) => SwrState<unknown>
+  >) =>
     fakeSWR.hook(...args),
 }));
 
@@ -262,6 +273,24 @@ describe("formatQuantityDisplay", () => {
   });
 });
 
+describe("resolveBatchDetailTitle", () => {
+  it("uses batch code when batch exists", () => {
+    expect(resolveBatchDetailTitle(batchFixture, false, false)).toBe(
+      "BATCH-2026-001",
+    );
+  });
+
+  it("uses loading title only while request is loading without error", () => {
+    expect(resolveBatchDetailTitle(null, false, true)).toBe("Carregando...");
+  });
+
+  it("uses not found title when request fails", () => {
+    expect(resolveBatchDetailTitle(null, true, true)).toBe(
+      "Lote não encontrado",
+    );
+  });
+});
+
 describe("computeExpirationDays", () => {
   it("returns null for null input", () => {
     expect(computeExpirationDays(null)).toBeNull();
@@ -311,6 +340,11 @@ describe("useBatchDetailModel", () => {
     expect(fakeSWR.hook).toHaveBeenCalledWith(
       "batches/batch-1",
       expect.any(Function),
+      expect.objectContaining({
+        shouldRetryOnError: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+      }),
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "BATCH-2026-001",
@@ -321,9 +355,36 @@ describe("useBatchDetailModel", () => {
   it("uses empty state when no id", () => {
     renderHook(() => useBatchDetailModel(""));
 
-    expect(fakeSWR.hook).toHaveBeenCalledWith(null, expect.any(Function));
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      null,
+      expect.any(Function),
+      expect.objectContaining({
+        shouldRetryOnError: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+      }),
+    );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
-      title: "Carregando...",
+      title: "Lote não encontrado",
+      backUrl: "/batches",
+    });
+  });
+
+  it("stops loading and registers not found breadcrumb when request fails", () => {
+    fakeSWR.setState("batches/missing", {
+      data: null,
+      error: new Error("Not found"),
+      isLoading: true,
+      mutate: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useBatchDetailModel("missing"));
+
+    expect(result.current.batch).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
+      title: "Lote não encontrado",
       backUrl: "/batches",
     });
   });
@@ -362,7 +423,7 @@ describe("useBatchDetailModel", () => {
     expect(fakeApi.delete).toHaveBeenCalledWith("batches/batch-1");
     expect(fakeToast.success).toHaveBeenCalledWith("Lote removido com sucesso");
     expect(fakeRouter.push).toHaveBeenCalledWith("/batches");
-    expect(mutate).toHaveBeenCalled();
+    expect(mutate).not.toHaveBeenCalled();
     expect(result.current.isDeleteOpen).toBe(false);
     expect(result.current.isDeleting).toBe(false);
   });

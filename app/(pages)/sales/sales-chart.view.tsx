@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -63,8 +63,8 @@ const CustomTooltip = ({ active, payload, label }: {
           <div
             style={{
               width: 8,
-              height: 8,
-              borderRadius: 2,
+              height: 2,
+              borderRadius: 1,
               backgroundColor: entry.color,
             }}
           />
@@ -93,7 +93,7 @@ export const SalesChart = ({ data }: SalesChartProps) => {
   return (
     <div className="h-72 md:h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <AreaChart
           data={data}
           margin={{
             top: 5,
@@ -102,15 +102,30 @@ export const SalesChart = ({ data }: SalesChartProps) => {
             bottom: isMobile ? 10 : 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+          <defs>
+            <linearGradient id="gradientCount" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2563EB" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="gradientRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#059669" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            strokeDasharray="none"
+            stroke="#1f1f1f"
+            vertical={false}
+          />
           <XAxis
             dataKey="date"
             tick={{
-              fill: "#737373",
+              fill: "#525252",
               fontSize: isMobile ? 9 : 10,
             }}
             tickFormatter={xTickFormatter}
-            stroke="#262626"
+            stroke="transparent"
+            tickLine={false}
             interval={isMobile ? "preserveStartEnd" : 0}
             angle={isMobile ? -45 : 0}
             textAnchor={isMobile ? "end" : "middle"}
@@ -118,50 +133,59 @@ export const SalesChart = ({ data }: SalesChartProps) => {
           />
           <YAxis
             yAxisId="count"
-            tick={{ fill: "#737373", fontSize: isMobile ? 9 : 10 }}
-            stroke="#262626"
+            tick={{ fill: "#525252", fontSize: isMobile ? 9 : 10 }}
+            stroke="transparent"
+            tickLine={false}
+            axisLine={false}
             width={isMobile ? 30 : 40}
           />
           <YAxis
             yAxisId="revenue"
             orientation="right"
-            tick={isMobile ? false : { fill: "#737373", fontSize: 10 }}
+            tick={isMobile ? false : { fill: "#525252", fontSize: 10 }}
             tickFormatter={isMobile ? undefined : (v: number) => `R$${(v / 100).toFixed(0)}`}
-            axisLine={!isMobile}
-            stroke="#262626"
+            stroke="transparent"
+            tickLine={false}
+            axisLine={false}
             width={isMobile ? 0 : 55}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: "#333333", strokeDasharray: "4 4" }}
+          />
           <Legend
             formatter={(value: string) =>
               value === "count" ? "Vendas" : "Faturamento"
             }
-            wrapperStyle={{ fontSize: 10, color: "#737373" }}
+            wrapperStyle={{ fontSize: 10, color: "#525252" }}
             verticalAlign={isMobile ? "top" : "bottom"}
             align={isMobile ? "right" : "center"}
-            iconSize={isMobile ? 8 : 10}
+            iconType="plainline"
+            iconSize={isMobile ? 12 : 14}
           />
-          <Line
+          <Area
             yAxisId="count"
             type="monotone"
             dataKey="count"
             stroke="#2563EB"
-            strokeWidth={2}
-            dot={{ r: 3, strokeWidth: 0 }}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            strokeWidth={1.5}
+            fill="url(#gradientCount)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0, fill: "#2563EB" }}
             name="count"
           />
-          <Line
+          <Area
             yAxisId="revenue"
             type="monotone"
             dataKey="revenue"
             stroke="#059669"
-            strokeWidth={2}
-            dot={{ r: 3, strokeWidth: 0 }}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            strokeWidth={1.5}
+            fill="url(#gradientRevenue)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0, fill: "#059669" }}
             name="revenue"
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

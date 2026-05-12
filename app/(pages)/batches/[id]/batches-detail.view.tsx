@@ -5,6 +5,7 @@ import {
   Clock,
   DollarSign,
   ExternalLink,
+  CalendarDays,
   Layers,
   MapPin,
   Package,
@@ -50,7 +51,7 @@ export const BatchesDetailView = ({
   isDeleting,
   onDelete,
 }: BatchDetailViewProps) => {
-  if (isLoading) {
+  if (isLoading && !error) {
     return (
       <PageContainer>
         <LoadingState message="Carregando lote..." />
@@ -113,11 +114,16 @@ export const BatchesDetailView = ({
           </Link>
 
           {/* Info Row */}
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <InfoRow
               icon={Warehouse}
               label="Armazém"
               value={batch.warehouseName}
+            />
+            <InfoRow
+              icon={CalendarDays}
+              label="Validade"
+              value={formatBatchDate(batch.expirationDate)}
             />
             <OriginSection
               movementId={batch.originStockMovementId}

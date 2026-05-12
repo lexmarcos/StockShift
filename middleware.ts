@@ -13,11 +13,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Verifica se existe o cookie de autenticação (httpOnly)
+  // Verifica se existe algum cookie de sessão (httpOnly)
   const accessToken = request.cookies.get("accessToken");
+  const refreshToken = request.cookies.get("refreshToken");
 
-  // Se não estiver autenticado, redireciona para login
-  if (!accessToken) {
+  // Se o accessToken expirou, deixa o cliente usar o refreshToken para renovar
+  if (!accessToken && !refreshToken) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

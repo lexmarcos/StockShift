@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { ProductsView } from "./products.view";
 
 vi.mock("next/link", () => ({
@@ -69,6 +69,7 @@ const baseProps = {
   onPageSizeChange: vi.fn(),
   onSearchChange: vi.fn(),
   onSortChange: vi.fn(),
+  onOutOfStockKpiClick: vi.fn(),
   onMobileFiltersOpenChange: vi.fn(),
   onOpenMobileFilters: vi.fn(),
   onApplyMobileFilters: vi.fn(),
@@ -135,9 +136,30 @@ describe("ProductsView - delete action", () => {
     expect(mobileKpis).toBeTruthy();
     expect(mobileKpis?.className).toContain("grid-cols-2");
     expect(mobileKpis?.textContent).toContain("Total Geral");
-    expect(mobileKpis?.textContent).toContain("Baixo Estoque");
     expect(mobileKpis?.textContent).toContain("Sem Estoque");
-    expect(mobileKpis?.textContent).toContain("Top Categoria");
+    expect(mobileKpis?.textContent).not.toContain("Baixo Estoque");
+    expect(mobileKpis?.textContent).not.toContain("Top Categoria");
+  });
+
+  it("calls out-of-stock filter when clicking the KPI card", () => {
+    const onOutOfStockKpiClick = vi.fn();
+    const { container } = render(
+      <ProductsView
+        {...baseProps}
+        products={[productItem]}
+        filteredProducts={[productItem]}
+        onOutOfStockKpiClick={onOutOfStockKpiClick}
+      />
+    );
+
+    const mobileKpis = container.querySelector('[data-slot="mobile-product-kpis"]');
+    const button = within(mobileKpis as HTMLElement).getByRole("button", {
+      name: /sem estoque/i,
+    });
+
+    fireEvent.click(button);
+
+    expect(onOutOfStockKpiClick).toHaveBeenCalledTimes(1);
   });
 
   it("shows delete modal when deleteDialogOpen is true", () => {

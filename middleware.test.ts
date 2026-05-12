@@ -28,4 +28,22 @@ describe("middleware matcher", () => {
 
     expect(response.headers.get("location")).toBe("https://stockshift.test/login");
   });
+
+  it("allows protected pages when access token exists", () => {
+    const request = new NextRequest("https://stockshift.test/products", {
+      headers: { cookie: "accessToken=access-token" },
+    });
+    const response = middleware(request);
+
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("allows protected pages when only refresh token exists", () => {
+    const request = new NextRequest("https://stockshift.test/products", {
+      headers: { cookie: "refreshToken=refresh-token" },
+    });
+    const response = middleware(request);
+
+    expect(response.headers.get("location")).toBeNull();
+  });
 });

@@ -48,9 +48,7 @@ import {
   ArrowUp,
   ArrowDown,
   BarChart3,
-  AlertCircle,
   XCircle,
-  Tag,
   MoreHorizontal,
   SlidersHorizontal,
   CheckCircle2,
@@ -315,18 +313,18 @@ const ProductActions = ({
 
 const InsightCards = ({
   totalElements,
-  lowStockCount,
   outOfStockCount,
-  topCategory,
+  isOutOfStockActive,
+  onOutOfStockKpiClick,
 }: {
   totalElements: number;
-  lowStockCount: number;
   outOfStockCount: number;
-  topCategory: string;
+  isOutOfStockActive: boolean;
+  onOutOfStockKpiClick: () => void;
 }) => (
   <>
     {/* Total Items */}
-    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:size-6">
           <BarChart3 className="size-5 text-blue-500 md:size-3.5" />
@@ -345,28 +343,15 @@ const InsightCards = ({
       </div>
     </div>
 
-    {/* Low Stock */}
-    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-amber-500/20 bg-amber-500/10 md:size-6">
-          <AlertCircle className="size-5 text-amber-500 md:size-3.5" />
-        </div>
-        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-          Baixo Estoque
-        </span>
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold tracking-tighter text-white">
-          {lowStockCount}
-        </span>
-        <span className="text-[10px] font-medium uppercase text-neutral-600">
-          alertas
-        </span>
-      </div>
-    </div>
-
     {/* Out of Stock */}
-    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
+    <button
+      type="button"
+      onClick={onOutOfStockKpiClick}
+      className={cn(
+        "flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 text-left hover:border-rose-500/40 md:min-h-0 md:px-5 md:py-4",
+        isOutOfStockActive && "border-rose-500/50 bg-rose-950/10",
+      )}
+    >
       <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:size-6">
           <XCircle className="size-5 text-rose-500 md:size-3.5" />
@@ -383,27 +368,7 @@ const InsightCards = ({
           itens
         </span>
       </div>
-    </div>
-
-    {/* Top Category */}
-    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 transition-colors hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-emerald-500/20 bg-emerald-500/10 md:size-6">
-          <Tag className="size-5 text-emerald-500 md:size-3.5" />
-        </div>
-        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-          Top Categoria
-        </span>
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span
-          className="text-lg font-bold tracking-tighter text-white truncate max-w-[140px]"
-          title={topCategory}
-        >
-          {topCategory || "—"}
-        </span>
-      </div>
-    </div>
+    </button>
   </>
 );
 
@@ -418,6 +383,7 @@ export const ProductsView = ({
   onPageSizeChange,
   onSearchChange,
   onSortChange,
+  onOutOfStockKpiClick,
   isMobileFiltersOpen,
   mobileFiltersDraft,
   onMobileFiltersOpenChange,
@@ -446,24 +412,7 @@ export const ProductsView = ({
   );
 
   // Stats from filtered products
-  const lowStockCount = filteredProducts.filter(
-    (p) => p.totalQuantity > 0 && p.totalQuantity < 10,
-  ).length;
   const outOfStockCount = filteredProducts.filter((p) => p.totalQuantity === 0).length;
-
-  const categories = filteredProducts.flatMap((product) =>
-    product.categoryName ? [product.categoryName] : [],
-  );
-  const topCategory =
-    categories.length > 0
-      ? categories
-          .sort(
-            (a, b) =>
-              categories.filter((v) => v === a).length -
-              categories.filter((v) => v === b).length,
-          )
-          .pop()
-      : "N/A";
 
   const handleSort = (field: SortField) => {
     const newOrder: SortOrder =
@@ -672,8 +621,13 @@ export const ProductsView = ({
               </div>
 
               {/* Row 1: Insight Cards */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <InsightCards totalElements={pagination.totalElements} lowStockCount={lowStockCount} outOfStockCount={outOfStockCount} topCategory={topCategory ?? "N/A"} />
+              <div className="hidden md:grid grid-cols-2 gap-4">
+                <InsightCards
+                  totalElements={pagination.totalElements}
+                  outOfStockCount={outOfStockCount}
+                  isOutOfStockActive={filters.stockStatus === "outOfStock"}
+                  onOutOfStockKpiClick={onOutOfStockKpiClick}
+                />
               </div>
 
               {/* Mobile Insight Cards */}
@@ -681,7 +635,12 @@ export const ProductsView = ({
                 data-slot="mobile-product-kpis"
                 className="grid grid-cols-2 gap-3 md:hidden"
               >
-                <InsightCards totalElements={pagination.totalElements} lowStockCount={lowStockCount} outOfStockCount={outOfStockCount} topCategory={topCategory ?? "N/A"} />
+                <InsightCards
+                  totalElements={pagination.totalElements}
+                  outOfStockCount={outOfStockCount}
+                  isOutOfStockActive={filters.stockStatus === "outOfStock"}
+                  onOutOfStockKpiClick={onOutOfStockKpiClick}
+                />
               </div>
 
               {/* Row 2: Search & Filters */}
