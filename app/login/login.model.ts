@@ -18,6 +18,7 @@ export const useLoginModel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCaptcha, setRequiresCaptcha] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
 
@@ -35,6 +36,10 @@ export const useLoginModel = () => {
 
   const onCaptchaExpire = () => {
     setCaptchaToken(null);
+  };
+
+  const onTogglePasswordVisibility = () => {
+    setIsPasswordVisible((currentVisibility) => !currentVisibility);
   };
 
   const resetCaptcha = () => {
@@ -116,8 +121,10 @@ export const useLoginModel = () => {
     isLoading,
     errorMessage,
     requiresCaptcha,
+    isPasswordVisible,
     captchaRef,
     onCaptchaVerify,
     onCaptchaExpire,
+    onTogglePasswordVisibility,
   };
 };

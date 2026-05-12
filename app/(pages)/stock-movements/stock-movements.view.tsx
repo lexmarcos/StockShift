@@ -305,23 +305,34 @@ export const StockMovementsView = ({
   onMobileDateInputChange,
   onMobileFilterDraftChange,
 }: StockMovementsViewProps) => {
-  const getDirectionStatus = (direction: "IN" | "OUT") => {
-    if (direction === "IN") {
-      return {
-        label: "ENTRADA",
-        color: "text-emerald-500",
-        bg: "bg-emerald-500/10",
-        border: "border-emerald-500/20",
-        icon: <ArrowDownRight className="size-3.5 mr-1" />,
-      };
-    }
-    return {
-      label: "SAÍDA",
+  const getMovementTag = (type: StockMovementType) => {
+    const green = {
+      color: "text-emerald-500",
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500/20",
+      icon: <ArrowDownRight className="size-3.5 mr-1" />,
+    };
+    const red = {
       color: "text-rose-500",
       bg: "bg-rose-500/10",
       border: "border-rose-500/20",
       icon: <ArrowUpRight className="size-3.5 mr-1" />,
     };
+
+    const tagMap: Record<StockMovementType, { label: string } & typeof green> = {
+      PURCHASE_IN: { label: "COMPRA", ...green },
+      ADJUSTMENT_IN: { label: "ENTRADA", ...green },
+      TRANSFER_IN: { label: "TRANSF. IN", ...green },
+      USAGE: { label: "USO", ...red },
+      ADJUSTMENT_OUT: { label: "SAÍDA", ...red },
+      SALE: { label: "VENDA", ...red },
+      GIFT: { label: "PRESENTE", ...red },
+      LOSS: { label: "PERDA", ...red },
+      DAMAGE: { label: "DANO", ...red },
+      TRANSFER_OUT: { label: "TRANSF. OUT", ...red },
+    };
+
+    return tagMap[type];
   };
 
 
@@ -729,7 +740,7 @@ export const StockMovementsView = ({
                     </TableRow>
                   ) : (
                     movements.map((movement) => {
-                      const dirStatus = getDirectionStatus(movement.direction);
+                      const dirStatus = getMovementTag(movement.type);
                       return (
                         <TableRow
                           key={movement.id}
@@ -804,7 +815,7 @@ export const StockMovementsView = ({
               </div>
             ) : (
               movements.map((movement) => {
-                const dirStatus = getDirectionStatus(movement.direction);
+                const dirStatus = getMovementTag(movement.type);
                 return (
                   <Link
                     href={`/stock-movements/${movement.id}`}
@@ -820,8 +831,6 @@ export const StockMovementsView = ({
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-sm text-neutral-400">
-                        <span>{MOVEMENT_TYPE_LABELS[movement.type] || movement.type}</span>
-                        <span className="text-neutral-600">&bull;</span>
                         <span>
                           {format(parseISO(movement.createdAt), "dd/MM/yyyy", {
                             locale: ptBR,

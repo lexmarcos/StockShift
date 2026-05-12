@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Info, Lock, Mail, AlertCircle } from "lucide-react";
+import { Loader2, Info, Lock, Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
@@ -34,9 +34,11 @@ interface LoginViewProps {
   debugMessages?: DebugMessage[];
   errorMessage?: string | null;
   requiresCaptcha: boolean;
+  isPasswordVisible: boolean;
   captchaRef: React.RefObject<HCaptcha | null>;
   onCaptchaVerify: (token: string) => void;
   onCaptchaExpire: () => void;
+  onTogglePasswordVisibility: () => void;
 }
 
 export const LoginView = ({
@@ -46,9 +48,11 @@ export const LoginView = ({
   debugMessages,
   errorMessage,
   requiresCaptcha,
+  isPasswordVisible,
   captchaRef,
   onCaptchaVerify,
   onCaptchaExpire,
+  onTogglePasswordVisibility,
 }: LoginViewProps) => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] p-4 font-sans text-neutral-200 selection:bg-neutral-700 selection:text-white">
@@ -101,6 +105,12 @@ export const LoginView = ({
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600 transition-colors group-focus-within:text-blue-500" />
                         <Input
+                          type="email"
+                          inputMode="email"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          autoComplete="email"
+                          spellCheck={false}
                           placeholder="usuario@empresa.com"
                           className="pl-10 h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-700 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
                           {...field}
@@ -121,11 +131,25 @@ export const LoginView = ({
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-600" />
                         <Input
-                          type="password"
+                          type={isPasswordVisible ? "text" : "password"}
+                          autoComplete="current-password"
                           placeholder="••••••••"
-                          className="pl-10 h-11 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-200 placeholder:text-neutral-700 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
+                          className="h-11 rounded-[4px] border-neutral-800 bg-neutral-900 pl-10 pr-11 text-sm text-neutral-200 placeholder:text-neutral-700 focus:border-blue-600 focus:ring-0 transition-all hover:border-neutral-700"
                           {...field}
                         />
+                        <button
+                          type="button"
+                          aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
+                          aria-pressed={isPasswordVisible}
+                          onClick={onTogglePasswordVisibility}
+                          className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                        >
+                          {isPasswordVisible ? (
+                            <EyeOff className="size-4" strokeWidth={2.5} />
+                          ) : (
+                            <Eye className="size-4" strokeWidth={2.5} />
+                          )}
+                        </button>
                       </div>
                     </FormControl>
                     <FormMessage className="text-xs text-rose-500 font-medium" />

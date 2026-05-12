@@ -551,87 +551,64 @@ export const BatchesView = ({
               <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-[#0A0A0A] to-transparent" />
             </div>
 
-            {/* Row 1: Insight Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Total Batches */}
-              <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-neutral-800 border border-neutral-700">
-                    <Layers className="size-3.5 text-neutral-400" />
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                    Total de Lotes
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold tracking-tighter text-white">
-                    {batches.length}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase text-neutral-600">
-                    ativos
-                  </span>
-                </div>
-              </div>
-
+            {/* Insight Card */}
+            <div className="flex items-center justify-between gap-6 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 sm:p-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {/* Expired */}
-              <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-rose-500/10 border border-rose-500/20">
-                    <XCircle className="size-3.5 text-rose-500" />
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <button
+                type="button"
+                onClick={() => setStatus(filters.status === "expired" ? "all" : "expired")}
+                className="flex items-center gap-3 sm:gap-4 shrink-0 text-left"
+              >
+                <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] border border-rose-500/30 bg-rose-500/10">
+                  <XCircle className="size-5 sm:size-6 text-rose-500" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Expirados
-                  </span>
+                    {filters.status === "expired" && (
+                      <span className="size-1.5 rounded-[1px] bg-blue-500 shrink-0" />
+                    )}
+                  </div>
+                  <div className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+                      {statusCounts.expired}
+                    </span>
+                    <span className="text-xs font-medium text-neutral-400">
+                      lotes
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold tracking-tighter text-white">
-                    {statusCounts.expired}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase text-neutral-600">
-                    lotes
-                  </span>
-                </div>
-              </div>
+              </button>
+
+              {/* Divider */}
+              <div className="h-10 w-[1px] shrink-0 bg-neutral-800" />
 
               {/* Expiring */}
-              <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-amber-500/10 border border-amber-500/20">
-                    <Calendar className="size-3.5 text-amber-500" />
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              <button
+                type="button"
+                onClick={() => setStatus(filters.status === "expiring" ? "all" : "expiring")}
+                className="flex items-center gap-3 sm:gap-4 shrink-0 text-left"
+              >
+                <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] border border-amber-500/30 bg-amber-500/10">
+                  <Calendar className="size-5 sm:size-6 text-amber-500" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Expirando (30d)
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold tracking-tighter text-white">
-                    {statusCounts.expiring}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase text-neutral-600">
-                    alertas
-                  </span>
-                </div>
-              </div>
-
-              {/* Low Stock */}
-              <div className="flex flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-5 py-4 transition-colors hover:border-neutral-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex size-6 items-center justify-center rounded-[2px] bg-blue-500/10 border border-blue-500/20">
-                    <Package className="size-3.5 text-blue-500" />
+                    {filters.status === "expiring" && (
+                      <span className="size-1.5 rounded-[1px] bg-blue-500 shrink-0" />
+                    )}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                    Baixo Estoque
-                  </span>
+                  <div className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+                      {statusCounts.expiring}
+                    </span>
+                    <span className="text-xs font-medium text-neutral-400">
+                      alertas
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold tracking-tighter text-white">
-                    {statusCounts.low}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase text-neutral-600">
-                    lotes
-                  </span>
-                </div>
-              </div>
+              </button>
             </div>
 
             {/* Row 2: Search & Filters */}

@@ -95,6 +95,23 @@ describe("useLoginModel", () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.errorMessage).toBeNull();
     expect(result.current.requiresCaptcha).toBe(false);
+    expect(result.current.isPasswordVisible).toBe(false);
+  });
+
+  it("should toggle password visibility", () => {
+    const { result } = renderHook(() => useLoginModel());
+
+    act(() => {
+      result.current.onTogglePasswordVisibility();
+    });
+
+    expect(result.current.isPasswordVisible).toBe(true);
+
+    act(() => {
+      result.current.onTogglePasswordVisibility();
+    });
+
+    expect(result.current.isPasswordVisible).toBe(false);
   });
 
   it("should login successfully and redirect to /warehouses", async () => {

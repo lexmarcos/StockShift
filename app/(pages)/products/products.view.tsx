@@ -322,54 +322,57 @@ const InsightCards = ({
   isOutOfStockActive: boolean;
   onOutOfStockKpiClick: () => void;
 }) => (
-  <>
+  <div className="flex items-center justify-between gap-6 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 sm:p-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     {/* Total Items */}
-    <div className="flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 hover:border-neutral-700 md:min-h-0 md:px-5 md:py-4">
-      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-blue-600/20 bg-blue-600/10 md:size-6">
-          <BarChart3 className="size-5 text-blue-500 md:size-3.5" />
-        </div>
-        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-          Total Geral
-        </span>
+    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+      <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] border border-blue-500/30 bg-blue-500/10">
+        <BarChart3 className="size-5 sm:size-6 text-blue-500" strokeWidth={2} />
       </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold tracking-tighter text-white">
-          {totalElements}
-        </span>
-        <span className="text-[10px] font-medium uppercase text-neutral-600">
-          itens
-        </span>
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          Total Geral
+        </div>
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+            {totalElements}
+          </span>
+          <span className="text-xs font-medium text-neutral-400">
+            itens
+          </span>
+        </div>
       </div>
     </div>
+
+    {/* Divider */}
+    <div className="h-10 w-[1px] shrink-0 bg-neutral-800" />
 
     {/* Out of Stock */}
     <button
       type="button"
       onClick={onOutOfStockKpiClick}
-      className={cn(
-        "flex min-h-[132px] flex-col justify-center rounded-[4px] border border-neutral-800 bg-[#171717] px-4 py-5 text-left hover:border-rose-500/40 md:min-h-0 md:px-5 md:py-4",
-        isOutOfStockActive && "border-rose-500/50 bg-rose-950/10",
-      )}
+      className="flex items-center gap-3 sm:gap-4 shrink-0 text-left"
     >
-      <div className="mb-5 flex min-w-0 items-center gap-2 md:mb-2">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[2px] border border-rose-500/20 bg-rose-500/10 md:size-6">
-          <XCircle className="size-5 text-rose-500 md:size-3.5" />
-        </div>
-        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-widest text-neutral-500">
-          Sem Estoque
-        </span>
+      <div className="flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-[4px] border border-rose-500/30 bg-rose-500/10">
+        <XCircle className="size-5 sm:size-6 text-rose-500" strokeWidth={2} />
       </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold tracking-tighter text-white">
-          {outOfStockCount}
-        </span>
-        <span className="text-[10px] font-medium uppercase text-neutral-600">
-          itens
-        </span>
+      <div>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          Sem Estoque
+          {isOutOfStockActive && (
+            <span className="size-1.5 rounded-[1px] bg-blue-500 shrink-0" />
+          )}
+        </div>
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-white">
+            {outOfStockCount}
+          </span>
+          <span className="text-xs font-medium text-neutral-400">
+            itens
+          </span>
+        </div>
       </div>
     </button>
-  </>
+  </div>
 );
 
 export const ProductsView = ({
@@ -621,7 +624,7 @@ export const ProductsView = ({
               </div>
 
               {/* Row 1: Insight Cards */}
-              <div className="hidden md:grid grid-cols-2 gap-4">
+              <div className="hidden md:block">
                 <InsightCards
                   totalElements={pagination.totalElements}
                   outOfStockCount={outOfStockCount}
@@ -633,7 +636,7 @@ export const ProductsView = ({
               {/* Mobile Insight Cards */}
               <div
                 data-slot="mobile-product-kpis"
-                className="grid grid-cols-2 gap-3 md:hidden"
+                className="md:hidden"
               >
                 <InsightCards
                   totalElements={pagination.totalElements}
