@@ -22,7 +22,6 @@ export function PageClient() {
       formattedSellingTotal={model.formattedSellingTotal}
       marginLabel={model.marginLabel}
       marginClass={model.marginClass}
-      stockMeterWidth={model.stockMeterWidth}
       expirationLabel={model.expirationLabel}
       isDeleteOpen={model.isDeleteOpen}
       onDeleteOpenChange={model.onDeleteOpenChange}

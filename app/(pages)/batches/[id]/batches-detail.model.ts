@@ -125,10 +125,7 @@ export const computeMarginClass = (
   return sellingCents >= costCents ? "text-emerald-400" : "text-rose-400";
 };
 
-export const computeStockMeterWidth = (quantity: number): number => {
-  if (quantity <= 0) return 0;
-  return Math.min(100, Math.max(8, quantity));
-};
+
 
 export const formatExpirationLabel = (daysToExpire: number | null): string => {
   if (daysToExpire === null) return "Sem validade cadastrada";
@@ -226,7 +223,7 @@ export const useBatchDetailModel = (batchId: string) => {
     formattedSellingTotal: formatCentsTotal(batch?.sellingPrice, batch?.quantity ?? 0),
     marginLabel: computeMarginLabel(batch?.costPrice, batch?.sellingPrice),
     marginClass: computeMarginClass(batch?.costPrice, batch?.sellingPrice),
-    stockMeterWidth: computeStockMeterWidth(batch?.quantity ?? 0),
+
     expirationLabel: formatExpirationLabel(daysToExpire),
     isDeleteOpen,
     onDeleteOpenChange: setDeleteOpen,

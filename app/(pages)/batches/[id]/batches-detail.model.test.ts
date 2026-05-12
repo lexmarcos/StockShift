@@ -6,7 +6,6 @@ import {
   computeExpirationDays,
   computeMarginClass,
   computeMarginLabel,
-  computeStockMeterWidth,
   formatCentsToBRL,
   formatCentsTotal,
   formatExpirationLabel,
@@ -227,23 +226,7 @@ describe("computeMarginClass", () => {
   });
 });
 
-describe("computeStockMeterWidth", () => {
-  it("returns 0 for zero quantity", () => {
-    expect(computeStockMeterWidth(0)).toBe(0);
-  });
 
-  it("returns 0 for negative quantity", () => {
-    expect(computeStockMeterWidth(-5)).toBe(0);
-  });
-
-  it("caps at 100", () => {
-    expect(computeStockMeterWidth(500)).toBe(100);
-  });
-
-  it("has minimum of 8 for small positive values", () => {
-    expect(computeStockMeterWidth(3)).toBe(8);
-  });
-});
 
 describe("formatExpirationLabel", () => {
   it("handles null (no expiration)", () => {
@@ -396,7 +379,7 @@ describe("useBatchDetailModel", () => {
     expect(result.current.formattedCostPrice).toMatch(/R\$\s?1,00/);
     expect(result.current.formattedSellingPrice).toMatch(/R\$\s?2,50/);
     expect(result.current.status?.kind).toBeDefined();
-    expect(result.current.stockMeterWidth).toBeGreaterThan(0);
+
   });
 
   it("deletes batch and redirects to listing", async () => {

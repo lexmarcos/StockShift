@@ -47,7 +47,6 @@ export interface BatchDetailViewProps {
   formattedSellingTotal: string;
   marginLabel: string;
   marginClass: string;
-  stockMeterWidth: number;
   expirationLabel: string;
   isDeleteOpen: boolean;
   onDeleteOpenChange: (open: boolean) => void;
