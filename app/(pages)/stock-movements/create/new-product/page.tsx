@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PageClient } from "./page.client";
+import { isManualMovementType } from "../../stock-movements.constants";
 
 export const metadata: Metadata = {
   title: "Novo produto da movimentação | StockShift",
@@ -22,10 +24,15 @@ export default async function Page({
   searchParams: PageSearchParams;
 }) {
   const params = await searchParams;
+  const movementType = firstSearchParam(params.type);
+  if (!isManualMovementType(movementType)) {
+    redirect("/stock-movements");
+  }
+
   return (
     <Suspense fallback={null}>
       <PageClient
-        movementType={firstSearchParam(params.type)}
+        movementType={movementType}
         editItem={firstSearchParam(params.editItem)}
       />
     </Suspense>
