@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useNewProductInlineModel } from "./new-product-inline.model";
 import type { ProductCreateFormData } from "../../../products/create/products-create.types";
@@ -34,6 +34,8 @@ const brandsResponse = {
 };
 
 const createDraft = (overrides?: Partial<StockMovementDraft>): StockMovementDraft => ({
+  schemaVersion: 1,
+  updatedAt: "2026-01-20T09:00:00.000Z",
   type: "PURCHASE_IN",
   notes: "",
   items: [],
@@ -65,7 +67,13 @@ const buildFormData = (
 });
 
 vi.mock("swr", () => ({
-  default: (...args: unknown[]) => mockSWR(...args),
+  default: (...args: unknown[]) =>
+    mockSWR(...args) ?? {
+      data: null,
+      isLoading: false,
+      error: null,
+      mutate: vi.fn(),
+    },
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -108,8 +116,11 @@ vi.mock("../create-stock-movement.storage", () => ({
     type: string;
     dataUrl: string;
   }) => new File(["x"], image.name, { type: image.type }),
-  readStockMovementDraft: () => currentDraft,
-  writeStockMovementDraft: (draft: StockMovementDraft) => mockWriteDraft(draft),
+  readStockMovementDraft: async () => currentDraft,
+  writeStockMovementDraft: async (draft: StockMovementDraft) => {
+    currentDraft = draft;
+    mockWriteDraft(draft);
+  },
 }));
 
 beforeEach(() => {
@@ -162,8 +173,12 @@ beforeEach(() => {
 });
 
 describe("useNewProductInlineModel", () => {
-  it("inicializa estado para criação com formulário limpo e sem edição", () => {
+  it("inicializa estado para criação com formulário limpo e sem edição", async () => {
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("barcode")).toBe("7891000000001");
+    });
 
     expect(result.current.mode).toBe("inline");
     expect(result.current.isInlineEdit).toBe(false);
@@ -177,7 +192,7 @@ describe("useNewProductInlineModel", () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it("preenche estado de edição a partir do draft com atributo customizado", () => {
+  it("preenche estado de edição a partir do draft com atributo customizado", async () => {
     currentDraft = createDraft({
       items: [
         {
@@ -203,13 +218,44 @@ describe("useNewProductInlineModel", () => {
 
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
-    expect(result.current.isInlineEdit).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isInlineEdit).toBe(true);
+    });
     expect(result.current.form.getValues("name")).toBe("Produto Antigo");
     expect(result.current.form.getValues("description")).toBe("Desc");
     expect(result.current.form.getValues("barcode")).toBe("123");
     expect(result.current.customAttributes).toEqual([
       { id: "inline-cor", key: "cor", value: "azul" },
     ]);
+  });
+
+  it("restaura imagem do produto inline ao editar item do draft", async () => {
+    currentDraft = createDraft({
+      items: [
+        {
+          quantity: 2,
+          productName: "Produto com imagem",
+          newProductData: {
+            name: "Produto com imagem",
+            image: {
+              name: "inline.png",
+              type: "image/png",
+              dataUrl: "data:image/png;base64,YQ==",
+            },
+          },
+        },
+      ],
+    });
+    editItemQuery = "0";
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.productImage?.name).toBe("inline.png");
+    });
+    expect(result.current.productImage?.type).toBe("image/png");
   });
 
   it("controla a lista de atributos customizados (adicionar, editar, remover)", () => {
@@ -297,6 +343,10 @@ describe("useNewProductInlineModel", () => {
     currentDraft = initial;
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
+    await waitFor(() => {
+      expect(result.current.form.getValues("barcode")).toBe("7891000000001");
+    });
+
     await act(async () => {
       await result.current.onSubmit(
         buildFormData({
@@ -355,6 +405,10 @@ describe("useNewProductInlineModel", () => {
     editItemQuery = "0";
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
+    await waitFor(() => {
+      expect(result.current.isInlineEdit).toBe(true);
+    });
+
     await act(async () => {
       await result.current.onSubmit(
         buildFormData({
@@ -389,14 +443,14 @@ describe("useNewProductInlineModel", () => {
     movementType = "PURCHASE_IN";
     currentDraft = null;
 
-    expect(() =>
-      renderHook(() =>
-        useNewProductInlineModel({ movementType, editItem: editItemQuery }),
-      ),
-    ).toThrow("NEXT_REDIRECT:/stock-movements");
+    renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
 
-    expect(mockRedirect).toHaveBeenCalledWith("/stock-movements");
-    expect(mockReplace).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
+    });
+    expect(mockRedirect).not.toHaveBeenCalled();
     expect(toastError).not.toHaveBeenCalledWith(
       "Volte para a movimentação antes de criar o produto.",
     );
@@ -408,14 +462,14 @@ describe("useNewProductInlineModel", () => {
       items: [{ quantity: 1, productName: "Apenas 1 item", newProductData: { name: "Apenas 1 item" } }],
     });
 
-    expect(() =>
-      renderHook(() =>
-        useNewProductInlineModel({ movementType, editItem: editItemQuery }),
-      ),
-    ).toThrow("NEXT_REDIRECT:/stock-movements");
+    renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
 
-    expect(mockRedirect).toHaveBeenCalledWith("/stock-movements");
-    expect(mockReplace).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
+    });
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it("alterna estado do scanner e registra barcode escaneado", () => {

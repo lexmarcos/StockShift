@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
@@ -28,6 +28,7 @@ import {
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
+import type { WritableStockMovementDraft } from "./create-stock-movement.storage";
 import {
   buildExistingProductBatchesUrl,
   buildExistingProductProfitSummary,
@@ -286,6 +287,7 @@ export function useCreateStockMovementModel({
   const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inlineProductBarcodeRef = useRef<string | undefined>(undefined);
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
     : undefined;
@@ -316,20 +318,40 @@ export function useCreateStockMovementModel({
     name: "items",
   });
 
+  const [isDraftHydrated, setIsDraftHydrated] = useState(false);
+
   useEffect(() => {
-    const draft = readStockMovementDraft();
-    if (!draft) return;
+    let isMounted = true;
 
-    form.reset({
-      type: draft.type,
-      notes: draft.notes,
-      items: draft.items,
-    });
-    setSelectedProductId("");
-    setItemQuantity("");
+    const hydrateDraft = async (): Promise<void> => {
+      if (!selectedMovementType) {
+        setIsDraftHydrated(true);
+        return;
+      }
 
-    clearStockMovementDraft();
-  }, [append, form]);
+      const draft = await readStockMovementDraft();
+      if (!isMounted) return;
+
+      if (draft?.type === selectedMovementType) {
+        form.reset({
+          type: draft.type,
+          notes: draft.notes,
+          items: draft.items,
+        });
+        setSelectedProductId(draft.selectedProductId);
+        setItemQuantity(draft.itemQuantity);
+        inlineProductBarcodeRef.current = draft.inlineProductBarcode;
+        toast.success("Rascunho da movimentação restaurado.");
+      }
+
+      setIsDraftHydrated(true);
+    };
+
+    void hydrateDraft();
+    return () => {
+      isMounted = false;
+    };
+  }, [form, selectedMovementType]);
 
   const { data: productsData, isLoading: isLoadingProducts } =
     useSWR<ProductListResponse>("products", (url: string) =>
@@ -376,6 +398,84 @@ export function useCreateStockMovementModel({
     barcode: p.barcode,
     imageUrl: p.imageUrl,
   }));
+
+  useEffect(() => {
+    if (!selectedProductId || productSearchQuery || products.length === 0) return;
+    const restoredProduct = products.find((product) => {
+      return product.id === selectedProductId;
+    });
+    if (!restoredProduct) return;
+    setSelectedProduct(restoredProduct);
+    setProductSearchQuery(formatStockMovementProductLabel(restoredProduct));
+  }, [productSearchQuery, products, selectedProductId]);
+
+  const buildCurrentDraft = useCallback(
+    (inlineProductBarcode = inlineProductBarcodeRef.current): WritableStockMovementDraft | null => {
+      if (!selectedMovementType) return null;
+      return {
+        type: selectedMovementType,
+        notes: form.getValues("notes") || "",
+        items: form.getValues("items"),
+        selectedProductId,
+        itemQuantity,
+        inlineProductBarcode,
+      };
+    },
+    [form, itemQuantity, selectedMovementType, selectedProductId],
+  );
+
+  const persistCurrentDraft = useCallback(
+    async (inlineProductBarcode = inlineProductBarcodeRef.current): Promise<void> => {
+      const draft = buildCurrentDraft(inlineProductBarcode);
+      if (!draft) return;
+      await writeStockMovementDraft(draft);
+    },
+    [buildCurrentDraft],
+  );
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+    void persistCurrentDraft();
+  }, [
+    isDraftHydrated,
+    itemQuantity,
+    persistCurrentDraft,
+    selectedMovementType,
+    selectedProductId,
+  ]);
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+
+    const subscription = form.watch((_value, { name }) => {
+      if (!name || (name !== "notes" && !name.startsWith("items"))) return;
+      void persistCurrentDraft();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, isDraftHydrated, persistCurrentDraft, selectedMovementType]);
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+
+    const persistBeforePageHide = (): void => {
+      void persistCurrentDraft();
+    };
+    const persistBeforeVisibilityLoss = (): void => {
+      if (document.visibilityState !== "hidden") return;
+      void persistCurrentDraft();
+    };
+
+    window.addEventListener("pagehide", persistBeforePageHide);
+    document.addEventListener("visibilitychange", persistBeforeVisibilityLoss);
+    return () => {
+      window.removeEventListener("pagehide", persistBeforePageHide);
+      document.removeEventListener(
+        "visibilitychange",
+        persistBeforeVisibilityLoss,
+      );
+    };
+  }, [isDraftHydrated, persistCurrentDraft, selectedMovementType]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -666,7 +766,7 @@ export function useCreateStockMovementModel({
     closeExistingProductBatchForm();
   };
 
-  const handleCreateNewProduct = () => {
+  const handleCreateNewProduct = async (): Promise<void> => {
     setAddItemError(null);
 
     if (!selectedMovementType) {
@@ -686,44 +786,30 @@ export function useCreateStockMovementModel({
       return;
     }
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-    });
+    inlineProductBarcodeRef.current = undefined;
+    await persistCurrentDraft(undefined);
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
   };
 
-  const navigateToInlineProductWithBarcode = (barcode: string) => {
+  const navigateToInlineProductWithBarcode = async (
+    barcode: string,
+  ): Promise<void> => {
     if (!selectedMovementType) return;
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-      inlineProductBarcode: barcode,
-    });
+    inlineProductBarcodeRef.current = barcode;
+    await persistCurrentDraft(barcode);
     setIsScannerOpen(false);
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
   };
 
-  const handleEditNewProductItem = (index: number) => {
+  const handleEditNewProductItem = async (index: number): Promise<void> => {
     if (!selectedMovementType) return;
 
     const item = form.getValues("items")[index];
     if (!item?.newProductData) return;
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-    });
+    inlineProductBarcodeRef.current = undefined;
+    await persistCurrentDraft(undefined);
     router.push(
       `/stock-movements/create/new-product?type=${selectedMovementType}&editItem=${index}`,
     );
@@ -814,7 +900,9 @@ export function useCreateStockMovementModel({
     toast.error(`Produto com código ${barcode} não existe.`, {
       action: {
         label: "Criar Produto",
-        onClick: () => navigateToInlineProductWithBarcode(barcode),
+        onClick: () => {
+          void navigateToInlineProductWithBarcode(barcode);
+        },
       },
     });
   };
@@ -832,6 +920,7 @@ export function useCreateStockMovementModel({
       const payloadWithImages = await uploadInlineProductImages(payload, data.items);
       await api.post("stock-movements", { json: payloadWithImages });
 
+      await clearStockMovementDraft();
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");
     } catch (err: unknown) {

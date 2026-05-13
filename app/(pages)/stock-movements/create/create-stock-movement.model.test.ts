@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import {
@@ -8,7 +8,10 @@ import {
   shouldShowStockMovementFooter,
 } from "./create-stock-movement.model";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
-import type { StockMovementDraft } from "./create-stock-movement.storage";
+import type {
+  StockMovementDraft,
+  WritableStockMovementDraft,
+} from "./create-stock-movement.storage";
 import type {
   StockMovementProductBatchPriceSource,
   StockMovementProductBatchesResponse,
@@ -127,15 +130,19 @@ const fakeStorage = vi.hoisted(() => {
   class FakeStorage {
     private draftState: StockMovementDraft | null = null;
 
-    public readonly readStockMovementDraft = vi.fn<() => StockMovementDraft | null>(() => {
+    public readonly readStockMovementDraft = vi.fn<() => Promise<StockMovementDraft | null>>(async () => {
       return this.draftState;
     });
-    public readonly writeStockMovementDraft = vi.fn<(draft: StockMovementDraft) => void>(
-      (draft) => {
-        this.draftState = draft;
+    public readonly writeStockMovementDraft = vi.fn<(draft: WritableStockMovementDraft) => Promise<void>>(
+      async (draft) => {
+        this.draftState = {
+          ...draft,
+          schemaVersion: 1,
+          updatedAt: "2026-01-20T10:00:00.000Z",
+        };
       },
     );
-    public readonly clearStockMovementDraft = vi.fn(() => {
+    public readonly clearStockMovementDraft = vi.fn(async () => {
       this.draftState = null;
     });
 
@@ -196,7 +203,7 @@ vi.mock("@/lib/api", () => ({
 
 vi.mock("./create-stock-movement.storage", () => ({
   readStockMovementDraft: () => fakeStorage.readStockMovementDraft(),
-  writeStockMovementDraft: (draft: StockMovementDraft) =>
+  writeStockMovementDraft: (draft: WritableStockMovementDraft) =>
     fakeStorage.writeStockMovementDraft(draft),
   clearStockMovementDraft: () => fakeStorage.clearStockMovementDraft(),
   inlineProductImageToFile: (image: {
@@ -288,6 +295,8 @@ const barcodeIndex: Record<string, StockMovementProductOption> = {
 const createDraftState = (
   overrides?: Partial<StockMovementDraft>,
 ): StockMovementDraft => ({
+  schemaVersion: 1,
+  updatedAt: "2026-01-20T09:00:00.000Z",
   type: "PURCHASE_IN",
   notes: "Notas iniciais",
   items: [
@@ -537,7 +546,7 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeRouter.replace).not.toHaveBeenCalledWith("/stock-movements");
   });
 
-  it("carrega rascunho existente e limpa do storage", () => {
+  it("restaura rascunho existente sem limpar do storage", async () => {
     fakeStorage.setDraftState(
       createDraftState({
         selectedProductId: "p-2",
@@ -547,8 +556,15 @@ describe("useCreateStockMovementModel", () => {
 
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
     expect(fakeStorage.readStockMovementDraft).toHaveBeenCalledTimes(1);
-    expect(fakeStorage.clearStockMovementDraft).toHaveBeenCalledTimes(1);
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
+    expect(fakeToast.success).toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
     expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
     expect(result.current.form.getValues("items")).toEqual([
       {
@@ -564,8 +580,56 @@ describe("useCreateStockMovementModel", () => {
         },
       },
     ]);
-    expect(result.current.selectedProductId).toBe("");
-    expect(result.current.itemQuantity).toBe("");
+    expect(result.current.selectedProductId).toBe("p-2");
+    expect(result.current.itemQuantity).toBe("7");
+  });
+
+  it("autosalva notas e itens depois da hidratação", async () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
+
+    act(() => {
+      result.current.form.setValue("notes", "Nova observação");
+    });
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notes: "Nova observação",
+        }),
+      );
+    });
+
+    fakeStorage.writeStockMovementDraft.mockClear();
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          productId: validExistingProductUuid,
+          productName: "Café Torrado",
+          quantity: 2,
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          items: [
+            {
+              productId: validExistingProductUuid,
+              productName: "Café Torrado",
+              quantity: 2,
+            },
+          ],
+        }),
+      );
+    });
   });
 
   it("aplica debounce de busca de produto", () => {
@@ -892,8 +956,13 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeRouter.push).not.toHaveBeenCalled();
   });
 
-  it("redireciona para inclusão de produto novo em movimento de entrada", () => {
+  it("redireciona para inclusão de produto novo em movimento de entrada", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await waitFor(() => {
+      expect(fakeStorage.readStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -902,8 +971,8 @@ describe("useCreateStockMovementModel", () => {
       result.current.onQuantityChange("2");
       result.current.onAddItem();
     });
-    act(() => {
-      result.current.onCreateNewProduct();
+    await act(async () => {
+      await result.current.onCreateNewProduct();
     });
 
     expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
@@ -1009,8 +1078,13 @@ describe("useCreateStockMovementModel", () => {
     expect(lastCall?.[1]).toBeUndefined();
   });
 
-  it("abre editor de produto novo quando o item do índice é válido", () => {
+  it("abre editor de produto novo quando o item do índice é válido", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await waitFor(() => {
+      expect(fakeStorage.readStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
 
     act(() => {
       result.current.form.setValue("items", [
@@ -1027,8 +1101,8 @@ describe("useCreateStockMovementModel", () => {
       ]);
     });
 
-    act(() => {
-      result.current.onEditNewProductItem(0);
+    await act(async () => {
+      await result.current.onEditNewProductItem(0);
     });
 
     expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
@@ -1080,6 +1154,7 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeToast.success).toHaveBeenCalledWith(
       "Movimentação criada com sucesso!",
     );
+    expect(fakeStorage.clearStockMovementDraft).toHaveBeenCalledTimes(1);
     expect(fakeRouter.push).toHaveBeenCalledWith("/stock-movements");
     expect(result.current.isSubmitting).toBe(false);
   });
@@ -1129,6 +1204,7 @@ describe("useCreateStockMovementModel", () => {
 
     expect(fakeApi.post).toHaveBeenCalledTimes(1);
     expect(fakeToast.error).toHaveBeenCalledWith("Falha no upload");
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
     expect(fakeRouter.push).not.toHaveBeenCalledWith("/stock-movements");
   });
 
@@ -1141,6 +1217,7 @@ describe("useCreateStockMovementModel", () => {
     });
 
     expect(fakeToast.error).toHaveBeenCalledWith("Falha ao salvar");
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
     expect(result.current.isSubmitting).toBe(false);
     expect(fakeRouter.push).not.toHaveBeenCalledWith("/stock-movements");
   });
