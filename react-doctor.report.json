@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.6",
+  "ok": true,
+  "directory": "/home/lexmarcos/projects/stockshift/StockShift",
+  "mode": "full",
+  "diff": null,
+  "projects": [
+    {
+      "directory": "/home/lexmarcos/projects/stockshift/StockShift",
+      "project": {
+        "rootDirectory": "/home/lexmarcos/projects/stockshift/StockShift",
+        "projectName": "stockshift",
+        "reactVersion": "19.1.0",
+        "framework": "nextjs",
+        "hasTypeScript": true,
+        "hasReactCompiler": false,
+        "hasTanStackQuery": false,
+        "sourceFileCount": 336
+      },
+      "diagnostics": [],
+      "score": {
+        "score": 100,
+        "label": "Great"
+      },
+      "skippedChecks": [],
+      "elapsedMilliseconds": 1107.6800939999998
+    }
+  ],
+  "diagnostics": [],
+  "summary": {
+    "errorCount": 0,
+    "warningCount": 0,
+    "affectedFileCount": 0,
+    "totalDiagnosticCount": 0,
+    "score": 100,
+    "scoreLabel": "Great"
+  },
+  "elapsedMilliseconds": 1116.830071,
+  "error": null
+}
