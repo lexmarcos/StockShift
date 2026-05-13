@@ -48,14 +48,28 @@ interface SaleDetailViewProps {
   handleCancel: (reason: string) => void;
 }
 
-export const SaleDetailView = ({
-  sale,
-  isLoading,
-  isCancelling,
-  cancelDialogOpen,
-  setCancelDialogOpen,
-  handleCancel,
-}: SaleDetailViewProps) => {
+interface SaleStatusStyle {
+  bg: string;
+  border: string;
+  color: string;
+}
+
+interface SaleDetailViewState extends SaleDetailViewProps {
+  cancelReason: string;
+  sale: Sale;
+  setCancelReason: (reason: string) => void;
+  statusStyle: SaleStatusStyle;
+}
+
+export const SaleDetailView = (props: SaleDetailViewProps) => {
+  const {
+    sale,
+    isLoading,
+    isCancelling,
+    cancelDialogOpen,
+    setCancelDialogOpen,
+    handleCancel,
+  } = props;
   const [cancelReason, setCancelReason] = useState("");
 
   if (isLoading) {
@@ -86,6 +100,17 @@ export const SaleDetailView = ({
           bg: "bg-rose-500/10",
           border: "border-rose-500/20",
         };
+  const viewState: SaleDetailViewState = {
+    ...props,
+    cancelReason,
+    isCancelling,
+    cancelDialogOpen,
+    handleCancel,
+    sale,
+    setCancelDialogOpen,
+    setCancelReason,
+    statusStyle,
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] pb-20 font-sans text-neutral-200">
@@ -225,162 +250,186 @@ export const SaleDetailView = ({
             </div>
           )}
 
-          {/* Items */}
-          <div className="rounded-[4px] border border-neutral-800 bg-[#171717] overflow-hidden">
-            <div className="px-4 py-3 md:px-5 md:py-4 border-b border-neutral-800/50 flex items-center gap-3">
-              <ShoppingCart
-                className="size-5 shrink-0 text-blue-400"
-                strokeWidth={2}
-              />
-              <p className="text-sm font-bold text-white">
-                Itens da Venda ({sale.items.length})
-              </p>
-            </div>
-
-            {/* Mobile List View */}
-            <div className="flex flex-col md:hidden">
-              {sale.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-3 border-b border-neutral-800/50 p-4 last:border-0 hover:bg-neutral-900/20 transition-colors"
-                >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex flex-col">
-                      <p className="text-sm font-bold text-white line-clamp-2">
-                        {item.productName}
-                      </p>
-                      {item.productSku && (
-                        <p className="text-xs text-neutral-500 mt-0.5 tracking-wide">
-                          {item.productSku}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end shrink-0">
-                      <p className="text-sm font-bold text-white font-mono">
-                        {formatCents(item.totalPrice)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mt-1 rounded-[2px] bg-neutral-900/50 p-2.5">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
-                        Lote
-                      </p>
-                      <p className="text-xs font-medium text-neutral-300 truncate">
-                        {item.batchCode}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-1 items-end">
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
-                        Qtd x Preço
-                      </p>
-                      <p className="text-xs font-medium text-neutral-300 font-mono">
-                        {item.quantity} x {formatCents(item.unitPrice)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900/50">
-                    <TableHead className="py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                      Produto
-                    </TableHead>
-                    <TableHead className="py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                      Lote
-                    </TableHead>
-                    <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                      Qtd
-                    </TableHead>
-                    <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                      Preço Unit.
-                    </TableHead>
-                    <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                      Total
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sale.items.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      className="border-b border-neutral-800 last:border-0"
-                    >
-                      <TableCell className="py-3">
-                        <div className="flex flex-col gap-0.5">
-                          <p className="text-sm font-bold text-white">
-                            {item.productName}
-                          </p>
-                          {item.productSku && (
-                            <p className="text-xs text-neutral-500">
-                              {item.productSku}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <span className="text-xs font-medium text-neutral-400">
-                          {item.batchCode}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-3 text-right font-mono text-sm font-medium text-white">
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell className="py-3 text-right font-mono text-sm text-neutral-400">
-                        {formatCents(item.unitPrice)}
-                      </TableCell>
-                      <TableCell className="py-3 text-right font-mono text-sm font-bold text-white">
-                        {formatCents(item.totalPrice)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {/* Cancel Dialog */}
-          <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-            <DialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
-              <DialogHeader>
-                <DialogTitle className="text-white">Cancelar Venda</DialogTitle>
-                <DialogDescription className="text-neutral-500">
-                  Esta ação irá estornar o estoque dos itens vendidos. Informe o
-                  motivo do cancelamento.
-                </DialogDescription>
-              </DialogHeader>
-              <Textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Motivo do cancelamento..."
-                className="min-h-[100px] w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-rose-600"
-              />
-              <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4 sm:space-x-2 sm:mt-0">
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(false)}
-                  className="w-full sm:w-auto rounded-[4px] border-neutral-800 text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                >
-                  Voltar
-                </Button>
-                <Button
-                  onClick={() => handleCancel(cancelReason)}
-                  disabled={isCancelling || !cancelReason.trim()}
-                  className="w-full sm:w-auto rounded-[4px] bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
-                >
-                  {isCancelling ? "Cancelando..." : "Confirmar Cancelamento"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <SaleItemsPanel sale={sale} />
+          <SaleCancelDialog viewState={viewState} />
         </div>
       </main>
     </div>
   );
 };
+
+function SaleItemsPanel({ sale }: { sale: Sale }) {
+  return (
+    <div className="overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <div className="flex items-center gap-3 border-b border-neutral-800/50 px-4 py-3 md:px-5 md:py-4">
+        <ShoppingCart className="size-5 shrink-0 text-blue-400" />
+        <p className="text-sm font-bold text-white">
+          Itens da Venda ({sale.items.length})
+        </p>
+      </div>
+      <SaleItemsMobileList sale={sale} />
+      <SaleItemsTable sale={sale} />
+    </div>
+  );
+}
+
+function SaleItemsMobileList({ sale }: { sale: Sale }) {
+  return (
+    <div className="flex flex-col md:hidden">
+      {sale.items.map((item) => (
+        <div
+          key={item.id}
+          className="flex flex-col gap-3 border-b border-neutral-800/50 p-4 last:border-0 hover:bg-neutral-900/20"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col">
+              <p className="line-clamp-2 text-sm font-bold text-white">
+                {item.productName}
+              </p>
+              {item.productSku ? (
+                <p className="mt-0.5 text-xs tracking-wide text-neutral-500">
+                  {item.productSku}
+                </p>
+              ) : null}
+            </div>
+            <p className="shrink-0 font-mono text-sm font-bold text-white">
+              {formatCents(item.totalPrice)}
+            </p>
+          </div>
+          <div className="mt-1 grid grid-cols-2 gap-2 rounded-[2px] bg-neutral-900/50 p-2.5">
+            <SaleItemMeta label="Lote" value={item.batchCode} />
+            <SaleItemMeta
+              align="end"
+              label="Qtd x Preço"
+              value={`${item.quantity} x ${formatCents(item.unitPrice)}`}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SaleItemMeta({
+  align = "start",
+  label,
+  value,
+}: {
+  align?: "end" | "start";
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1 ${align === "end" ? "items-end" : ""}`}>
+      <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
+        {label}
+      </p>
+      <p className="truncate font-mono text-xs font-medium text-neutral-300">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SaleItemsTable({ sale }: { sale: Sale }) {
+  return (
+    <div className="hidden md:block">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-b border-neutral-800 bg-neutral-900/50 hover:bg-neutral-900/50">
+            <TableHead className="py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              Produto
+            </TableHead>
+            <TableHead className="py-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              Lote
+            </TableHead>
+            <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              Qtd
+            </TableHead>
+            <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              Preço Unit.
+            </TableHead>
+            <TableHead className="py-3 text-right text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+              Total
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sale.items.map((item) => (
+            <TableRow key={item.id} className="border-b border-neutral-800 last:border-0">
+              <TableCell className="py-3">
+                <p className="text-sm font-bold text-white">{item.productName}</p>
+                {item.productSku ? (
+                  <p className="text-xs text-neutral-500">{item.productSku}</p>
+                ) : null}
+              </TableCell>
+              <TableCell className="py-3 text-xs font-medium text-neutral-400">
+                {item.batchCode}
+              </TableCell>
+              <TableCell className="py-3 text-right font-mono text-sm font-medium text-white">
+                {item.quantity}
+              </TableCell>
+              <TableCell className="py-3 text-right font-mono text-sm text-neutral-400">
+                {formatCents(item.unitPrice)}
+              </TableCell>
+              <TableCell className="py-3 text-right font-mono text-sm font-bold text-white">
+                {formatCents(item.totalPrice)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function SaleCancelDialog({
+  viewState,
+}: {
+  viewState: SaleDetailViewState;
+}) {
+  const {
+    cancelDialogOpen,
+    cancelReason,
+    handleCancel,
+    isCancelling,
+    setCancelDialogOpen,
+    setCancelReason,
+  } = viewState;
+
+  return (
+    <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+      <DialogContent className="rounded-[4px] border-neutral-800 bg-[#171717] text-neutral-200">
+        <DialogHeader>
+          <DialogTitle className="text-white">Cancelar Venda</DialogTitle>
+          <DialogDescription className="text-neutral-500">
+            Esta ação irá estornar o estoque dos itens vendidos. Informe o
+            motivo do cancelamento.
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          value={cancelReason}
+          onChange={(event) => setCancelReason(event.target.value)}
+          placeholder="Motivo do cancelamento..."
+          className="min-h-[100px] w-full rounded-[4px] border-2 border-neutral-800 bg-neutral-900 text-sm text-white focus:border-rose-600"
+        />
+        <DialogFooter className="mt-4 flex flex-col gap-2 sm:mt-0 sm:flex-row sm:space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setCancelDialogOpen(false)}
+            className="w-full rounded-[4px] border-neutral-800 text-neutral-300 hover:bg-neutral-800 hover:text-white sm:w-auto"
+          >
+            Voltar
+          </Button>
+          <Button
+            onClick={() => handleCancel(cancelReason)}
+            disabled={isCancelling || !cancelReason.trim()}
+            className="w-full rounded-[4px] bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 sm:w-auto"
+          >
+            {isCancelling ? "Cancelando..." : "Confirmar Cancelamento"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
