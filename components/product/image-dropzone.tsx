@@ -12,6 +12,7 @@ interface ImageDropzoneProps {
   disabled?: boolean;
   currentImageUrl?: string;
   onRemoveImage?: () => void;
+  onProcessingChange?: (isProcessing: boolean) => void;
   className?: string;
   text?: string;
 }
@@ -274,6 +275,7 @@ export const ImageDropzone = ({
   disabled = false,
   currentImageUrl,
   onRemoveImage,
+  onProcessingChange,
   className,
   text,
 }: ImageDropzoneProps) => {
@@ -296,6 +298,7 @@ export const ImageDropzone = ({
   const handleFile = useCallback(async (file: File) => {
     if (!validateImageFile(file)) return;
     setIsCompressing(true);
+    onProcessingChange?.(true);
     try {
       onImageSelect(await compressImage(file, 0.7));
     } catch (error) {
@@ -303,8 +306,9 @@ export const ImageDropzone = ({
       onImageSelect(file);
     } finally {
       setIsCompressing(false);
+      onProcessingChange?.(false);
     }
-  }, [onImageSelect]);
+  }, [onImageSelect, onProcessingChange]);
 
   const handleDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -343,7 +347,9 @@ export const ImageDropzone = ({
 
   return (
     <div className={rootClassName}>
-      {previewUrl && value ? (
+      {isCompressing ? (
+        <CompressingImagePanel />
+      ) : previewUrl && value ? (
         <SelectedImagePanel
           previewUrl={previewUrl}
           value={value}
@@ -359,8 +365,6 @@ export const ImageDropzone = ({
         />
       ) : showRemovalIndicator ? (
         <RemovedImagePanel disabled={disabled} onReplace={handleReplace} />
-      ) : isCompressing ? (
-        <CompressingImagePanel />
       ) : (
         <EmptyImageDropzone
           disabled={disabled}

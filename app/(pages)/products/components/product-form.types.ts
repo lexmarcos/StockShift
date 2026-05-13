@@ -83,7 +83,9 @@ export interface ProductFormProps {
   // Imagem
   productImage: File | null;
   currentImageUrl?: string; // URL da imagem existente (edit mode)
+  isImageProcessing?: boolean;
   handleImageSelect: (file: File | null) => void;
+  handleImageProcessingChange?: (isProcessing: boolean) => void;
   handleImageRemove?: () => void; // Optional - only needed in edit mode
 
   // Scanner

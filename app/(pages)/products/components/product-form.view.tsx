@@ -798,6 +798,7 @@ const ProductImageCard = ({
         value={productForm.productImage}
         currentImageUrl={productForm.currentImageUrl}
         onImageSelect={productForm.handleImageSelect}
+        onProcessingChange={productForm.handleImageProcessingChange}
         onRemoveImage={productForm.handleImageRemove}
         disabled={productForm.isSubmitting}
         text={
@@ -1108,10 +1109,16 @@ const ProductFooterActionBar = ({
         className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-[160px]"
         disabled={
           productForm.isSubmitting ||
+          Boolean(productForm.isImageProcessing) ||
           (!viewState.isInlineMode && !productForm.warehouseId)
         }
       >
-        {productForm.isSubmitting ? (
+        {productForm.isImageProcessing ? (
+          <>
+            <Loader2 className="mr-2 size-3.5 animate-spin" />
+            Imagem…
+          </>
+        ) : productForm.isSubmitting ? (
           <>
             <Loader2 className="mr-2 size-3.5 animate-spin" />
             Salvando…

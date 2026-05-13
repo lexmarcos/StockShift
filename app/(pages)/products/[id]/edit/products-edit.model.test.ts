@@ -332,6 +332,40 @@ describe("useProductEditModel batches drawer", () => {
     expect(api.put).not.toHaveBeenCalledWith("products/prod-1", expect.anything());
   });
 
+  it("blocks submit while image is still processing", async () => {
+    mockMatchMedia(false);
+    const { result } = renderHook(() => useProductEditModel("prod-1"));
+
+    act(() => {
+      result.current.handleImageProcessingChange(true);
+    });
+
+    await act(async () => {
+      await result.current.onSubmit({
+        name: "Produto A",
+        description: "",
+        barcode: "",
+        isKit: false,
+        hasExpiration: false,
+        active: true,
+        continuousMode: false,
+        categoryId: "",
+        brandId: "",
+        attributes: { weight: "", dimensions: "" },
+        quantity: 0,
+        manufacturedDate: "",
+        expirationDate: "",
+        costPrice: undefined,
+        sellingPrice: undefined,
+      });
+    });
+
+    expect(api.put).not.toHaveBeenCalledWith("products/prod-1", expect.anything());
+    expect(toast.error).toHaveBeenCalledWith(
+      "Aguarde a imagem terminar de processar antes de salvar.",
+    );
+  });
+
   it("submits product update with image and merged attributes", async () => {
     mockMatchMedia(false);
     const { result } = renderHook(() => useProductEditModel("prod-1"));

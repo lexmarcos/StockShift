@@ -71,6 +71,7 @@ export const useProductEditModel = (productId: string) => {
     []
   );
   const [productImage, setProductImage] = useState<File | null>(null);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const [isBatchesDrawerOpen, setBatchesDrawerOpen] = useState(false);
   const [batchesDrawerDirection, setBatchesDrawerDirection] = useState<
@@ -340,6 +341,10 @@ export const useProductEditModel = (productId: string) => {
     }
   };
 
+  const handleImageProcessingChange = (isProcessing: boolean) => {
+    setIsImageProcessing(isProcessing);
+  };
+
   const handleImageRemove = () => {
     setProductImage(null);
     setRemoveCurrentImage(true);
@@ -388,6 +393,11 @@ export const useProductEditModel = (productId: string) => {
       return;
     }
 
+    if (isImageProcessing) {
+      toast.error("Aguarde a imagem terminar de processar antes de salvar.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const productPayload = {
@@ -417,7 +427,9 @@ export const useProductEditModel = (productId: string) => {
       await api.put(`products/${productId}`, { body: formData });
 
       // Invalidate caches
-      mutate("products");
+      mutate((key) =>
+        typeof key === "string" && key.includes("products"),
+      );
       mutate(`products/${productId}`);
 
       toast.success("Produto atualizado com sucesso!");
@@ -498,8 +510,10 @@ export const useProductEditModel = (productId: string) => {
     handleBarcodeScan,
     warehouseId,
     productImage,
+    isImageProcessing,
     currentImageUrl: productData?.data?.imageUrl || undefined,
     handleImageSelect,
+    handleImageProcessingChange,
     handleImageRemove,
     product,
     isLoadingProduct,

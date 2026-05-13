@@ -95,7 +95,7 @@ export const ProductDetailView = ({
 
   const formatCurrency = (value?: number | null) => {
     if (value === null || value === undefined) return "—";
-    return PRODUCT_DETAIL_CURRENCY_FORMATTER.format(value);
+    return PRODUCT_DETAIL_CURRENCY_FORMATTER.format(value / 100);
   };
 
   if (isLoading) {
