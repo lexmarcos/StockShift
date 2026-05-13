@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { Product, ProductBatch } from "./products-detail.types";
 import {
@@ -40,6 +41,15 @@ interface ProductDetailViewProps {
   isLoadingBatches: boolean;
   error: Error | null;
   batchesError: Error | null;
+}
+
+interface ProductDetailViewState extends ProductDetailViewProps {
+  product: Product;
+  totalStock: number;
+  copyToClipboard: (text: string, label: string) => void;
+  formatDate: (dateString?: string | null) => string;
+  formatDateTime: (dateString: string) => string;
+  formatCurrency: (value?: number | null) => string;
 }
 
 const PRODUCT_DETAIL_CURRENCY_FORMATTER = new Intl.NumberFormat("pt-BR", {
@@ -108,6 +118,19 @@ export const ProductDetailView = ({
   }
 
   const totalStock = batches.reduce((sum, batch) => sum + batch.quantity, 0);
+  const viewState: ProductDetailViewState = {
+    product,
+    batches,
+    isLoading,
+    isLoadingBatches,
+    error,
+    batchesError,
+    totalStock,
+    copyToClipboard,
+    formatDate,
+    formatDateTime,
+    formatCurrency,
+  };
 
   return (
     <PageContainer>
@@ -127,341 +150,539 @@ export const ProductDetailView = ({
         }
       />
 
-      {/* Hero: Image + Identity */}
-      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Product Image */}
-        <div className="lg:col-span-4">
-          <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
-            <div className="absolute top-3 right-3 z-10">
-              <Badge
-                className={cn(
-                  "rounded-[4px] border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                  product.active
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                )}
-              >
-                {product.active ? (
-                  <ShieldCheck className="mr-1 size-3" />
-                ) : (
-                  <ShieldOff className="mr-1 size-3" />
-                )}
-                {product.active ? "Ativo" : "Inativo"}
-              </Badge>
-            </div>
-
-            <div className="aspect-square w-full flex items-center justify-center bg-neutral-950/50 p-10">
-              {product.imageUrl ? (
-                <div className="relative h-full w-full">
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, 100vw"
-                    unoptimized
-                    className="object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-neutral-700">
-                  <Package className="size-20 stroke-1 mb-3" />
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-neutral-600">
-                    Sem Imagem
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Stats Footer */}
-            <div className="grid grid-cols-3 border-t border-neutral-800">
-              <div className="flex flex-col items-center justify-center border-r border-neutral-800 px-2 py-3">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 mb-0.5">
-                  Tipo
-                </span>
-                <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
-                  {product.isKit ? (
-                    <Layers className="size-3 text-purple-500" />
-                  ) : (
-                    <Box className="size-3 text-blue-500" />
-                  )}
-                  {product.isKit ? "Kit" : "Un."}
-                </div>
-              </div>
-              <div className="flex flex-col items-center justify-center border-r border-neutral-800 px-2 py-3">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 mb-0.5">
-                  Validade
-                </span>
-                <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
-                  <Clock
-                    className={cn(
-                      "size-3",
-                      product.hasExpiration
-                        ? "text-amber-500"
-                        : "text-neutral-600"
-                    )}
-                  />
-                  {product.hasExpiration ? "Ctrl." : "Livre"}
-                </div>
-              </div>
-              <div className="flex flex-col items-center justify-center px-2 py-3">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 mb-0.5">
-                  Estoque
-                </span>
-                <span className="text-[11px] font-bold text-white tabular-nums">
-                  {totalStock}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Identity + Codes */}
-        <div className="space-y-6 lg:col-span-8">
-          {/* Description Card */}
-          <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-6">
-            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mb-3">
-              Descrição
-            </h2>
-            <p className="text-sm leading-relaxed text-neutral-400">
-              {product.description ||
-                "Nenhuma descrição fornecida para este produto."}
-            </p>
-          </div>
-
-          {/* Codes Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* SKU */}
-            <DataField
-              icon={<Hash className="size-4" />}
-              label="SKU"
-              value={product.sku || "NÃO DEFINIDO"}
-              mono
-              onCopy={
-                product.sku
-                  ? () => copyToClipboard(product.sku!, "SKU")
-                  : undefined
-              }
-            />
-
-            {/* Barcode */}
-            <DataField
-              icon={<Barcode className="size-4" />}
-              label="Código de Barras"
-              badge={product.barcodeType || undefined}
-              value={product.barcode || "NÃO CADASTRADO"}
-              mono
-              onCopy={
-                product.barcode
-                  ? () => copyToClipboard(product.barcode!, "Código de Barras")
-                  : undefined
-              }
-            />
-
-            {/* Category */}
-            <DataField
-              icon={<Tag className="size-4 text-emerald-500" />}
-              label="Categoria"
-              value={product.categoryName || "Sem Categoria"}
-            />
-
-            {/* Brand */}
-            <DataField
-              icon={<Building2 className="size-4 text-amber-500" />}
-              label="Marca / Fabricante"
-              value={product.brand?.name || "Genérico"}
-            />
-          </div>
-
-          {/* System Metadata */}
-          <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
-            <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-              Metadados
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600 block mb-1">
-                  Criado em
-                </span>
-                <span className="text-xs font-mono text-neutral-300">
-                  {formatDateTime(product.createdAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600 block mb-1">
-                  Atualizado em
-                </span>
-                <span className="text-xs font-mono text-neutral-300">
-                  {formatDateTime(product.updatedAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-600 block mb-1">
-                  UUID
-                </span>
-                <button
-                  onClick={() => copyToClipboard(product.id, "ID do Produto")}
-                  className="flex items-center gap-2 rounded-[4px] bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-[11px] font-mono text-neutral-500 hover:text-neutral-300 hover:border-neutral-700 w-full max-w-full group"
-                >
-                  <span className="truncate">{product.id}</span>
-                  <Copy className="size-3 shrink-0 opacity-0 group-hover:opacity-100" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Technical Specs */}
-      {product.attributes && Object.keys(product.attributes).length > 0 && (
-        <div className="mb-8 rounded-[4px] border border-neutral-800 bg-[#171717]">
-          <div className="border-b border-neutral-800 px-5 py-4 flex items-center gap-2">
-            <QrCode className="size-4 text-blue-500" />
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
-              Especificações Técnicas
-            </h3>
-            <Badge className="ml-auto rounded-[4px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
-              {Object.keys(product.attributes).length}
-            </Badge>
-          </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.entries(product.attributes).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900/30 px-4 py-3 hover:border-neutral-700"
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                    {key}
-                  </span>
-                  <span className="text-sm font-mono font-medium text-white ml-4 truncate text-right">
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Batches Section */}
-      <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
-          <div className="flex items-center gap-2">
-            <Layers className="size-4 text-amber-500" />
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
-              Lotes do Produto
-            </h3>
-          </div>
-          <Badge className="rounded-[4px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
-            {batches.length}
-          </Badge>
-        </div>
-
-        {isLoadingBatches && (
-          <div className="p-5">
-            <LoadingState message="Carregando lotes..." />
-          </div>
-        )}
-
-        {!isLoadingBatches && batchesError && (
-          <div className="p-5">
-            <ErrorState
-              title="Erro ao carregar lotes"
-              description="Não foi possível carregar os lotes deste produto."
-            />
-          </div>
-        )}
-
-        {!isLoadingBatches && !batchesError && batches.length === 0 && (
-          <div className="px-5 py-10 text-center">
-            <Package className="mx-auto mb-3 size-10 text-neutral-800" strokeWidth={1.5} />
-            <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-              Nenhum lote cadastrado
-            </p>
-          </div>
-        )}
-
-        {!isLoadingBatches && !batchesError && batches.length > 0 && (
-          <>
-            {/* Table Header — Desktop */}
-            <div className="hidden md:grid md:grid-cols-12 gap-4 border-b border-neutral-800 bg-neutral-900/30 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-neutral-600">
-              <div className="col-span-3">Lote</div>
-              <div className="col-span-3">Armazém</div>
-              <div className="col-span-2 text-right">Quantidade</div>
-              <div className="col-span-2 text-right">Validade</div>
-              <div className="col-span-2 text-right">Preço Venda</div>
-            </div>
-
-            {/* Batch Rows */}
-            <div className="divide-y divide-neutral-800/50">
-              {batches.map((batch) => (
-                <Link
-                  key={batch.id}
-                  href={`/batches/${batch.id}`}
-                  className="group flex flex-col gap-2 px-5 py-3.5 hover:bg-neutral-900/40 md:grid md:grid-cols-12 md:items-center md:gap-4"
-                >
-                  {/* Batch Code */}
-                  <div className="col-span-3 min-w-0">
-                    <span className="font-mono text-xs font-bold text-white">
-                      {batch.batchNumber || batch.batchCode || "SEM LOTE"}
-                    </span>
-                  </div>
-
-                  {/* Warehouse */}
-                  <div className="col-span-3 flex items-center gap-1.5 min-w-0">
-                    <Warehouse className="size-3 shrink-0 text-neutral-600" />
-                    <span className="text-xs text-neutral-400 truncate">
-                      {batch.warehouseName}
-                    </span>
-                  </div>
-
-                  {/* Quantity */}
-                  <div className="col-span-2 text-right">
-                    <span className="text-sm font-bold tabular-nums text-white">
-                      {batch.quantity}
-                    </span>
-                    <span className="ml-0.5 text-[10px] text-neutral-600">
-                      un
-                    </span>
-                  </div>
-
-                  {/* Expiration Date */}
-                  <div className="col-span-2 flex items-center justify-end gap-1.5">
-                    <Calendar className="size-3 text-neutral-600" />
-                    <span className="text-xs font-mono text-neutral-400 tabular-nums">
-                      {formatDate(batch.expirationDate)}
-                    </span>
-                  </div>
-
-                  {/* Selling Price */}
-                  <div className="col-span-2 flex items-center justify-end gap-1">
-                    <span className="text-xs font-mono text-neutral-400 tabular-nums">
-                      {formatCurrency(batch.sellingPrice)}
-                    </span>
-                    <ChevronRight className="size-3.5 text-neutral-700 group-hover:text-neutral-400" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Table Footer */}
-            <div className="flex items-center justify-between border-t border-neutral-800 bg-neutral-900/30 px-5 py-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
-                Total em Estoque
-              </span>
-              <span className="text-sm font-bold tabular-nums text-white">
-                {totalStock}
-                <span className="ml-0.5 text-[10px] font-normal text-neutral-600">
-                  un
-                </span>
-              </span>
-            </div>
-          </>
-        )}
-      </div>
+      <ProductHeroSection viewState={viewState} />
+      <ProductAttributesPanel product={product} />
+      <ProductBatchesPanel viewState={viewState} />
     </PageContainer>
   );
 };
+
+function ProductHeroSection({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  return (
+    <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <ProductImagePanel viewState={viewState} />
+      <ProductIdentityPanel viewState={viewState} />
+    </div>
+  );
+}
+
+function ProductImagePanel({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { product, totalStock } = viewState;
+
+  return (
+    <div className="lg:col-span-4">
+      <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717]">
+        <div className="absolute top-3 right-3 z-10">
+          <ProductStatusBadge product={product} />
+        </div>
+        <ProductImageContent product={product} />
+        <ProductQuickStats product={product} totalStock={totalStock} />
+      </div>
+    </div>
+  );
+}
+
+function ProductStatusBadge({ product }: { product: Product }) {
+  return (
+    <Badge
+      className={cn(
+        "rounded-[4px] border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+        product.active
+          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+          : "bg-rose-500/10 text-rose-400 border-rose-500/30"
+      )}
+    >
+      {product.active ? (
+        <ShieldCheck className="mr-1 size-3" />
+      ) : (
+        <ShieldOff className="mr-1 size-3" />
+      )}
+      {product.active ? "Ativo" : "Inativo"}
+    </Badge>
+  );
+}
+
+function ProductImageContent({ product }: { product: Product }) {
+  return (
+    <div className="flex aspect-square w-full items-center justify-center bg-neutral-950/50 p-10">
+      {product.imageUrl ? (
+        <div className="relative h-full w-full">
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            unoptimized
+            className="object-contain"
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center text-neutral-700">
+          <Package className="mb-3 size-20 stroke-1" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+            Sem Imagem
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductQuickStats({
+  product,
+  totalStock,
+}: {
+  product: Product;
+  totalStock: number;
+}) {
+  return (
+    <div className="grid grid-cols-3 border-t border-neutral-800">
+      <ProductTypeStat product={product} />
+      <ProductExpirationStat product={product} />
+      <ProductStockStat totalStock={totalStock} />
+    </div>
+  );
+}
+
+function ProductTypeStat({ product }: { product: Product }) {
+  return (
+    <div className="flex flex-col items-center justify-center border-r border-neutral-800 px-2 py-3">
+      <span className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-neutral-600">
+        Tipo
+      </span>
+      <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
+        {product.isKit ? (
+          <Layers className="size-3 text-purple-500" />
+        ) : (
+          <Box className="size-3 text-blue-500" />
+        )}
+        {product.isKit ? "Kit" : "Un."}
+      </div>
+    </div>
+  );
+}
+
+function ProductExpirationStat({ product }: { product: Product }) {
+  return (
+    <div className="flex flex-col items-center justify-center border-r border-neutral-800 px-2 py-3">
+      <span className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-neutral-600">
+        Validade
+      </span>
+      <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-300">
+        <Clock
+          className={cn(
+            "size-3",
+            product.hasExpiration ? "text-amber-500" : "text-neutral-600"
+          )}
+        />
+        {product.hasExpiration ? "Ctrl." : "Livre"}
+      </div>
+    </div>
+  );
+}
+
+function ProductStockStat({ totalStock }: { totalStock: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-2 py-3">
+      <span className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-neutral-600">
+        Estoque
+      </span>
+      <span className="text-[11px] font-bold tabular-nums text-white">
+        {totalStock}
+      </span>
+    </div>
+  );
+}
+
+function ProductIdentityPanel({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { product } = viewState;
+
+  return (
+    <div className="space-y-6 lg:col-span-8">
+      <ProductDescriptionCard product={product} />
+      <ProductCodeFields viewState={viewState} />
+      <ProductMetadataPanel viewState={viewState} />
+    </div>
+  );
+}
+
+function ProductDescriptionCard({ product }: { product: Product }) {
+  return (
+    <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-6">
+      <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+        Descrição
+      </h2>
+      <p className="text-sm leading-relaxed text-neutral-400">
+        {product.description || "Nenhuma descrição fornecida para este produto."}
+      </p>
+    </div>
+  );
+}
+
+function ProductCodeFields({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { product, copyToClipboard } = viewState;
+
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <DataField
+        icon={<Hash className="size-4" />}
+        label="SKU"
+        value={product.sku || "NÃO DEFINIDO"}
+        mono
+        onCopy={product.sku ? () => copyToClipboard(product.sku!, "SKU") : undefined}
+      />
+      <DataField
+        icon={<Barcode className="size-4" />}
+        label="Código de Barras"
+        badge={product.barcodeType || undefined}
+        value={product.barcode || "NÃO CADASTRADO"}
+        mono
+        onCopy={
+          product.barcode
+            ? () => copyToClipboard(product.barcode!, "Código de Barras")
+            : undefined
+        }
+      />
+      <DataField
+        icon={<Tag className="size-4 text-emerald-500" />}
+        label="Categoria"
+        value={product.categoryName || "Sem Categoria"}
+      />
+      <DataField
+        icon={<Building2 className="size-4 text-amber-500" />}
+        label="Marca / Fabricante"
+        value={product.brand?.name || "Genérico"}
+      />
+    </div>
+  );
+}
+
+function ProductMetadataPanel({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { product, copyToClipboard, formatDateTime } = viewState;
+
+  return (
+    <div className="rounded-[4px] border border-neutral-800 bg-[#171717] p-5">
+      <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+        Metadados
+      </h3>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <ProductMetadataField
+          label="Criado em"
+          value={formatDateTime(product.createdAt)}
+        />
+        <ProductMetadataField
+          label="Atualizado em"
+          value={formatDateTime(product.updatedAt)}
+        />
+        <ProductIdField product={product} copyToClipboard={copyToClipboard} />
+      </div>
+    </div>
+  );
+}
+
+function ProductMetadataField({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-neutral-600">
+        {label}
+      </span>
+      <span className="font-mono text-xs text-neutral-300">{value}</span>
+    </div>
+  );
+}
+
+function ProductIdField({
+  product,
+  copyToClipboard,
+}: {
+  product: Product;
+  copyToClipboard: (text: string, label: string) => void;
+}) {
+  return (
+    <div>
+      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-neutral-600">
+        UUID
+      </span>
+      <button
+        onClick={() => copyToClipboard(product.id, "ID do Produto")}
+        className="group flex w-full max-w-full items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-1.5 font-mono text-[11px] text-neutral-500 hover:border-neutral-700 hover:text-neutral-300"
+      >
+        <span className="truncate">{product.id}</span>
+        <Copy className="size-3 shrink-0 opacity-0 group-hover:opacity-100" />
+      </button>
+    </div>
+  );
+}
+
+function ProductAttributesPanel({ product }: { product: Product }) {
+  const productAttributeEntries = Object.entries(product.attributes ?? {});
+
+  if (productAttributeEntries.length === 0) return null;
+
+  return (
+    <div className="mb-8 rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <div className="flex items-center gap-2 border-b border-neutral-800 px-5 py-4">
+        <QrCode className="size-4 text-blue-500" />
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
+          Especificações Técnicas
+        </h3>
+        <Badge className="ml-auto rounded-[4px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
+          {productAttributeEntries.length}
+        </Badge>
+      </div>
+      <div className="p-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {productAttributeEntries.map(([key, value]) => (
+            <ProductAttributeItem key={key} label={key} value={value} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductAttributeItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-neutral-900/30 px-4 py-3 hover:border-neutral-700">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+        {label}
+      </span>
+      <span className="ml-4 truncate text-right font-mono text-sm font-medium text-white">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ProductBatchesPanel({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { batches } = viewState;
+
+  return (
+    <div className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+        <div className="flex items-center gap-2">
+          <Layers className="size-4 text-amber-500" />
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-white">
+            Lotes do Produto
+          </h3>
+        </div>
+        <Badge className="rounded-[4px] border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
+          {batches.length}
+        </Badge>
+      </div>
+      <ProductBatchesContent viewState={viewState} />
+    </div>
+  );
+}
+
+function ProductBatchesContent({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { batches, batchesError, isLoadingBatches } = viewState;
+
+  if (isLoadingBatches) {
+    return (
+      <div className="p-5">
+        <LoadingState message="Carregando lotes..." />
+      </div>
+    );
+  }
+
+  if (batchesError) {
+    return (
+      <div className="p-5">
+        <ErrorState
+          title="Erro ao carregar lotes"
+          description="Não foi possível carregar os lotes deste produto."
+        />
+      </div>
+    );
+  }
+
+  if (batches.length === 0) return <ProductBatchesEmptyState />;
+
+  return <ProductBatchesTable viewState={viewState} />;
+}
+
+function ProductBatchesEmptyState() {
+  return (
+    <div className="px-5 py-10 text-center">
+      <Package className="mx-auto mb-3 size-10 text-neutral-800" strokeWidth={1.5} />
+      <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+        Nenhum lote cadastrado
+      </p>
+    </div>
+  );
+}
+
+function ProductBatchesTable({
+  viewState,
+}: {
+  viewState: ProductDetailViewState;
+}) {
+  const { batches, totalStock } = viewState;
+
+  return (
+    <>
+      <ProductBatchesTableHeader />
+      <div className="divide-y divide-neutral-800/50">
+        {batches.map((batch) => (
+          <ProductBatchRow key={batch.id} batch={batch} viewState={viewState} />
+        ))}
+      </div>
+      <ProductBatchesTableFooter totalStock={totalStock} />
+    </>
+  );
+}
+
+function ProductBatchesTableHeader() {
+  return (
+    <div className="hidden gap-4 border-b border-neutral-800 bg-neutral-900/30 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-neutral-600 md:grid md:grid-cols-12">
+      <div className="col-span-3">Lote</div>
+      <div className="col-span-3">Armazém</div>
+      <div className="col-span-2 text-right">Quantidade</div>
+      <div className="col-span-2 text-right">Validade</div>
+      <div className="col-span-2 text-right">Preço Venda</div>
+    </div>
+  );
+}
+
+function ProductBatchRow({
+  batch,
+  viewState,
+}: {
+  batch: ProductBatch;
+  viewState: ProductDetailViewState;
+}) {
+  const { formatCurrency, formatDate } = viewState;
+
+  return (
+    <Link
+      href={`/batches/${batch.id}`}
+      className="group flex flex-col gap-2 px-5 py-3.5 hover:bg-neutral-900/40 md:grid md:grid-cols-12 md:items-center md:gap-4"
+    >
+      <div className="col-span-3 min-w-0">
+        <span className="font-mono text-xs font-bold text-white">
+          {batch.batchNumber || batch.batchCode || "SEM LOTE"}
+        </span>
+      </div>
+      <ProductBatchWarehouse batch={batch} />
+      <ProductBatchQuantity batch={batch} />
+      <ProductBatchExpiration batch={batch} formatDate={formatDate} />
+      <ProductBatchPrice batch={batch} formatCurrency={formatCurrency} />
+    </Link>
+  );
+}
+
+function ProductBatchWarehouse({ batch }: { batch: ProductBatch }) {
+  return (
+    <div className="col-span-3 flex min-w-0 items-center gap-1.5">
+      <Warehouse className="size-3 shrink-0 text-neutral-600" />
+      <span className="truncate text-xs text-neutral-400">
+        {batch.warehouseName}
+      </span>
+    </div>
+  );
+}
+
+function ProductBatchQuantity({ batch }: { batch: ProductBatch }) {
+  return (
+    <div className="col-span-2 text-right">
+      <span className="text-sm font-bold tabular-nums text-white">
+        {batch.quantity}
+      </span>
+      <span className="ml-0.5 text-[10px] text-neutral-600">un</span>
+    </div>
+  );
+}
+
+function ProductBatchExpiration({
+  batch,
+  formatDate,
+}: {
+  batch: ProductBatch;
+  formatDate: (dateString?: string | null) => string;
+}) {
+  return (
+    <div className="col-span-2 flex items-center justify-end gap-1.5">
+      <Calendar className="size-3 text-neutral-600" />
+      <span className="font-mono text-xs tabular-nums text-neutral-400">
+        {formatDate(batch.expirationDate)}
+      </span>
+    </div>
+  );
+}
+
+function ProductBatchPrice({
+  batch,
+  formatCurrency,
+}: {
+  batch: ProductBatch;
+  formatCurrency: (value?: number | null) => string;
+}) {
+  return (
+    <div className="col-span-2 flex items-center justify-end gap-1">
+      <span className="font-mono text-xs tabular-nums text-neutral-400">
+        {formatCurrency(batch.sellingPrice)}
+      </span>
+      <ChevronRight className="size-3.5 text-neutral-700 group-hover:text-neutral-400" />
+    </div>
+  );
+}
+
+function ProductBatchesTableFooter({ totalStock }: { totalStock: number }) {
+  return (
+    <div className="flex items-center justify-between border-t border-neutral-800 bg-neutral-900/30 px-5 py-3">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+        Total em Estoque
+      </span>
+      <span className="text-sm font-bold tabular-nums text-white">
+        {totalStock}
+        <span className="ml-0.5 text-[10px] font-normal text-neutral-600">
+          un
+        </span>
+      </span>
+    </div>
+  );
+}
 
 /* ─── Helper Component: DataField ─── */
 function DataField({
@@ -472,7 +693,7 @@ function DataField({
   mono,
   onCopy,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   badge?: string;
   value: string;
