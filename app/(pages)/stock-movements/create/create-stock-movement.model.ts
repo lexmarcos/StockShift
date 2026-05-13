@@ -58,7 +58,7 @@ const isExistingProductBatchDateRangeInvalid = (
 
 const buildExistingProductItemPayload = (
   item: CreateStockMovementSchema["items"][number],
-) => {
+): ExistingProductMovementPayload => {
   const payload: {
     productId: string | undefined;
     quantity: number;
@@ -77,9 +77,48 @@ const buildExistingProductItemPayload = (
   return payload;
 };
 
+interface ExistingProductMovementPayload {
+  productId: string | undefined;
+  quantity: number;
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+}
+
+interface NewProductMovementPayload {
+  quantity: number;
+  newProduct: {
+    name: string;
+    description?: string;
+    barcode?: string;
+    categoryId?: string;
+    brandId?: string;
+    isKit?: boolean;
+    hasExpiration: boolean;
+    active?: boolean;
+    attributes?: Record<string, string>;
+  };
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  imageUploadId?: string;
+}
+
+type MovementItemPayload =
+  | ExistingProductMovementPayload
+  | NewProductMovementPayload;
+
+interface StockMovementPayload {
+  type: NonNullable<CreateStockMovementSchema["type"]>;
+  notes?: string;
+  items: MovementItemPayload[];
+}
+
 const buildMovementItemPayload = (
   item: CreateStockMovementSchema["items"][number],
-) => {
+): MovementItemPayload => {
   if (!item.newProductData) return buildExistingProductItemPayload(item);
   const newProduct = {
     name: item.newProductData.name,
@@ -102,38 +141,55 @@ const buildMovementItemPayload = (
   };
 };
 
-const hasInlineProductImages = (
-  items: CreateStockMovementSchema["items"],
-): boolean => {
-  return items.some((item) => Boolean(item.newProductData?.image));
-};
-
 export const buildMovementPayload = (
   selectedMovementType: NonNullable<CreateStockMovementSchema["type"]>,
   data: CreateStockMovementSchema,
-) => ({
+): StockMovementPayload => ({
   type: selectedMovementType,
   notes: data.notes || undefined,
   items: data.items.map(buildMovementItemPayload),
 });
 
-const buildMovementFormData = (
-  payload: ReturnType<typeof buildMovementPayload>,
-  items: CreateStockMovementSchema["items"],
-): FormData => {
+interface TemporaryProductImageUploadResponse {
+  success: boolean;
+  data: {
+    uploadId: string;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+  };
+}
+
+const uploadTemporaryInlineProductImage = async (
+  image: NonNullable<
+    NonNullable<CreateStockMovementSchema["items"][number]["newProductData"]>["image"]
+  >,
+): Promise<string> => {
   const formData = new FormData();
-  const movementBlob = new Blob([JSON.stringify(payload)], {
-    type: "application/json",
-  });
-  formData.append("movement", movementBlob);
-  items.forEach((item) => {
-    if (!item.newProductData) return;
-    const imageFile = item.newProductData.image
-      ? inlineProductImageToFile(item.newProductData.image)
-      : new File([], "empty-inline-product-image");
-    formData.append("inlineProductImages", imageFile);
-  });
-  return formData;
+  formData.append("image", inlineProductImageToFile(image));
+  const response = await api
+    .post("uploads/product-images/temp", { body: formData })
+    .json<TemporaryProductImageUploadResponse>();
+  return response.data.uploadId;
+};
+
+const uploadInlineProductImages = async (
+  payload: StockMovementPayload,
+  items: CreateStockMovementSchema["items"],
+): Promise<StockMovementPayload> => {
+  const movementItems = [...payload.items];
+  for (const [index, formItem] of items.entries()) {
+    if (!formItem.newProductData?.image) continue;
+    const itemPayload = movementItems[index];
+    if (!("newProduct" in itemPayload)) continue;
+    movementItems[index] = {
+      ...itemPayload,
+      imageUploadId: await uploadTemporaryInlineProductImage(
+        formItem.newProductData.image,
+      ),
+    };
+  }
+  return { ...payload, items: movementItems };
 };
 
 interface ProductListResponse {
@@ -773,10 +829,8 @@ export function useCreateStockMovementModel({
     setIsSubmitting(true);
     try {
       const payload = buildMovementPayload(selectedMovementType, data);
-      const postOptions = hasInlineProductImages(data.items)
-        ? { body: buildMovementFormData(payload, data.items) }
-        : { json: payload };
-      await api.post("stock-movements", postOptions);
+      const payloadWithImages = await uploadInlineProductImages(payload, data.items);
+      await api.post("stock-movements", { json: payloadWithImages });
 
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");

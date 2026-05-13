@@ -63,7 +63,11 @@ const fakeSWR = vi.hoisted(() => {
 const fakeApi = vi.hoisted(() => {
   class FakeApi {
     public readonly get = vi.fn<(url: string) => JsonResponse<unknown>>();
-    public readonly post = vi.fn<(url: string, body: { json?: unknown; body?: unknown }) => Promise<unknown>>();
+    public readonly post = vi.fn<
+      (url: string, body: { json?: unknown; body?: unknown }) =>
+        | Promise<unknown>
+        | JsonResponse<unknown>
+    >();
   }
 
   return new FakeApi();
@@ -389,7 +393,20 @@ beforeEach(() => {
     return createJsonResponse(productListResponse);
   });
 
-  fakeApi.post.mockResolvedValue({});
+  fakeApi.post.mockImplementation((url: string) => {
+    if (url === "uploads/product-images/temp") {
+      return createJsonResponse({
+        success: true,
+        data: {
+          uploadId: "11111111-1111-4111-8111-111111111111",
+          fileName: "inline.png",
+          contentType: "image/png",
+          sizeBytes: 3,
+        },
+      });
+    }
+    return Promise.resolve({});
+  });
 });
 
 describe("helpers de produto", () => {
@@ -1067,7 +1084,7 @@ describe("useCreateStockMovementModel", () => {
     expect(result.current.isSubmitting).toBe(false);
   });
 
-  it("envia payload multipart quando há imagem inline", async () => {
+  it("envia imagem temporária e payload JSON quando há imagem inline", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
     const payload = createInlineSubmitPayload();
 
@@ -1075,12 +1092,44 @@ describe("useCreateStockMovementModel", () => {
       await result.current.onSubmit(payload);
     });
 
-    const [, options] = fakeApi.post.mock.calls.at(-1) as [
+    const [uploadUrl, uploadOptions] = fakeApi.post.mock.calls[0] as [
       string,
       { body?: FormData; json?: unknown },
     ];
-    expect(options.body).toBeInstanceOf(FormData);
-    expect(options.body?.getAll("inlineProductImages")).toHaveLength(1);
+    expect(uploadUrl).toBe("uploads/product-images/temp");
+    expect(uploadOptions.body).toBeInstanceOf(FormData);
+
+    const [movementUrl, movementOptions] = fakeApi.post.mock.calls.at(-1) as [
+      string,
+      { body?: FormData; json?: unknown },
+    ];
+    expect(movementUrl).toBe("stock-movements");
+    expect(movementOptions.json).toMatchObject({
+      items: [
+        {
+          imageUploadId: "11111111-1111-4111-8111-111111111111",
+        },
+      ],
+    });
+    expect(movementOptions.body).toBeUndefined();
+  });
+
+  it("não envia movimentação quando upload temporário falha", async () => {
+    fakeApi.post.mockImplementation((url: string) => {
+      if (url === "uploads/product-images/temp") {
+        throw new Error("Falha no upload");
+      }
+      return Promise.resolve({});
+    });
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await act(async () => {
+      await result.current.onSubmit(createInlineSubmitPayload());
+    });
+
+    expect(fakeApi.post).toHaveBeenCalledTimes(1);
+    expect(fakeToast.error).toHaveBeenCalledWith("Falha no upload");
+    expect(fakeRouter.push).not.toHaveBeenCalledWith("/stock-movements");
   });
 
   it("mostra erro no envio e mantém estado", async () => {
