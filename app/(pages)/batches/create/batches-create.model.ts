@@ -22,6 +22,11 @@ import { useBreadcrumb } from "@/components/breadcrumb";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 
 const PRODUCT_SEARCH_LIMIT = 5;
+const priceFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+const batchCreatedAtFormatter = new Intl.DateTimeFormat("pt-BR");
 
 export const buildProductSearchUrl = (query: string): string | null => {
   const trimmedQuery = query.trim();
@@ -57,20 +62,18 @@ export const formatProductOptionLabel = (
 
 export const formatPriceFromCents = (cents: number | null): string => {
   if (cents === null) return "Sem preço";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(cents / 100);
+  return priceFormatter.format(cents / 100);
 };
 
 export const findMostRecentProductBatch = (
   batches: ProductBatchPriceSource[],
 ): ProductBatchPriceSource | null => {
-  if (batches.length === 0) return null;
-
-  return [...batches].sort((firstBatch, secondBatch) => {
-    return getBatchCreatedTime(secondBatch) - getBatchCreatedTime(firstBatch);
-  })[0];
+  return batches.reduce<ProductBatchPriceSource | null>((latestBatch, batch) => {
+    if (!latestBatch) return batch;
+    return getBatchCreatedTime(batch) > getBatchCreatedTime(latestBatch)
+      ? batch
+      : latestBatch;
+  }, null);
 };
 
 export const buildLatestBatchPriceSuggestion = (
@@ -97,7 +100,7 @@ const getBatchCreatedTime = (batch: ProductBatchPriceSource): number => {
 const formatBatchCreatedAt = (createdAt: string): string => {
   const timestamp = new Date(createdAt).getTime();
   if (!Number.isFinite(timestamp)) return createdAt;
-  return new Intl.DateTimeFormat("pt-BR").format(new Date(timestamp));
+  return batchCreatedAtFormatter.format(new Date(timestamp));
 };
 
 export const buildBatchPayload = (

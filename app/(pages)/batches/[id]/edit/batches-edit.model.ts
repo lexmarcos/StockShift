@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,18 @@ import { batchEditSchema, BatchEditFormData } from "./batches-edit.schema";
 import type { BatchEditResponse } from "./batches-edit.types";
 import type { Batch } from "../../batches.types";
 import { useBreadcrumb } from "@/components/breadcrumb";
+
+const DEFAULT_BATCH_EDIT_FORM_VALUES: BatchEditFormData = {
+  productId: "",
+  warehouseId: "",
+  quantity: 1,
+  batchCode: "",
+  manufacturedDate: "",
+  expirationDate: "",
+  costPrice: undefined,
+  sellingPrice: undefined,
+  notes: "",
+};
 
 export const mapBatchToFormValues = (batch: Batch): BatchEditFormData => ({
   productId: batch.productId,
@@ -23,21 +35,6 @@ export const mapBatchToFormValues = (batch: Batch): BatchEditFormData => ({
 
 export const useBatchEditModel = (batchId: string) => {
   const router = useRouter();
-  const form = useForm<BatchEditFormData>({
-    resolver: zodResolver(batchEditSchema),
-    defaultValues: {
-      productId: "",
-      warehouseId: "",
-      quantity: 1,
-      batchCode: "",
-      manufacturedDate: "",
-      expirationDate: "",
-      costPrice: undefined,
-      sellingPrice: undefined,
-      notes: "",
-    },
-  });
-
   const { data, isLoading } = useSWR<BatchEditResponse>(
     batchId ? `batches/${batchId}` : null,
     async (url: string) => {
@@ -47,6 +44,15 @@ export const useBatchEditModel = (batchId: string) => {
   );
 
   const batch = data?.data || null;
+  const formValues = useMemo(
+    () => (batch ? mapBatchToFormValues(batch) : DEFAULT_BATCH_EDIT_FORM_VALUES),
+    [batch],
+  );
+  const form = useForm<BatchEditFormData>({
+    resolver: zodResolver(batchEditSchema),
+    defaultValues: DEFAULT_BATCH_EDIT_FORM_VALUES,
+    values: formValues,
+  });
 
   useBreadcrumb({
     title: batch?.batchNumber || batch?.batchCode || "Carregando...",
@@ -54,12 +60,6 @@ export const useBatchEditModel = (batchId: string) => {
     section: "Inventário",
     subsection: "Edição",
   });
-
-  useEffect(() => {
-    if (batch) {
-      form.reset(mapBatchToFormValues(batch));
-    }
-  }, [batch, form]);
 
   const onSubmit = async (values: BatchEditFormData) => {
     try {
