@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/components/breadcrumb";
@@ -107,6 +107,18 @@ const buildInlineMovementItem = (
   newProductData: product,
 });
 
+const isInlineProductRouteReady = (
+  movementType: string | null,
+  initialDraft: ReturnType<typeof readStockMovementDraft>,
+  editItemIndex: number | null,
+  isEditingInlineProduct: boolean,
+): boolean => {
+  const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
+  return Boolean(
+    isManualMovementType(movementType) && initialDraft && hasValidEditItem,
+  );
+};
+
 const appendProductToMovementDraft = (
   product: InlineProductData,
   quantity: number,
@@ -156,6 +168,17 @@ export const useNewProductInlineModel = ({
     editItemIndex !== null ? initialDraft?.items[editItemIndex] : undefined;
   const editedProduct = editedItem?.newProductData;
   const isEditingInlineProduct = Boolean(editedProduct);
+  if (
+    !isInlineProductRouteReady(
+      movementType,
+      initialDraft,
+      editItemIndex,
+      isEditingInlineProduct,
+    )
+  ) {
+    redirect("/stock-movements");
+  }
+
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
     () => buildCustomAttributes(editedProduct?.attributes),
   );
@@ -172,21 +195,6 @@ export const useNewProductInlineModel = ({
     section: "Movimentações",
     subsection: isEditingInlineProduct ? "Editar Produto" : "Produto Inline",
   });
-
-  useEffect(() => {
-    const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
-    if (isManualMovementType(movementType) && initialDraft && hasValidEditItem) {
-      return;
-    }
-    toast.error("Volte para a movimentação antes de criar o produto.");
-    router.replace("/stock-movements");
-  }, [
-    editItemIndex,
-    initialDraft,
-    isEditingInlineProduct,
-    movementType,
-    router,
-  ]);
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useSWR<CategoriesResponse>("categories", (url: string) =>

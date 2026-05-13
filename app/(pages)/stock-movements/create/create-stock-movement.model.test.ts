@@ -507,14 +507,17 @@ describe("useCreateStockMovementModel", () => {
     });
   });
 
-  it("impede inicialização sem tipo válido e redireciona", () => {
+  it("mantém modelo sem tipo quando a rota não fornece tipo válido", () => {
     fakeSearchParams.setType(null);
-    renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
 
-    expect(fakeToast.error).toHaveBeenCalledWith(
+    expect(result.current.form.getValues("type")).toBeUndefined();
+    expect(fakeToast.error).not.toHaveBeenCalledWith(
       "Selecione o tipo de movimentação antes de continuar.",
     );
-    expect(fakeRouter.replace).toHaveBeenCalledWith("/stock-movements");
+    expect(fakeRouter.replace).not.toHaveBeenCalledWith("/stock-movements");
   });
 
   it("carrega rascunho existente e limpa do storage", () => {

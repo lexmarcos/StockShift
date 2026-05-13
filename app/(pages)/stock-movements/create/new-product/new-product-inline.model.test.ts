@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useNewProductInlineModel } from "./new-product-inline.model";
 import type { ProductCreateFormData } from "../../../products/create/products-create.types";
@@ -8,6 +8,9 @@ const mockSWR = vi.fn();
 const mockGet = vi.fn();
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
+const mockRedirect = vi.fn((url: string): never => {
+  throw new Error(`NEXT_REDIRECT:${url}`);
+});
 const mockWriteDraft = vi.fn();
 const toastSuccess = vi.fn();
 const toastError = vi.fn();
@@ -72,6 +75,7 @@ vi.mock("@/lib/api", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
+  redirect: (url: string) => mockRedirect(url),
   useRouter: () => ({
     push: (...args: unknown[]) => mockPush(...args),
     replace: (...args: unknown[]) => mockReplace(...args),
@@ -385,12 +389,15 @@ describe("useNewProductInlineModel", () => {
     movementType = "PURCHASE_IN";
     currentDraft = null;
 
-    renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+    expect(() =>
+      renderHook(() =>
+        useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+      ),
+    ).toThrow("NEXT_REDIRECT:/stock-movements");
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
-    });
-    expect(toastError).toHaveBeenCalledWith(
+    expect(mockRedirect).toHaveBeenCalledWith("/stock-movements");
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(toastError).not.toHaveBeenCalledWith(
       "Volte para a movimentação antes de criar o produto.",
     );
   });
@@ -401,12 +408,14 @@ describe("useNewProductInlineModel", () => {
       items: [{ quantity: 1, productName: "Apenas 1 item", newProductData: { name: "Apenas 1 item" } }],
     });
 
-    renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+    expect(() =>
+      renderHook(() =>
+        useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+      ),
+    ).toThrow("NEXT_REDIRECT:/stock-movements");
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
-    });
-    expect(mockReplace).toHaveBeenCalled();
+    expect(mockRedirect).toHaveBeenCalledWith("/stock-movements");
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it("alterna estado do scanner e registra barcode escaneado", () => {

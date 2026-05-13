@@ -251,14 +251,9 @@ export function useCreateStockMovementModel({
   });
 
   useEffect(() => {
-    if (!selectedMovementType) {
-      toast.error("Selecione o tipo de movimentação antes de continuar.");
-      router.replace("/stock-movements");
-      return;
-    }
-
+    if (!selectedMovementType) return;
     form.setValue("type", selectedMovementType, { shouldValidate: true });
-  }, [form, router, selectedMovementType]);
+  }, [form, selectedMovementType]);
 
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
