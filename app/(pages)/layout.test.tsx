@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { act, render, screen, cleanup } from "@testing-library/react";
 import PagesLayout from "./layout";
 
 const mobileMenuMock = vi.hoisted(() => ({
@@ -46,7 +46,13 @@ vi.mock(
   { virtual: true }
 );
 
-afterEach(() => cleanup());
+const getClassTokens = (element: Element | null): string[] =>
+  element?.getAttribute("class")?.split(/\s+/) ?? [];
+
+afterEach(() => {
+  vi.useRealTimers();
+  cleanup();
+});
 
 beforeEach(() => {
   mobileMenuMock.isOpen = true;
@@ -77,9 +83,42 @@ describe("PagesLayout", () => {
     const mobileMenu = container.querySelector('[data-slot="mobile-menu"]');
 
     expect(mobileMenu).toBeTruthy();
-    expect(mobileMenu?.className).toContain("hidden");
+    expect(getClassTokens(mobileMenu)).toContain("hidden");
     expect(mobileMenu?.getAttribute("aria-hidden")).toBe("true");
     expect(mobileMenu?.hasAttribute("inert")).toBe(true);
     expect(mobileMenu?.querySelector('img[alt="StockShift"]')).toBeTruthy();
+  });
+
+  it("keeps the drawer visible while the close animation runs", () => {
+    vi.useFakeTimers();
+
+    const { container, rerender } = render(
+      <PagesLayout>
+        <div>Child</div>
+      </PagesLayout>
+    );
+
+    mobileMenuMock.isOpen = false;
+    rerender(
+      <PagesLayout>
+        <div>Child</div>
+      </PagesLayout>
+    );
+
+    const mobileMenu = container.querySelector('[data-slot="mobile-menu"]');
+    const panel = container.querySelector('[data-slot="mobile-menu-panel"]');
+
+    expect(mobileMenu?.className).toContain("animate-out");
+    expect(mobileMenu?.className).not.toContain("animate-in");
+    expect(mobileMenu?.className).toContain("fill-mode-forwards");
+    expect(getClassTokens(mobileMenu)).not.toContain("hidden");
+    expect(panel?.className).toContain("slide-out-to-left-8");
+    expect(panel?.className).toContain("fill-mode-forwards");
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(getClassTokens(mobileMenu)).toContain("hidden");
   });
 });
