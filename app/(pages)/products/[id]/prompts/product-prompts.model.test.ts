@@ -79,6 +79,7 @@ class FakeProductPromptBrowserActions implements ProductPromptBrowserActions {
   copiedPromptText: string | null = null;
   sharedCompanyLogoUrl: string | null | undefined = null;
   sharedProductImageUrl: string | null = null;
+  sharedReturnUrl: string | undefined = undefined;
   copyResult: ProductPromptTextCopyResult = "text";
   shareResult: ProductPromptAssetShareResult = "shared";
 
@@ -94,6 +95,7 @@ class FakeProductPromptBrowserActions implements ProductPromptBrowserActions {
   ): Promise<ProductPromptAssetShareResult> {
     this.sharedCompanyLogoUrl = input.companyLogoUrl;
     this.sharedProductImageUrl = input.productImageUrl;
+    this.sharedReturnUrl = input.returnUrl;
     return this.shareResult;
   }
 }
@@ -537,6 +539,7 @@ describe("useProductPromptGeneratePageModel", () => {
     expect(actions.copiedPromptText).not.toContain(product.imageUrl);
     expect(actions.sharedCompanyLogoUrl).toBe(companyResponse.data.logoUrl);
     expect(actions.sharedProductImageUrl).toBe(product.imageUrl);
+    expect(actions.sharedReturnUrl).toBe("/products/prod-1/prompts");
     expect(mocks.toastSuccess).toHaveBeenCalledWith(
       "Imagem do produto enviada para compartilhamento. Prompt copiado."
     );

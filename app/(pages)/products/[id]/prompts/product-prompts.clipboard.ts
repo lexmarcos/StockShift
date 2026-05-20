@@ -44,6 +44,7 @@ interface ProductPromptShareReturnState {
 
 interface ProductPromptShareReturnSession {
   reloadAttempted: boolean;
+  returnUrl?: string;
   startedAt: number;
 }
 
@@ -69,7 +70,7 @@ export async function shareProductPromptAssets(
   if (!canShareProductPromptAssets()) return "unsupported";
   const shareFileResult = await buildProductPromptShareFile(input);
   if (shareFileResult.result !== "ready") return shareFileResult.result;
-  return callProductPromptShare([shareFileResult.file]);
+  return callProductPromptShare([shareFileResult.file], input.returnUrl);
 }
 
 export function installProductPromptShareReturnRecovery(): () => void {
@@ -192,9 +193,10 @@ function isProductPromptR2Url(imageUrl: URL): boolean {
 }
 
 async function callProductPromptShare(
-  files: File[]
+  files: File[],
+  returnUrl?: string
 ): Promise<ProductPromptAssetShareResult> {
-  const shareReturnGuard = createProductPromptShareReturnGuard();
+  const shareReturnGuard = createProductPromptShareReturnGuard(returnUrl);
   const shareRecovery = createProductPromptShareRecovery(
     shareReturnGuard.markExternalAppOpened
   );
@@ -289,7 +291,9 @@ function createProductPromptShareRecovery(onExternalAppOpened: () => void): {
   return { cleanup, promise };
 }
 
-function createProductPromptShareReturnGuard(): ProductPromptShareReturnGuard {
+function createProductPromptShareReturnGuard(
+  returnUrl?: string
+): ProductPromptShareReturnGuard {
   if (!shouldReloadProductPromptAfterShareReturn()) {
     return createInactiveProductPromptShareReturnGuard();
   }
@@ -298,7 +302,7 @@ function createProductPromptShareReturnGuard(): ProductPromptShareReturnGuard {
   let listenerCleanup = () => undefined;
   const reloadOnce = () => reloadProductPromptShareReturnOnce(state, cleanupGuard);
   const markExternalAppOpened = () =>
-    markProductPromptExternalAppOpened(state, reloadOnce);
+    markProductPromptExternalAppOpened(state, reloadOnce, returnUrl);
 
   function cleanupGuard(): void {
     cleanupProductPromptShareReturnGuard(state, listenerCleanup, cleanupGuard);
@@ -325,10 +329,11 @@ function createProductPromptShareReturnState(): ProductPromptShareReturnState {
 
 function markProductPromptExternalAppOpened(
   state: ProductPromptShareReturnState,
-  reloadOnce: () => void
+  reloadOnce: () => void,
+  returnUrl?: string
 ): void {
   state.hasExternalAppSignal = true;
-  ensureProductPromptShareReturnSession();
+  ensureProductPromptShareReturnSession(returnUrl);
   ensureProductPromptShareReturnFallback(state, reloadOnce);
 }
 
@@ -504,13 +509,14 @@ function recoverProductPromptShareReturnState(): void {
     ...session,
     reloadAttempted: true,
   });
-  hardReloadProductPromptPageAfterShareReturn();
+  hardReloadProductPromptPageAfterShareReturn(session);
 }
 
-function ensureProductPromptShareReturnSession(): void {
+function ensureProductPromptShareReturnSession(returnUrl?: string): void {
   if (readProductPromptShareReturnSession()) return;
   writeProductPromptShareReturnSession({
     reloadAttempted: false,
+    returnUrl,
     startedAt: Date.now(),
   });
 }
@@ -575,8 +581,13 @@ function isProductPromptShareReturnSession(
   const session = value as Partial<ProductPromptShareReturnSession>;
   return (
     typeof session.reloadAttempted === "boolean" &&
+    isOptionalProductPromptShareReturnUrl(session.returnUrl) &&
     typeof session.startedAt === "number"
   );
+}
+
+function isOptionalProductPromptShareReturnUrl(value: unknown): boolean {
+  return typeof value === "undefined" || typeof value === "string";
 }
 
 function resetProductPromptShareReturnInteractionLocks(): void {
@@ -611,8 +622,10 @@ function removeStaleProductPromptShareReturnOverlays(): void {
     .forEach((overlay) => overlay.remove());
 }
 
-function hardReloadProductPromptPageAfterShareReturn(): void {
-  const reloadUrl = buildProductPromptShareReturnReloadUrl();
+function hardReloadProductPromptPageAfterShareReturn(
+  session: ProductPromptShareReturnSession
+): void {
+  const reloadUrl = buildProductPromptShareReturnReloadUrl(session);
   const recoveryWindow = globalThis.window as ProductPromptShareRecoveryWindow;
   if (typeof recoveryWindow.__stockShiftProductPromptHardReload === "function") {
     recoveryWindow.__stockShiftProductPromptHardReload(reloadUrl);
@@ -621,8 +634,13 @@ function hardReloadProductPromptPageAfterShareReturn(): void {
   globalThis.window.location.replace(reloadUrl);
 }
 
-function buildProductPromptShareReturnReloadUrl(): string {
-  const reloadUrl = new URL(globalThis.window.location.href);
+function buildProductPromptShareReturnReloadUrl(
+  session: ProductPromptShareReturnSession
+): string {
+  const reloadUrl = new URL(
+    session.returnUrl ?? globalThis.window.location.href,
+    globalThis.window.location.href
+  );
   reloadUrl.searchParams.set(
     PRODUCT_PROMPT_SHARE_RETURN_URL_PARAM,
     String(Date.now())

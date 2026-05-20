@@ -65,6 +65,7 @@ export function useProductPromptGeneratePageModel(
       productImageUrl: requests.productImageUrl,
       selectedPrompt,
       setIsPreparingShareImage,
+      shareReturnUrl: `/products/${productId}/prompts`,
     }),
   };
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
 } from "./product-prompts.schema";
 import {
   copyProductPromptText,
+  installProductPromptShareReturnRecovery,
   shareProductPromptAssets,
 } from "./product-prompts.clipboard";
 import {
@@ -73,6 +74,8 @@ export function useProductPromptsModel(productId: string) {
 
   const createPromptForm = useProductPromptCreateForm();
   const createPromptImageFile = createPromptForm.watch("imageFile");
+
+  useProductPromptShareReturnRecovery();
 
   const closeCreatePromptForm = useCallback(() => {
     setIsCreatePromptOpen(false);
@@ -219,6 +222,7 @@ export function createGeneratePromptHandler(input: {
   productImageUrl: string | null;
   selectedPrompt: SavedProductImagePrompt | null;
   setIsPreparingShareImage: (isPreparing: boolean) => void;
+  shareReturnUrl?: string;
 }) {
   return async (data: ProductPromptGenerateFormData): Promise<void> => {
     if (!input.selectedPrompt || !input.productImageUrl) {
@@ -239,11 +243,16 @@ export function createGeneratePromptHandler(input: {
     const shareResult = await shareProductPromptAssetsSafely(input.browserActions, {
       companyLogoUrl,
       productImageUrl: input.productImageUrl,
+      returnUrl: input.shareReturnUrl,
     }).finally(() => {
       input.setIsPreparingShareImage(false);
     });
     notifyProductPromptGenerateResult(copyResult, shareResult);
   };
+}
+
+function useProductPromptShareReturnRecovery(): void {
+  useEffect(() => installProductPromptShareReturnRecovery(), []);
 }
 
 async function resolveProductPromptCompanyLogoUrl(

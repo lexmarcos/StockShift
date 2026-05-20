@@ -383,6 +383,7 @@ describe("product prompt browser helpers", () => {
     try {
       const resultPromise = shareProductPromptAssets({
         productImageUrl: "https://example.com/product.png",
+        returnUrl: "/products/prod-1/prompts",
       });
       await waitForProductPromptShareCall(shareMock);
 
@@ -393,6 +394,7 @@ describe("product prompt browser helpers", () => {
       window.dispatchEvent(new Event("pageshow"));
 
       expect(hardReload.calls).toHaveLength(1);
+      expect(hardReload.calls[0]).toContain("/products/prod-1/prompts");
       expect(hardReload.calls[0]).toContain("ss_share_return=");
     } finally {
       hardReload.restore();
@@ -418,6 +420,7 @@ describe("product prompt browser helpers", () => {
     try {
       const resultPromise = shareProductPromptAssets({
         productImageUrl: "https://example.com/product.png",
+        returnUrl: "/products/prod-1/prompts",
       });
       await waitForProductPromptShareCall(shareMock);
 
@@ -425,6 +428,7 @@ describe("product prompt browser helpers", () => {
       window.dispatchEvent(new Event("focus"));
 
       expect(hardReload.calls).toHaveLength(1);
+      expect(hardReload.calls[0]).toContain("/products/prod-1/prompts");
       expect(hardReload.calls[0]).toContain("ss_share_return=");
       resolveShare?.();
       await expect(resultPromise).resolves.toBe("shared");
@@ -447,6 +451,7 @@ describe("product prompt browser helpers", () => {
     try {
       const resultPromise = shareProductPromptAssets({
         productImageUrl: "https://example.com/product.png",
+        returnUrl: "/products/prod-1/prompts",
       });
       await waitForProductPromptShareCall(shareMock);
 
@@ -454,6 +459,7 @@ describe("product prompt browser helpers", () => {
       await expect(resultPromise).resolves.toBe("shared");
       window.dispatchEvent(new Event("pageshow"));
       expect(hardReload.calls).toHaveLength(1);
+      expect(hardReload.calls[0]).toContain("/products/prod-1/prompts");
 
       document.body.style.pointerEvents = "none";
       document.body.style.overflow = "hidden";

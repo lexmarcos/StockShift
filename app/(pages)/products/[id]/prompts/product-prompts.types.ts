@@ -116,6 +116,7 @@ export interface ProductPromptTextCopyInput {
 export interface ProductPromptAssetShareInput {
   productImageUrl: string;
   companyLogoUrl?: string | null;
+  returnUrl?: string;
 }
 
 export interface ProductPromptBrowserActions {
