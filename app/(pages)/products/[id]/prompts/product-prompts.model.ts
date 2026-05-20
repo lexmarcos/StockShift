@@ -1,11 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useBreadcrumb } from "@/components/breadcrumb";
 import { api } from "@/lib/api";
-import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   productPromptCreateSchema,
   productPromptGenerateSchema,
@@ -19,7 +18,6 @@ import {
 import {
   buildProductPromptChatGptMessage,
   PRODUCT_PROMPT_DEFAULT_POSITION,
-  PRODUCT_PROMPT_POSITION_OPTIONS,
 } from "./product-prompts.pricing";
 import type { ProductBatch } from "../products-detail.types";
 import type {
@@ -35,7 +33,6 @@ import type {
   ProductPromptTextCopyInput,
   ProductPromptTextCopyResult,
   SavedProductImagePrompt,
-  UseProductPromptsModelDependencies,
 } from "./product-prompts.types";
 
 export {
@@ -58,37 +55,22 @@ export {
 
 const PRODUCT_PROMPTS_KEY = "product-prompts";
 
-const browserProductPromptActions: ProductPromptBrowserActions = {
+export const browserProductPromptActions: ProductPromptBrowserActions = {
   copyPromptText: (input: ProductPromptTextCopyInput) =>
     copyProductPromptText(input),
   sharePromptAssets: (input: ProductPromptAssetShareInput) =>
     shareProductPromptAssets(input),
 };
 
-export function useProductPromptsModel(
-  productId: string,
-  dependencies: UseProductPromptsModelDependencies = {}
-) {
-  const browserActions = dependencies.browserActions ?? browserProductPromptActions;
-  const { warehouseId } = useSelectedWarehouse();
+export function useProductPromptsModel(productId: string) {
   const [isCreatePromptOpen, setIsCreatePromptOpen] = useState(false);
-  const [isPreparingShareImage, setIsPreparingShareImage] = useState(false);
-  const [selectedPrompt, setSelectedPrompt] =
-    useState<SavedProductImagePrompt | null>(null);
 
   const productRequest = useProductPromptProductRequest(productId);
-  const companyRequest = useProductPromptCompanyRequest();
   const promptsRequest = useProductPromptListRequest();
-  const batchesRequest = useProductPromptBatchesRequest(productId, warehouseId);
-  const latestBatch = useMemo(
-    () => findLatestProductPromptBatch(batchesRequest.batches),
-    [batchesRequest.batches]
-  );
 
   useProductPromptsBreadcrumb(productId);
 
   const createPromptForm = useProductPromptCreateForm();
-  const generatePromptForm = useProductPromptGenerateForm(latestBatch);
   const createPromptImageFile = createPromptForm.watch("imageFile");
 
   const closeCreatePromptForm = useCallback(() => {
@@ -96,31 +78,16 @@ export function useProductPromptsModel(
     createPromptForm.reset();
   }, [createPromptForm]);
 
-  const closeGeneratePromptForm = useCallback(() => {
-    setSelectedPrompt(null);
-    generatePromptForm.reset(buildGeneratePromptDefaults(latestBatch));
-  }, [generatePromptForm, latestBatch]);
-
   return {
     product: productRequest.product,
     prompts: promptsRequest.prompts,
     isLoading: productRequest.isLoading || promptsRequest.isLoading,
     error: productRequest.error ?? promptsRequest.error,
     isCreatePromptOpen,
-    isPreparingShareImage,
-    selectedPrompt,
-    latestSellingPriceCents: latestBatch?.sellingPrice ?? undefined,
-    pricePositionOptions: PRODUCT_PROMPT_POSITION_OPTIONS,
     createPromptForm,
-    generatePromptForm,
     createPromptImageFile,
     openCreatePromptForm: () => setIsCreatePromptOpen(true),
     closeCreatePromptForm,
-    openGeneratePromptForm: (prompt: SavedProductImagePrompt) => {
-      setSelectedPrompt(prompt);
-      generatePromptForm.reset(buildGeneratePromptDefaults(latestBatch));
-    },
-    closeGeneratePromptForm,
     setCreatePromptImageFile: (file: File | null) => {
       if (!file) {
         createPromptForm.resetField("imageFile");
@@ -131,17 +98,10 @@ export function useProductPromptsModel(
     submitCreatePrompt: createSubmitPromptHandler({
       closeCreatePromptForm,
     }),
-    submitGeneratePrompt: createGeneratePromptHandler({
-      browserActions,
-      companyLogoUrl: companyRequest.logoUrl,
-      productImageUrl: productRequest.product?.imageUrl ?? null,
-      selectedPrompt,
-      setIsPreparingShareImage,
-    }),
   };
 }
 
-function useProductPromptCompanyRequest() {
+export function useProductPromptCompanyRequest() {
   const { data } = useSWR<ProductPromptCompanyResponse>(
     "product-prompts/company-assets",
     async (url: string) => api.get(url).json<ProductPromptCompanyResponse>()
@@ -150,7 +110,7 @@ function useProductPromptCompanyRequest() {
   return { logoUrl: data?.data.logoUrl ?? null };
 }
 
-function useProductPromptProductRequest(productId: string) {
+export function useProductPromptProductRequest(productId: string) {
   const { data, error, isLoading } = useSWR<ProductPromptProductResponse>(
     productId ? `products/${productId}` : null,
     async (url: string) => api.get(url).json<ProductPromptProductResponse>()
@@ -163,7 +123,7 @@ function useProductPromptProductRequest(productId: string) {
   };
 }
 
-function useProductPromptListRequest() {
+export function useProductPromptListRequest() {
   const { data, error, isLoading } = useSWR<ProductPromptListResponse>(
     PRODUCT_PROMPTS_KEY,
     async (url: string) => api.get(url).json<ProductPromptListResponse>()
@@ -176,7 +136,7 @@ function useProductPromptListRequest() {
   };
 }
 
-function useProductPromptBatchesRequest(
+export function useProductPromptBatchesRequest(
   productId: string,
   warehouseId: string | null
 ) {
@@ -209,7 +169,7 @@ function useProductPromptCreateForm() {
   });
 }
 
-function useProductPromptGenerateForm(latestBatch: ProductBatch | null) {
+export function useProductPromptGenerateForm(latestBatch: ProductBatch | null) {
   return useForm<ProductPromptGenerateFormData>({
     resolver: zodResolver(productPromptGenerateSchema),
     defaultValues: buildGeneratePromptDefaults(latestBatch),
@@ -252,7 +212,7 @@ export function buildProductPromptCreateFormData(
   return formData;
 }
 
-function createGeneratePromptHandler(input: {
+export function createGeneratePromptHandler(input: {
   browserActions: ProductPromptBrowserActions;
   companyLogoUrl: string | null;
   productImageUrl: string | null;
@@ -419,6 +379,13 @@ export function findLatestProductPromptBatch(
   return batches.toSorted((firstBatch, secondBatch) => {
     return getProductPromptBatchTime(secondBatch) - getProductPromptBatchTime(firstBatch);
   })[0];
+}
+
+export function findSavedProductPromptById(
+  prompts: SavedProductImagePrompt[],
+  promptId: string
+): SavedProductImagePrompt | null {
+  return prompts.find((prompt) => prompt.id === promptId) ?? null;
 }
 
 function getProductPromptBatchTime(batch: ProductBatch): number {

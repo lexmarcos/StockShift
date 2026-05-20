@@ -14,6 +14,7 @@ import {
   getProductPromptPositionLabel,
   useProductPromptsModel,
 } from "./product-prompts.model";
+import { useProductPromptGeneratePageModel } from "./[promptId]/product-prompt-generate.model";
 import type { Product, ProductBatch } from "../products-detail.types";
 import type {
   ProductPromptAssetShareInput,
@@ -41,6 +42,7 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastInfo: vi.fn(),
   toastError: vi.fn(),
+  routerPush: vi.fn(),
 }));
 
 vi.mock("swr", () => ({
@@ -59,6 +61,10 @@ vi.mock("@/components/breadcrumb", () => ({ useBreadcrumb: vi.fn() }));
 
 vi.mock("@/hooks/use-selected-warehouse", () => ({
   useSelectedWarehouse: () => mocks.useSelectedWarehouse(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mocks.routerPush }),
 }));
 
 vi.mock("sonner", () => ({
@@ -452,22 +458,15 @@ describe("product prompt batch helpers", () => {
 });
 
 describe("useProductPromptsModel", () => {
-  it("carrega prompts globais via SWR e usa o preço do lote mais recente", async () => {
-    const actions = new FakeProductPromptBrowserActions();
-
-    const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
-        browserActions: actions,
-      })
-    );
+  it("carrega produto e prompts globais via SWR", async () => {
+    const { result } = renderHook(() => useProductPromptsModel("prod-1"));
 
     await waitFor(() => expect(result.current.prompts).toEqual([savedPrompt]));
     expect(mocks.swr).toHaveBeenCalledWith("product-prompts", expect.any(Function));
-    expect(result.current.generatePromptForm.getValues("normalPriceCents")).toBe(2500);
+    expect(result.current.product).toEqual(product);
   });
 
   it("cria prompt no backend com multipart e invalida product-prompts", async () => {
-    const actions = new FakeProductPromptBrowserActions();
     const imageFile = new File(["image"], "prompt.png", { type: "image/png" });
     const payload: ProductPromptCreateFormData = {
       imageFile,
@@ -475,11 +474,7 @@ describe("useProductPromptsModel", () => {
       prompt: "  Prompt de teste  ",
     };
 
-    const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
-        browserActions: actions,
-      })
-    );
+    const { result } = renderHook(() => useProductPromptsModel("prod-1"));
 
     await act(async () => {
       await result.current.submitCreatePrompt(payload);
@@ -498,19 +493,30 @@ describe("useProductPromptsModel", () => {
     expect(mocks.swrMutate).toHaveBeenCalledWith("product-prompts");
     expect(mocks.toastSuccess).toHaveBeenCalledWith("Prompt criado com sucesso.");
   });
+});
+
+describe("useProductPromptGeneratePageModel", () => {
+  it("carrega o prompt escolhido e usa o preço do lote mais recente", async () => {
+    const actions = new FakeProductPromptBrowserActions();
+
+    const { result } = renderHook(() =>
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
+        browserActions: actions,
+      })
+    );
+
+    await waitFor(() => expect(result.current.selectedPrompt).toEqual(savedPrompt));
+    expect(result.current.generatePromptForm.getValues("normalPriceCents")).toBe(2500);
+  });
 
   it("copia o prompt e compartilha a imagem do produto com a logo", async () => {
     const actions = new FakeProductPromptBrowserActions();
 
     const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
         browserActions: actions,
       })
     );
-
-    act(() => {
-      result.current.openGeneratePromptForm(savedPrompt);
-    });
 
     await act(async () => {
       await result.current.submitGeneratePrompt({
@@ -540,19 +546,15 @@ describe("useProductPromptsModel", () => {
   it("marca preparação da imagem enquanto compartilha o arquivo composto", async () => {
     const shareDeferred = createDeferredProductPromptShareResult();
     const actions: ProductPromptBrowserActions = {
-      copyPromptText: vi.fn(async () => "text"),
+      copyPromptText: vi.fn(async () => "text" as ProductPromptTextCopyResult),
       sharePromptAssets: vi.fn(() => shareDeferred.promise),
     };
 
     const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
         browserActions: actions,
       })
     );
-
-    act(() => {
-      result.current.openGeneratePromptForm(savedPrompt);
-    });
 
     let submitPromise!: Promise<void>;
     act(() => {
@@ -583,14 +585,10 @@ describe("useProductPromptsModel", () => {
     actions.copyResult = "unsupported";
 
     const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
         browserActions: actions,
       })
     );
-
-    act(() => {
-      result.current.openGeneratePromptForm(savedPrompt);
-    });
 
     await act(async () => {
       await result.current.submitGeneratePrompt({
@@ -617,14 +615,10 @@ describe("useProductPromptsModel", () => {
     actions.shareResult = "product-image-failed";
 
     const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
         browserActions: actions,
       })
     );
-
-    act(() => {
-      result.current.openGeneratePromptForm(savedPrompt);
-    });
 
     await act(async () => {
       await result.current.submitGeneratePrompt({
@@ -665,14 +659,10 @@ describe("useProductPromptsModel", () => {
     });
 
     const { result } = renderHook(() =>
-      useProductPromptsModel("prod-1", {
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
         browserActions: actions,
       })
     );
-
-    act(() => {
-      result.current.openGeneratePromptForm(savedPrompt);
-    });
 
     await act(async () => {
       await result.current.submitGeneratePrompt({

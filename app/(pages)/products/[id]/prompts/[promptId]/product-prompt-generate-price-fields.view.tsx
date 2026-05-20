@@ -1,12 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { BadgePercent } from "lucide-react";
-import type { ControllerRenderProps } from "react-hook-form";
 import { CurrencyInput } from "@/components/ui/currency-input";
-import { FormSection } from "@/components/ui/form-section";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -14,7 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { NumberInput } from "@/components/ui/number-input";
-import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import {
   Select,
   SelectContent,
@@ -24,94 +18,27 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { ProductPromptFormFooter } from "./product-prompts.form-footer";
 import {
-  buildProductPromptPricePreview,
   calculateProductPromptCashPriceCents,
   calculateProductPromptInstallmentCents,
   formatProductPromptBrl,
-} from "./product-prompts.pricing";
-import type { ProductPromptGenerateFormData } from "./product-prompts.schema";
+} from "../product-prompts.pricing";
+import type { ProductPromptGenerateViewProps } from "./product-prompt-generate.types";
 import type {
   ProductPromptCashOfferMode,
   ProductPromptInstallmentBase,
-  ProductPromptPositionOption,
-  ProductPromptsViewProps,
-  SavedProductImagePrompt,
-} from "./product-prompts.types";
+} from "../product-prompts.types";
+import { GeneratePromptBlockTitle } from "./product-prompt-generate-field-title.view";
+import {
+  GeneratePromptPositionField,
+  GeneratePromptTextPreview,
+} from "./product-prompt-generate-position-fields.view";
 
-export function GenerateProductPromptModal({
+export function GeneratePromptPriceFields({
   props,
 }: {
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
-  return (
-    <ResponsiveModal
-      open={!!props.selectedPrompt}
-      onOpenChange={(open) => {
-        if (!open) props.closeGeneratePromptForm();
-      }}
-      title="Gerar imagem"
-      description="Configure preço, oferta, parcelamento e posição do bloco."
-      maxWidth="sm:max-w-[820px]"
-    >
-      <Form {...props.generatePromptForm}>
-        <form
-          onSubmit={props.generatePromptForm.handleSubmit(props.submitGeneratePrompt)}
-          className="space-y-5"
-        >
-          <SelectedPromptSummary prompt={props.selectedPrompt} />
-          <FormSection icon={BadgePercent} title="Preço da arte">
-            <GeneratePromptPriceFields props={props} />
-          </FormSection>
-          <ProductPromptFormFooter
-            cancelLabel="Cancelar"
-            submitLabel="Gerar imagem"
-            isSubmitting={
-              props.generatePromptForm.formState.isSubmitting ||
-              props.isPreparingShareImage
-            }
-            loadingLabel={
-              props.isPreparingShareImage ? "Preparando imagem" : "Gerando imagem"
-            }
-            onCancel={props.closeGeneratePromptForm}
-          />
-        </form>
-      </Form>
-    </ResponsiveModal>
-  );
-}
-
-function SelectedPromptSummary({
-  prompt,
-}: {
-  prompt: SavedProductImagePrompt | null;
-}) {
-  if (!prompt) return null;
-
-  return (
-    <div className="flex gap-3 rounded-[4px] border border-neutral-800 bg-neutral-950/40 p-3">
-      <div className="relative size-16 shrink-0 overflow-hidden rounded-[4px] bg-neutral-900">
-        <Image
-          src={prompt.imageUrl}
-          alt={prompt.name}
-          fill
-          unoptimized
-          className="object-cover"
-        />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
-          Prompt selecionado
-        </p>
-        <p className="mt-1 truncate text-sm font-bold text-white">{prompt.name}</p>
-        <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{prompt.prompt}</p>
-      </div>
-    </div>
-  );
-}
-
-function GeneratePromptPriceFields({ props }: { props: ProductPromptsViewProps }) {
   return (
     <div className="space-y-6">
       <GeneratePromptBasePriceBlock props={props} />
@@ -126,7 +53,7 @@ function GeneratePromptPriceFields({ props }: { props: ProductPromptsViewProps }
 function GeneratePromptBasePriceBlock({
   props,
 }: {
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
   return (
     <div className="space-y-3 border-b border-neutral-800 pb-5">
@@ -136,7 +63,7 @@ function GeneratePromptBasePriceBlock({
   );
 }
 
-function NormalPriceField({ props }: { props: ProductPromptsViewProps }) {
+function NormalPriceField({ props }: { props: ProductPromptGenerateViewProps }) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -163,7 +90,7 @@ function NormalPriceField({ props }: { props: ProductPromptsViewProps }) {
 function GeneratePromptCashOfferBlock({
   props,
 }: {
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
   const formValues = props.generatePromptForm.watch();
   const showCashOffer = formValues.showCashOffer;
@@ -205,7 +132,11 @@ function GeneratePromptCashOfferBlock({
   );
 }
 
-function CashOfferModeField({ props }: { props: ProductPromptsViewProps }) {
+function CashOfferModeField({
+  props,
+}: {
+  props: ProductPromptGenerateViewProps;
+}) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -256,7 +187,7 @@ function CashOfferModeControl({
   );
 }
 
-function CashPriceField({ props }: { props: ProductPromptsViewProps }) {
+function CashPriceField({ props }: { props: ProductPromptGenerateViewProps }) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -280,7 +211,11 @@ function CashPriceField({ props }: { props: ProductPromptsViewProps }) {
   );
 }
 
-function CashDiscountField({ props }: { props: ProductPromptsViewProps }) {
+function CashDiscountField({
+  props,
+}: {
+  props: ProductPromptGenerateViewProps;
+}) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -309,7 +244,7 @@ function CashDiscountField({ props }: { props: ProductPromptsViewProps }) {
 function GeneratePromptInstallmentBlock({
   props,
 }: {
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
   const formValues = props.generatePromptForm.watch();
   const installmentCents = calculateProductPromptInstallmentCents(formValues);
@@ -326,10 +261,7 @@ function GeneratePromptInstallmentBlock({
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <InstallmentsField props={props} />
-            <InstallmentBaseField
-              props={props}
-              hasCashOffer={hasCashOffer}
-            />
+            <InstallmentBaseField props={props} hasCashOffer={hasCashOffer} />
           </div>
           {formValues.installmentBase === "custom-price" && (
             <InstallmentPriceField props={props} />
@@ -344,7 +276,11 @@ function GeneratePromptInstallmentBlock({
   );
 }
 
-function InstallmentsField({ props }: { props: ProductPromptsViewProps }) {
+function InstallmentsField({
+  props,
+}: {
+  props: ProductPromptGenerateViewProps;
+}) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -374,7 +310,7 @@ function InstallmentBaseField({
   props,
 }: {
   hasCashOffer: boolean;
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
   return (
     <FormField
@@ -419,7 +355,11 @@ function InstallmentBaseField({
   );
 }
 
-function InstallmentPriceField({ props }: { props: ProductPromptsViewProps }) {
+function InstallmentPriceField({
+  props,
+}: {
+  props: ProductPromptGenerateViewProps;
+}) {
   return (
     <FormField
       control={props.generatePromptForm.control}
@@ -452,7 +392,7 @@ function GeneratePromptSwitchField({
   label: string;
   name: "showCashOffer" | "showInstallments";
   onCheckedChange?: (checked: boolean) => void;
-  props: ProductPromptsViewProps;
+  props: ProductPromptGenerateViewProps;
 }) {
   return (
     <FormField
@@ -496,78 +436,5 @@ function CalculatedPricePreview({
         {valueCents === null ? "-" : formatProductPromptBrl(valueCents)}
       </span>
     </div>
-  );
-}
-
-function GeneratePromptPositionField({ props }: { props: ProductPromptsViewProps }) {
-  return (
-    <div className="space-y-3 border-b border-neutral-800 pb-5">
-      <GeneratePromptBlockTitle title="Posição do bloco de preço" />
-      <FormField
-        control={props.generatePromptForm.control}
-        name="pricePosition"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              Local onde deve aparecer o preço
-            </FormLabel>
-            <ProductPromptPositionGrid
-              field={field}
-              options={props.pricePositionOptions}
-            />
-            <FormMessage className="text-xs text-rose-500" />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-}
-
-function ProductPromptPositionGrid({
-  field,
-  options,
-}: {
-  field: ControllerRenderProps<ProductPromptGenerateFormData, "pricePosition">;
-  options: ProductPromptPositionOption[];
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => field.onChange(option.value)}
-          className={cn(
-            "h-14 rounded-[4px] border bg-neutral-900 px-2 text-xs font-bold text-neutral-300 hover:border-blue-600",
-            field.value === option.value
-              ? "border-blue-600 bg-blue-950/40 text-white"
-              : "border-neutral-800"
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function GeneratePromptTextPreview({ props }: { props: ProductPromptsViewProps }) {
-  const previewText = buildProductPromptPricePreview(props.generatePromptForm.watch());
-
-  return (
-    <div className="space-y-3">
-      <GeneratePromptBlockTitle title="Prévia do texto" />
-      <pre className="min-h-24 whitespace-pre-wrap rounded-[4px] border border-neutral-800 bg-neutral-950 p-3 font-sans text-sm leading-relaxed text-white">
-        {previewText || "Preencha o preço normal para visualizar."}
-      </pre>
-    </div>
-  );
-}
-
-function GeneratePromptBlockTitle({ title }: { title: string }) {
-  return (
-    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-      {title}
-    </p>
   );
 }

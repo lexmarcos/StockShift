@@ -140,6 +140,31 @@ function stubProductPromptObjectUrl(): void {
   });
 }
 
+function stubProductPromptIosStandaloneMode(): () => void {
+  const restorers = [
+    defineProductPromptNavigatorValue("userAgent", "Mozilla/5.0 (iPhone)"),
+    defineProductPromptNavigatorValue("platform", "iPhone"),
+    defineProductPromptNavigatorValue("maxTouchPoints", 5),
+    defineProductPromptNavigatorValue("standalone", true),
+  ];
+  return () => restorers.forEach((restore) => restore());
+}
+
+function defineProductPromptNavigatorValue(
+  key: string,
+  value: unknown
+): () => void {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, key);
+  Object.defineProperty(navigator, key, { configurable: true, value });
+  return () => {
+    if (descriptor) {
+      Object.defineProperty(navigator, key, descriptor);
+      return;
+    }
+    Reflect.deleteProperty(navigator, key);
+  };
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -314,6 +339,70 @@ describe("product prompt browser helpers", () => {
 
     await expect(resultPromise).resolves.toBe("shared");
     expect(shareMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("recarrega o iOS PWA quando volta do app externo após compartilhar", async () => {
+    const restoreStandaloneMode = stubProductPromptIosStandaloneMode();
+    const historyGoMock = vi.spyOn(window.history, "go").mockImplementation(
+      () => undefined
+    );
+    const shareMock = vi.fn(() => new Promise<void>(() => undefined));
+    vi.stubGlobal("fetch", createProductPromptImageFetch());
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: shareMock,
+    });
+
+    try {
+      const resultPromise = shareProductPromptAssets({
+        productImageUrl: "https://example.com/product.png",
+      });
+      await waitForProductPromptShareCall(shareMock);
+
+      window.dispatchEvent(new Event("pagehide"));
+      await expect(resultPromise).resolves.toBe("shared");
+      expect(historyGoMock).not.toHaveBeenCalled();
+
+      window.dispatchEvent(new Event("pageshow"));
+
+      expect(historyGoMock).toHaveBeenCalledWith(0);
+    } finally {
+      restoreStandaloneMode();
+    }
+  });
+
+  it("recarrega o iOS PWA quando volta sem disparar pagehide", async () => {
+    const restoreStandaloneMode = stubProductPromptIosStandaloneMode();
+    const historyGoMock = vi.spyOn(window.history, "go").mockImplementation(
+      () => undefined
+    );
+    let resolveShare: (() => void) | null = null;
+    const shareMock = vi.fn(
+      () => new Promise<void>((resolve) => {
+        resolveShare = resolve;
+      })
+    );
+    vi.stubGlobal("fetch", createProductPromptImageFetch());
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: shareMock,
+    });
+
+    try {
+      const resultPromise = shareProductPromptAssets({
+        productImageUrl: "https://example.com/product.png",
+      });
+      await waitForProductPromptShareCall(shareMock);
+
+      window.dispatchEvent(new Event("blur"));
+      window.dispatchEvent(new Event("focus"));
+
+      expect(historyGoMock).toHaveBeenCalledWith(0);
+      resolveShare?.();
+      await expect(resultPromise).resolves.toBe("shared");
+    } finally {
+      restoreStandaloneMode();
+    }
   });
 
   it("compõe localmente com imagens R2 buscadas pelo proxy de CORS", async () => {

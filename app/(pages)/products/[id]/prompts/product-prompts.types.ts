@@ -137,18 +137,22 @@ export interface ProductPromptsViewProps {
   isLoading: boolean;
   error: Error | null;
   isCreatePromptOpen: boolean;
-  isPreparingShareImage: boolean;
-  selectedPrompt: SavedProductImagePrompt | null;
-  latestSellingPriceCents?: number;
-  pricePositionOptions: ProductPromptPositionOption[];
   createPromptForm: UseFormReturn<ProductPromptCreateFormData>;
-  generatePromptForm: UseFormReturn<ProductPromptGenerateFormData>;
   createPromptImageFile?: File;
   openCreatePromptForm: () => void;
   closeCreatePromptForm: () => void;
-  openGeneratePromptForm: (prompt: SavedProductImagePrompt) => void;
-  closeGeneratePromptForm: () => void;
   setCreatePromptImageFile: (file: File | null) => void;
   submitCreatePrompt: (data: ProductPromptCreateFormData) => Promise<void>;
+}
+
+export interface ProductPromptGenerateViewProps {
+  product: Product | null;
+  selectedPrompt: SavedProductImagePrompt | null;
+  isLoading: boolean;
+  error: Error | null;
+  isPreparingShareImage: boolean;
+  pricePositionOptions: ProductPromptPositionOption[];
+  generatePromptForm: UseFormReturn<ProductPromptGenerateFormData>;
+  closeGeneratePromptPage: () => void;
   submitGeneratePrompt: (data: ProductPromptGenerateFormData) => Promise<void>;
 }

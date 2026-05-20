@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   Image as ImageIcon,
   Plus,
@@ -26,7 +27,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Textarea } from "@/components/ui/textarea";
 import { ProductPromptFormFooter } from "./product-prompts.form-footer";
-import { GenerateProductPromptModal } from "./product-prompts.generate.view";
 import type {
   ProductPromptsViewProps,
   SavedProductImagePrompt,
@@ -56,9 +56,8 @@ export function ProductPromptsView(props: ProductPromptsViewProps) {
         actions={<ProductPromptCreateButton onClick={props.openCreatePromptForm} />}
       />
       <ProductPromptImageWarning productImageUrl={props.product.imageUrl} />
-      <ProductPromptGrid props={props} />
+      <ProductPromptGrid props={props} productId={props.product.id} />
       <CreateProductPromptModal props={props} />
-      <GenerateProductPromptModal props={props} />
     </PageContainer>
   );
 }
@@ -86,7 +85,13 @@ function ProductPromptImageWarning({ productImageUrl }: { productImageUrl: strin
   );
 }
 
-function ProductPromptGrid({ props }: { props: ProductPromptsViewProps }) {
+function ProductPromptGrid({
+  productId,
+  props,
+}: {
+  productId: string;
+  props: ProductPromptsViewProps;
+}) {
   if (props.prompts.length === 0) {
     return (
       <EmptyState
@@ -105,7 +110,7 @@ function ProductPromptGrid({ props }: { props: ProductPromptsViewProps }) {
         <ProductPromptCard
           key={prompt.id}
           prompt={prompt}
-          onClick={() => props.openGeneratePromptForm(prompt)}
+          productId={productId}
         />
       ))}
     </div>
@@ -113,17 +118,16 @@ function ProductPromptGrid({ props }: { props: ProductPromptsViewProps }) {
 }
 
 function ProductPromptCard({
-  onClick,
   prompt,
+  productId,
 }: {
-  onClick: () => void;
   prompt: SavedProductImagePrompt;
+  productId: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] text-left hover:border-blue-600"
+    <Link
+      href={`/products/${productId}/prompts/${prompt.id}`}
+      className="group block overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] text-left hover:border-blue-600"
     >
       <div className="relative aspect-[4/5] bg-neutral-950">
         <Image
@@ -143,7 +147,7 @@ function ProductPromptCard({
           {prompt.prompt}
         </p>
       </div>
-    </button>
+    </Link>
   );
 }
 

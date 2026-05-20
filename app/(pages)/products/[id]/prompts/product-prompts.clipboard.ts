@@ -10,6 +10,33 @@ type ProductPromptDrawableImage = HTMLImageElement | ImageBitmap;
 const PRODUCT_PROMPT_CANVAS_JPEG_QUALITY = 0.82;
 const PRODUCT_PROMPT_CANVAS_MAX_LONG_EDGE = 1600;
 const PRODUCT_PROMPT_SHARE_RECOVERY_TIMEOUT_MS = 15000;
+const PRODUCT_PROMPT_SHARE_RETURN_FALLBACK_MS = 2500;
+const PRODUCT_PROMPT_SHARE_RETURN_RELOAD_TIMEOUT_MS = 120000;
+let productPromptShareReturnReloadCleanup: (() => void) | null = null;
+
+interface ProductPromptShareReturnGuard {
+  cleanup: () => void;
+  markExternalAppOpened: () => void;
+  reloadAfterReturn: () => void;
+}
+
+interface ProductPromptShareReturnListenerInput {
+  markExternalAppOpened: () => void;
+  reloadOnce: () => void;
+}
+
+interface ProductPromptShareReturnDomListeners {
+  handleBlur: () => void;
+  handlePageHide: () => void;
+  handleVisibilityChange: () => void;
+  reloadOnce: () => void;
+}
+
+interface ProductPromptShareReturnState {
+  fallbackTimeoutId?: ReturnType<typeof globalThis.setTimeout>;
+  hasExternalAppSignal: boolean;
+  hasReloaded: boolean;
+}
 
 export async function copyProductPromptText(
   input: ProductPromptTextCopyInput
@@ -128,19 +155,30 @@ function isProductPromptR2Url(imageUrl: URL): boolean {
 async function callProductPromptShare(
   files: File[]
 ): Promise<ProductPromptAssetShareResult> {
-  const shareRecovery = createProductPromptShareRecovery();
+  const shareReturnGuard = createProductPromptShareReturnGuard();
+  const shareRecovery = createProductPromptShareRecovery(
+    shareReturnGuard.markExternalAppOpened
+  );
   try {
     return await Promise.race([
-      globalThis.navigator.share({ files }).then<ProductPromptAssetShareResult>(
-        () => "shared"
-      ),
+      runProductPromptNativeShare(files, shareReturnGuard),
       shareRecovery.promise,
     ]);
   } catch (error) {
+    shareReturnGuard.cleanup();
     return getProductPromptShareFailure(error);
   } finally {
     shareRecovery.cleanup();
   }
+}
+
+async function runProductPromptNativeShare(
+  files: File[],
+  shareReturnGuard: ProductPromptShareReturnGuard
+): Promise<ProductPromptAssetShareResult> {
+  await globalThis.navigator.share({ files });
+  shareReturnGuard.reloadAfterReturn();
+  return "shared";
 }
 
 function canWriteProductPromptClipboardText(): boolean {
@@ -158,7 +196,7 @@ function canShareProductPromptAssets(): boolean {
   );
 }
 
-function createProductPromptShareRecovery(): {
+function createProductPromptShareRecovery(onExternalAppOpened: () => void): {
   cleanup: () => void;
   promise: Promise<ProductPromptAssetShareResult>;
 } {
@@ -171,15 +209,19 @@ function createProductPromptShareRecovery(): {
 
   let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
   let cleanup = () => undefined;
+  let hasFinished = false;
   const promise = new Promise<ProductPromptAssetShareResult>((resolve) => {
-    const finish = () => {
+    const finish = (shouldReloadOnReturn: boolean) => {
+      if (hasFinished) return;
+      hasFinished = true;
       cleanup();
+      if (shouldReloadOnReturn) onExternalAppOpened();
       resolve("shared");
     };
     const handleVisibilityChange = () => {
-      if (globalThis.document?.visibilityState === "hidden") finish();
+      if (globalThis.document?.visibilityState === "hidden") finish(true);
     };
-    const handlePageHide = () => finish();
+    const handlePageHide = () => finish(true);
 
     cleanup = () => {
       globalThis.document?.removeEventListener(
@@ -199,12 +241,235 @@ function createProductPromptShareRecovery(): {
       once: true,
     });
     timeoutId = globalThis.setTimeout(
-      finish,
+      () => finish(false),
       PRODUCT_PROMPT_SHARE_RECOVERY_TIMEOUT_MS
     );
   });
 
   return { cleanup, promise };
+}
+
+function createProductPromptShareReturnGuard(): ProductPromptShareReturnGuard {
+  if (!shouldReloadProductPromptAfterShareReturn()) {
+    return createInactiveProductPromptShareReturnGuard();
+  }
+  productPromptShareReturnReloadCleanup?.();
+  const state = createProductPromptShareReturnState();
+  let listenerCleanup = () => undefined;
+  const reloadOnce = () => reloadProductPromptShareReturnOnce(state, cleanupGuard);
+  const markExternalAppOpened = () =>
+    markProductPromptExternalAppOpened(state, reloadOnce);
+
+  function cleanupGuard(): void {
+    cleanupProductPromptShareReturnGuard(state, listenerCleanup, cleanupGuard);
+  }
+
+  listenerCleanup = listenForProductPromptShareReturn({
+    markExternalAppOpened,
+    reloadOnce,
+  });
+  productPromptShareReturnReloadCleanup = cleanupGuard;
+  return buildProductPromptShareReturnGuard(
+    cleanupGuard,
+    markExternalAppOpened,
+    reloadOnce
+  );
+}
+
+function createProductPromptShareReturnState(): ProductPromptShareReturnState {
+  return {
+    hasExternalAppSignal: false,
+    hasReloaded: false,
+  };
+}
+
+function markProductPromptExternalAppOpened(
+  state: ProductPromptShareReturnState,
+  reloadOnce: () => void
+): void {
+  state.hasExternalAppSignal = true;
+  ensureProductPromptShareReturnFallback(state, reloadOnce);
+}
+
+function cleanupProductPromptShareReturnGuard(
+  state: ProductPromptShareReturnState,
+  listenerCleanup: () => void,
+  cleanupGuard: () => void
+): void {
+  listenerCleanup();
+  clearProductPromptShareReturnFallback(state);
+  if (productPromptShareReturnReloadCleanup !== cleanupGuard) return;
+  productPromptShareReturnReloadCleanup = null;
+}
+
+function buildProductPromptShareReturnGuard(
+  cleanup: () => void,
+  markExternalAppOpened: () => void,
+  reloadOnce: () => void
+): ProductPromptShareReturnGuard {
+  return {
+    cleanup,
+    markExternalAppOpened,
+    reloadAfterReturn: () =>
+      reloadProductPromptAfterNativeShareReturn(markExternalAppOpened, reloadOnce),
+  };
+}
+
+function reloadProductPromptAfterNativeShareReturn(
+  markExternalAppOpened: () => void,
+  reloadOnce: () => void
+): void {
+  markExternalAppOpened();
+  reloadOnce();
+}
+
+function createInactiveProductPromptShareReturnGuard(): ProductPromptShareReturnGuard {
+  return {
+    cleanup: () => undefined,
+    markExternalAppOpened: () => undefined,
+    reloadAfterReturn: () => undefined,
+  };
+}
+
+function reloadProductPromptShareReturnOnce(
+  state: ProductPromptShareReturnState,
+  cleanup: () => void
+): void {
+  if (!canReloadProductPromptShareReturn(state)) return;
+  state.hasReloaded = true;
+  cleanup();
+  reloadProductPromptPageAfterShareReturn();
+}
+
+function canReloadProductPromptShareReturn(
+  state: ProductPromptShareReturnState
+): boolean {
+  if (state.hasReloaded) return false;
+  if (globalThis.document?.visibilityState === "hidden") return false;
+  if (state.hasExternalAppSignal) return true;
+  return globalThis.document?.hasFocus?.() !== false;
+}
+
+function ensureProductPromptShareReturnFallback(
+  state: ProductPromptShareReturnState,
+  reloadOnce: () => void
+): void {
+  if (state.fallbackTimeoutId) return;
+  state.fallbackTimeoutId = globalThis.setTimeout(
+    reloadOnce,
+    PRODUCT_PROMPT_SHARE_RETURN_FALLBACK_MS
+  );
+}
+
+function clearProductPromptShareReturnFallback(
+  state: ProductPromptShareReturnState
+): void {
+  if (!state.fallbackTimeoutId) return;
+  globalThis.clearTimeout(state.fallbackTimeoutId);
+  state.fallbackTimeoutId = undefined;
+}
+
+function listenForProductPromptShareReturn(
+  input: ProductPromptShareReturnListenerInput
+): () => void {
+  const listeners = createProductPromptShareReturnDomListeners(input);
+  const timeoutId = globalThis.setTimeout(
+    cleanup,
+    PRODUCT_PROMPT_SHARE_RETURN_RELOAD_TIMEOUT_MS
+  );
+
+  function cleanup(): void {
+    removeProductPromptShareReturnListeners(listeners);
+    globalThis.clearTimeout(timeoutId);
+  }
+
+  addProductPromptShareReturnListeners(listeners);
+  return cleanup;
+}
+
+function createProductPromptShareReturnDomListeners(
+  input: ProductPromptShareReturnListenerInput
+): ProductPromptShareReturnDomListeners {
+  return {
+    handleBlur: input.markExternalAppOpened,
+    handlePageHide: input.markExternalAppOpened,
+    handleVisibilityChange: () => handleProductPromptShareVisibilityChange(input),
+    reloadOnce: input.reloadOnce,
+  };
+}
+
+function handleProductPromptShareVisibilityChange(
+  input: ProductPromptShareReturnListenerInput
+): void {
+  if (globalThis.document?.visibilityState === "hidden") {
+    input.markExternalAppOpened();
+    return;
+  }
+  input.reloadOnce();
+}
+
+function addProductPromptShareReturnListeners(
+  listeners: ProductPromptShareReturnDomListeners
+): void {
+  globalThis.document?.addEventListener(
+    "visibilitychange",
+    listeners.handleVisibilityChange
+  );
+  globalThis.window.addEventListener("pagehide", listeners.handlePageHide);
+  globalThis.window.addEventListener("blur", listeners.handleBlur);
+  globalThis.window.addEventListener("pageshow", listeners.reloadOnce, {
+    once: true,
+  });
+  globalThis.window.addEventListener("focus", listeners.reloadOnce, {
+    once: true,
+  });
+}
+
+function removeProductPromptShareReturnListeners(
+  listeners: ProductPromptShareReturnDomListeners
+): void {
+  globalThis.document?.removeEventListener(
+    "visibilitychange",
+    listeners.handleVisibilityChange
+  );
+  globalThis.window.removeEventListener("pagehide", listeners.handlePageHide);
+  globalThis.window.removeEventListener("blur", listeners.handleBlur);
+  globalThis.window.removeEventListener("pageshow", listeners.reloadOnce);
+  globalThis.window.removeEventListener("focus", listeners.reloadOnce);
+}
+
+function shouldReloadProductPromptAfterShareReturn(): boolean {
+  return (
+    typeof globalThis.window !== "undefined" &&
+    typeof globalThis.navigator !== "undefined" &&
+    isProductPromptAppleTouchBrowser() &&
+    isProductPromptStandaloneApp()
+  );
+}
+
+function isProductPromptAppleTouchBrowser(): boolean {
+  const platform = globalThis.navigator.platform ?? "";
+  const userAgent = globalThis.navigator.userAgent ?? "";
+  const isModernIpad = platform === "MacIntel" && globalThis.navigator.maxTouchPoints > 1;
+  return /iPad|iPhone|iPod/.test(userAgent) || isModernIpad;
+}
+
+function isProductPromptStandaloneApp(): boolean {
+  const navigatorWithStandalone = globalThis.navigator as Navigator & {
+    standalone?: boolean;
+  };
+  return (
+    navigatorWithStandalone.standalone === true ||
+    globalThis.window.matchMedia?.("(display-mode: standalone)").matches === true
+  );
+}
+
+function reloadProductPromptPageAfterShareReturn(): void {
+  if (typeof globalThis.window.history?.go === "function") {
+    globalThis.window.history.go(0);
+    return;
+  }
+  globalThis.window.location.reload();
 }
 
 async function convertProductPromptImageBlobToJpeg(
