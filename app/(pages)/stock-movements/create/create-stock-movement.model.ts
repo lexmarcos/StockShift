@@ -271,6 +271,7 @@ export function useCreateStockMovementModel({
   const router = useRouter();
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingStep, setSubmittingStep] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedProduct, setSelectedProduct] =
     useState<StockMovementProductOption | null>(null);
@@ -918,11 +919,17 @@ export function useCreateStockMovementModel({
     }
 
     setIsSubmitting(true);
+    setSubmittingStep("Preparando dados da movimentação…");
     try {
       const payload = buildMovementPayload(selectedMovementType, data);
+
+      setSubmittingStep("Fazendo upload das imagens…");
       const payloadWithImages = await uploadInlineProductImages(payload, data.items);
+
+      setSubmittingStep("Ajustando preços e quantidades…");
       await api.post("stock-movements", { json: payloadWithImages });
 
+      setSubmittingStep("Finalizando…");
       await clearStockMovementDraft();
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");
@@ -931,6 +938,7 @@ export function useCreateStockMovementModel({
       toast.error(error.message || "Erro ao criar movimentação.");
     } finally {
       setIsSubmitting(false);
+      setSubmittingStep(null);
     }
   };
 
@@ -940,6 +948,7 @@ export function useCreateStockMovementModel({
     products,
     isLoadingProducts,
     isSubmitting,
+    submittingStep,
     isFooterVisible,
     selectedProductId,
     productSearchQuery,

@@ -49,16 +49,19 @@ interface CreateStockMovementViewState extends CreateStockMovementViewProps {
   selectedType: ManualMovementType | undefined;
   setIsNotesOpen: (open: boolean) => void;
   totalQuantity: number;
+  submittingStep: string | null;
 }
 
 export function CreateStockMovementView(props: CreateStockMovementViewProps) {
   const {
     form,
     items,
+    isSubmitting,
     onEditExistingProductBatchData,
     onEditNewProductItem,
     onRemoveItem,
     onSubmit,
+    submittingStep,
   } = props;
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
@@ -79,11 +82,16 @@ export function CreateStockMovementView(props: CreateStockMovementViewProps) {
     notesValue,
     selectedType,
     setIsNotesOpen,
+    submittingStep,
     totalQuantity,
   };
 
   return (
     <PageContainer bottomPadding="fixed-bar" className="pb-40 md:pb-28">
+      <StockMovementSubmitOverlay
+        isSubmitting={isSubmitting}
+        submittingStep={submittingStep}
+      />
       <StockMovementCreateOverlays viewState={viewState} />
       <StockMovementNotesButton viewState={viewState} />
 
@@ -617,5 +625,34 @@ function StockMovementSubmitBar({
         </div>
       </div>
     </FixedBottomBar>
+  );
+}
+
+function StockMovementSubmitOverlay({
+  isSubmitting,
+  submittingStep,
+}: {
+  isSubmitting: boolean;
+  submittingStep: string | null;
+}) {
+  if (!isSubmitting) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0A0A0A]/95 backdrop-blur-sm">
+      <div className="flex w-full max-w-xs flex-col items-center gap-6">
+        <Loader2 className="size-10 animate-spin text-blue-600" strokeWidth={2.5} />
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-base font-bold text-white">
+            Registrando movimentação
+          </p>
+          {submittingStep ? (
+            <p className="text-sm text-neutral-400">{submittingStep}</p>
+          ) : null}
+        </div>
+        <p className="text-center text-[11px] text-neutral-600">
+          Não saia desta tela até que o processo seja concluído.
+        </p>
+      </div>
+    </div>
   );
 }
