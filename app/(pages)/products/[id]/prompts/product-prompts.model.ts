@@ -326,6 +326,10 @@ function notifyProductPromptGenerateFailure(
     notifyProductPromptUnsupportedShare(copyResult);
     return;
   }
+  if (shareResult === "ios-pwa-file-share-blocked") {
+    notifyProductPromptIosPwaFileShareBlocked(copyResult);
+    return;
+  }
   if (shareResult === "product-image-failed") {
     toast.error(
       copyResult === "text"
@@ -343,6 +347,20 @@ function notifyProductPromptGenerateFailure(
     return;
   }
   notifyProductPromptShareFailure(copyResult);
+}
+
+function notifyProductPromptIosPwaFileShareBlocked(
+  copyResult: ProductPromptTextCopyResult
+): void {
+  if (copyResult === "text") {
+    toast.info(
+      "Prompt copiado. No PWA do iOS, envie a imagem manualmente para evitar travamento."
+    );
+    return;
+  }
+  toast.error(
+    "No PWA do iOS, o envio automático da imagem foi bloqueado para evitar travamento."
+  );
 }
 
 function notifyProductPromptUnsupportedShare(

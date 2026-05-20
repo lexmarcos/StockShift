@@ -67,6 +67,9 @@ export async function copyProductPromptText(
 export async function shareProductPromptAssets(
   input: ProductPromptAssetShareInput
 ): Promise<ProductPromptAssetShareResult> {
+  if (shouldUseProductPromptIosPwaShareFallback()) {
+    return "ios-pwa-file-share-blocked";
+  }
   if (!canShareProductPromptAssets()) return "unsupported";
   const shareFileResult = await buildProductPromptShareFile(input);
   if (shareFileResult.result !== "ready") return shareFileResult.result;
@@ -485,6 +488,10 @@ function removeProductPromptShareReturnListeners(
 }
 
 function shouldReloadProductPromptAfterShareReturn(): boolean {
+  return shouldUseProductPromptIosPwaShareFallback();
+}
+
+function shouldUseProductPromptIosPwaShareFallback(): boolean {
   return (
     typeof globalThis.window !== "undefined" &&
     typeof globalThis.navigator !== "undefined" &&

@@ -613,6 +613,34 @@ describe("useProductPromptGeneratePageModel", () => {
     expect(mocks.toastError).not.toHaveBeenCalled();
   });
 
+  it("avisa o bloqueio do envio automático de imagem no PWA do iOS", async () => {
+    const actions = new FakeProductPromptBrowserActions();
+    actions.shareResult = "ios-pwa-file-share-blocked";
+
+    const { result } = renderHook(() =>
+      useProductPromptGeneratePageModel("prod-1", "prompt-1", {
+        browserActions: actions,
+      })
+    );
+
+    await act(async () => {
+      await result.current.submitGeneratePrompt({
+        normalPriceCents: 10000,
+        showCashOffer: false,
+        cashOfferMode: "final-price",
+        showInstallments: false,
+        installmentBase: "normal-price",
+        pricePosition: "top-center",
+      });
+    });
+
+    expect(actions.copiedPromptText).toContain(savedPrompt.prompt);
+    expect(mocks.toastInfo).toHaveBeenCalledWith(
+      "Prompt copiado. No PWA do iOS, envie a imagem manualmente para evitar travamento."
+    );
+    expect(mocks.toastError).not.toHaveBeenCalled();
+  });
+
   it("mostra um único erro quando copia o prompt mas a imagem falha", async () => {
     const actions = new FakeProductPromptBrowserActions();
     actions.shareResult = "product-image-failed";

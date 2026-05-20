@@ -104,6 +104,7 @@ export type ProductPromptTextCopyResult =
 export type ProductPromptAssetShareResult =
   | "shared"
   | "unsupported"
+  | "ios-pwa-file-share-blocked"
   | "product-image-failed"
   | "brand-image-failed"
   | "share-failed"
