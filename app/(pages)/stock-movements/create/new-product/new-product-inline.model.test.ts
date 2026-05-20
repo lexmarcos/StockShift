@@ -392,6 +392,31 @@ describe("useNewProductInlineModel", () => {
     expect(result.current.isSubmitting).toBe(false);
   });
 
+  it("inclui produto e volta para a tela de criação", async () => {
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("barcode")).toBe("7891000000001");
+    });
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({
+          name: "Novo Item",
+          quantity: 3,
+          continuousMode: false,
+        }),
+      );
+    });
+
+    expect(mockWriteDraft).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith(
+      "/stock-movements/create?type=PURCHASE_IN",
+    );
+  });
+
   it("atualiza produto existente e retorna para a tela de criação", async () => {
     currentDraft = createDraft({
       items: [
@@ -403,7 +428,9 @@ describe("useNewProductInlineModel", () => {
       ],
     });
     editItemQuery = "0";
-    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
 
     await waitFor(() => {
       expect(result.current.isInlineEdit).toBe(true);
@@ -423,7 +450,9 @@ describe("useNewProductInlineModel", () => {
     expect(toastSuccess).toHaveBeenCalledWith(
       "Produto Atualizado foi atualizado na movimentação.",
     );
-    expect(mockPush).toHaveBeenCalledWith("/stock-movements/create?type=PURCHASE_IN");
+    expect(mockPush).toHaveBeenCalledWith(
+      "/stock-movements/create?type=PURCHASE_IN",
+    );
     expect(mockWriteDraft).toHaveBeenCalledTimes(1);
 
     const writtenDraft = mockWriteDraft.mock.calls[0][0] as StockMovementDraft;

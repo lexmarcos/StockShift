@@ -11,6 +11,17 @@ const DRAFT_STORE_NAME = "stockMovementDrafts";
 const DRAFT_STORAGE_KEY = "current";
 export const STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION = 1;
 
+const createStockMovementDraftRuntimeId = (): string => {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  const timestamp = Date.now().toString(36);
+  const randomSuffix = Math.random().toString(36).slice(2);
+  return `runtime-${timestamp}-${randomSuffix}`;
+};
+
+const STOCK_MOVEMENT_DRAFT_RUNTIME_ID = createStockMovementDraftRuntimeId();
+
 export interface StockMovementDraft {
   schemaVersion: typeof STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION;
   updatedAt: string;
@@ -20,6 +31,7 @@ export interface StockMovementDraft {
   selectedProductId: string;
   itemQuantity: string;
   inlineProductBarcode?: string;
+  runtimeId?: string;
 }
 
 export type WritableStockMovementDraft = Omit<
@@ -208,6 +220,7 @@ const normalizeStoredDraft = (
   if (typeof parsedDraft.selectedProductId !== "string") return null;
   if (typeof parsedDraft.itemQuantity !== "string") return null;
   if (!isOptionalString(parsedDraft.inlineProductBarcode)) return null;
+  if (!isOptionalString(parsedDraft.runtimeId)) return null;
   return parsedDraft as unknown as StockMovementDraft;
 };
 
@@ -217,7 +230,12 @@ const buildPersistedDraft = (
   ...draft,
   schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
   updatedAt: new Date().toISOString(),
+  runtimeId: STOCK_MOVEMENT_DRAFT_RUNTIME_ID,
 });
+
+export const isStockMovementDraftRecoveredFromPreviousRuntime = (
+  draft: StockMovementDraft,
+): boolean => draft.runtimeId !== STOCK_MOVEMENT_DRAFT_RUNTIME_ID;
 
 export const readStockMovementDraft =
   async (): Promise<StockMovementDraft | null> => {

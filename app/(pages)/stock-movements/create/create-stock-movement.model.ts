@@ -25,6 +25,7 @@ import {
 import {
   clearStockMovementDraft,
   inlineProductImageToFile,
+  isStockMovementDraftRecoveredFromPreviousRuntime,
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
@@ -341,7 +342,9 @@ export function useCreateStockMovementModel({
         setSelectedProductId(draft.selectedProductId);
         setItemQuantity(draft.itemQuantity);
         inlineProductBarcodeRef.current = draft.inlineProductBarcode;
-        toast.success("Rascunho da movimentação restaurado.");
+        if (isStockMovementDraftRecoveredFromPreviousRuntime(draft)) {
+          toast.success("Rascunho da movimentação restaurado.");
+        }
       }
 
       setIsDraftHydrated(true);

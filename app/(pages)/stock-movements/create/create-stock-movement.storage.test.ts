@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearStockMovementDraft,
+  isStockMovementDraftRecoveredFromPreviousRuntime,
   readStockMovementDraft,
   STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
   writeStockMovementDraft,
@@ -204,6 +205,7 @@ describe("create-stock-movement.storage", () => {
       itemQuantity: "3",
     });
     expect(typeof draft?.updatedAt).toBe("string");
+    expect(typeof draft?.runtimeId).toBe("string");
 
     await clearStockMovementDraft();
     expect(await readStockMovementDraft()).toBeNull();
@@ -253,5 +255,45 @@ describe("create-stock-movement.storage", () => {
 
     expect(draft?.notes).toBe("Observação");
     expect(console.error).toHaveBeenCalled();
+  });
+
+  it("identifica rascunho do runtime atual e de runtime anterior", async () => {
+    await writeStockMovementDraft(createDraft());
+    const currentRuntimeDraft = await readStockMovementDraft();
+
+    expect(currentRuntimeDraft).not.toBeNull();
+    expect(
+      isStockMovementDraftRecoveredFromPreviousRuntime(currentRuntimeDraft!),
+    ).toBe(false);
+
+    fakeIndexedDb.putStoredDraft({
+      ...currentRuntimeDraft!,
+      runtimeId: "runtime-anterior",
+    });
+
+    const previousRuntimeDraft = await readStockMovementDraft();
+    expect(previousRuntimeDraft).not.toBeNull();
+    expect(
+      isStockMovementDraftRecoveredFromPreviousRuntime(previousRuntimeDraft!),
+    ).toBe(true);
+  });
+
+  it("mantém compatibilidade com rascunho legado sem runtimeId", async () => {
+    fakeIndexedDb.putStoredDraft({
+      schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
+      type: "PURCHASE_IN",
+      notes: "legado",
+      items: [],
+      selectedProductId: "",
+      itemQuantity: "",
+      updatedAt: "2026-01-20T10:00:00.000Z",
+    });
+
+    const legacyDraft = await readStockMovementDraft();
+
+    expect(legacyDraft?.notes).toBe("legado");
+    expect(isStockMovementDraftRecoveredFromPreviousRuntime(legacyDraft!)).toBe(
+      true,
+    );
   });
 });

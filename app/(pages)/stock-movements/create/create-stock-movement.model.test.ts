@@ -129,6 +129,7 @@ const fakeSelectedWarehouse = vi.hoisted(() => {
 const fakeStorage = vi.hoisted(() => {
   class FakeStorage {
     private draftState: StockMovementDraft | null = null;
+    private readonly currentRuntimeId = "runtime-atual";
 
     public readonly readStockMovementDraft = vi.fn<() => Promise<StockMovementDraft | null>>(async () => {
       return this.draftState;
@@ -139,15 +140,25 @@ const fakeStorage = vi.hoisted(() => {
           ...draft,
           schemaVersion: 1,
           updatedAt: "2026-01-20T10:00:00.000Z",
+          runtimeId: this.currentRuntimeId,
         };
       },
     );
     public readonly clearStockMovementDraft = vi.fn(async () => {
       this.draftState = null;
     });
+    public readonly isStockMovementDraftRecoveredFromPreviousRuntime = vi.fn(
+      (draft: StockMovementDraft) => {
+        return draft.runtimeId !== this.currentRuntimeId;
+      },
+    );
 
     public setDraftState(draft: StockMovementDraft | null): void {
       this.draftState = draft;
+    }
+
+    public getCurrentRuntimeId(): string {
+      return this.currentRuntimeId;
     }
   }
 
@@ -203,6 +214,8 @@ vi.mock("@/lib/api", () => ({
 
 vi.mock("./create-stock-movement.storage", () => ({
   readStockMovementDraft: () => fakeStorage.readStockMovementDraft(),
+  isStockMovementDraftRecoveredFromPreviousRuntime: (draft: StockMovementDraft) =>
+    fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime(draft),
   writeStockMovementDraft: (draft: WritableStockMovementDraft) =>
     fakeStorage.writeStockMovementDraft(draft),
   clearStockMovementDraft: () => fakeStorage.clearStockMovementDraft(),
@@ -371,6 +384,7 @@ beforeEach(() => {
   fakeSearchParams.setEditItem(null);
   fakeStorage.setDraftState(null);
   fakeStorage.clearStockMovementDraft.mockClear();
+  fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime.mockClear();
   fakeStorage.readStockMovementDraft.mockClear();
   fakeStorage.writeStockMovementDraft.mockClear();
   fakeRouter.push.mockClear();
@@ -546,7 +560,7 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeRouter.replace).not.toHaveBeenCalledWith("/stock-movements");
   });
 
-  it("restaura rascunho existente sem limpar do storage", async () => {
+  it("restaura rascunho legado sem limpar do storage e mostra toast", async () => {
     fakeStorage.setDraftState(
       createDraftState({
         selectedProductId: "p-2",
@@ -582,6 +596,53 @@ describe("useCreateStockMovementModel", () => {
     ]);
     expect(result.current.selectedProductId).toBe("p-2");
     expect(result.current.itemQuantity).toBe("7");
+  });
+
+  it("restaura rascunho do runtime atual em silêncio", async () => {
+    fakeStorage.setDraftState(
+      createDraftState({
+        selectedProductId: "p-2",
+        runtimeId: fakeStorage.getCurrentRuntimeId(),
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
+    expect(
+      fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime,
+    ).toHaveBeenCalledTimes(1);
+    expect(fakeToast.success).not.toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
+    expect(result.current.selectedProductId).toBe("p-2");
+  });
+
+  it("restaura rascunho de runtime anterior com toast", async () => {
+    fakeStorage.setDraftState(
+      createDraftState({
+        selectedProductId: "p-2",
+        runtimeId: "runtime-anterior",
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
+    expect(fakeToast.success).toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
+    expect(result.current.selectedProductId).toBe("p-2");
   });
 
   it("autosalva notas e itens depois da hidratação", async () => {
@@ -634,9 +695,13 @@ describe("useCreateStockMovementModel", () => {
 
   it("aplica debounce de busca de produto", () => {
     vi.useFakeTimers();
+    let unmountHook: (() => void) | null = null;
 
     try {
-      const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+      const { result, unmount } = renderHook(() =>
+        useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+      );
+      unmountHook = unmount;
 
       act(() => {
         result.current.onProductSearchFocus();
@@ -650,6 +715,7 @@ describe("useCreateStockMovementModel", () => {
       });
       expect(result.current.productOptions).toHaveLength(1);
     } finally {
+      unmountHook?.();
       vi.useRealTimers();
     }
   });
