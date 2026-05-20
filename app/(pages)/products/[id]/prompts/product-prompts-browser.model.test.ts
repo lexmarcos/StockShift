@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   copyProductPromptText,
+  installProductPromptShareReturnRecovery,
   shareProductPromptAssets,
 } from "./product-prompts.model";
 
@@ -150,6 +151,33 @@ function stubProductPromptIosStandaloneMode(): () => void {
   return () => restorers.forEach((restore) => restore());
 }
 
+function stubProductPromptHardReload(): {
+  calls: string[];
+  restore: () => void;
+} {
+  const recoveryWindow = window as Window & {
+    __stockShiftProductPromptHardReload?: (reloadUrl: string) => void;
+  };
+  const previousHardReload = recoveryWindow.__stockShiftProductPromptHardReload;
+  const calls: string[] = [];
+  recoveryWindow.__stockShiftProductPromptHardReload = (reloadUrl: string) => {
+    calls.push(reloadUrl);
+  };
+  return {
+    calls,
+    restore: () => {
+      if (previousHardReload) {
+        recoveryWindow.__stockShiftProductPromptHardReload = previousHardReload;
+        return;
+      }
+      Reflect.deleteProperty(
+        recoveryWindow,
+        "__stockShiftProductPromptHardReload"
+      );
+    },
+  };
+}
+
 function defineProductPromptNavigatorValue(
   key: string,
   value: unknown
@@ -168,6 +196,7 @@ function defineProductPromptNavigatorValue(
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  sessionStorage.clear();
   restoreProductPromptObjectUrl("createObjectURL", originalProductPromptCreateObjectUrl);
   restoreProductPromptObjectUrl("revokeObjectURL", originalProductPromptRevokeObjectUrl);
 });
@@ -343,9 +372,7 @@ describe("product prompt browser helpers", () => {
 
   it("recarrega o iOS PWA quando volta do app externo após compartilhar", async () => {
     const restoreStandaloneMode = stubProductPromptIosStandaloneMode();
-    const historyGoMock = vi.spyOn(window.history, "go").mockImplementation(
-      () => undefined
-    );
+    const hardReload = stubProductPromptHardReload();
     const shareMock = vi.fn(() => new Promise<void>(() => undefined));
     vi.stubGlobal("fetch", createProductPromptImageFetch());
     Object.defineProperty(navigator, "share", {
@@ -361,21 +388,21 @@ describe("product prompt browser helpers", () => {
 
       window.dispatchEvent(new Event("pagehide"));
       await expect(resultPromise).resolves.toBe("shared");
-      expect(historyGoMock).not.toHaveBeenCalled();
+      expect(hardReload.calls).toHaveLength(0);
 
       window.dispatchEvent(new Event("pageshow"));
 
-      expect(historyGoMock).toHaveBeenCalledWith(0);
+      expect(hardReload.calls).toHaveLength(1);
+      expect(hardReload.calls[0]).toContain("ss_share_return=");
     } finally {
+      hardReload.restore();
       restoreStandaloneMode();
     }
   });
 
   it("recarrega o iOS PWA quando volta sem disparar pagehide", async () => {
     const restoreStandaloneMode = stubProductPromptIosStandaloneMode();
-    const historyGoMock = vi.spyOn(window.history, "go").mockImplementation(
-      () => undefined
-    );
+    const hardReload = stubProductPromptHardReload();
     let resolveShare: (() => void) | null = null;
     const shareMock = vi.fn(
       () => new Promise<void>((resolve) => {
@@ -397,10 +424,50 @@ describe("product prompt browser helpers", () => {
       window.dispatchEvent(new Event("blur"));
       window.dispatchEvent(new Event("focus"));
 
-      expect(historyGoMock).toHaveBeenCalledWith(0);
+      expect(hardReload.calls).toHaveLength(1);
+      expect(hardReload.calls[0]).toContain("ss_share_return=");
       resolveShare?.();
       await expect(resultPromise).resolves.toBe("shared");
     } finally {
+      hardReload.restore();
+      restoreStandaloneMode();
+    }
+  });
+
+  it("limpa travas de toque quando a página volta após a recarga de recuperação", async () => {
+    const restoreStandaloneMode = stubProductPromptIosStandaloneMode();
+    const hardReload = stubProductPromptHardReload();
+    const shareMock = vi.fn(() => new Promise<void>(() => undefined));
+    vi.stubGlobal("fetch", createProductPromptImageFetch());
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: shareMock,
+    });
+
+    try {
+      const resultPromise = shareProductPromptAssets({
+        productImageUrl: "https://example.com/product.png",
+      });
+      await waitForProductPromptShareCall(shareMock);
+
+      window.dispatchEvent(new Event("pagehide"));
+      await expect(resultPromise).resolves.toBe("shared");
+      window.dispatchEvent(new Event("pageshow"));
+      expect(hardReload.calls).toHaveLength(1);
+
+      document.body.style.pointerEvents = "none";
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.touchAction = "none";
+      const cleanupRecovery = installProductPromptShareReturnRecovery();
+      window.dispatchEvent(new Event("pageshow"));
+
+      expect(document.body.style.pointerEvents).toBe("");
+      expect(document.body.style.overflow).toBe("");
+      expect(document.documentElement.style.touchAction).toBe("");
+      expect(hardReload.calls).toHaveLength(1);
+      cleanupRecovery();
+    } finally {
+      hardReload.restore();
       restoreStandaloneMode();
     }
   });

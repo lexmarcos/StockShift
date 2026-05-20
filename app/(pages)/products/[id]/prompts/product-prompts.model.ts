@@ -37,6 +37,7 @@ import type {
 
 export {
   copyProductPromptText,
+  installProductPromptShareReturnRecovery,
   shareProductPromptAssets,
 } from "./product-prompts.clipboard";
 

@@ -11,7 +11,11 @@ const PRODUCT_PROMPT_CANVAS_JPEG_QUALITY = 0.82;
 const PRODUCT_PROMPT_CANVAS_MAX_LONG_EDGE = 1600;
 const PRODUCT_PROMPT_SHARE_RECOVERY_TIMEOUT_MS = 15000;
 const PRODUCT_PROMPT_SHARE_RETURN_FALLBACK_MS = 2500;
+const PRODUCT_PROMPT_SHARE_RETURN_MAX_AGE_MS = 10 * 60 * 1000;
 const PRODUCT_PROMPT_SHARE_RETURN_RELOAD_TIMEOUT_MS = 120000;
+const PRODUCT_PROMPT_SHARE_RETURN_STORAGE_KEY =
+  "stockshift:product-prompt-share-return";
+const PRODUCT_PROMPT_SHARE_RETURN_URL_PARAM = "ss_share_return";
 let productPromptShareReturnReloadCleanup: (() => void) | null = null;
 
 interface ProductPromptShareReturnGuard {
@@ -38,6 +42,15 @@ interface ProductPromptShareReturnState {
   hasReloaded: boolean;
 }
 
+interface ProductPromptShareReturnSession {
+  reloadAttempted: boolean;
+  startedAt: number;
+}
+
+interface ProductPromptShareRecoveryWindow extends Window {
+  __stockShiftProductPromptHardReload?: (reloadUrl: string) => void;
+}
+
 export async function copyProductPromptText(
   input: ProductPromptTextCopyInput
 ): Promise<ProductPromptTextCopyResult> {
@@ -57,6 +70,32 @@ export async function shareProductPromptAssets(
   const shareFileResult = await buildProductPromptShareFile(input);
   if (shareFileResult.result !== "ready") return shareFileResult.result;
   return callProductPromptShare([shareFileResult.file]);
+}
+
+export function installProductPromptShareReturnRecovery(): () => void {
+  if (typeof globalThis.window === "undefined") return () => undefined;
+  const recoverVisiblePage = () => {
+    if (globalThis.document?.visibilityState === "hidden") return;
+    recoverProductPromptShareReturnState();
+  };
+
+  const mountRecoveryTimeoutId = globalThis.setTimeout(
+    recoverProductPromptShareReturnState,
+    0
+  );
+  globalThis.window.addEventListener("pageshow", recoverVisiblePage);
+  globalThis.window.addEventListener("focus", recoverVisiblePage);
+  globalThis.document?.addEventListener("visibilitychange", recoverVisiblePage);
+
+  return () => {
+    globalThis.clearTimeout(mountRecoveryTimeoutId);
+    globalThis.window.removeEventListener("pageshow", recoverVisiblePage);
+    globalThis.window.removeEventListener("focus", recoverVisiblePage);
+    globalThis.document?.removeEventListener(
+      "visibilitychange",
+      recoverVisiblePage
+    );
+  };
 }
 
 async function buildProductPromptShareFile(
@@ -166,6 +205,7 @@ async function callProductPromptShare(
     ]);
   } catch (error) {
     shareReturnGuard.cleanup();
+    clearProductPromptShareReturnSession();
     return getProductPromptShareFailure(error);
   } finally {
     shareRecovery.cleanup();
@@ -288,6 +328,7 @@ function markProductPromptExternalAppOpened(
   reloadOnce: () => void
 ): void {
   state.hasExternalAppSignal = true;
+  ensureProductPromptShareReturnSession();
   ensureProductPromptShareReturnFallback(state, reloadOnce);
 }
 
@@ -338,7 +379,7 @@ function reloadProductPromptShareReturnOnce(
   if (!canReloadProductPromptShareReturn(state)) return;
   state.hasReloaded = true;
   cleanup();
-  reloadProductPromptPageAfterShareReturn();
+  recoverProductPromptShareReturnState();
 }
 
 function canReloadProductPromptShareReturn(
@@ -447,6 +488,159 @@ function shouldReloadProductPromptAfterShareReturn(): boolean {
   );
 }
 
+function recoverProductPromptShareReturnState(): void {
+  const session = readProductPromptShareReturnSession();
+  if (!session) return;
+  resetProductPromptShareReturnInteractionLocks();
+  if (!shouldReloadProductPromptAfterShareReturn()) {
+    finishProductPromptShareReturnRecovery();
+    return;
+  }
+  if (shouldFinishProductPromptShareReturnRecovery(session)) {
+    finishProductPromptShareReturnRecovery();
+    return;
+  }
+  writeProductPromptShareReturnSession({
+    ...session,
+    reloadAttempted: true,
+  });
+  hardReloadProductPromptPageAfterShareReturn();
+}
+
+function ensureProductPromptShareReturnSession(): void {
+  if (readProductPromptShareReturnSession()) return;
+  writeProductPromptShareReturnSession({
+    reloadAttempted: false,
+    startedAt: Date.now(),
+  });
+}
+
+function shouldFinishProductPromptShareReturnRecovery(
+  session: ProductPromptShareReturnSession
+): boolean {
+  const sessionAge = Date.now() - session.startedAt;
+  return (
+    session.reloadAttempted ||
+    sessionAge < 0 ||
+    sessionAge > PRODUCT_PROMPT_SHARE_RETURN_MAX_AGE_MS
+  );
+}
+
+function finishProductPromptShareReturnRecovery(): void {
+  clearProductPromptShareReturnSession();
+  removeProductPromptShareReturnUrlParam();
+  resetProductPromptShareReturnInteractionLocks();
+}
+
+function readProductPromptShareReturnSession(): ProductPromptShareReturnSession | null {
+  try {
+    const storedSession = globalThis.sessionStorage?.getItem(
+      PRODUCT_PROMPT_SHARE_RETURN_STORAGE_KEY
+    );
+    if (!storedSession) return null;
+    const parsedSession: unknown = JSON.parse(storedSession);
+    return isProductPromptShareReturnSession(parsedSession)
+      ? parsedSession
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeProductPromptShareReturnSession(
+  session: ProductPromptShareReturnSession
+): void {
+  try {
+    globalThis.sessionStorage?.setItem(
+      PRODUCT_PROMPT_SHARE_RETURN_STORAGE_KEY,
+      JSON.stringify(session)
+    );
+  } catch {
+    // Session storage is a best-effort recovery marker for iOS PWA handoff bugs.
+  }
+}
+
+function clearProductPromptShareReturnSession(): void {
+  try {
+    globalThis.sessionStorage?.removeItem(PRODUCT_PROMPT_SHARE_RETURN_STORAGE_KEY);
+  } catch {
+    // Nothing else can be done if storage is unavailable during recovery.
+  }
+}
+
+function isProductPromptShareReturnSession(
+  value: unknown
+): value is ProductPromptShareReturnSession {
+  if (!value || typeof value !== "object") return false;
+  const session = value as Partial<ProductPromptShareReturnSession>;
+  return (
+    typeof session.reloadAttempted === "boolean" &&
+    typeof session.startedAt === "number"
+  );
+}
+
+function resetProductPromptShareReturnInteractionLocks(): void {
+  if (typeof globalThis.document === "undefined") return;
+  resetProductPromptShareReturnElementLocks(globalThis.document.documentElement);
+  resetProductPromptShareReturnElementLocks(globalThis.document.body);
+  removeStaleProductPromptShareReturnOverlays();
+}
+
+function resetProductPromptShareReturnElementLocks(
+  element: HTMLElement | null
+): void {
+  if (!element) return;
+  element.style.pointerEvents = "";
+  element.style.overflow = "";
+  element.style.touchAction = "";
+  element.style.position = "";
+  element.style.top = "";
+  element.style.width = "";
+  element.removeAttribute("data-scroll-locked");
+}
+
+function removeStaleProductPromptShareReturnOverlays(): void {
+  const overlaySelector = [
+    "[data-slot='drawer-overlay']",
+    "[data-slot='dialog-overlay']",
+    "[data-vaul-drawer-overlay]",
+    "[data-radix-dialog-overlay]",
+  ].join(",");
+  globalThis.document
+    ?.querySelectorAll(overlaySelector)
+    .forEach((overlay) => overlay.remove());
+}
+
+function hardReloadProductPromptPageAfterShareReturn(): void {
+  const reloadUrl = buildProductPromptShareReturnReloadUrl();
+  const recoveryWindow = globalThis.window as ProductPromptShareRecoveryWindow;
+  if (typeof recoveryWindow.__stockShiftProductPromptHardReload === "function") {
+    recoveryWindow.__stockShiftProductPromptHardReload(reloadUrl);
+    return;
+  }
+  globalThis.window.location.replace(reloadUrl);
+}
+
+function buildProductPromptShareReturnReloadUrl(): string {
+  const reloadUrl = new URL(globalThis.window.location.href);
+  reloadUrl.searchParams.set(
+    PRODUCT_PROMPT_SHARE_RETURN_URL_PARAM,
+    String(Date.now())
+  );
+  return reloadUrl.toString();
+}
+
+function removeProductPromptShareReturnUrlParam(): void {
+  const currentUrl = new URL(globalThis.window.location.href);
+  if (!currentUrl.searchParams.has(PRODUCT_PROMPT_SHARE_RETURN_URL_PARAM)) return;
+  currentUrl.searchParams.delete(PRODUCT_PROMPT_SHARE_RETURN_URL_PARAM);
+  globalThis.window.history.replaceState(
+    globalThis.window.history.state,
+    "",
+    currentUrl.toString()
+  );
+}
+
 function isProductPromptAppleTouchBrowser(): boolean {
   const platform = globalThis.navigator.platform ?? "";
   const userAgent = globalThis.navigator.userAgent ?? "";
@@ -462,14 +656,6 @@ function isProductPromptStandaloneApp(): boolean {
     navigatorWithStandalone.standalone === true ||
     globalThis.window.matchMedia?.("(display-mode: standalone)").matches === true
   );
-}
-
-function reloadProductPromptPageAfterShareReturn(): void {
-  if (typeof globalThis.window.history?.go === "function") {
-    globalThis.window.history.go(0);
-    return;
-  }
-  globalThis.window.location.reload();
 }
 
 async function convertProductPromptImageBlobToJpeg(

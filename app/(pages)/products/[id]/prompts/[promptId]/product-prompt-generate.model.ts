@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBreadcrumb } from "@/components/breadcrumb";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
@@ -9,6 +9,7 @@ import {
   createGeneratePromptHandler,
   findLatestProductPromptBatch,
   findSavedProductPromptById,
+  installProductPromptShareReturnRecovery,
   PRODUCT_PROMPT_POSITION_OPTIONS,
   useProductPromptBatchesRequest,
   useProductPromptCompanyRequest,
@@ -47,6 +48,7 @@ export function useProductPromptGeneratePageModel(
   const closeGeneratePromptPage = useCloseProductPromptGeneratePage(productId);
 
   useProductPromptGenerateBreadcrumb(productId);
+  useProductPromptShareReturnRecovery();
 
   return {
     product: requests.product,
@@ -112,4 +114,8 @@ function useProductPromptGenerateBreadcrumb(productId: string): void {
     title: "Gerar imagem",
     backUrl: `/products/${productId}/prompts`,
   });
+}
+
+function useProductPromptShareReturnRecovery(): void {
+  useEffect(() => installProductPromptShareReturnRecovery(), []);
 }
