@@ -12,12 +12,12 @@ import {
   Building2,
   Hash,
   Pencil,
-  Clock,
   QrCode,
   Box,
   Copy,
   Warehouse,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,16 @@ function ProductDetailContent({ viewState }: { viewState: ProductDetailViewState
 
 function ProductHeaderActions({ product }: { product: Product }) {
   return (
-    <div className="hidden md:block">
+    <div className="hidden items-center gap-2 md:flex">
+      <Link href={`/products/${product.id}/prompts`}>
+        <Button
+          variant="outline"
+          className="h-9 rounded-[4px] border-neutral-800 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-900 hover:text-white"
+        >
+          <Sparkles className="mr-2 size-3.5" />
+          Artes IA
+        </Button>
+      </Link>
       <PermissionGate permission="products:update">
         <Link href={`/products/${product.id}/edit`}>
           <Button className="h-9 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
@@ -158,9 +167,18 @@ function ProductHeaderActions({ product }: { product: Product }) {
 
 function ProductMobileBottomBar({ product }: { product: Product }) {
   return (
-    <FixedBottomBar className="md:hidden">
+    <FixedBottomBar className="flex gap-2 md:hidden">
+      <Link href={`/products/${product.id}/prompts`} className="block flex-1">
+        <Button
+          variant="outline"
+          className="h-11 w-full rounded-[4px] border-neutral-800 bg-neutral-950 text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-900 hover:text-white"
+        >
+          <Sparkles className="mr-2 size-4" />
+          Artes IA
+        </Button>
+      </Link>
       <PermissionGate permission="products:update">
-        <Link href={`/products/${product.id}/edit`} className="block w-full">
+        <Link href={`/products/${product.id}/edit`} className="block flex-1">
           <Button className="w-full h-11 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700">
             <Pencil className="mr-2 size-4" />
             Editar Produto
