@@ -1,5 +1,5 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import {
   buildMovementPayload,
@@ -432,6 +432,11 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
+
 describe("helpers de produto", () => {
   const products: StockMovementProductOption[] = movementProducts;
 
@@ -695,29 +700,36 @@ describe("useCreateStockMovementModel", () => {
 
   it("aplica debounce de busca de produto", () => {
     vi.useFakeTimers();
-    let unmountHook: (() => void) | null = null;
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
 
-    try {
-      const { result, unmount } = renderHook(() =>
-        useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
-      );
-      unmountHook = unmount;
+    act(() => {
+      result.current.onProductSearchFocus();
+      result.current.onProductSearchChange("filtro");
+    });
+    expect(result.current.productOptions).toEqual([]);
+    expect(result.current.isProductSearchLoading).toBe(false);
 
-      act(() => {
-        result.current.onProductSearchFocus();
-        result.current.onProductSearchChange("filtro");
-      });
-      expect(result.current.productOptions).toEqual([]);
-      expect(result.current.isProductSearchLoading).toBe(false);
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+    expect(result.current.productOptions).toHaveLength(1);
+  });
 
-      act(() => {
-        vi.advanceTimersByTime(350);
-      });
-      expect(result.current.productOptions).toHaveLength(1);
-    } finally {
-      unmountHook?.();
-      vi.useRealTimers();
-    }
+  it("cancela debounce de busca ao desmontar", () => {
+    vi.useFakeTimers();
+    const { result, unmount } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSearchChange("filtro");
+    });
+
+    unmount();
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("mantém produto selecionado quando busca bate com rótulo completo", () => {
