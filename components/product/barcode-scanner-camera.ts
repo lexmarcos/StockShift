@@ -35,6 +35,7 @@ export const barcodeScannerFormats: BarcodeScannerFormatList = [
   "ean_13",
   "ean_8",
   "itf",
+  "qr_code",
   "upc_a",
   "upc_e",
 ];
