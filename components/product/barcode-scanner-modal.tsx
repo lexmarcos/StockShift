@@ -1,9 +1,10 @@
 "use client";
 
-import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { AlertCircle } from "lucide-react";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 interface BarcodeScannerModalProps {
   open: boolean;
@@ -48,18 +49,9 @@ export const BarcodeScannerModal = ({
       <div className="flex flex-col gap-4">
         {/* Scanner Area */}
         <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
-          <Scanner
+          <BarcodeScanner
             onScan={handleScan}
             onError={handleError}
-            formats={[
-              "qr_code",
-              "ean_13",
-              "ean_8",
-              "code_128",
-              "code_39",
-              "upc_a",
-              "upc_e",
-            ]}
             styles={{
               container: {
                 width: "100%",

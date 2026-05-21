@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import {
   AlertCircle,
   AlertTriangle,
@@ -27,6 +27,7 @@ import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { SectionLabel } from "@/components/ui/section-label";
 import { cn } from "@/lib/utils";
@@ -534,18 +535,9 @@ function CameraScannerModal({
       }
     >
       <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
-        <Scanner
+        <BarcodeScanner
           onScan={viewState.handleCameraScan}
           onError={(error) => console.error("Camera error:", error)}
-          formats={[
-            "qr_code",
-            "ean_13",
-            "ean_8",
-            "code_128",
-            "code_39",
-            "upc_a",
-            "upc_e",
-          ]}
           styles={{
             container: { width: "100%", height: "280px" },
             video: { objectFit: "cover" },

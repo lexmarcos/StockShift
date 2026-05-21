@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { PointerEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
@@ -63,6 +63,7 @@ import { METHODS_WITH_INSTALLMENTS, paymentMethods } from "./pdv.schema";
 import type { PdvSchema } from "./pdv.schema";
 import type { PaymentMethod } from "./pdv.schema";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 
 const PAYMENT_METHOD_ICONS: Record<PaymentMethod, LucideIcon> = {
   CASH: Banknote,
@@ -687,10 +688,9 @@ function BarcodeDrawer({ open, onClose, onScan }: BarcodeDrawerProps) {
         </DrawerHeader>
         <div className="px-4 pb-6 pt-4">
           <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
-            <Scanner
+            <BarcodeScanner
               onScan={onScan}
               onError={(err: unknown) => console.error("Camera error:", err)}
-              formats={["qr_code", "ean_13", "ean_8", "code_128", "code_39", "upc_a", "upc_e"]}
               styles={{ container: { width: "100%", height: "280px" }, video: { objectFit: "cover" } }}
               components={{ onOff: false, torch: false, zoom: false, finder: true }}
             />

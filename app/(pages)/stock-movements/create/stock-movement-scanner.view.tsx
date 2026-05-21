@@ -1,9 +1,10 @@
 "use client";
 
-import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { ScanLine, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { BarcodeScanner } from "@/components/product/barcode-scanner";
 import {
   Drawer,
   DrawerContent,
@@ -63,17 +64,9 @@ export function StockMovementScanner({
 
         <div className="p-4">
           <div className="relative overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
-            <Scanner
+            <BarcodeScanner
               onScan={handleScan}
               onError={handleError}
-              formats={[
-                "ean_13",
-                "ean_8",
-                "code_128",
-                "code_39",
-                "upc_a",
-                "upc_e",
-              ]}
               components={{
                 finder: true,
                 onOff: false,
