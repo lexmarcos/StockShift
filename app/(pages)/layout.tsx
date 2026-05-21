@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,12 +45,15 @@ const warehouseFetcher = async () => {
   return response.data;
 };
 
+const MOBILE_MENU_ANIMATION_MS = 200;
+
 export default function PagesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { isOpen, closeMenu } = useMobileMenu();
+  const [isMobileMenuVisible, setMobileMenuVisible] = useState(isOpen);
   const { warehouseId } = useSelectedWarehouse();
   const { user, logout } = useAuth();
   const { selectedWarehouseId, setSelectedWarehouseId } = useWarehouse();
@@ -63,6 +66,23 @@ export default function PagesLayout({
   );
 
   const activeWarehouses = warehouses.filter((w) => w.isActive);
+
+  useEffect(() => {
+    if (isOpen) {
+      setMobileMenuVisible(true);
+      return undefined;
+    }
+
+    if (!isMobileMenuVisible) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setMobileMenuVisible(false);
+    }, MOBILE_MENU_ANIMATION_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isMobileMenuVisible, isOpen]);
 
   useEffect(() => {
     if (user?.mustChangePassword) {
@@ -90,6 +110,16 @@ export default function PagesLayout({
     closeMenu();
     await logout();
   };
+
+  const isMobileMenuClosing = isMobileMenuVisible && !isOpen;
+
+  const mobileMenuOverlayAnimation = isMobileMenuClosing
+    ? "animate-out fade-out-0 fill-mode-forwards duration-200 ease-in motion-reduce:animate-none"
+    : "animate-in fade-in-0 duration-200 ease-out motion-reduce:animate-none";
+
+  const mobileMenuPanelAnimation = isMobileMenuClosing
+    ? "animate-out slide-out-to-left-8 fill-mode-forwards duration-200 ease-in motion-reduce:animate-none"
+    : "animate-in slide-in-from-left-8 duration-200 ease-out motion-reduce:animate-none";
 
   // Show loading while checking warehouse
   if (warehouseId === null) {
@@ -131,7 +161,10 @@ export default function PagesLayout({
         data-slot="mobile-menu"
         aria-hidden={!isOpen}
         inert={!isOpen}
-        className={cn("fixed inset-0 z-50 md:hidden", !isOpen && "hidden")}
+        className={cn(
+          "fixed inset-0 z-50 md:hidden",
+          isMobileMenuVisible ? mobileMenuOverlayAnimation : "hidden",
+        )}
       >
         <button
           type="button"
@@ -139,7 +172,13 @@ export default function PagesLayout({
           className="absolute inset-0 bg-black/60"
           onClick={closeMenu}
         />
-        <div className="absolute inset-y-0 left-0 w-72 border-r border-border/40 bg-card p-4 flex flex-col">
+        <div
+          data-slot="mobile-menu-panel"
+          className={cn(
+            "absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border/40 bg-card p-4 will-change-transform",
+            isMobileMenuVisible && mobileMenuPanelAnimation,
+          )}
+        >
           {/* Logo + close button */}
           <div className="mb-4 flex items-center justify-between">
             <Image

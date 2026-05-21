@@ -193,6 +193,10 @@ describe("formatCentsTotal", () => {
     expect(formatCentsTotal(1000, 5)).toMatch(/R\$\s?50,00/);
   });
 
+  it("does not prefix the formatted total value", () => {
+    expect(formatCentsTotal(2000, 2)).not.toContain("Total:");
+  });
+
   it("returns dash when price is null", () => {
     expect(formatCentsTotal(null, 10)).toBe("-");
   });

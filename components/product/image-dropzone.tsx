@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/image-compressor";
@@ -12,9 +12,262 @@ interface ImageDropzoneProps {
   disabled?: boolean;
   currentImageUrl?: string;
   onRemoveImage?: () => void;
+  onProcessingChange?: (isProcessing: boolean) => void;
   className?: string;
   text?: string;
 }
+
+interface ImageActionProps {
+  disabled: boolean;
+  onRemove: () => void;
+  onReplace: () => void;
+}
+
+interface EmptyImageDropzoneProps {
+  disabled: boolean;
+  isDragging: boolean;
+  text?: string;
+  onDragOver: (event: React.DragEvent) => void;
+  onDragLeave: (event: React.DragEvent) => void;
+  onDrop: (event: React.DragEvent) => void;
+  onFileInput: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp";
+const VALID_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+const useObjectUrl = (file: File | null): string | null => {
+  const objectUrl = useMemo(() => {
+    return file ? URL.createObjectURL(file) : null;
+  }, [file]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [objectUrl]);
+
+  return objectUrl;
+};
+
+const validateImageFile = (file: File): boolean => {
+  if (!VALID_IMAGE_TYPES.includes(file.type)) {
+    alert("Formato inválido. Use PNG, JPG, JPEG ou WEBP");
+    return false;
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    alert("Imagem muito grande. Tamanho máximo: 5MB");
+    return false;
+  }
+
+  return true;
+};
+
+const ImagePreviewFrame = ({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) => (
+  <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="100vw"
+      unoptimized
+      className="object-contain"
+    />
+  </div>
+);
+
+const RemoveImageButton = ({
+  disabled,
+  onRemove,
+}: Pick<ImageActionProps, "disabled" | "onRemove">) => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={onRemove}
+    disabled={disabled}
+    className="h-8 rounded-sm border-border/40 hover:bg-muted"
+  >
+    <X className="mr-1 size-3" />
+    Remover
+  </Button>
+);
+
+const SelectedImagePanel = ({
+  previewUrl,
+  value,
+  disabled,
+  onRemove,
+}: {
+  previewUrl: string;
+  value: File;
+  disabled: boolean;
+  onRemove: () => void;
+}) => (
+  <ImagePanel>
+    <ImagePreviewFrame src={previewUrl} alt="Preview" />
+    <div className="mt-3 flex items-center justify-between">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-semibold uppercase tracking-wide text-foreground/80">
+          {value.name || "Imagem selecionada"}
+        </p>
+        <p className="text-[11px] text-muted-foreground/70">
+          {(value.size / 1024).toFixed(0)} KB
+        </p>
+      </div>
+      <RemoveImageButton disabled={disabled} onRemove={onRemove} />
+    </div>
+  </ImagePanel>
+);
+
+const CurrentImagePanel = ({
+  currentImageUrl,
+  disabled,
+  onRemove,
+  onReplace,
+}: {
+  currentImageUrl: string;
+} & ImageActionProps) => (
+  <ImagePanel>
+    <ImagePreviewFrame src={currentImageUrl} alt="Imagem atual" />
+    <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-semibold uppercase tracking-wide text-foreground/80">
+          Imagem atual do produto
+        </p>
+        <p className="text-[11px] text-muted-foreground/70">
+          Gerenciado pelo sistema
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <ReplaceImageButton disabled={disabled} onReplace={onReplace} />
+        <RemoveImageButton disabled={disabled} onRemove={onRemove} />
+      </div>
+    </div>
+  </ImagePanel>
+);
+
+const ReplaceImageButton = ({
+  disabled,
+  onReplace,
+}: Pick<ImageActionProps, "disabled" | "onReplace">) => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={onReplace}
+    disabled={disabled}
+    className="h-8 rounded-sm border-border/40 hover:bg-muted"
+  >
+    Trocar
+  </Button>
+);
+
+const RemovedImagePanel = ({
+  disabled,
+  onReplace,
+}: Pick<ImageActionProps, "disabled" | "onReplace">) => (
+  <div className="relative rounded-sm border border-red-900/30 bg-red-950/10 p-4">
+    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-sm border border-red-900/20 bg-red-950/5">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <X className="size-8 text-red-700/70" />
+        <p className="text-xs font-semibold uppercase tracking-wide text-red-700/80">
+          Imagem será removida ao salvar
+        </p>
+      </div>
+    </div>
+    <div className="mt-3 flex items-center justify-end">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onReplace}
+        disabled={disabled}
+        className="h-8 rounded-sm border-border/40 hover:bg-muted"
+      >
+        Adicionar nova imagem
+      </Button>
+    </div>
+  </div>
+);
+
+const CompressingImagePanel = () => (
+  <div className="relative rounded-sm border-2 border-dashed border-blue-600/40 bg-blue-950/10 p-8">
+    <div className="flex flex-col items-center justify-center gap-3 text-center">
+      <div className="flex size-12 items-center justify-center rounded-sm border border-blue-600/30 bg-blue-600/10">
+        <Loader2 className="size-6 animate-spin text-blue-500" />
+      </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
+          Comprimindo imagem…
+        </p>
+        <p className="mt-1 text-[11px] text-muted-foreground/70">
+          Otimizando para upload
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+const EmptyImageDropzone = ({
+  disabled,
+  isDragging,
+  text,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onFileInput,
+}: EmptyImageDropzoneProps) => (
+  <div
+    onDragOver={onDragOver}
+    onDragLeave={onDragLeave}
+    onDrop={onDrop}
+    className={`relative rounded-sm border-2 border-dashed p-8 ${
+      isDragging
+        ? "border-foreground/40 bg-muted/20"
+        : "border-border/40 bg-card/80"
+    } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+  >
+    <input
+      type="file"
+      accept={ACCEPTED_IMAGE_TYPES}
+      onChange={onFileInput}
+      disabled={disabled}
+      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+    />
+    <div className="flex flex-col items-center justify-center gap-3 text-center">
+      <div className="flex size-12 items-center justify-center rounded-sm border border-border/30 bg-foreground/5">
+        {isDragging ? (
+          <Upload className="size-6 text-foreground/70" />
+        ) : (
+          <ImageIcon className="size-6 text-foreground/70" />
+        )}
+      </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
+          {isDragging ? "Solte a imagem aqui" : text || "Arraste uma imagem ou clique"}
+        </p>
+        <p className="mt-1 text-[11px] text-muted-foreground/70">
+          PNG, JPG, JPEG ou WEBP • Máx 5MB
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+const ImagePanel = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative rounded-sm border border-border/50 bg-card/80 p-4">
+    {children}
+  </div>
+);
 
 export const ImageDropzone = ({
   onImageSelect,
@@ -22,319 +275,120 @@ export const ImageDropzone = ({
   disabled = false,
   currentImageUrl,
   onRemoveImage,
+  onProcessingChange,
   className,
-  text
+  text,
 }: ImageDropzoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
   const [showRemovalIndicator, setShowRemovalIndicator] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  const previewUrl = useObjectUrl(value);
+  const rootClassName = className ? `w-full ${className}` : "w-full";
 
-  // Sync preview with value prop changes (e.g. from AI Fill)
-  useEffect(() => {
-    if (value) {
-      // If we have a value but no preview, or if the value object reference changed
-      // (assuming external updates pass a new File object)
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(value);
-    } else {
-      setPreview(null);
-    }
-  }, [value]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    if (!disabled) {
-      setIsDragging(true);
-    }
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    if (!disabled) setIsDragging(true);
   }, [disabled]);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
     setIsDragging(false);
   }, []);
 
-  const validateFile = (file: File): boolean => {
-    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!validTypes.includes(file.type)) {
-      alert("Formato inválido. Use PNG, JPG, JPEG ou WEBP");
-      return false;
-    }
-
-    if (file.size > maxSize) {
-      alert("Imagem muito grande. Tamanho máximo: 5MB");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleFile = useCallback(async (file: File) => {
-    if (!validateFile(file)) {
-      return;
-    }
-
+  const handleFile = useCallback(async (file: File): Promise<boolean> => {
+    if (!validateImageFile(file)) return false;
     setIsCompressing(true);
+    onProcessingChange?.(true);
     try {
-      // Compress image before passing to parent
-      const compressedFile = await compressImage(file, 0.7);
-      onImageSelect(compressedFile);
-
-      // Create preview from compressed file
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(compressedFile);
+      onImageSelect(await compressImage(file, 0.7));
+      return true;
     } catch (error) {
       console.error("Error compressing image:", error);
-      // Fallback to original file if compression fails
       onImageSelect(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      return true;
     } finally {
       setIsCompressing(false);
+      onProcessingChange?.(false);
     }
-  }, [onImageSelect]);
+  }, [onImageSelect, onProcessingChange]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
     setIsDragging(false);
-
     if (disabled) return;
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
-    }
+    const [file] = Array.from(event.dataTransfer.files);
+    if (file) void handleFile(file);
   }, [disabled, handleFile]);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
-    }
+  const handleFileInput = useCallback((
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const [file] = Array.from(event.target.files ?? []);
+    if (file) void handleFile(file);
   }, [handleFile]);
 
   const handleRemove = useCallback(() => {
     onImageSelect(null);
-    setPreview(null);
-    if (onRemoveImage) {
-      onRemoveImage();
-      setShowRemovalIndicator(true);
-    }
+    if (!onRemoveImage) return;
+    onRemoveImage();
+    setShowRemovalIndicator(true);
   }, [onImageSelect, onRemoveImage]);
 
-  const handleReplace = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/jpg,image/webp';
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        handleFile(files[0]);
-        setShowRemovalIndicator(false);
-      }
-      input.remove(); // Cleanup the input element
-    };
-    input.click();
+  const handleReplacementFile = useCallback(async (
+    file: File | undefined,
+    input: HTMLInputElement,
+  ): Promise<void> => {
+    try {
+      if (!file) return;
+      const didSelectReplacement = await handleFile(file);
+      if (didSelectReplacement) setShowRemovalIndicator(false);
+    } finally {
+      input.remove();
+    }
   }, [handleFile]);
 
-  const rootClassName = className ? `w-full ${className}` : "w-full";
+  const handleReplace = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ACCEPTED_IMAGE_TYPES;
+    input.onchange = (event) => {
+      const [file] = Array.from((event.target as HTMLInputElement).files ?? []);
+      void handleReplacementFile(file, input);
+    };
+    input.click();
+  }, [handleReplacementFile]);
 
-  // State 1: New image selected (preview exists)
-  if (preview && value) {
-    return (
-      <div className={rootClassName}>
-        <div className="relative rounded-sm border border-border/50 bg-card/80 p-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
-            <Image
-              src={preview}
-              alt="Preview"
-              fill
-              sizes="100vw"
-              unoptimized
-              className="object-contain"
-            />
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80 truncate">
-                {value?.name || "Imagem selecionada"}
-              </p>
-              <p className="text-[11px] text-muted-foreground/70">
-                {value ? `${(value.size / 1024).toFixed(0)} KB` : ""}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleRemove}
-              disabled={disabled}
-              className="h-8 rounded-sm border-border/40 hover:bg-muted"
-            >
-              <X className="size-3 mr-1" />
-              Remover
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State 2: Current image exists (edit mode, no new image)
-  if (currentImageUrl && !showRemovalIndicator) {
-    return (
-      <div className={rootClassName}>
-        <div className="relative rounded-sm border border-border/50 bg-card/80 p-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
-            <Image
-              src={currentImageUrl}
-              alt="Imagem atual"
-              fill
-              sizes="100vw"
-              unoptimized
-              className="object-contain"
-            />
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80 truncate">
-                Imagem atual do produto
-              </p>
-              <p className="text-[11px] text-muted-foreground/70">
-                Gerenciado pelo sistema
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleReplace}
-                disabled={disabled}
-                className="h-8 rounded-sm border-border/40 hover:bg-muted"
-              >
-                Trocar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleRemove}
-                disabled={disabled}
-                className="h-8 rounded-sm border-border/40 hover:bg-muted"
-              >
-                <X className="size-3 mr-1" />
-                Remover
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State 3: Image was removed (edit mode, removal indicated)
-  if (showRemovalIndicator) {
-    return (
-      <div className={rootClassName}>
-        <div className="relative rounded-sm border border-red-900/30 bg-red-950/10 p-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-red-900/20 bg-red-950/5 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <X className="size-8 text-red-700/70" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-red-700/80">
-                Imagem será removida ao salvar
-              </p>
-            </div>
-          </div>
-          <div className="mt-3 flex items-center justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleReplace}
-              disabled={disabled}
-              className="h-8 rounded-sm border-border/40 hover:bg-muted"
-            >
-              Adicionar nova imagem
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State 4: Compressing image
-  if (isCompressing) {
-    return (
-      <div className={rootClassName}>
-        <div className="relative rounded-sm border-2 border-dashed p-8 border-blue-600/40 bg-blue-950/10">
-          <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <div className="flex size-12 items-center justify-center rounded-sm bg-blue-600/10 border border-blue-600/30">
-              <Loader2 className="size-6 text-blue-500 animate-spin" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">
-                Comprimindo imagem…
-              </p>
-              <p className="text-[11px] text-muted-foreground/70 mt-1">
-                Otimizando para upload
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State 5: No image (create mode or empty)
   return (
     <div className={rootClassName}>
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`relative rounded-sm border-2 border-dashed p-8 ${
-          isDragging
-            ? "border-foreground/40 bg-muted/20"
-            : "border-border/40 bg-card/80"
-        } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-      >
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/jpg,image/webp"
-          onChange={handleFileInput}
+      {isCompressing ? (
+        <CompressingImagePanel />
+      ) : previewUrl && value ? (
+        <SelectedImagePanel
+          previewUrl={previewUrl}
+          value={value}
           disabled={disabled}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          onRemove={handleRemove}
         />
-        <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-sm bg-foreground/5 border border-border/30">
-            {isDragging ? (
-              <Upload className="size-6 text-foreground/70" />
-            ) : (
-              <ImageIcon className="size-6 text-foreground/70" />
-            )}
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-              {isDragging ? "Solte a imagem aqui" : (text || "Arraste uma imagem ou clique")}
-            </p>
-            <p className="text-[11px] text-muted-foreground/70 mt-1">
-              PNG, JPG, JPEG ou WEBP • Máx 5MB
-            </p>
-          </div>
-        </div>
-      </div>
+      ) : currentImageUrl && !showRemovalIndicator ? (
+        <CurrentImagePanel
+          currentImageUrl={currentImageUrl}
+          disabled={disabled}
+          onRemove={handleRemove}
+          onReplace={handleReplace}
+        />
+      ) : showRemovalIndicator ? (
+        <RemovedImagePanel disabled={disabled} onReplace={handleReplace} />
+      ) : (
+        <EmptyImageDropzone
+          disabled={disabled}
+          isDragging={isDragging}
+          text={text}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onFileInput={handleFileInput}
+        />
+      )}
     </div>
   );
 };

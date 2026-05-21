@@ -12,7 +12,8 @@ import { HTTPError } from "ky";
 export const useRegisterModel = () => {
   const router = useRouter();
   const { setUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmittingRegistration, setIsSubmittingRegistration] =
+    useState(false);
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -25,7 +26,7 @@ export const useRegisterModel = () => {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
+    setIsSubmittingRegistration(true);
     try {
       const payload = {
         companyName: data.companyName,
@@ -58,13 +59,13 @@ export const useRegisterModel = () => {
         toast.error("Falha no cadastro. Tente novamente.");
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmittingRegistration(false);
     }
   };
 
   return {
     form,
     onSubmit,
-    isLoading,
+    isLoading: isSubmittingRegistration,
   };
 };

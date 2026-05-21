@@ -12,6 +12,7 @@ import {
   Plus,
   Save,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { BatchEditFormData } from "./batches-edit.schema";
 import type { Batch } from "../../batches.types";
@@ -40,12 +41,20 @@ interface BatchEditViewProps {
   batch?: Batch | null;
 }
 
-export const BatchEditView = ({
-  form,
-  onSubmit,
-  isLoading,
-  batch,
-}: BatchEditViewProps) => {
+interface BatchEditViewState extends BatchEditViewProps {
+  batchCode: string | undefined;
+  handleQuantityDecrement: () => void;
+  handleQuantityIncrement: () => void;
+  isProfitable: boolean;
+  isSubmitting: boolean;
+  margin: number;
+  productLabel: string;
+  profit: number;
+  warehouseLabel: string;
+}
+
+export const BatchEditView = (props: BatchEditViewProps) => {
+  const { form, onSubmit, isLoading, batch } = props;
   const { isSubmitting } = form.formState;
 
   const costPrice = form.watch("costPrice") || 0;
@@ -76,6 +85,18 @@ export const BatchEditView = ({
   const handleQuantityDecrement = () => {
     updateQuantity((form.getValues("quantity") || 1) - 1);
   };
+  const viewState: BatchEditViewState = {
+    ...props,
+    batchCode,
+    handleQuantityDecrement,
+    handleQuantityIncrement,
+    isProfitable,
+    isSubmitting,
+    margin,
+    productLabel,
+    profit,
+    warehouseLabel,
+  };
 
   if (isLoading) {
     return (
@@ -92,341 +113,406 @@ export const BatchEditView = ({
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="space-y-6 lg:col-span-2">
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Box className="size-4 text-blue-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Identificação e Origem
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-5">
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="productId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Produto
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                value={productLabel}
-                                disabled
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-300 focus:ring-0 disabled:opacity-100"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="warehouseId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Warehouse
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                value={warehouseLabel}
-                                disabled
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-300 focus:ring-0 disabled:opacity-100"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {batchCode && (
-                      <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-2">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                          Código gerado
-                        </div>
-                        <div className="mt-1 font-mono text-sm font-bold text-white">
-                          {batchCode}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="size-4 text-emerald-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Financeiro e Estoque
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-6">
-                    <div className="grid gap-5 md:grid-cols-3">
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => {
-                          const { onChange, value, ...rest } = field;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Quantidade
-                              </FormLabel>
-                              <div className="flex">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={handleQuantityDecrement}
-                                  className="size-10 rounded-r-none rounded-l-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
-                                  aria-label="Diminuir quantidade"
-                                >
-                                  <Minus className="size-4" />
-                                </Button>
-                                <FormControl>
-                                  <NumberInput
-                                    {...rest}
-                                    value={value}
-                                    onValueChange={onChange}
-                                    mode="integer"
-                                    className="h-10 min-w-0 flex-1 rounded-none border-x-0 border-neutral-800 bg-neutral-900 text-center text-sm focus:border-blue-600 focus:ring-0"
-                                  />
-                                </FormControl>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={handleQuantityIncrement}
-                                  className="size-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white"
-                                  aria-label="Aumentar quantidade"
-                                >
-                                  <Plus className="size-4" />
-                                </Button>
-                              </div>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          );
-                        }}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="costPrice"
-                        render={({ field }) => {
-                          const { onChange, value, ...rest } = field;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Custo Unitário
-                              </FormLabel>
-                              <FormControl>
-                                <CurrencyInput
-                                  {...rest}
-                                  value={value}
-                                  onValueChange={onChange}
-                                  placeholder="0,00"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          );
-                        }}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="sellingPrice"
-                        render={({ field }) => {
-                          const { onChange, value, ...rest } = field;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Preço de Venda
-                              </FormLabel>
-                              <FormControl>
-                                <CurrencyInput
-                                  {...rest}
-                                  value={value}
-                                  onValueChange={onChange}
-                                  placeholder="0,00"
-                                  className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-emerald-600 focus:ring-0 text-emerald-500 font-bold"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs text-rose-500" />
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </div>
-
-                    <div
-                      className={cn(
-                        "mt-4 rounded-[4px] border px-4 py-3 flex items-center justify-between",
-                        isProfitable
-                          ? "border-emerald-900/30 bg-emerald-950/10"
-                          : "border-rose-900/30 bg-rose-950/10",
-                      )}
-                    >
-                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                        Lucro Estimado
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-sm font-bold font-mono",
-                            isProfitable ? "text-emerald-500" : "text-rose-500",
-                          )}
-                        >
-                          {(profit / 100).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </span>
-                        <div
-                          className={cn(
-                            "text-[10px] font-bold px-1.5 py-0.5 rounded border ml-1",
-                            isProfitable
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-                              : "border-rose-500/30 bg-rose-500/10 text-rose-500",
-                          )}
-                        >
-                          {margin.toFixed(1)}%
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BatchEditIdentityCard viewState={viewState} />
+                <BatchEditFinanceCard viewState={viewState} />
               </div>
 
               <div className="space-y-6">
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="size-4 text-amber-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Vigência
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-5">
-                    <FormField
-                      control={form.control}
-                      name="manufacturedDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Data de Fabricação
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage className="text-xs text-rose-500" />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="expirationDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Data de Validade
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription className="text-[10px] text-neutral-500 flex items-center gap-1">
-                            <AlertCircle className="size-3" />
-                            Mantenha vazio quando o produto não tiver validade.
-                          </FormDescription>
-                          <FormMessage className="text-xs text-rose-500" />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-                  <CardHeader className="border-b border-neutral-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-neutral-500" />
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                        Observações
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Detalhes adicionais sobre o lote…"
-                              className="min-h-[120px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage className="text-xs text-rose-500" />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
+                <BatchEditDateCard form={form} />
+                <BatchEditNotesCard form={form} />
               </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-sm p-4 md:ml-[var(--sidebar-width)]">
-              <div className="mx-auto flex w-full max-w-7xl flex-col md:flex-row items-center md:justify-end gap-3 px-4 md:px-6 lg:px-8">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="h-10 w-full md:w-auto rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                  asChild
-                >
-                  <Link href={batch?.id ? `/batches/${batch.id}` : "/batches"}>
-                    Cancelar
-                  </Link>
-                </Button>
-                <PermissionGate permission="batches:update">
-                  <Button
-                    type="submit"
-                    className="h-10 w-full md:w-[180px] rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)]"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                        Salvando…
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 size-3.5" />
-                        Salvar Lote
-                      </>
-                    )}
-                  </Button>
-                </PermissionGate>
-              </div>
-            </div>
+            <BatchEditFooter viewState={viewState} />
           </form>
         </Form>
       </main>
     </div>
   );
 };
+
+function BatchEditIdentityCard({
+  viewState,
+}: {
+  viewState: BatchEditViewState;
+}) {
+  const { batchCode, form, productLabel, warehouseLabel } = viewState;
+
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <BatchEditCardTitle icon={<Box className="size-4 text-blue-500" />} title="Identificação e Origem" />
+      </CardHeader>
+      <CardContent className="space-y-5 pt-6">
+        <div className="grid gap-5 md:grid-cols-2">
+          <BatchEditReadonlyField form={form} name="productId" label="Produto" value={productLabel} />
+          <BatchEditReadonlyField form={form} name="warehouseId" label="Warehouse" value={warehouseLabel} />
+        </div>
+        {batchCode ? (
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-3 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+              Código gerado
+            </div>
+            <div className="mt-1 font-mono text-sm font-bold text-white">
+              {batchCode}
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BatchEditReadonlyField({
+  form,
+  label,
+  name,
+  value,
+}: {
+  form: UseFormReturn<BatchEditFormData>;
+  label: string;
+  name: "productId" | "warehouseId";
+  value: string;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {label}
+          </FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              value={value}
+              disabled
+              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-neutral-300 focus:ring-0 disabled:opacity-100"
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function BatchEditFinanceCard({
+  viewState,
+}: {
+  viewState: BatchEditViewState;
+}) {
+  const { form, handleQuantityDecrement, handleQuantityIncrement } = viewState;
+
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <BatchEditCardTitle icon={<DollarSign className="size-4 text-emerald-500" />} title="Financeiro e Estoque" />
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="grid gap-5 md:grid-cols-3">
+          <BatchEditQuantityField
+            form={form}
+            onDecrement={handleQuantityDecrement}
+            onIncrement={handleQuantityIncrement}
+          />
+          <BatchEditCurrencyField form={form} name="costPrice" label="Custo Unitário" />
+          <BatchEditCurrencyField form={form} name="sellingPrice" label="Preço de Venda" isSellingPrice />
+        </div>
+        <BatchEditProfitSummary viewState={viewState} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function BatchEditQuantityField({
+  form,
+  onDecrement,
+  onIncrement,
+}: {
+  form: UseFormReturn<BatchEditFormData>;
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name="quantity"
+      render={({ field }) => {
+        const { onChange, value, ...rest } = field;
+        return (
+          <FormItem>
+            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Quantidade
+            </FormLabel>
+            <div className="flex">
+              <BatchEditQuantityButton label="Diminuir quantidade" onClick={onDecrement} side="left" />
+              <FormControl>
+                <NumberInput
+                  {...rest}
+                  value={value}
+                  onValueChange={onChange}
+                  mode="integer"
+                  className="h-10 min-w-0 flex-1 rounded-none border-x-0 border-neutral-800 bg-neutral-900 text-center text-sm focus:border-blue-600 focus:ring-0"
+                />
+              </FormControl>
+              <BatchEditQuantityButton label="Aumentar quantidade" onClick={onIncrement} side="right" />
+            </div>
+            <FormMessage className="text-xs text-rose-500" />
+          </FormItem>
+        );
+      }}
+    />
+  );
+}
+
+function BatchEditQuantityButton({
+  label,
+  onClick,
+  side,
+}: {
+  label: string;
+  onClick: () => void;
+  side: "left" | "right";
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      className={cn(
+        "size-10 border-neutral-800 bg-neutral-900 p-0 hover:bg-neutral-800 hover:text-white",
+        side === "left" ? "rounded-l-[4px] rounded-r-none" : "rounded-l-none rounded-r-[4px]",
+      )}
+      aria-label={label}
+    >
+      {side === "left" ? <Minus className="size-4" /> : <Plus className="size-4" />}
+    </Button>
+  );
+}
+
+function BatchEditCurrencyField({
+  form,
+  isSellingPrice = false,
+  label,
+  name,
+}: {
+  form: UseFormReturn<BatchEditFormData>;
+  isSellingPrice?: boolean;
+  label: string;
+  name: "costPrice" | "sellingPrice";
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => {
+        const { onChange, value, ...rest } = field;
+        return (
+          <FormItem>
+            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              {label}
+            </FormLabel>
+            <FormControl>
+              <CurrencyInput
+                {...rest}
+                value={value}
+                onValueChange={onChange}
+                placeholder="0,00"
+                className={cn(
+                  "h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:ring-0",
+                  isSellingPrice
+                    ? "font-bold text-emerald-500 focus:border-emerald-600"
+                    : "focus:border-blue-600",
+                )}
+              />
+            </FormControl>
+            <FormMessage className="text-xs text-rose-500" />
+          </FormItem>
+        );
+      }}
+    />
+  );
+}
+
+function BatchEditProfitSummary({
+  viewState,
+}: {
+  viewState: BatchEditViewState;
+}) {
+  const { isProfitable, margin, profit } = viewState;
+
+  return (
+    <div
+      className={cn(
+        "mt-4 flex items-center justify-between rounded-[4px] border px-4 py-3",
+        isProfitable
+          ? "border-emerald-900/30 bg-emerald-950/10"
+          : "border-rose-900/30 bg-rose-950/10",
+      )}
+    >
+      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+        Lucro Estimado
+      </span>
+      <div className="flex items-center gap-2">
+        <span className={cn("font-mono text-sm font-bold", isProfitable ? "text-emerald-500" : "text-rose-500")}>
+          {(profit / 100).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+        </span>
+        <div className={cn("ml-1 rounded border px-1.5 py-0.5 text-[10px] font-bold", isProfitable ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500" : "border-rose-500/30 bg-rose-500/10 text-rose-500")}>
+          {margin.toFixed(1)}%
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BatchEditDateCard({ form }: { form: UseFormReturn<BatchEditFormData> }) {
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <BatchEditCardTitle icon={<Calendar className="size-4 text-amber-500" />} title="Vigência" />
+      </CardHeader>
+      <CardContent className="space-y-5 pt-6">
+        <BatchEditDateField form={form} name="manufacturedDate" label="Data de Fabricação" />
+        <BatchEditDateField
+          form={form}
+          name="expirationDate"
+          label="Data de Validade"
+          description="Mantenha vazio quando o produto não tiver validade."
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function BatchEditDateField({
+  description,
+  form,
+  label,
+  name,
+}: {
+  description?: string;
+  form: UseFormReturn<BatchEditFormData>;
+  label: string;
+  name: "expirationDate" | "manufacturedDate";
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {label}
+          </FormLabel>
+          <FormControl>
+            <Input
+              type="date"
+              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+              {...field}
+            />
+          </FormControl>
+          {description ? (
+            <FormDescription className="flex items-center gap-1 text-[10px] text-neutral-500">
+              <AlertCircle className="size-3" />
+              {description}
+            </FormDescription>
+          ) : null}
+          <FormMessage className="text-xs text-rose-500" />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function BatchEditNotesCard({ form }: { form: UseFormReturn<BatchEditFormData> }) {
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <BatchEditCardTitle icon={<FileText className="size-4 text-neutral-500" />} title="Observações" />
+      </CardHeader>
+      <CardContent className="pt-6">
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  placeholder="Detalhes adicionais sobre o lote…"
+                  className="min-h-[120px] resize-none rounded-[4px] border-neutral-800 bg-neutral-900 text-sm focus:border-blue-600 focus:ring-0"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-xs text-rose-500" />
+            </FormItem>
+          )}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function BatchEditFooter({
+  viewState,
+}: {
+  viewState: BatchEditViewState;
+}) {
+  const { batch, isSubmitting } = viewState;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm md:ml-[var(--sidebar-width)]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 px-4 md:flex-row md:justify-end md:px-6 lg:px-8">
+        <Button
+          variant="outline"
+          type="button"
+          className="h-10 w-full rounded-[4px] border-neutral-700 bg-transparent text-xs font-bold uppercase tracking-wide text-neutral-300 hover:bg-neutral-800 hover:text-white md:w-auto"
+          asChild
+        >
+          <Link href={batch?.id ? `/batches/${batch.id}` : "/batches"}>
+            Cancelar
+          </Link>
+        </Button>
+        <PermissionGate permission="batches:update">
+          <Button
+            type="submit"
+            className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] hover:bg-blue-700 md:w-[180px]"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 size-3.5 animate-spin" />
+                Salvando…
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 size-3.5" />
+                Salvar Lote
+              </>
+            )}
+          </Button>
+        </PermissionGate>
+      </div>
+    </div>
+  );
+}
+
+function BatchEditCardTitle({
+  icon,
+  title,
+}: {
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      {icon}
+      <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+        {title}
+      </CardTitle>
+    </div>
+  );
+}

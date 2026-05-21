@@ -29,7 +29,7 @@ Autenticacao: obrigatoria (JWT em cookie `accessToken` ou header `Authorization`
 ## Authorization Matrix
 
 - `POST /api/stock-movements` (application/json): `stock_movements:create`
-- `POST /api/stock-movements` (multipart/form-data): `stock_movements:create`
+- `POST /api/uploads/product-images/temp` (multipart/form-data): `stock_movements:create`
 - `GET /api/stock-movements`: `stock_movements:read`
 - `GET /api/stock-movements/{id}`: `stock_movements:read`
 - `GET /api/stock-movements/warehouse-summary`: `stock_movements:read`
@@ -68,6 +68,7 @@ Request:
         "isEnabled": true
       },
       "quantity": 10,
+      "imageUploadId": "990e8400-e29b-41d4-a716-446655440000",
       "costPrice": 1050,
       "sellingPrice": 2000
     },
@@ -95,21 +96,36 @@ Regras:
 - Se a quantidade total disponivel no warehouse for insuficiente, retorna `400` com mensagem de estoque insuficiente.
 - Para movimentos `IN` com `productId`, se qualquer data/preco de lote for informado, o sistema cria um novo batch com esses dados; se nenhum dado for informado, adiciona a quantidade ao primeiro batch existente do produto ou cria o primeiro batch se ainda nao houver lote.
 - Se passado um `newProduct`, o sistema antes ira cadastrar tal produto no BD para em seguida criar o seu batch com as premissas deste estoque de entrada.
+- `imageUploadId` e opcional e so pode ser usado junto com `newProduct`. Ele deve vir do endpoint de upload temporario e substitui o envio multipart da movimentacao.
 - O `warehouseId` e determinado automaticamente pelo warehouse do usuario logado.
 - Um codigo unico e gerado automaticamente (ex: `MOV-2026-0001`).
 
 ---
 
-### POST /api/stock-movements (multipart/form-data)
+### POST /api/uploads/product-images/temp (multipart/form-data)
 
-Cria uma movimentacao de estoque semelhante ao endpoint json, porem com suporte a envio de imagens do novo produto gerado inline, utilizando content-type `multipart/form-data`.
+Faz upload temporario de uma imagem de produto inline antes do POST JSON da movimentacao.
 
 Parts:
 
-- `movement` (Obrigatorio): Parte contendo o JSON com o body equivalente a `CreateStockMovementRequest`. Content-Type dessa part deve ser `application/json`.
-- `inlineProductImages` (Opcional): Lista de arquivos de imagem (`MultipartFile`). Permite anexar a imagem do novo produto listado em `movement.items.newProduct`. Apos cadastrar o produto (que ira ser associado a essa mov), o sistema fara upload desta imagem associando-a ao novo produto. O suporte aceita o envio de varias fotos num unico vetor de dados, caso aja varios novos produtos com imagens enviadas na mesma transacao, preenchendo da forma programada.
+- `image` (Obrigatorio): arquivo `image/png`, `image/jpeg`, `image/jpg` ou `image/webp`.
 
-Response (`201 Created`): Retorna as mesmas informacoes geradas do modo padrao da aplicacao json.
+Response (`201 Created`):
+
+```json
+{
+  "success": true,
+  "message": "Temporary product image uploaded successfully",
+  "data": {
+    "uploadId": "990e8400-e29b-41d4-a716-446655440000",
+    "fileName": "produto.webp",
+    "contentType": "image/webp",
+    "sizeBytes": 105000
+  }
+}
+```
+
+O `uploadId` deve ser enviado no item `newProduct` da movimentacao. Uploads temporarios expiram e sao limpos automaticamente se nao forem consumidos.
 
 Response (`201 Created`) comum:
 

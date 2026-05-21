@@ -1,66 +1,41 @@
-import type {
-  StockMovement,
-  StockMovementItem,
-  StockMovementType,
-} from "../stock-movements.types";
-import type { Batch } from "../../batches/batches.types";
+import type { StockMovement, StockMovementItem } from "../stock-movements.types";
+
+export type { StockMovement };
 
 export interface StockMovementDetailResponse {
   success: boolean;
-  message: string;
+  message: string | null;
   data: StockMovement;
 }
 
-export interface BatchDetailResponse {
+export interface ProductImageResponse {
   success: boolean;
-  message?: string | null;
-  data: Batch;
+  data: { id: string; imageUrl: string | null };
 }
 
-export interface BatchPriceInfo {
-  batchId: string;
-  costPrice: number | null;
-  sellingPrice: number | null;
-}
-
-export interface FinancialSummary {
-  totalPurchaseCost: number;
-  totalExpectedSale: number;
-  totalProfit: number;
-  averageProfitMargin: number;
-}
-
-export interface GroupedProduct {
-  productId: string;
-  productName: string;
-  productSku: string | null;
+export type StockMovementItemWithImage = StockMovementItem & {
   productImageUrl: string | null;
-  items: StockMovementItem[];
-  totalQuantity: number;
-}
-
-export type MovementCategory =
-  | "purchase"
-  | "outflow"
-  | "adjustment_in"
-  | "transfer";
-
-export const MOVEMENT_CATEGORY_MAP: Record<StockMovementType, MovementCategory> = {
-  PURCHASE_IN: "purchase",
-  SALE: "outflow",
-  USAGE: "outflow",
-  GIFT: "outflow",
-  LOSS: "outflow",
-  DAMAGE: "outflow",
-  ADJUSTMENT_OUT: "outflow",
-  ADJUSTMENT_IN: "adjustment_in",
-  TRANSFER_IN: "transfer",
-  TRANSFER_OUT: "transfer",
 };
+
+export interface TypeBadgeView {
+  label: string;
+  icon: "in" | "out";
+  borderClass: string;
+  bgClass: string;
+  textClass: string;
+  accentClass: string;
+  description: string;
+}
 
 export interface StockMovementDetailViewProps {
   movement: StockMovement | null;
-  batchPrices: BatchPriceInfo[];
+  items: StockMovementItemWithImage[];
   isLoading: boolean;
   error: Error | null;
+  typeBadge: TypeBadgeView | null;
+  formattedCreatedAt: string;
+  formattedUpdatedAt: string;
+  totalQuantity: string;
+  itemCount: number;
+  hasReference: boolean;
 }

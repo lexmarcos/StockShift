@@ -34,8 +34,8 @@ export function StockMovementReloadGuardView({
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-sm leading-6 text-neutral-400">
-            Ao recarregar esta tela, os dados preenchidos nesta movimentação
-            serão perdidos. Tem certeza que deseja continuar?
+            Ao recarregar esta tela, o rascunho salvo será restaurado
+            automaticamente quando a movimentação abrir novamente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -47,10 +47,10 @@ export function StockMovementReloadGuardView({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirmReload}
-            className="rounded-[4px] bg-rose-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-rose-700"
+            className="rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700"
           >
             <RotateCcw className="mr-2 size-3.5" strokeWidth={2.5} />
-            Recarregar e perder dados
+            Recarregar agora
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

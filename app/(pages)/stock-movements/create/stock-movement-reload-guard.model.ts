@@ -7,7 +7,7 @@ import type {
 } from "./stock-movement-reload-guard.types";
 
 const STOCK_MOVEMENT_RELOAD_WARNING =
-  "Ao recarregar esta tela, os dados preenchidos serão perdidos.";
+  "Ao recarregar esta tela, o rascunho salvo será restaurado automaticamente.";
 
 export const isStockMovementReloadShortcut = (
   event: KeyboardEvent,

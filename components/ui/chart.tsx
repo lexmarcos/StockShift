@@ -1,9 +1,42 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import * as React from "react"
-import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
+
+type RechartsModule = typeof import("recharts")
+type ResponsiveContainerProps = React.ComponentProps<
+  RechartsModule["ResponsiveContainer"]
+>
+type RechartsTooltipProps = React.ComponentProps<RechartsModule["Tooltip"]>
+
+const loadResponsiveContainer = async (): Promise<
+  React.ComponentType<ResponsiveContainerProps>
+> => {
+  const rechartsModule = await import("recharts")
+  return rechartsModule.ResponsiveContainer as unknown as React.ComponentType<
+    ResponsiveContainerProps
+  >
+}
+
+const loadChartTooltip = async (): Promise<
+  React.ComponentType<RechartsTooltipProps>
+> => {
+  const rechartsModule = await import("recharts")
+  return rechartsModule.Tooltip as unknown as React.ComponentType<
+    RechartsTooltipProps
+  >
+}
+
+const ResponsiveContainer = dynamic<ResponsiveContainerProps>(
+  loadResponsiveContainer,
+  { ssr: false }
+)
+const ChartTooltip = dynamic<RechartsTooltipProps>(
+  loadChartTooltip,
+  { ssr: false }
+)
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
@@ -42,9 +75,7 @@ function ChartContainer({
   ...props
 }: React.ComponentProps<"div"> & {
   config: ChartConfig
-  children: React.ComponentProps<
-    typeof RechartsPrimitive.ResponsiveContainer
-  >["children"]
+  children: ResponsiveContainerProps["children"]
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
@@ -61,9 +92,9 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
+        <ResponsiveContainer>
           {children}
-        </RechartsPrimitive.ResponsiveContainer>
+        </ResponsiveContainer>
       </div>
     </ChartContext.Provider>
   )
@@ -116,10 +147,8 @@ ${colorConfig
   return null
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
-
 type ChartTooltipContentProps =
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  RechartsTooltipProps &
     React.ComponentProps<"div"> & {
       hideLabel?: boolean
       hideIndicator?: boolean

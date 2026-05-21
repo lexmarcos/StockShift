@@ -14,6 +14,7 @@ vi.mock("swr", () => ({
     data: { data: [] },
     isLoading: false,
   })),
+  mutate: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-selected-warehouse", () => ({
@@ -128,6 +129,23 @@ describe("useProductCreateModel - multipart submit", () => {
     const body = (options as { body: FormData }).body;
     const imagePart = body.get("image");
     expect(imagePart).toBeInstanceOf(File);
+  });
+
+  it("blocks submit while image is still processing", async () => {
+    const { result } = renderHook(() => useProductCreateModel());
+
+    act(() => {
+      result.current.handleImageProcessingChange(true);
+    });
+
+    await act(async () => {
+      await result.current.onSubmit(baseFormData);
+    });
+
+    expect(mockPost).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(
+      "Aguarde a imagem terminar de processar antes de salvar.",
+    );
   });
 
   it("handles scanner, AI modal and AI fill data", () => {

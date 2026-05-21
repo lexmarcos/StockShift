@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, isValid, parseISO } from "date-fns";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import type {
   Batch,
@@ -162,11 +162,10 @@ export const useBatchesModel = () => {
       ),
     );
 
-  useEffect(() => {
-    if (selectedWarehouseId) {
-      setFilters((prev) => ({ ...prev, warehouseId: selectedWarehouseId }));
-    }
-  }, [selectedWarehouseId]);
+  const effectiveFilters = useMemo<BatchFilters>(() => {
+    if (!selectedWarehouseId) return filters;
+    return { ...filters, warehouseId: selectedWarehouseId };
+  }, [filters, selectedWarehouseId]);
 
   const { data, error, isLoading, mutate } = useSWR<BatchesResponse>(
     "batches",
@@ -177,8 +176,8 @@ export const useBatchesModel = () => {
   );
 
   const filtered = useMemo(
-    () => filterBatches(data?.data ?? [], filters),
-    [data, filters],
+    () => filterBatches(data?.data ?? [], effectiveFilters),
+    [data, effectiveFilters],
   );
 
   const sorted = useMemo(
@@ -244,7 +243,7 @@ export const useBatchesModel = () => {
 
   const onOpenMobileFilters = () => {
     setMobileFiltersDraft(
-      buildFilterDraft(filters, sortConfig, isGroupedByProduct),
+      buildFilterDraft(effectiveFilters, sortConfig, isGroupedByProduct),
     );
     setIsMobileFiltersOpen(true);
   };
@@ -285,7 +284,7 @@ export const useBatchesModel = () => {
 
   const onClearMobileFilters = () => {
     const nextFilters = {
-      ...filters,
+      ...effectiveFilters,
       searchQuery: "",
       status: "all" as const,
       lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
@@ -302,7 +301,7 @@ export const useBatchesModel = () => {
     groupedByProduct,
     isLoading,
     error,
-    filters,
+    filters: effectiveFilters,
     sortConfig,
     isGroupedByProduct,
     isMobileFiltersOpen,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
@@ -25,9 +25,11 @@ import {
 import {
   clearStockMovementDraft,
   inlineProductImageToFile,
+  isStockMovementDraftRecoveredFromPreviousRuntime,
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "./create-stock-movement.storage";
+import type { WritableStockMovementDraft } from "./create-stock-movement.storage";
 import {
   buildExistingProductBatchesUrl,
   buildExistingProductProfitSummary,
@@ -58,7 +60,7 @@ const isExistingProductBatchDateRangeInvalid = (
 
 const buildExistingProductItemPayload = (
   item: CreateStockMovementSchema["items"][number],
-) => {
+): ExistingProductMovementPayload => {
   const payload: {
     productId: string | undefined;
     quantity: number;
@@ -77,9 +79,48 @@ const buildExistingProductItemPayload = (
   return payload;
 };
 
+interface ExistingProductMovementPayload {
+  productId: string | undefined;
+  quantity: number;
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+}
+
+interface NewProductMovementPayload {
+  quantity: number;
+  newProduct: {
+    name: string;
+    description?: string;
+    barcode?: string;
+    categoryId?: string;
+    brandId?: string;
+    isKit?: boolean;
+    hasExpiration: boolean;
+    active?: boolean;
+    attributes?: Record<string, string>;
+  };
+  manufacturedDate?: string;
+  expirationDate?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  imageUploadId?: string;
+}
+
+type MovementItemPayload =
+  | ExistingProductMovementPayload
+  | NewProductMovementPayload;
+
+interface StockMovementPayload {
+  type: NonNullable<CreateStockMovementSchema["type"]>;
+  notes?: string;
+  items: MovementItemPayload[];
+}
+
 const buildMovementItemPayload = (
   item: CreateStockMovementSchema["items"][number],
-) => {
+): MovementItemPayload => {
   if (!item.newProductData) return buildExistingProductItemPayload(item);
   const newProduct = {
     name: item.newProductData.name,
@@ -102,38 +143,55 @@ const buildMovementItemPayload = (
   };
 };
 
-const hasInlineProductImages = (
-  items: CreateStockMovementSchema["items"],
-): boolean => {
-  return items.some((item) => Boolean(item.newProductData?.image));
-};
-
 export const buildMovementPayload = (
   selectedMovementType: NonNullable<CreateStockMovementSchema["type"]>,
   data: CreateStockMovementSchema,
-) => ({
+): StockMovementPayload => ({
   type: selectedMovementType,
   notes: data.notes || undefined,
   items: data.items.map(buildMovementItemPayload),
 });
 
-const buildMovementFormData = (
-  payload: ReturnType<typeof buildMovementPayload>,
-  items: CreateStockMovementSchema["items"],
-): FormData => {
+interface TemporaryProductImageUploadResponse {
+  success: boolean;
+  data: {
+    uploadId: string;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+  };
+}
+
+const uploadTemporaryInlineProductImage = async (
+  image: NonNullable<
+    NonNullable<CreateStockMovementSchema["items"][number]["newProductData"]>["image"]
+  >,
+): Promise<string> => {
   const formData = new FormData();
-  const movementBlob = new Blob([JSON.stringify(payload)], {
-    type: "application/json",
-  });
-  formData.append("movement", movementBlob);
-  items.forEach((item) => {
-    if (!item.newProductData) return;
-    const imageFile = item.newProductData.image
-      ? inlineProductImageToFile(item.newProductData.image)
-      : new File([], "empty-inline-product-image");
-    formData.append("inlineProductImages", imageFile);
-  });
-  return formData;
+  formData.append("image", inlineProductImageToFile(image));
+  const response = await api
+    .post("uploads/product-images/temp", { body: formData })
+    .json<TemporaryProductImageUploadResponse>();
+  return response.data.uploadId;
+};
+
+const uploadInlineProductImages = async (
+  payload: StockMovementPayload,
+  items: CreateStockMovementSchema["items"],
+): Promise<StockMovementPayload> => {
+  const movementItems = [...payload.items];
+  for (const [index, formItem] of items.entries()) {
+    if (!formItem.newProductData?.image) continue;
+    const itemPayload = movementItems[index];
+    if (!("newProduct" in itemPayload)) continue;
+    movementItems[index] = {
+      ...itemPayload,
+      imageUploadId: await uploadTemporaryInlineProductImage(
+        formItem.newProductData.image,
+      ),
+    };
+  }
+  return { ...payload, items: movementItems };
 };
 
 interface ProductListResponse {
@@ -213,6 +271,7 @@ export function useCreateStockMovementModel({
   const router = useRouter();
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingStep, setSubmittingStep] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedProduct, setSelectedProduct] =
     useState<StockMovementProductOption | null>(null);
@@ -230,6 +289,7 @@ export function useCreateStockMovementModel({
   const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inlineProductBarcodeRef = useRef<string | undefined>(undefined);
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
     : undefined;
@@ -251,34 +311,51 @@ export function useCreateStockMovementModel({
   });
 
   useEffect(() => {
-    if (!selectedMovementType) {
-      toast.error("Selecione o tipo de movimentação antes de continuar.");
-      router.replace("/stock-movements");
-      return;
-    }
-
+    if (!selectedMovementType) return;
     form.setValue("type", selectedMovementType, { shouldValidate: true });
-  }, [form, router, selectedMovementType]);
+  }, [form, selectedMovementType]);
 
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items",
   });
 
+  const [isDraftHydrated, setIsDraftHydrated] = useState(false);
+
   useEffect(() => {
-    const draft = readStockMovementDraft();
-    if (!draft) return;
+    let isMounted = true;
 
-    form.reset({
-      type: draft.type,
-      notes: draft.notes,
-      items: draft.items,
-    });
-    setSelectedProductId("");
-    setItemQuantity("");
+    const hydrateDraft = async (): Promise<void> => {
+      if (!selectedMovementType) {
+        setIsDraftHydrated(true);
+        return;
+      }
 
-    clearStockMovementDraft();
-  }, [append, form]);
+      const draft = await readStockMovementDraft();
+      if (!isMounted) return;
+
+      if (draft?.type === selectedMovementType) {
+        form.reset({
+          type: draft.type,
+          notes: draft.notes,
+          items: draft.items,
+        });
+        setSelectedProductId(draft.selectedProductId);
+        setItemQuantity(draft.itemQuantity);
+        inlineProductBarcodeRef.current = draft.inlineProductBarcode;
+        if (isStockMovementDraftRecoveredFromPreviousRuntime(draft)) {
+          toast.success("Rascunho da movimentação restaurado.");
+        }
+      }
+
+      setIsDraftHydrated(true);
+    };
+
+    void hydrateDraft();
+    return () => {
+      isMounted = false;
+    };
+  }, [form, selectedMovementType]);
 
   const { data: productsData, isLoading: isLoadingProducts } =
     useSWR<ProductListResponse>("products", (url: string) =>
@@ -325,6 +402,84 @@ export function useCreateStockMovementModel({
     barcode: p.barcode,
     imageUrl: p.imageUrl,
   }));
+
+  useEffect(() => {
+    if (!selectedProductId || productSearchQuery || products.length === 0) return;
+    const restoredProduct = products.find((product) => {
+      return product.id === selectedProductId;
+    });
+    if (!restoredProduct) return;
+    setSelectedProduct(restoredProduct);
+    setProductSearchQuery(formatStockMovementProductLabel(restoredProduct));
+  }, [productSearchQuery, products, selectedProductId]);
+
+  const buildCurrentDraft = useCallback(
+    (inlineProductBarcode = inlineProductBarcodeRef.current): WritableStockMovementDraft | null => {
+      if (!selectedMovementType) return null;
+      return {
+        type: selectedMovementType,
+        notes: form.getValues("notes") || "",
+        items: form.getValues("items"),
+        selectedProductId,
+        itemQuantity,
+        inlineProductBarcode,
+      };
+    },
+    [form, itemQuantity, selectedMovementType, selectedProductId],
+  );
+
+  const persistCurrentDraft = useCallback(
+    async (inlineProductBarcode = inlineProductBarcodeRef.current): Promise<void> => {
+      const draft = buildCurrentDraft(inlineProductBarcode);
+      if (!draft) return;
+      await writeStockMovementDraft(draft);
+    },
+    [buildCurrentDraft],
+  );
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+    void persistCurrentDraft();
+  }, [
+    isDraftHydrated,
+    itemQuantity,
+    persistCurrentDraft,
+    selectedMovementType,
+    selectedProductId,
+  ]);
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+
+    const subscription = form.watch((_value, { name }) => {
+      if (!name || (name !== "notes" && !name.startsWith("items"))) return;
+      void persistCurrentDraft();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, isDraftHydrated, persistCurrentDraft, selectedMovementType]);
+
+  useEffect(() => {
+    if (!isDraftHydrated || !selectedMovementType) return;
+
+    const persistBeforePageHide = (): void => {
+      void persistCurrentDraft();
+    };
+    const persistBeforeVisibilityLoss = (): void => {
+      if (document.visibilityState !== "hidden") return;
+      void persistCurrentDraft();
+    };
+
+    window.addEventListener("pagehide", persistBeforePageHide);
+    document.addEventListener("visibilitychange", persistBeforeVisibilityLoss);
+    return () => {
+      window.removeEventListener("pagehide", persistBeforePageHide);
+      document.removeEventListener(
+        "visibilitychange",
+        persistBeforeVisibilityLoss,
+      );
+    };
+  }, [isDraftHydrated, persistCurrentDraft, selectedMovementType]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -615,7 +770,7 @@ export function useCreateStockMovementModel({
     closeExistingProductBatchForm();
   };
 
-  const handleCreateNewProduct = () => {
+  const handleCreateNewProduct = async (): Promise<void> => {
     setAddItemError(null);
 
     if (!selectedMovementType) {
@@ -635,44 +790,30 @@ export function useCreateStockMovementModel({
       return;
     }
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-    });
+    inlineProductBarcodeRef.current = undefined;
+    await persistCurrentDraft(undefined);
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
   };
 
-  const navigateToInlineProductWithBarcode = (barcode: string) => {
+  const navigateToInlineProductWithBarcode = async (
+    barcode: string,
+  ): Promise<void> => {
     if (!selectedMovementType) return;
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-      inlineProductBarcode: barcode,
-    });
+    inlineProductBarcodeRef.current = barcode;
+    await persistCurrentDraft(barcode);
     setIsScannerOpen(false);
     router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
   };
 
-  const handleEditNewProductItem = (index: number) => {
+  const handleEditNewProductItem = async (index: number): Promise<void> => {
     if (!selectedMovementType) return;
 
     const item = form.getValues("items")[index];
     if (!item?.newProductData) return;
 
-    writeStockMovementDraft({
-      type: selectedMovementType,
-      notes: form.getValues("notes") || "",
-      items: form.getValues("items"),
-      selectedProductId,
-      itemQuantity,
-    });
+    inlineProductBarcodeRef.current = undefined;
+    await persistCurrentDraft(undefined);
     router.push(
       `/stock-movements/create/new-product?type=${selectedMovementType}&editItem=${index}`,
     );
@@ -763,7 +904,9 @@ export function useCreateStockMovementModel({
     toast.error(`Produto com código ${barcode} não existe.`, {
       action: {
         label: "Criar Produto",
-        onClick: () => navigateToInlineProductWithBarcode(barcode),
+        onClick: () => {
+          void navigateToInlineProductWithBarcode(barcode);
+        },
       },
     });
   };
@@ -776,13 +919,18 @@ export function useCreateStockMovementModel({
     }
 
     setIsSubmitting(true);
+    setSubmittingStep("Preparando dados da movimentação…");
     try {
       const payload = buildMovementPayload(selectedMovementType, data);
-      const postOptions = hasInlineProductImages(data.items)
-        ? { body: buildMovementFormData(payload, data.items) }
-        : { json: payload };
-      await api.post("stock-movements", postOptions);
 
+      setSubmittingStep("Fazendo upload das imagens…");
+      const payloadWithImages = await uploadInlineProductImages(payload, data.items);
+
+      setSubmittingStep("Ajustando preços e quantidades…");
+      await api.post("stock-movements", { json: payloadWithImages });
+
+      setSubmittingStep("Finalizando…");
+      await clearStockMovementDraft();
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");
     } catch (err: unknown) {
@@ -790,6 +938,7 @@ export function useCreateStockMovementModel({
       toast.error(error.message || "Erro ao criar movimentação.");
     } finally {
       setIsSubmitting(false);
+      setSubmittingStep(null);
     }
   };
 
@@ -799,6 +948,7 @@ export function useCreateStockMovementModel({
     products,
     isLoadingProducts,
     isSubmitting,
+    submittingStep,
     isFooterVisible,
     selectedProductId,
     productSearchQuery,

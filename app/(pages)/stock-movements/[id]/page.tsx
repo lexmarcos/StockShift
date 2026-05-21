@@ -3,7 +3,7 @@ import { PageClient } from "./page.client";
 
 export const metadata: Metadata = {
   title: "Detalhe da movimentação | StockShift",
-  description: "Visualize detalhes de uma movimentação de estoque.",
+  description: "Visualize dados completos de uma movimentação de estoque.",
 };
 
 export default function Page() {

@@ -1,5 +1,5 @@
-import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import {
   buildMovementPayload,
@@ -8,7 +8,10 @@ import {
   shouldShowStockMovementFooter,
 } from "./create-stock-movement.model";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
-import type { StockMovementDraft } from "./create-stock-movement.storage";
+import type {
+  StockMovementDraft,
+  WritableStockMovementDraft,
+} from "./create-stock-movement.storage";
 import type {
   StockMovementProductBatchPriceSource,
   StockMovementProductBatchesResponse,
@@ -63,7 +66,11 @@ const fakeSWR = vi.hoisted(() => {
 const fakeApi = vi.hoisted(() => {
   class FakeApi {
     public readonly get = vi.fn<(url: string) => JsonResponse<unknown>>();
-    public readonly post = vi.fn<(url: string, body: { json?: unknown; body?: unknown }) => Promise<unknown>>();
+    public readonly post = vi.fn<
+      (url: string, body: { json?: unknown; body?: unknown }) =>
+        | Promise<unknown>
+        | JsonResponse<unknown>
+    >();
   }
 
   return new FakeApi();
@@ -122,21 +129,36 @@ const fakeSelectedWarehouse = vi.hoisted(() => {
 const fakeStorage = vi.hoisted(() => {
   class FakeStorage {
     private draftState: StockMovementDraft | null = null;
+    private readonly currentRuntimeId = "runtime-atual";
 
-    public readonly readStockMovementDraft = vi.fn<() => StockMovementDraft | null>(() => {
+    public readonly readStockMovementDraft = vi.fn<() => Promise<StockMovementDraft | null>>(async () => {
       return this.draftState;
     });
-    public readonly writeStockMovementDraft = vi.fn<(draft: StockMovementDraft) => void>(
-      (draft) => {
-        this.draftState = draft;
+    public readonly writeStockMovementDraft = vi.fn<(draft: WritableStockMovementDraft) => Promise<void>>(
+      async (draft) => {
+        this.draftState = {
+          ...draft,
+          schemaVersion: 1,
+          updatedAt: "2026-01-20T10:00:00.000Z",
+          runtimeId: this.currentRuntimeId,
+        };
       },
     );
-    public readonly clearStockMovementDraft = vi.fn(() => {
+    public readonly clearStockMovementDraft = vi.fn(async () => {
       this.draftState = null;
     });
+    public readonly isStockMovementDraftRecoveredFromPreviousRuntime = vi.fn(
+      (draft: StockMovementDraft) => {
+        return draft.runtimeId !== this.currentRuntimeId;
+      },
+    );
 
     public setDraftState(draft: StockMovementDraft | null): void {
       this.draftState = draft;
+    }
+
+    public getCurrentRuntimeId(): string {
+      return this.currentRuntimeId;
     }
   }
 
@@ -192,7 +214,9 @@ vi.mock("@/lib/api", () => ({
 
 vi.mock("./create-stock-movement.storage", () => ({
   readStockMovementDraft: () => fakeStorage.readStockMovementDraft(),
-  writeStockMovementDraft: (draft: StockMovementDraft) =>
+  isStockMovementDraftRecoveredFromPreviousRuntime: (draft: StockMovementDraft) =>
+    fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime(draft),
+  writeStockMovementDraft: (draft: WritableStockMovementDraft) =>
     fakeStorage.writeStockMovementDraft(draft),
   clearStockMovementDraft: () => fakeStorage.clearStockMovementDraft(),
   inlineProductImageToFile: (image: {
@@ -284,6 +308,8 @@ const barcodeIndex: Record<string, StockMovementProductOption> = {
 const createDraftState = (
   overrides?: Partial<StockMovementDraft>,
 ): StockMovementDraft => ({
+  schemaVersion: 1,
+  updatedAt: "2026-01-20T09:00:00.000Z",
   type: "PURCHASE_IN",
   notes: "Notas iniciais",
   items: [
@@ -358,6 +384,7 @@ beforeEach(() => {
   fakeSearchParams.setEditItem(null);
   fakeStorage.setDraftState(null);
   fakeStorage.clearStockMovementDraft.mockClear();
+  fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime.mockClear();
   fakeStorage.readStockMovementDraft.mockClear();
   fakeStorage.writeStockMovementDraft.mockClear();
   fakeRouter.push.mockClear();
@@ -389,7 +416,25 @@ beforeEach(() => {
     return createJsonResponse(productListResponse);
   });
 
-  fakeApi.post.mockResolvedValue({});
+  fakeApi.post.mockImplementation((url: string) => {
+    if (url === "uploads/product-images/temp") {
+      return createJsonResponse({
+        success: true,
+        data: {
+          uploadId: "11111111-1111-4111-8111-111111111111",
+          fileName: "inline.png",
+          contentType: "image/png",
+          sizeBytes: 3,
+        },
+      });
+    }
+    return Promise.resolve({});
+  });
+});
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
 });
 
 describe("helpers de produto", () => {
@@ -507,17 +552,20 @@ describe("useCreateStockMovementModel", () => {
     });
   });
 
-  it("impede inicialização sem tipo válido e redireciona", () => {
+  it("mantém modelo sem tipo quando a rota não fornece tipo válido", () => {
     fakeSearchParams.setType(null);
-    renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
 
-    expect(fakeToast.error).toHaveBeenCalledWith(
+    expect(result.current.form.getValues("type")).toBeUndefined();
+    expect(fakeToast.error).not.toHaveBeenCalledWith(
       "Selecione o tipo de movimentação antes de continuar.",
     );
-    expect(fakeRouter.replace).toHaveBeenCalledWith("/stock-movements");
+    expect(fakeRouter.replace).not.toHaveBeenCalledWith("/stock-movements");
   });
 
-  it("carrega rascunho existente e limpa do storage", () => {
+  it("restaura rascunho legado sem limpar do storage e mostra toast", async () => {
     fakeStorage.setDraftState(
       createDraftState({
         selectedProductId: "p-2",
@@ -527,8 +575,15 @@ describe("useCreateStockMovementModel", () => {
 
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
     expect(fakeStorage.readStockMovementDraft).toHaveBeenCalledTimes(1);
-    expect(fakeStorage.clearStockMovementDraft).toHaveBeenCalledTimes(1);
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
+    expect(fakeToast.success).toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
     expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
     expect(result.current.form.getValues("items")).toEqual([
       {
@@ -544,30 +599,137 @@ describe("useCreateStockMovementModel", () => {
         },
       },
     ]);
-    expect(result.current.selectedProductId).toBe("");
-    expect(result.current.itemQuantity).toBe("");
+    expect(result.current.selectedProductId).toBe("p-2");
+    expect(result.current.itemQuantity).toBe("7");
+  });
+
+  it("restaura rascunho do runtime atual em silêncio", async () => {
+    fakeStorage.setDraftState(
+      createDraftState({
+        selectedProductId: "p-2",
+        runtimeId: fakeStorage.getCurrentRuntimeId(),
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
+    expect(
+      fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime,
+    ).toHaveBeenCalledTimes(1);
+    expect(fakeToast.success).not.toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
+    expect(result.current.selectedProductId).toBe("p-2");
+  });
+
+  it("restaura rascunho de runtime anterior com toast", async () => {
+    fakeStorage.setDraftState(
+      createDraftState({
+        selectedProductId: "p-2",
+        runtimeId: "runtime-anterior",
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("notes")).toBe("Notas iniciais");
+    });
+
+    expect(fakeToast.success).toHaveBeenCalledWith(
+      "Rascunho da movimentação restaurado.",
+    );
+    expect(result.current.selectedProductId).toBe("p-2");
+  });
+
+  it("autosalva notas e itens depois da hidratação", async () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
+
+    act(() => {
+      result.current.form.setValue("notes", "Nova observação");
+    });
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notes: "Nova observação",
+        }),
+      );
+    });
+
+    fakeStorage.writeStockMovementDraft.mockClear();
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          productId: validExistingProductUuid,
+          productName: "Café Torrado",
+          quantity: 2,
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          items: [
+            {
+              productId: validExistingProductUuid,
+              productName: "Café Torrado",
+              quantity: 2,
+            },
+          ],
+        }),
+      );
+    });
   });
 
   it("aplica debounce de busca de produto", () => {
     vi.useFakeTimers();
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
 
-    try {
-      const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+    act(() => {
+      result.current.onProductSearchFocus();
+      result.current.onProductSearchChange("filtro");
+    });
+    expect(result.current.productOptions).toEqual([]);
+    expect(result.current.isProductSearchLoading).toBe(false);
 
-      act(() => {
-        result.current.onProductSearchFocus();
-        result.current.onProductSearchChange("filtro");
-      });
-      expect(result.current.productOptions).toEqual([]);
-      expect(result.current.isProductSearchLoading).toBe(false);
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+    expect(result.current.productOptions).toHaveLength(1);
+  });
 
-      act(() => {
-        vi.advanceTimersByTime(350);
-      });
-      expect(result.current.productOptions).toHaveLength(1);
-    } finally {
-      vi.useRealTimers();
-    }
+  it("cancela debounce de busca ao desmontar", () => {
+    vi.useFakeTimers();
+    const { result, unmount } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSearchChange("filtro");
+    });
+
+    unmount();
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("mantém produto selecionado quando busca bate com rótulo completo", () => {
@@ -872,8 +1034,13 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeRouter.push).not.toHaveBeenCalled();
   });
 
-  it("redireciona para inclusão de produto novo em movimento de entrada", () => {
+  it("redireciona para inclusão de produto novo em movimento de entrada", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await waitFor(() => {
+      expect(fakeStorage.readStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
 
     act(() => {
       result.current.onProductSelect(movementProducts[0]);
@@ -882,8 +1049,8 @@ describe("useCreateStockMovementModel", () => {
       result.current.onQuantityChange("2");
       result.current.onAddItem();
     });
-    act(() => {
-      result.current.onCreateNewProduct();
+    await act(async () => {
+      await result.current.onCreateNewProduct();
     });
 
     expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
@@ -989,8 +1156,13 @@ describe("useCreateStockMovementModel", () => {
     expect(lastCall?.[1]).toBeUndefined();
   });
 
-  it("abre editor de produto novo quando o item do índice é válido", () => {
+  it("abre editor de produto novo quando o item do índice é válido", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await waitFor(() => {
+      expect(fakeStorage.readStockMovementDraft).toHaveBeenCalled();
+    });
+    fakeStorage.writeStockMovementDraft.mockClear();
 
     act(() => {
       result.current.form.setValue("items", [
@@ -1007,8 +1179,8 @@ describe("useCreateStockMovementModel", () => {
       ]);
     });
 
-    act(() => {
-      result.current.onEditNewProductItem(0);
+    await act(async () => {
+      await result.current.onEditNewProductItem(0);
     });
 
     expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalled();
@@ -1060,11 +1232,12 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeToast.success).toHaveBeenCalledWith(
       "Movimentação criada com sucesso!",
     );
+    expect(fakeStorage.clearStockMovementDraft).toHaveBeenCalledTimes(1);
     expect(fakeRouter.push).toHaveBeenCalledWith("/stock-movements");
     expect(result.current.isSubmitting).toBe(false);
   });
 
-  it("envia payload multipart quando há imagem inline", async () => {
+  it("envia imagem temporária e payload JSON quando há imagem inline", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
     const payload = createInlineSubmitPayload();
 
@@ -1072,12 +1245,45 @@ describe("useCreateStockMovementModel", () => {
       await result.current.onSubmit(payload);
     });
 
-    const [, options] = fakeApi.post.mock.calls.at(-1) as [
+    const [uploadUrl, uploadOptions] = fakeApi.post.mock.calls[0] as [
       string,
       { body?: FormData; json?: unknown },
     ];
-    expect(options.body).toBeInstanceOf(FormData);
-    expect(options.body?.getAll("inlineProductImages")).toHaveLength(1);
+    expect(uploadUrl).toBe("uploads/product-images/temp");
+    expect(uploadOptions.body).toBeInstanceOf(FormData);
+
+    const [movementUrl, movementOptions] = fakeApi.post.mock.calls.at(-1) as [
+      string,
+      { body?: FormData; json?: unknown },
+    ];
+    expect(movementUrl).toBe("stock-movements");
+    expect(movementOptions.json).toMatchObject({
+      items: [
+        {
+          imageUploadId: "11111111-1111-4111-8111-111111111111",
+        },
+      ],
+    });
+    expect(movementOptions.body).toBeUndefined();
+  });
+
+  it("não envia movimentação quando upload temporário falha", async () => {
+    fakeApi.post.mockImplementation((url: string) => {
+      if (url === "uploads/product-images/temp") {
+        throw new Error("Falha no upload");
+      }
+      return Promise.resolve({});
+    });
+    const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
+
+    await act(async () => {
+      await result.current.onSubmit(createInlineSubmitPayload());
+    });
+
+    expect(fakeApi.post).toHaveBeenCalledTimes(1);
+    expect(fakeToast.error).toHaveBeenCalledWith("Falha no upload");
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
+    expect(fakeRouter.push).not.toHaveBeenCalledWith("/stock-movements");
   });
 
   it("mostra erro no envio e mantém estado", async () => {
@@ -1089,6 +1295,7 @@ describe("useCreateStockMovementModel", () => {
     });
 
     expect(fakeToast.error).toHaveBeenCalledWith("Falha ao salvar");
+    expect(fakeStorage.clearStockMovementDraft).not.toHaveBeenCalled();
     expect(result.current.isSubmitting).toBe(false);
     expect(fakeRouter.push).not.toHaveBeenCalledWith("/stock-movements");
   });

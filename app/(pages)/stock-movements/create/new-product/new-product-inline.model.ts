@@ -30,6 +30,7 @@ import {
   readStockMovementDraft,
   writeStockMovementDraft,
 } from "../create-stock-movement.storage";
+import type { StockMovementDraft } from "../create-stock-movement.storage";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
@@ -87,7 +88,7 @@ const buildInlineProductData = async (
 
 const hasDuplicateInlineProductName = (
   productName: string,
-  draft: ReturnType<typeof readStockMovementDraft>,
+  draft: StockMovementDraft | null,
   ignoredIndex: number | null,
 ): boolean => {
   const normalizedName = productName.toLowerCase();
@@ -107,29 +108,45 @@ const buildInlineMovementItem = (
   newProductData: product,
 });
 
+const isInlineProductRouteReady = (
+  movementType: string | null,
+  initialDraft: StockMovementDraft | null,
+  editItemIndex: number | null,
+  isEditingInlineProduct: boolean,
+): boolean => {
+  const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
+  return Boolean(
+    isManualMovementType(movementType) && initialDraft && hasValidEditItem,
+  );
+};
+
 const appendProductToMovementDraft = (
   product: InlineProductData,
   quantity: number,
-): void => {
-  const draft = readStockMovementDraft();
-  if (!draft) return;
-  writeStockMovementDraft({
+): Promise<void> => {
+  return updateMovementDraft((draft) => ({
     ...draft,
     items: [...draft.items, buildInlineMovementItem(product, quantity)],
     selectedProductId: "",
     itemQuantity: "",
     inlineProductBarcode: undefined,
-  });
+  }));
+};
+
+const updateMovementDraft = async (
+  buildNextDraft: (draft: StockMovementDraft) => StockMovementDraft,
+): Promise<void> => {
+  const draft = await readStockMovementDraft();
+  if (!draft) return;
+  await writeStockMovementDraft(buildNextDraft(draft));
 };
 
 const updateProductInMovementDraft = (
   index: number,
   product: InlineProductData,
   quantity: number,
-): void => {
-  const draft = readStockMovementDraft();
-  if (!draft) return;
-  writeStockMovementDraft({
+): Promise<void> => {
+  return updateMovementDraft((draft) => ({
     ...draft,
     items: draft.items.map((item, itemIndex) => {
       return itemIndex === index
@@ -139,7 +156,7 @@ const updateProductInMovementDraft = (
     selectedProductId: "",
     itemQuantity: "",
     inlineProductBarcode: undefined,
-  });
+  }));
 };
 
 export const useNewProductInlineModel = ({
@@ -150,12 +167,15 @@ export const useNewProductInlineModel = ({
   const editItemIndex = parseEditItemIndex(editItem);
   const cancelHref = buildReturnHref(movementType);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const initialDraftRef = useRef(readStockMovementDraft());
-  const initialDraft = initialDraftRef.current;
+  const [initialDraft, setInitialDraft] = useState<StockMovementDraft | null>(
+    null,
+  );
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const editedItem =
     editItemIndex !== null ? initialDraft?.items[editItemIndex] : undefined;
   const editedProduct = editedItem?.newProductData;
   const isEditingInlineProduct = Boolean(editedProduct);
+
   const [customAttributes, setCustomAttributes] = useState<CustomAttribute[]>(
     () => buildCustomAttributes(editedProduct?.attributes),
   );
@@ -172,21 +192,6 @@ export const useNewProductInlineModel = ({
     section: "Movimentações",
     subsection: isEditingInlineProduct ? "Editar Produto" : "Produto Inline",
   });
-
-  useEffect(() => {
-    const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
-    if (isManualMovementType(movementType) && initialDraft && hasValidEditItem) {
-      return;
-    }
-    toast.error("Volte para a movimentação antes de criar o produto.");
-    router.replace("/stock-movements");
-  }, [
-    editItemIndex,
-    initialDraft,
-    isEditingInlineProduct,
-    movementType,
-    router,
-  ]);
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useSWR<CategoriesResponse>("categories", (url: string) =>
@@ -221,6 +226,90 @@ export const useNewProductInlineModel = ({
       sellingPrice: editedProduct?.sellingPrice,
     },
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDraft = async (): Promise<void> => {
+      const draft = await readStockMovementDraft();
+      if (!isMounted) return;
+      setInitialDraft(draft);
+      setIsDraftLoaded(true);
+    };
+
+    void loadDraft();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDraftLoaded) return;
+    if (
+      isInlineProductRouteReady(
+        movementType,
+        initialDraft,
+        editItemIndex,
+        isEditingInlineProduct,
+      )
+    ) {
+      return;
+    }
+    router.replace("/stock-movements");
+  }, [
+    editItemIndex,
+    initialDraft,
+    isDraftLoaded,
+    isEditingInlineProduct,
+    movementType,
+    router,
+  ]);
+
+  useEffect(() => {
+    if (!isDraftLoaded || !initialDraft) return;
+    if (
+      !isInlineProductRouteReady(
+        movementType,
+        initialDraft,
+        editItemIndex,
+        isEditingInlineProduct,
+      )
+    ) {
+      return;
+    }
+
+    form.reset({
+      name: editedProduct?.name || "",
+      description: editedProduct?.description || "",
+      barcode: editedProduct?.barcode || initialDraft.inlineProductBarcode || "",
+      isKit: editedProduct?.isKit || false,
+      hasExpiration: editedProduct?.hasExpiration || false,
+      active: editedProduct?.active ?? true,
+      continuousMode: false,
+      categoryId: editedProduct?.categoryId || "",
+      brandId: editedProduct?.brandId || "",
+      attributes: {
+        weight: editedProduct?.attributes?.weight || "",
+        dimensions: editedProduct?.attributes?.dimensions || "",
+      },
+      quantity: editedItem?.quantity || 0,
+      manufacturedDate: editedProduct?.manufacturedDate || "",
+      expirationDate: editedProduct?.expirationDate || "",
+      costPrice: editedProduct?.costPrice,
+      sellingPrice: editedProduct?.sellingPrice,
+    });
+    setCustomAttributes(buildCustomAttributes(editedProduct?.attributes));
+    setProductImage(resolveInitialProductImage(editedProduct));
+  }, [
+    editItemIndex,
+    editedItem?.quantity,
+    editedProduct,
+    form,
+    initialDraft,
+    isDraftLoaded,
+    isEditingInlineProduct,
+    movementType,
+  ]);
 
   const addCustomAttribute = (): void => {
     setCustomAttributes((current) => [
@@ -320,10 +409,16 @@ export const useNewProductInlineModel = ({
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
+    const currentDraft = await readStockMovementDraft();
+    if (!currentDraft) {
+      router.replace("/stock-movements");
+      return;
+    }
+
     if (
       hasDuplicateInlineProductName(
         data.name,
-        readStockMovementDraft(),
+        currentDraft,
         editItemIndex,
       )
     ) {
@@ -339,13 +434,13 @@ export const useNewProductInlineModel = ({
         productImage,
       );
       if (isEditingInlineProduct && editItemIndex !== null) {
-        updateProductInMovementDraft(editItemIndex, product, data.quantity);
+        await updateProductInMovementDraft(editItemIndex, product, data.quantity);
         toast.success(`${data.name} foi atualizado na movimentação.`);
         router.push(cancelHref);
         return;
       }
 
-      appendProductToMovementDraft(product, data.quantity);
+      await appendProductToMovementDraft(product, data.quantity);
       if (data.continuousMode) {
         toast.success(
           `${data.name} já está na movimentação. Continue adicionando novos produtos.`,

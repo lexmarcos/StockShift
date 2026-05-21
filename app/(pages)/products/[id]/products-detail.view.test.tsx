@@ -85,4 +85,20 @@ describe("ProductDetailView", () => {
     expect(screen.getByText(/batch-001/i)).toBeTruthy();
     expect(screen.getByText(/central/i)).toBeTruthy();
   });
+
+  it("formats batch selling price from cents", () => {
+    render(
+      <ProductDetailView
+        product={baseProduct}
+        isLoading={false}
+        error={null}
+        batches={[{ ...baseBatch, sellingPrice: 4500 }]}
+        isLoadingBatches={false}
+        batchesError={null}
+      />
+    );
+
+    expect(screen.getByText(/45,00/)).toBeTruthy();
+    expect(screen.queryByText(/4\.500,00/)).toBeNull();
+  });
 });

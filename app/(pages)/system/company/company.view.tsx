@@ -36,19 +36,20 @@ const infinitePaySchema = z.object({
   docNumber: z.string().min(1, "Número do documento é obrigatório"),
 });
 
-export const CompanyView = ({
-  companyConfig,
-  infinitePayConfig,
-  isLoadingCompany,
-  isLoadingInfinitePay,
-  isUpdatingCompany,
-  isUpdatingInfinitePay,
-  isEditingInfinitePay,
-  error,
-  onUpdateCompany,
-  onUpdateInfinitePay,
-  onEditInfinitePay,
-}: CompanyViewProps) => {
+export const CompanyView = (props: CompanyViewProps) => {
+  const {
+    companyConfig,
+    infinitePayConfig,
+    isLoadingCompany,
+    isLoadingInfinitePay,
+    isUpdatingCompany,
+    isUpdatingInfinitePay,
+    isEditingInfinitePay,
+    error,
+    onUpdateCompany,
+    onUpdateInfinitePay,
+    onEditInfinitePay,
+  } = props;
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const companyForm = useForm<z.infer<typeof companySchema>>({
@@ -160,242 +161,279 @@ export const CompanyView = ({
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Company Config Card */}
-            <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-              <CardHeader className="border-b border-neutral-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <Building2 className="size-4 text-blue-500" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                    Dados da Empresa
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {isLoadingCompany ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="size-6 animate-spin text-blue-500" />
-                  </div>
-                ) : (
-                  <Form {...companyForm}>
-                    <form
-                      onSubmit={companyForm.handleSubmit(onCompanySubmit)}
-                      className="space-y-4"
-                    >
-                      <CompanyLogoUpload
-                        currentLogoUrl={companyConfig?.logoUrl}
-                        logoFile={logoFile}
-                        disabled={isUpdatingCompany}
-                        onLogoSelect={setLogoFile}
-                      />
-
-                      <FormField
-                        control={companyForm.control}
-                        name="businessName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Nome da Empresa
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="Minha Empresa LTDA"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={companyForm.control}
-                        name="document"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              CNPJ/CPF
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="00.000.000/0000-00"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={companyForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Email
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="email"
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="contato@empresa.com"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={companyForm.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Telefone
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="(00) 00000-0000"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button
-                        type="submit"
-                        disabled={isUpdatingCompany}
-                        className="w-full h-10 rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] disabled:opacity-50"
-                      >
-                        {isUpdatingCompany ? (
-                          <>
-                            <Loader2 className="mr-2 size-3.5 animate-spin" />
-                            Salvando…
-                          </>
-                        ) : (
-                          "Salvar Dados da Empresa"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* InfinitePay Config Card */}
-            <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
-              <CardHeader className="border-b border-neutral-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="size-4 text-emerald-500" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
-                    InfinitePay
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {isLoadingInfinitePay ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="size-6 animate-spin text-emerald-500" />
-                  </div>
-                ) : (
-                  <Form {...infinitePayForm}>
-                    <form
-                      onSubmit={infinitePayForm.handleSubmit(onInfinitePaySubmit)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={infinitePayForm.control}
-                        name="handle"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Handle
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                readOnly={isInfinitePayReadOnly}
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="sua-empresa"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={infinitePayForm.control}
-                        name="docNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                              Número do Documento
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                readOnly={isInfinitePayReadOnly}
-                                className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
-                                placeholder="00000000000000"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs text-rose-500" />
-                          </FormItem>
-                        )}
-                      />
-
-                      {infinitePayConfig?.configured && (
-                        <div className="rounded-[4px] border border-emerald-900/30 bg-emerald-950/10 px-3 py-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">
-                            Configurado
-                          </p>
-                          <p className="text-xs text-emerald-500/70 mt-0.5">
-                            Integração com InfinitePay ativa
-                          </p>
-                        </div>
-                      )}
-
-                      {isInfinitePayReadOnly ? (
-                        <Button
-                          type="button"
-                          onClick={handleInfinitePayButtonClick}
-                          disabled={isUpdatingInfinitePay}
-                          className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
-                        >
-                          Editar Configuração
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          disabled={isUpdatingInfinitePay}
-                          className="w-full h-10 rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-emerald-700 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] disabled:opacity-50"
-                        >
-                          {isUpdatingInfinitePay ? (
-                            <>
-                              <Loader2 className="mr-2 size-3.5 animate-spin" />
-                              Salvando…
-                            </>
-                          ) : (
-                            "Salvar Configuração"
-                          )}
-                        </Button>
-                      )}
-                    </form>
-                  </Form>
-                )}
-              </CardContent>
-            </Card>
+            <CompanyConfigCard
+              companyConfig={companyConfig}
+              companyForm={companyForm}
+              isLoadingCompany={isLoadingCompany}
+              isUpdatingCompany={isUpdatingCompany}
+              logoFile={logoFile}
+              onCompanySubmit={onCompanySubmit}
+              setLogoFile={setLogoFile}
+            />
+            <InfinitePayConfigCard
+              form={infinitePayForm}
+              infinitePayConfig={infinitePayConfig}
+              isInfinitePayReadOnly={isInfinitePayReadOnly}
+              isLoadingInfinitePay={isLoadingInfinitePay}
+              isUpdatingInfinitePay={isUpdatingInfinitePay}
+              onButtonClick={handleInfinitePayButtonClick}
+              onSubmit={onInfinitePaySubmit}
+            />
           </div>
         </div>
       </main>
     </div>
   );
 };
+
+type CompanyFormValues = z.infer<typeof companySchema>;
+type InfinitePayFormValues = z.infer<typeof infinitePaySchema>;
+
+function CompanyConfigCard({
+  companyConfig,
+  companyForm,
+  isLoadingCompany,
+  isUpdatingCompany,
+  logoFile,
+  onCompanySubmit,
+  setLogoFile,
+}: {
+  companyConfig: CompanyViewProps["companyConfig"];
+  companyForm: ReturnType<typeof useForm<CompanyFormValues>>;
+  isLoadingCompany: boolean;
+  isUpdatingCompany: boolean;
+  logoFile: File | null;
+  onCompanySubmit: (data: CompanyFormValues) => void;
+  setLogoFile: (file: File | null) => void;
+}) {
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <div className="flex items-center gap-2">
+          <Building2 className="size-4 text-blue-500" />
+          <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+            Dados da Empresa
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        {isLoadingCompany ? (
+          <CompanyCardLoader className="text-blue-500" />
+        ) : (
+          <Form {...companyForm}>
+            <form onSubmit={companyForm.handleSubmit(onCompanySubmit)} className="space-y-4">
+              <CompanyLogoUpload
+                currentLogoUrl={companyConfig?.logoUrl}
+                logoFile={logoFile}
+                disabled={isUpdatingCompany}
+                onLogoSelect={setLogoFile}
+              />
+              <CompanyTextField form={companyForm} name="businessName" label="Nome da Empresa" placeholder="Minha Empresa LTDA" />
+              <CompanyTextField form={companyForm} name="document" label="CNPJ/CPF" placeholder="00.000.000/0000-00" />
+              <CompanyTextField form={companyForm} name="email" label="Email" placeholder="contato@empresa.com" type="email" />
+              <CompanyTextField form={companyForm} name="phone" label="Telefone" placeholder="(00) 00000-0000" />
+              <Button
+                type="submit"
+                disabled={isUpdatingCompany}
+                className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.3)] hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isUpdatingCompany ? (
+                  <>
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
+                    Salvando…
+                  </>
+                ) : (
+                  "Salvar Dados da Empresa"
+                )}
+              </Button>
+            </form>
+          </Form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CompanyTextField({
+  form,
+  label,
+  name,
+  placeholder,
+  type = "text",
+}: {
+  form: ReturnType<typeof useForm<CompanyFormValues>>;
+  label: string;
+  name: keyof CompanyFormValues;
+  placeholder: string;
+  type?: string;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {label}
+          </FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              type={type}
+              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
+              placeholder={placeholder}
+            />
+          </FormControl>
+          <FormMessage className="text-xs text-rose-500" />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function InfinitePayConfigCard({
+  form,
+  infinitePayConfig,
+  isInfinitePayReadOnly,
+  isLoadingInfinitePay,
+  isUpdatingInfinitePay,
+  onButtonClick,
+  onSubmit,
+}: {
+  form: ReturnType<typeof useForm<InfinitePayFormValues>>;
+  infinitePayConfig: CompanyViewProps["infinitePayConfig"];
+  isInfinitePayReadOnly: boolean;
+  isLoadingInfinitePay: boolean;
+  isUpdatingInfinitePay: boolean;
+  onButtonClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  onSubmit: (data: InfinitePayFormValues) => void;
+}) {
+  return (
+    <Card className="rounded-[4px] border border-neutral-800 bg-[#171717]">
+      <CardHeader className="border-b border-neutral-800 pb-4">
+        <div className="flex items-center gap-2">
+          <CreditCard className="size-4 text-emerald-500" />
+          <CardTitle className="text-sm font-bold uppercase tracking-wide text-white">
+            InfinitePay
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        {isLoadingInfinitePay ? (
+          <CompanyCardLoader className="text-emerald-500" />
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <InfinitePayTextField form={form} isReadOnly={isInfinitePayReadOnly} name="handle" label="Handle" placeholder="sua-empresa" />
+              <InfinitePayTextField form={form} isReadOnly={isInfinitePayReadOnly} name="docNumber" label="Número do Documento" placeholder="00000000000000" />
+              {infinitePayConfig?.configured ? <InfinitePayConfiguredNotice /> : null}
+              <InfinitePaySubmitButton
+                isReadOnly={isInfinitePayReadOnly}
+                isUpdating={isUpdatingInfinitePay}
+                onButtonClick={onButtonClick}
+              />
+            </form>
+          </Form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function InfinitePayTextField({
+  form,
+  isReadOnly,
+  label,
+  name,
+  placeholder,
+}: {
+  form: ReturnType<typeof useForm<InfinitePayFormValues>>;
+  isReadOnly: boolean;
+  label: string;
+  name: keyof InfinitePayFormValues;
+  placeholder: string;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {label}
+          </FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              readOnly={isReadOnly}
+              className="h-10 rounded-[4px] border-neutral-800 bg-neutral-900 text-sm text-white placeholder:text-neutral-600 focus:border-blue-600 focus:ring-0"
+              placeholder={placeholder}
+            />
+          </FormControl>
+          <FormMessage className="text-xs text-rose-500" />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function InfinitePayConfiguredNotice() {
+  return (
+    <div className="rounded-[4px] border border-emerald-900/30 bg-emerald-950/10 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">
+        Configurado
+      </p>
+      <p className="mt-0.5 text-xs text-emerald-500/70">
+        Integração com InfinitePay ativa
+      </p>
+    </div>
+  );
+}
+
+function InfinitePaySubmitButton({
+  isReadOnly,
+  isUpdating,
+  onButtonClick,
+}: {
+  isReadOnly: boolean;
+  isUpdating: boolean;
+  onButtonClick: (event: MouseEvent<HTMLButtonElement>) => void;
+}) {
+  if (isReadOnly) {
+    return (
+      <Button
+        type="button"
+        onClick={onButtonClick}
+        disabled={isUpdating}
+        className="h-10 w-full rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] hover:bg-emerald-700 disabled:opacity-50"
+      >
+        Editar Configuração
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      type="submit"
+      disabled={isUpdating}
+      className="h-10 w-full rounded-[4px] bg-emerald-600 text-xs font-bold uppercase tracking-wide text-white shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)] hover:bg-emerald-700 disabled:opacity-50"
+    >
+      {isUpdating ? (
+        <>
+          <Loader2 className="mr-2 size-3.5 animate-spin" />
+          Salvando…
+        </>
+      ) : (
+        "Salvar Configuração"
+      )}
+    </Button>
+  );
+}
+
+function CompanyCardLoader({ className }: { className: string }) {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className={`size-6 animate-spin ${className}`} />
+    </div>
+  );
+}

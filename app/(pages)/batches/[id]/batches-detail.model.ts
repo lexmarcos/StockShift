@@ -106,7 +106,7 @@ export const formatCentsTotal = (
   quantity: number,
 ): string => {
   if (unitCents === null || unitCents === undefined) return "-";
-  return `Total: ${formatCentsToBRL(unitCents * quantity)}`;
+  return formatCentsToBRL(unitCents * quantity);
 };
 
 export const computeMarginLabel = (

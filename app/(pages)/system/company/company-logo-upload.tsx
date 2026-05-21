@@ -93,6 +93,7 @@ export const CompanyLogoUpload = ({
                 alt="Logo da empresa"
                 width={112}
                 height={112}
+                unoptimized
                 className="h-full w-full object-contain p-2"
               />
             ) : (

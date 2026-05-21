@@ -119,10 +119,10 @@ export function StockMovementBatchDataModal({
                 type="button"
                 variant="outline"
                 onClick={onQuantityDecrement}
-                className="h-10 w-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                className="size-10 rounded-l-[4px] rounded-r-none border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
                 aria-label="Diminuir quantidade"
               >
-                <Minus className="h-4 w-4" />
+                <Minus className="size-4" />
               </Button>
               <NumberInput
                 id="stock-movement-batch-quantity"
@@ -137,7 +137,7 @@ export function StockMovementBatchDataModal({
                 type="button"
                 variant="outline"
                 onClick={onQuantityIncrement}
-                className="h-10 w-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                className="size-10 rounded-l-none rounded-r-[4px] border-neutral-800 bg-neutral-900 p-0 text-neutral-400 hover:bg-neutral-800 hover:text-white"
                 aria-label="Aumentar quantidade"
               >
                 <Plus className="size-4" />
@@ -266,9 +266,9 @@ function PriceSuggestionArea({
 function PriceSuggestionLoading() {
   return (
     <div className="flex items-center gap-2 rounded-[4px] border border-neutral-800 bg-neutral-950 px-3 py-2">
-      <History className="h-3.5 w-3.5 shrink-0 animate-pulse text-blue-500/50" />
+      <History className="size-3.5 shrink-0 animate-pulse text-blue-500/50" />
       <span className="text-[11px] font-medium text-neutral-500">
-        Buscando último preço...
+        Buscando último preço&hellip;
       </span>
     </div>
   );
@@ -290,7 +290,7 @@ function PriceSuggestionCard({
   return (
     <div className="flex items-center justify-between gap-3 rounded-[4px] border border-neutral-800 bg-neutral-950 px-3 py-2">
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
-        <History className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+        <History className="size-3.5 shrink-0 text-blue-500" />
         <p className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className="truncate text-[11px] font-medium text-neutral-400">
             {title}
@@ -325,7 +325,7 @@ function ProfitTags({
   return (
     <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
       <div className={cn("flex h-7 items-center gap-1.5 rounded-[4px] border px-2", style.card)}>
-        <Icon className={cn("h-3.5 w-3.5 shrink-0", style.icon)} />
+        <Icon className={cn("size-3.5 shrink-0", style.icon)} />
         <span className={cn("text-[11px] font-bold tracking-wide", style.value)}>
           {summary.unitResultLabel}
         </span>

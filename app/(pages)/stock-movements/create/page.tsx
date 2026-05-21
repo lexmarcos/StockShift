@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PageClient } from "./page.client";
+import { isManualMovementType } from "../stock-movements.constants";
 
 export const metadata: Metadata = {
   title: "Nova movimentação | StockShift",
@@ -22,9 +24,14 @@ export default async function Page({
   searchParams: PageSearchParams;
 }) {
   const params = await searchParams;
+  const typeParam = firstSearchParam(params.type);
+  if (!isManualMovementType(typeParam)) {
+    redirect("/stock-movements");
+  }
+
   return (
     <Suspense fallback={null}>
-      <PageClient typeParam={firstSearchParam(params.type)} />
+      <PageClient typeParam={typeParam} />
     </Suspense>
   );
 }

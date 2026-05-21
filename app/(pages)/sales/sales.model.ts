@@ -169,7 +169,7 @@ const buildSalesRequestUrl = (
   return `sales?${params.toString()}`;
 };
 
-export const buildSalesMetricsRequestUrl = (
+const buildSalesMetricsRequestUrl = (
   warehouseId: string,
   filters: SaleFilters,
   range: SalesMetricsDateRange,

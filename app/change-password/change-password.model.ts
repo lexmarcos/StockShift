@@ -13,7 +13,8 @@ import { mutate } from "swr";
 
 export const useChangePasswordModel = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmittingPasswordChange, setIsSubmittingPasswordChange] =
+    useState(false);
 
   const form = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
@@ -25,7 +26,7 @@ export const useChangePasswordModel = () => {
   });
 
   const onSubmit = async (data: ChangePasswordFormData) => {
-    setIsLoading(true);
+    setIsSubmittingPasswordChange(true);
     try {
       await api
         .post("auth/change-password", {
@@ -51,13 +52,13 @@ export const useChangePasswordModel = () => {
         toast.error("Não foi possível alterar a senha. Tente novamente.");
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmittingPasswordChange(false);
     }
   };
 
   return {
     form,
     onSubmit,
-    isLoading,
+    isLoading: isSubmittingPasswordChange,
   };
 };

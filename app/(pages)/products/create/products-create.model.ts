@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   CategoriesResponse,
@@ -59,6 +59,7 @@ export const useProductCreateModel = () => {
     []
   );
   const [productImage, setProductImage] = useState<File | null>(null);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -159,6 +160,10 @@ export const useProductCreateModel = () => {
     setProductImage(file);
   };
 
+  const handleImageProcessingChange = (isProcessing: boolean) => {
+    setIsImageProcessing(isProcessing);
+  };
+
   const openAiModal = () => setIsAiModalOpen(true);
   const closeAiModal = () => setIsAiModalOpen(false);
 
@@ -254,6 +259,11 @@ export const useProductCreateModel = () => {
       return;
     }
 
+    if (isImageProcessing) {
+      toast.error("Aguarde a imagem terminar de processar antes de salvar.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = buildCreateProductWithBatchPayload(
@@ -284,6 +294,9 @@ export const useProductCreateModel = () => {
           resetForm(true); // Preserve category
         } else {
           toast.success("Produto e lote criados com sucesso!");
+          mutate((key) =>
+            typeof key === "string" && key.includes("products"),
+          );
           router.push("/products");
         }
       }
@@ -314,7 +327,9 @@ export const useProductCreateModel = () => {
     handleBarcodeScan,
     warehouseId,
     productImage,
+    isImageProcessing,
     handleImageSelect,
+    handleImageProcessingChange,
     currentImageUrl: undefined, // Create mode has no existing image
     handleImageRemove: undefined, // Create mode doesn't need remove handler
     isAiModalOpen,

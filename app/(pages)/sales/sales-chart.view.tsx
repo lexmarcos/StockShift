@@ -1,18 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
 import type { DailyChartEntry } from "./sales.types";
 import { formatCents } from "./sales.types";
+
+type RechartsModule = typeof import("recharts");
 
 interface SalesChartProps {
   data: DailyChartEntry[];
@@ -29,6 +21,26 @@ const useIsMobile = (breakpoint = 768): boolean => {
   }, [breakpoint]);
 
   return isMobile;
+};
+
+const useRechartsModule = (): RechartsModule | null => {
+  const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void import("recharts").then((loadedModule) => {
+      if (isMounted) setRechartsModule(loadedModule);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return rechartsModule;
 };
 
 const formatXAxisLabel = (value: string, isMobile: boolean): string => {
@@ -82,13 +94,35 @@ const CustomTooltip = ({ active, payload, label }: {
   );
 };
 
+const SalesChartLoadingState = () => (
+  <div className="flex h-72 items-center justify-center md:h-80">
+    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+      Carregando gráfico
+    </span>
+  </div>
+);
+
 export const SalesChart = ({ data }: SalesChartProps) => {
   const isMobile = useIsMobile();
+  const rechartsModule = useRechartsModule();
 
   const xTickFormatter = useCallback(
     (value: string) => formatXAxisLabel(value, isMobile),
     [isMobile],
   );
+
+  if (!rechartsModule) return <SalesChartLoadingState />;
+
+  const {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    Legend,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+  } = rechartsModule;
 
   return (
     <div className="h-72 md:h-80">

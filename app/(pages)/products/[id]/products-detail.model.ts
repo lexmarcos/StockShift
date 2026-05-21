@@ -34,7 +34,7 @@ export const useProductDetailModel = (productId: string) => {
   const batches = batchesData?.data || [];
 
   useBreadcrumb({
-    title: product?.name || "Carregando...",
+    title: "Visualização de produto",
     backUrl: "/products",
   });
 

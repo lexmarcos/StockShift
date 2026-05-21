@@ -1,31 +1,48 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useStockMovementDetailModel } from "./stock-movements-detail.model";
-import type { BatchPriceInfo, StockMovementDetailResponse } from "./stock-movements-detail.types";
+import {
+  computeTotalQuantity,
+  formatItemQuantity,
+  formatMovementDateTime,
+  mergeItemsWithImages,
+  resolveDetailTitle,
+  resolveTypeBadge,
+  useStockMovementDetailModel,
+} from "./stock-movements-detail.model";
+import type {
+  ProductImageResponse,
+  StockMovement,
+  StockMovementDetailResponse,
+} from "./stock-movements-detail.types";
+import type { StockMovementType } from "../stock-movements.types";
+
+type JsonResponse<T> = {
+  json: () => Promise<T>;
+};
 
 type SwrState<T> = {
   data?: T;
   error: Error | null;
   isLoading: boolean;
-  mutate: () => void;
 };
 
 const fakeSWR = vi.hoisted(() => {
-  class FakeSWR {
+  class FakeStockMovementDetailSWR {
     private readonly responses = new Map<string | null, SwrState<unknown>>();
-    private readonly defaultState: SwrState<unknown> = {
+
+    private readonly fallback: SwrState<unknown> = {
       data: undefined,
       error: null,
       isLoading: false,
-      mutate: vi.fn(),
     };
 
-    public readonly hook = vi.fn(
-      (key: string | null, fetcher?: unknown): SwrState<unknown> => {
-        void fetcher;
-        return this.responses.get(key) ?? this.defaultState;
-      },
-    );
+    public readonly hook = vi.fn<
+      (
+        key: string | null,
+        fetcher?: unknown,
+        options?: unknown,
+      ) => SwrState<unknown>
+    >((key) => this.responses.get(key) ?? this.fallback);
 
     public setState<T>(key: string | null, state: SwrState<T>): void {
       this.responses.set(key, state as SwrState<unknown>);
@@ -33,34 +50,33 @@ const fakeSWR = vi.hoisted(() => {
 
     public reset(): void {
       this.responses.clear();
-      this.defaultState.mutate.mockClear();
       this.hook.mockClear();
     }
   }
 
-  return new FakeSWR();
+  return new FakeStockMovementDetailSWR();
 });
 
 const fakeApi = vi.hoisted(() => {
-  class FakeApi {
-    public readonly get = vi.fn<(url: string) => { json: () => Promise<unknown> }>();
+  class FakeStockMovementDetailApi {
+    public readonly get = vi.fn<(url: string) => JsonResponse<unknown>>();
   }
 
-  return new FakeApi();
+  return new FakeStockMovementDetailApi();
 });
 
 const fakeBreadcrumb = vi.hoisted(() => {
-  class FakeBreadcrumb {
+  class FakeStockMovementDetailBreadcrumb {
     public readonly useBreadcrumb = vi.fn<
       (payload: { title: string; backUrl: string }) => void
     >();
   }
 
-  return new FakeBreadcrumb();
+  return new FakeStockMovementDetailBreadcrumb();
 });
 
 vi.mock("swr", () => ({
-  default: (...args: unknown[]) => fakeSWR.hook(...args),
+  default: (...args: Parameters<typeof fakeSWR.hook>) => fakeSWR.hook(...args),
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -68,253 +84,387 @@ vi.mock("@/lib/api", () => ({
 }));
 
 vi.mock("@/components/breadcrumb", () => ({
-  useBreadcrumb: (...args: Parameters<typeof fakeBreadcrumb.useBreadcrumb>) => {
-    return fakeBreadcrumb.useBreadcrumb(...args);
-  },
+  useBreadcrumb: (...args: Parameters<typeof fakeBreadcrumb.useBreadcrumb>) =>
+    fakeBreadcrumb.useBreadcrumb(...args),
 }));
 
-const movementDetailResponse: StockMovementDetailResponse = {
+const createJsonResponse = <T,>(payload: T): JsonResponse<T> => ({
+  json: vi.fn(async () => payload),
+});
+
+const createMovement = (
+  overrides: Partial<StockMovement> = {},
+): StockMovement => ({
+  id: "movement-1",
+  code: "MOV-0001",
+  warehouseId: "warehouse-1",
+  warehouseName: "Estoque Central",
+  type: "PURCHASE_IN",
+  direction: "IN",
+  notes: "Compra inicial",
+  createdByUserId: "user-1",
+  referenceType: null,
+  referenceId: null,
+  createdAt: "2026-01-15T10:30:00",
+  updatedAt: "2026-01-15T11:45:00",
+  items: [
+    {
+      id: "item-1",
+      productId: "product-1",
+      productName: "Café Especial",
+      productSku: "CAF-001",
+      batchId: "batch-1",
+      batchCode: "L001",
+      quantity: 2,
+      productImageUrl: null,
+    },
+    {
+      id: "item-2",
+      productId: "product-2",
+      productName: "Filtro de Papel",
+      productSku: null,
+      batchId: "batch-2",
+      batchCode: "L002",
+      quantity: 1.5,
+      productImageUrl: "/existing-image.png",
+    },
+  ],
+  ...overrides,
+});
+
+const movementFixture = createMovement();
+
+const movementResponse: StockMovementDetailResponse = {
   success: true,
-  message: "ok",
-  data: {
-    id: "mv-100",
-    code: "MV-100",
-    warehouseId: "wh-1",
-    warehouseName: "Depósito",
-    type: "PURCHASE_IN",
-    direction: "IN",
-    notes: null,
-    createdByUserId: "user-1",
-    referenceType: null,
-    referenceId: null,
-    createdAt: "2026-04-01T10:00:00.000Z",
-    updatedAt: "2026-04-01T10:00:00.000Z",
-    items: [
-      {
-        id: "it-1",
-        productId: "prod-1",
-        productName: "Café",
-        productSku: "CAF-01",
-        batchId: "batch-1",
-        batchCode: "B-01",
-        quantity: 2,
-        productImageUrl: null,
-      },
-      {
-        id: "it-2",
-        productId: "prod-1",
-        productName: "Café",
-        productSku: "CAF-01",
-        batchId: "batch-2",
-        batchCode: "B-02",
-        quantity: 1,
-        productImageUrl: null,
-      },
-      {
-        id: "it-3",
-        productId: "prod-2",
-        productName: "Açúcar",
-        productSku: "ACU-01",
-        batchId: "batch-2",
-        batchCode: "B-02",
-        quantity: 5,
-        productImageUrl: null,
-      },
-    ],
-  },
+  message: null,
+  data: movementFixture,
 };
-
-const movementBatchPrices: BatchPriceInfo[] = [
-  { batchId: "batch-1", costPrice: 3.5, sellingPrice: 5.5 },
-  { batchId: "batch-2", costPrice: null, sellingPrice: 9.9 },
-];
-
-const movementProductImages = new Map<string, string | null>([
-  ["prod-1", "https://cdn.example.com/cafe.png"],
-  ["prod-2", "https://cdn.example.com/acucar.png"],
-]);
 
 beforeEach(() => {
   vi.clearAllMocks();
   fakeSWR.reset();
-  fakeApi.get.mockReset();
-  fakeBreadcrumb.useBreadcrumb.mockClear();
-  fakeApi.get.mockReturnValue({
-    json: vi.fn(async () => undefined),
+  fakeApi.get.mockReturnValue(
+    createJsonResponse<ProductImageResponse>({
+      success: true,
+      data: { id: "product-1", imageUrl: "/product-1.png" },
+    }),
+  );
+  fakeSWR.setState("stock-movements/movement-1", {
+    data: movementResponse,
+    error: null,
+    isLoading: false,
+  });
+});
+
+describe("formatMovementDateTime", () => {
+  it("formata uma data válida no padrão de detalhe", () => {
+    expect(formatMovementDateTime("2026-01-15T10:30:00")).toMatch(
+      /15 de jan\.?, 2026 às 10:30/,
+    );
+  });
+
+  it("retorna traço para data vazia ou inválida", () => {
+    expect(formatMovementDateTime(null)).toBe("-");
+    expect(formatMovementDateTime(undefined)).toBe("-");
+    expect(formatMovementDateTime("data-invalida")).toBe("-");
+  });
+});
+
+describe("formatItemQuantity", () => {
+  it("mantém inteiros sem casas decimais", () => {
+    expect(formatItemQuantity(4)).toBe("4");
+  });
+
+  it("formata decimais com duas casas", () => {
+    expect(formatItemQuantity(4.5)).toBe("4.50");
+  });
+});
+
+describe("computeTotalQuantity", () => {
+  it("soma as quantidades dos itens", () => {
+    expect(computeTotalQuantity(movementFixture)).toBe("3.50");
+  });
+
+  it("retorna zero quando a movimentação não existe ou não possui itens", () => {
+    expect(computeTotalQuantity(null)).toBe("0");
+    expect(computeTotalQuantity(createMovement({ items: [] }))).toBe("0");
+  });
+});
+
+describe("resolveTypeBadge", () => {
+  const badgeCases: Array<{
+    type: StockMovementType;
+    label: string;
+    icon: "in" | "out";
+  }> = [
+    { type: "PURCHASE_IN", label: "Compra", icon: "in" },
+    { type: "ADJUSTMENT_IN", label: "Ajuste de Entrada", icon: "in" },
+    { type: "TRANSFER_IN", label: "Transferência (Entrada)", icon: "in" },
+    { type: "USAGE", label: "Uso", icon: "out" },
+    { type: "GIFT", label: "Presente", icon: "out" },
+    { type: "LOSS", label: "Perda", icon: "out" },
+    { type: "DAMAGE", label: "Dano", icon: "out" },
+    { type: "ADJUSTMENT_OUT", label: "Ajuste de Saída", icon: "out" },
+    { type: "SALE", label: "Venda", icon: "out" },
+    { type: "TRANSFER_OUT", label: "Transferência (Saída)", icon: "out" },
+  ];
+
+  it.each(badgeCases)("resolve badge para $type", ({ type, label, icon }) => {
+    expect(resolveTypeBadge(createMovement({ type }))).toEqual(
+      expect.objectContaining({ label, icon }),
+    );
+  });
+
+  it("retorna null quando não há movimentação", () => {
+    expect(resolveTypeBadge(null)).toBeNull();
+  });
+});
+
+describe("resolveDetailTitle", () => {
+  it("usa o código da movimentação quando disponível", () => {
+    expect(resolveDetailTitle(movementFixture, false, false)).toBe("MOV-0001");
+  });
+
+  it("usa título de carregamento apenas sem erro", () => {
+    expect(resolveDetailTitle(null, false, true)).toBe("Carregando...");
+  });
+
+  it("usa título de não encontrado quando falha ou termina sem dados", () => {
+    expect(resolveDetailTitle(null, true, true)).toBe(
+      "Movimentação não encontrada",
+    );
+    expect(resolveDetailTitle(null, false, false)).toBe(
+      "Movimentação não encontrada",
+    );
+  });
+});
+
+describe("mergeItemsWithImages", () => {
+  it("usa imagens carregadas e mantém fallback quando o mapa retorna null", () => {
+    const items = mergeItemsWithImages(
+      movementFixture,
+      new Map([
+        ["product-1", "/product-1.png"],
+        ["product-2", null],
+      ]),
+    );
+
+    expect(items[0].productImageUrl).toBe("/product-1.png");
+    expect(items[1].productImageUrl).toBe("/existing-image.png");
+  });
+
+  it("usa imagem existente do item quando o mapa não tem o produto", () => {
+    const items = mergeItemsWithImages(
+      movementFixture,
+      new Map([["product-1", "/product-1.png"]]),
+    );
+
+    expect(items[1].productImageUrl).toBe("/existing-image.png");
+  });
+
+  it("retorna lista vazia sem movimentação", () => {
+    expect(mergeItemsWithImages(null, undefined)).toEqual([]);
   });
 });
 
 describe("useStockMovementDetailModel", () => {
-  it("quando sem id, não consulta SWR", () => {
-    const { result } = renderHook(() => useStockMovementDetailModel(""));
+  it("carrega detalhes, registra breadcrumb e expõe dados derivados", () => {
+    fakeSWR.setState("stock-movement-product-images:product-1,product-2", {
+      data: new Map([
+        ["product-1", "/product-1.png"],
+        ["product-2", "/product-2.png"],
+      ]),
+      error: null,
+      isLoading: false,
+    });
 
-    expect(result.current.movement).toBeNull();
+    const { result } = renderHook(() =>
+      useStockMovementDetailModel("movement-1"),
+    );
+
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "stock-movements/movement-1",
+      expect.any(Function),
+      expect.objectContaining({
+        shouldRetryOnError: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+      }),
+    );
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "stock-movement-product-images:product-1,product-2",
+      expect.any(Function),
+      expect.objectContaining({
+        shouldRetryOnError: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+      }),
+    );
+    expect(result.current.movement).toEqual(movementFixture);
+    expect(result.current.items.map((item) => item.productImageUrl)).toEqual([
+      "/product-1.png",
+      "/product-2.png",
+    ]);
+    expect(result.current.typeBadge?.label).toBe("Compra");
+    expect(result.current.totalQuantity).toBe("3.50");
+    expect(result.current.itemCount).toBe(2);
+    expect(result.current.hasReference).toBe(false);
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.batchPrices).toEqual([]);
-    expect(fakeSWR.hook).toHaveBeenNthCalledWith(
-      1,
-      null,
-      expect.any(Function),
-    );
-    expect(fakeSWR.hook).toHaveBeenNthCalledWith(
-      2,
-      null,
-      expect.any(Function),
-    );
-    expect(fakeSWR.hook).toHaveBeenNthCalledWith(
-      3,
-      null,
-      expect.any(Function),
-    );
-  });
-
-  it("carrega movimento, preços e imagens e aplica imagem ao item", () => {
-    fakeSWR.setState(`stock-movements/mv-100`, {
-      data: movementDetailResponse,
-      error: null,
-      isLoading: false,
-      mutate: vi.fn(),
-    });
-    fakeSWR.setState("batches-prices-mv-100", {
-      data: movementBatchPrices,
-      error: null,
-      isLoading: false,
-      mutate: vi.fn(),
-    });
-    fakeSWR.setState("product-images-mv-100", {
-      data: movementProductImages,
-      error: null,
-      isLoading: false,
-      mutate: vi.fn(),
-    });
-
-    const { result } = renderHook(() => useStockMovementDetailModel("mv-100"));
-
-    expect(result.current.movement?.code).toBe("MV-100");
-    expect(result.current.batchPrices).toEqual(movementBatchPrices);
-    expect(result.current.movement?.items[0].productImageUrl).toBe(
-      "https://cdn.example.com/cafe.png",
-    );
-    expect(result.current.movement?.items[2].productImageUrl).toBe(
-      "https://cdn.example.com/acucar.png",
-    );
+    expect(result.current.error).toBeNull();
     expect(fakeBreadcrumb.useBreadcrumb).toHaveBeenCalledWith({
-      title: "MV-100",
+      title: "MOV-0001",
       backUrl: "/stock-movements",
     });
   });
 
-  it("propaga erro da requisição de detalhe", () => {
-    const error = new Error("Falhou ao carregar movimento");
-
-    fakeSWR.setState(`stock-movements/mv-100`, {
-      data: undefined,
-      error,
-      isLoading: false,
-      mutate: vi.fn(),
+  it("usa ids únicos para carregar imagens de produtos", () => {
+    const movementWithDuplicateProduct = createMovement({
+      items: [
+        movementFixture.items[0],
+        { ...movementFixture.items[0], id: "item-duplicate", batchId: "batch-3" },
+        movementFixture.items[1],
+      ],
     });
-
-    const { result } = renderHook(() => useStockMovementDetailModel("mv-100"));
-
-    expect(result.current.error).toBe(error);
-    expect(result.current.movement).toBeNull();
-  });
-
-  it("mantém estado de loading quando movimento ainda não respondeu", () => {
-    fakeSWR.setState(`stock-movements/mv-100`, {
-      data: undefined,
-      error: null,
-      isLoading: true,
-      mutate: vi.fn(),
-    });
-
-    const { result } = renderHook(() => useStockMovementDetailModel("mv-100"));
-
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.movement).toBeNull();
-  });
-
-  it("não busca preços/imagens quando não há itens no movimento", () => {
-    fakeSWR.setState(`stock-movements/mv-empty`, {
+    fakeSWR.setState("stock-movements/movement-duplicate", {
       data: {
         success: true,
-        message: "ok",
-        data: {
-          ...movementDetailResponse.data,
-          id: "mv-empty",
-          code: "MV-EMPTY",
-          items: [],
-        },
+        message: null,
+        data: movementWithDuplicateProduct,
       },
       error: null,
       isLoading: false,
-      mutate: vi.fn(),
+    });
+
+    renderHook(() => useStockMovementDetailModel("movement-duplicate"));
+
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "stock-movement-product-images:product-1,product-2",
+      expect.any(Function),
+      expect.any(Object),
+    );
+  });
+
+  it("busca imagens pelo fetcher do segundo SWR e tolera falhas por produto", async () => {
+    fakeSWR.setState("stock-movements/image-failure", {
+      data: {
+        success: true,
+        message: null,
+        data: createMovement({
+          id: "image-failure",
+          items: [
+            {
+              ...movementFixture.items[1],
+              productImageUrl: null,
+            },
+          ],
+        }),
+      },
+      error: null,
+      isLoading: false,
+    });
+    fakeApi.get.mockImplementation((url: string) => {
+      if (url === "products/product-2") {
+        return {
+          json: vi.fn(async () => {
+            throw new Error("Imagem indisponível");
+          }),
+        };
+      }
+
+      return createJsonResponse<ProductImageResponse>({
+        success: true,
+        data: { id: "product-1", imageUrl: "/product-1.png" },
+      });
+    });
+
+    renderHook(() => useStockMovementDetailModel("image-failure"));
+    const imageFetcher = fakeSWR.hook.mock.calls.find(
+      ([key]) => key === "stock-movement-product-images:product-2",
+    )?.[1];
+
+    expect(typeof imageFetcher).toBe("function");
+    const imageMap = await (imageFetcher as () => Promise<
+      Map<string, string | null>
+    >)();
+
+    expect(fakeApi.get).toHaveBeenCalledWith("products/product-2");
+    expect(imageMap).toEqual(new Map([["product-2", null]]));
+  });
+
+  it("não faz requisição sem id e registra estado não encontrado", () => {
+    const { result } = renderHook(() => useStockMovementDetailModel(""));
+
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      null,
+      expect.any(Function),
+      expect.any(Object),
+    );
+    expect(result.current.movement).toBeNull();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.totalQuantity).toBe("0");
+    expect(result.current.itemCount).toBe(0);
+    expect(result.current.hasReference).toBe(false);
+    expect(fakeBreadcrumb.useBreadcrumb).toHaveBeenCalledWith({
+      title: "Movimentação não encontrada",
+      backUrl: "/stock-movements",
+    });
+  });
+
+  it("mantém carregamento somente enquanto não há erro", () => {
+    fakeSWR.setState("stock-movements/loading", {
+      data: undefined,
+      error: null,
+      isLoading: true,
+    });
+
+    const { result } = renderHook(() => useStockMovementDetailModel("loading"));
+
+    expect(result.current.isLoading).toBe(true);
+    expect(fakeBreadcrumb.useBreadcrumb).toHaveBeenCalledWith({
+      title: "Carregando...",
+      backUrl: "/stock-movements",
+    });
+  });
+
+  it("expõe erro e interrompe loading quando a requisição falha", () => {
+    const requestError = new Error("Movimentação indisponível");
+    fakeSWR.setState("stock-movements/missing", {
+      data: undefined,
+      error: requestError,
+      isLoading: true,
+    });
+
+    const { result } = renderHook(() => useStockMovementDetailModel("missing"));
+
+    expect(result.current.movement).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(requestError);
+    expect(result.current.typeBadge).toBeNull();
+    expect(fakeBreadcrumb.useBreadcrumb).toHaveBeenCalledWith({
+      title: "Movimentação não encontrada",
+      backUrl: "/stock-movements",
+    });
+  });
+
+  it("marca referência quando a movimentação possui referenceId", () => {
+    fakeSWR.setState("stock-movements/with-reference", {
+      data: {
+        success: true,
+        message: null,
+        data: createMovement({
+          id: "with-reference",
+          referenceType: "TRANSFER",
+          referenceId: "transfer-1",
+        }),
+      },
+      error: null,
+      isLoading: false,
     });
 
     const { result } = renderHook(() =>
-      useStockMovementDetailModel("mv-empty"),
+      useStockMovementDetailModel("with-reference"),
     );
 
-    expect(result.current.movement?.items).toEqual([]);
-    const calledKeys = fakeSWR.hook.mock.calls.map(
-      (call) => call[0] as string | null,
-    );
-    expect(calledKeys).toEqual([
-      "stock-movements/mv-empty",
-      null,
-      null,
-    ]);
-  });
-
-  it("executa fetchers de detalhe, preços e imagens com ids únicos", async () => {
-    fakeApi.get.mockImplementation((url: string) => ({
-      json: vi.fn(async () => {
-        if (url === "stock-movements/mv-100") return movementDetailResponse;
-        if (url === "batches/batch-1") {
-          return { success: true, data: { costPrice: 3.5, sellingPrice: 5.5 } };
-        }
-        if (url === "batches/batch-2") {
-          return { success: true, data: { costPrice: null, sellingPrice: 9.9 } };
-        }
-        if (url === "products/prod-1") {
-          return { success: true, data: { id: "prod-1", imageUrl: "cafe.png" } };
-        }
-        if (url === "products/prod-2") {
-          return { success: true, data: { id: "prod-2", imageUrl: null } };
-        }
-        throw new Error(`Unexpected URL ${url}`);
-      }),
-    }));
-
-    renderHook(() => useStockMovementDetailModel("mv-100"));
-
-    const detailFetcher = fakeSWR.hook.mock.calls[0][1] as (url: string) => Promise<StockMovementDetailResponse>;
-    const detail = await detailFetcher("stock-movements/mv-100");
-    expect(detail.data.code).toBe("MV-100");
-
-    fakeSWR.setState("stock-movements/mv-100", {
-      data: movementDetailResponse,
-      error: null,
-      isLoading: false,
-      mutate: vi.fn(),
-    });
-
-    renderHook(() => useStockMovementDetailModel("mv-100"));
-
-    const priceFetcher = fakeSWR.hook.mock.calls[4][1] as () => Promise<BatchPriceInfo[]>;
-    const imageFetcher = fakeSWR.hook.mock.calls[5][1] as () => Promise<Map<string, string | null>>;
-
-    await expect(priceFetcher()).resolves.toEqual([
-      { batchId: "batch-1", costPrice: 3.5, sellingPrice: 5.5 },
-      { batchId: "batch-2", costPrice: null, sellingPrice: 9.9 },
-    ]);
-    await expect(imageFetcher()).resolves.toEqual(
-      new Map([
-        ["prod-1", "cafe.png"],
-        ["prod-2", null],
-      ]),
-    );
-    expect(fakeApi.get).toHaveBeenCalledWith("batches/batch-1");
-    expect(fakeApi.get).toHaveBeenCalledWith("products/prod-2");
+    expect(result.current.hasReference).toBe(true);
   });
 });

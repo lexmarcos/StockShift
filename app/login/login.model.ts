@@ -15,7 +15,7 @@ const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 export const useLoginModel = () => {
   const router = useRouter();
   const { setUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCaptcha, setRequiresCaptcha] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -56,7 +56,7 @@ export const useLoginModel = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmittingLogin(true);
     try {
       const payload = requiresCaptcha ? { ...data, captchaToken } : data;
 
@@ -111,14 +111,14 @@ export const useLoginModel = () => {
 
       resetCaptcha();
     } finally {
-      setIsLoading(false);
+      setIsSubmittingLogin(false);
     }
   };
 
   return {
     form,
     onSubmit,
-    isLoading,
+    isLoading: isSubmittingLogin,
     errorMessage,
     requiresCaptcha,
     isPasswordVisible,

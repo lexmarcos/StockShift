@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, use, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  use,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface WarehouseContextValue {
@@ -12,13 +19,25 @@ const WarehouseContext = createContext<WarehouseContextValue | undefined>(undefi
 
 const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 
+const subscribeToClientHydration = (onStoreChange: () => void): (() => void) => {
+  onStoreChange();
+  return () => undefined;
+};
+
+const getClientSnapshot = (): boolean => true;
+
+const getServerSnapshot = (): boolean => false;
+
 export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const [selectedWarehouseId, setSelectedWarehouseIdState] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useSyncExternalStore(
+    subscribeToClientHydration,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const { push } = useRouter();
 
   useEffect(() => {
-    setIsClient(true);
     const stored = localStorage.getItem(WAREHOUSE_STORAGE_KEY);
     if (stored) {
       setSelectedWarehouseIdState(stored);
