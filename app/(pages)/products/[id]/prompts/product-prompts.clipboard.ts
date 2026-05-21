@@ -253,7 +253,7 @@ function createProductPromptShareRecovery(onExternalAppOpened: () => void): {
   }
 
   let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
-  let cleanup = () => undefined;
+  let cleanup: () => void = () => undefined;
   let hasFinished = false;
   const promise = new Promise<ProductPromptAssetShareResult>((resolve) => {
     const finish = (shouldReloadOnReturn: boolean) => {
@@ -302,7 +302,7 @@ function createProductPromptShareReturnGuard(
   }
   productPromptShareReturnReloadCleanup?.();
   const state = createProductPromptShareReturnState();
-  let listenerCleanup = () => undefined;
+  let listenerCleanup: () => void = () => undefined;
   const reloadOnce = () => reloadProductPromptShareReturnOnce(state, cleanupGuard);
   const markExternalAppOpened = () =>
     markProductPromptExternalAppOpened(state, reloadOnce, returnUrl);
