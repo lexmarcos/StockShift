@@ -295,15 +295,17 @@ export const ImageDropzone = ({
     setIsDragging(false);
   }, []);
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!validateImageFile(file)) return;
+  const handleFile = useCallback(async (file: File): Promise<boolean> => {
+    if (!validateImageFile(file)) return false;
     setIsCompressing(true);
     onProcessingChange?.(true);
     try {
       onImageSelect(await compressImage(file, 0.7));
+      return true;
     } catch (error) {
       console.error("Error compressing image:", error);
       onImageSelect(file);
+      return true;
     } finally {
       setIsCompressing(false);
       onProcessingChange?.(false);
@@ -332,18 +334,29 @@ export const ImageDropzone = ({
     setShowRemovalIndicator(true);
   }, [onImageSelect, onRemoveImage]);
 
+  const handleReplacementFile = useCallback(async (
+    file: File | undefined,
+    input: HTMLInputElement,
+  ): Promise<void> => {
+    try {
+      if (!file) return;
+      const didSelectReplacement = await handleFile(file);
+      if (didSelectReplacement) setShowRemovalIndicator(false);
+    } finally {
+      input.remove();
+    }
+  }, [handleFile]);
+
   const handleReplace = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ACCEPTED_IMAGE_TYPES;
     input.onchange = (event) => {
       const [file] = Array.from((event.target as HTMLInputElement).files ?? []);
-      if (file) void handleFile(file);
-      setShowRemovalIndicator(false);
-      input.remove();
+      void handleReplacementFile(file, input);
     };
     input.click();
-  }, [handleFile]);
+  }, [handleReplacementFile]);
 
   return (
     <div className={rootClassName}>
