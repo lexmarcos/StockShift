@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useBreadcrumb } from "@/components/breadcrumb";
@@ -174,10 +174,40 @@ function useProductPromptCreateForm() {
 }
 
 export function useProductPromptGenerateForm(latestBatch: ProductBatch | null) {
-  return useForm<ProductPromptGenerateFormData>({
+  const latestBatchSellingPrice = latestBatch?.sellingPrice ?? undefined;
+  const form = useForm<ProductPromptGenerateFormData>({
     resolver: zodResolver(productPromptGenerateSchema),
     defaultValues: buildGeneratePromptDefaults(latestBatch),
   });
+
+  useLatestBatchPromptPriceAutofill(form, latestBatchSellingPrice);
+  return form;
+}
+
+function useLatestBatchPromptPriceAutofill(
+  form: UseFormReturn<ProductPromptGenerateFormData>,
+  latestBatchSellingPrice: number | undefined
+): void {
+  const appliedBatchPriceRef = useRef<number | undefined>(
+    latestBatchSellingPrice
+  );
+
+  useEffect(() => {
+    if (latestBatchSellingPrice === undefined) return;
+
+    const currentPrice = form.getValues("normalPriceCents");
+    const hasManualPrice =
+      currentPrice !== undefined &&
+      currentPrice !== appliedBatchPriceRef.current;
+    if (hasManualPrice) return;
+
+    form.setValue("normalPriceCents", latestBatchSellingPrice, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+    appliedBatchPriceRef.current = latestBatchSellingPrice;
+  }, [form, latestBatchSellingPrice]);
 }
 
 function createSubmitPromptHandler(input: {

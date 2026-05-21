@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildGeneratePromptDefaults,
@@ -12,6 +12,7 @@ import {
   formatProductPromptBrl,
   findLatestProductPromptBatch,
   getProductPromptPositionLabel,
+  useProductPromptGenerateForm,
   useProductPromptsModel,
 } from "./product-prompts.model";
 import { useProductPromptGeneratePageModel } from "./[promptId]/product-prompt-generate.model";
@@ -196,6 +197,10 @@ function createDeferredProductPromptShareResult() {
   return { promise, resolve };
 }
 
+interface GeneratePromptFormHookProps {
+  batch: ProductBatch | null;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.useSelectedWarehouse.mockReturnValue({ warehouseId: "wh-1" });
@@ -218,6 +223,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  cleanup();
   vi.unstubAllGlobals();
 });
 
@@ -456,6 +462,25 @@ describe("product prompt batch helpers", () => {
 
   it("retorna label da posição escolhida", () => {
     expect(getProductPromptPositionLabel("middle-center")).toBe("Centro");
+  });
+});
+
+describe("useProductPromptGenerateForm", () => {
+  it("preenche preço normal quando o lote chega depois da montagem", async () => {
+    const initialProps: GeneratePromptFormHookProps = { batch: null };
+    const { result, rerender } = renderHook(
+      ({ batch }: GeneratePromptFormHookProps) =>
+        useProductPromptGenerateForm(batch),
+      { initialProps },
+    );
+
+    expect(result.current.getValues("normalPriceCents")).toBeUndefined();
+
+    rerender({ batch: latestBatch });
+
+    await waitFor(() => {
+      expect(result.current.getValues("normalPriceCents")).toBe(2500);
+    });
   });
 });
 
