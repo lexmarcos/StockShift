@@ -105,6 +105,10 @@ vi.mock("@/components/breadcrumb", () => ({
   useBreadcrumb: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-selected-warehouse", () => ({
+  useSelectedWarehouse: () => ({ warehouseId: "wh-1" }),
+}));
+
 vi.mock("../create-stock-movement.storage", () => ({
   fileToInlineProductImage: async (file: File) => ({
     name: file.name,
@@ -501,7 +505,12 @@ describe("useNewProductInlineModel", () => {
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it("alterna estado do scanner e registra barcode escaneado", () => {
+  it("alterna estado do scanner e preenche barcode quando produto não existe na API", async () => {
+    mockGet.mockReset();
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => { throw new Error("não encontrado"); }),
+    }));
+
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
 
     expect(result.current.isScannerOpen).toBe(false);
@@ -510,15 +519,78 @@ describe("useNewProductInlineModel", () => {
     });
     expect(result.current.isScannerOpen).toBe(true);
 
-    act(() => {
-      result.current.handleBarcodeScan("123456789");
+    await act(async () => {
+      await result.current.handleBarcodeScan("123456789");
     });
-    expect(result.current.form.getValues("barcode")).toBe("123456789");
+
+    expect(mockGet).toHaveBeenCalledWith("products/barcode/123456789");
+    expect(result.current.scannedExistingProduct).toBeNull();
 
     act(() => {
       result.current.closeScanner();
     });
     expect(result.current.isScannerOpen).toBe(false);
+  });
+
+  it("abre modal de produto existente quando barcode escaneado encontra produto", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-123", name: "Produto Existente", barcode: "987654321" },
+      })),
+    }));
+
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("987654321");
+    });
+
+    expect(result.current.scannedExistingProduct).toEqual({
+      id: "p-123",
+      name: "Produto Existente",
+      barcode: "987654321",
+    });
+    expect(result.current.form.getValues("barcode")).toBe("7891000000001");
+  });
+
+  it("abre formulário de lote ao confirmar produto existente e adiciona ao draft", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-123", name: "Produto Existente", barcode: "987654321" },
+      })),
+    }));
+
+    const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("987654321");
+    });
+
+    act(() => {
+      result.current.onCreateBatchForExistingProduct?.();
+    });
+
+    expect(result.current.scannedExistingProduct).toBeNull();
+    expect(result.current.batchForm?.isOpen).toBe(true);
+    expect(result.current.batchForm?.productId).toBe("p-123");
+    expect(result.current.batchForm?.productName).toBe("Produto Existente");
+
+    act(() => {
+      result.current.onBatchQuantityChange?.("5");
+      result.current.onBatchCostPriceChange?.(1000);
+      result.current.onBatchSellingPriceChange?.(1500);
+    });
+
+    await act(async () => {
+      await result.current.onConfirmBatch?.();
+    });
+
+    expect(toastSuccess).toHaveBeenCalledWith("Produto Existente foi adicionado.");
+    expect(result.current.batchForm?.isOpen).toBe(false);
+    expect(result.current.form.getValues("name")).toBe("");
+    expect(mockWriteDraft).toHaveBeenCalled();
   });
 
   it("controla quantidade com incremento e decremento sem ficar negativa", () => {

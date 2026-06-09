@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/components/breadcrumb";
 import { api } from "@/lib/api";
+import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
 import {
   AiFillData,
@@ -18,10 +19,13 @@ import {
 } from "../../../products/create/products-create.types";
 import { applyProductAiFillData } from "../../../products/components/product-ai-fill.model";
 import { productInlineSchema } from "../../../products/create/products-create.schema";
-import { ProductFormProps } from "../../../products/components/product-form.types";
+import { ProductFormProps, ExistingProductInfo } from "../../../products/components/product-form.types";
 import type {
   InlineProductData,
   StockMovementDraftItem,
+  ExistingProductBatchFormState,
+  StockMovementProductBatchesResponse,
+  StockMovementProductOption,
 } from "../create-stock-movement.types";
 import { isManualMovementType } from "../../stock-movements.constants";
 import {
@@ -31,6 +35,13 @@ import {
   writeStockMovementDraft,
 } from "../create-stock-movement.storage";
 import type { StockMovementDraft } from "../create-stock-movement.storage";
+import {
+  buildExistingProductBatchesUrl,
+  buildExistingProductProfitSummary,
+  buildExistingProductSalePriceSuggestion,
+  buildExistingProductCostPriceSuggestion,
+  findMostRecentWarehouseProductBatch,
+} from "../stock-movement-batch-pricing.model";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
@@ -108,6 +119,31 @@ const buildInlineMovementItem = (
   newProductData: product,
 });
 
+const buildExistingProductBatchItem = (
+  productId: string,
+  productName: string,
+  form: ExistingProductBatchFormState,
+): StockMovementDraftItem => ({
+  productId,
+  productName,
+  quantity: Number(form.quantity),
+  manufacturedDate: form.manufacturedDate || undefined,
+  expirationDate: form.expirationDate || undefined,
+  costPrice: form.costPrice,
+  sellingPrice: form.sellingPrice,
+});
+
+const EMPTY_BATCH_FORM: ExistingProductBatchFormState = {
+  isOpen: false,
+  productId: "",
+  productName: "",
+  quantity: "",
+  manufacturedDate: "",
+  expirationDate: "",
+  editingIndex: null,
+  error: null,
+};
+
 const isInlineProductRouteReady = (
   movementType: string | null,
   initialDraft: StockMovementDraft | null,
@@ -127,6 +163,18 @@ const appendProductToMovementDraft = (
   return updateMovementDraft((draft) => ({
     ...draft,
     items: [...draft.items, buildInlineMovementItem(product, quantity)],
+    selectedProductId: "",
+    itemQuantity: "",
+    inlineProductBarcode: undefined,
+  }));
+};
+
+const appendExistingProductBatchToDraft = (
+  item: StockMovementDraftItem,
+): Promise<void> => {
+  return updateMovementDraft((draft) => ({
+    ...draft,
+    items: [...draft.items, item],
     selectedProductId: "",
     itemQuantity: "",
     inlineProductBarcode: undefined,
@@ -184,7 +232,10 @@ export const useNewProductInlineModel = ({
   );
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [scannedExistingProduct, setScannedExistingProduct] = useState<ExistingProductInfo | null>(null);
+  const [existingProductBatchForm, setExistingProductBatchForm] = useState<ExistingProductBatchFormState>(EMPTY_BATCH_FORM);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const { warehouseId } = useSelectedWarehouse();
 
   useBreadcrumb({
     title: isEditingInlineProduct ? "Editar Produto" : "Novo Produto",
@@ -202,6 +253,28 @@ export const useNewProductInlineModel = ({
     useSWR<BrandsResponse>("brands", (url: string) =>
       api.get(url).json<BrandsResponse>(),
     );
+
+  const batchProductId = existingProductBatchForm.isOpen ? existingProductBatchForm.productId : null;
+  const productBatchesUrl = buildExistingProductBatchesUrl(warehouseId, batchProductId);
+  const { data: productBatchesData, isLoading: isLoadingProductBatches } =
+    useSWR<StockMovementProductBatchesResponse>(
+      productBatchesUrl,
+      (url: string) => api.get(url).json<StockMovementProductBatchesResponse>(),
+    );
+  const mostRecentBatch = findMostRecentWarehouseProductBatch(productBatchesData?.data ?? []);
+  const batchCostPriceSuggestion = buildExistingProductCostPriceSuggestion(mostRecentBatch);
+  const batchSalePriceSuggestion = buildExistingProductSalePriceSuggestion(mostRecentBatch);
+  const batchProfitSummary = buildExistingProductProfitSummary({
+    quantity: existingProductBatchForm.quantity,
+    costPrice: existingProductBatchForm.costPrice,
+    sellingPrice: existingProductBatchForm.sellingPrice,
+  });
+  const shouldShowMissingBatchCostPriceSuggestion = Boolean(
+    productBatchesUrl && !isLoadingProductBatches && !batchCostPriceSuggestion,
+  );
+  const shouldShowMissingBatchSalePriceSuggestion = Boolean(
+    productBatchesUrl && !isLoadingProductBatches && !batchSalePriceSuggestion,
+  );
 
   const form = useForm<ProductCreateFormData>({
     resolver: zodResolver(productInlineSchema),
@@ -391,6 +464,104 @@ export const useNewProductInlineModel = ({
     window.setTimeout(() => nameInputRef.current?.focus(), 100);
   };
 
+  const handleBarcodeScan = async (barcode: string): Promise<void> => {
+    try {
+      const response = await api
+        .get(`products/barcode/${encodeURIComponent(barcode)}`)
+        .json<{ success: boolean; data: StockMovementProductOption }>();
+      setScannedExistingProduct({
+        id: response.data.id,
+        name: response.data.name,
+        barcode,
+      });
+    } catch {
+      form.setValue("barcode", barcode);
+    }
+  };
+
+  const handleExistingProductModalOpenChange = (open: boolean): void => {
+    if (!open) {
+      setScannedExistingProduct(null);
+    }
+  };
+
+  const handleCreateBatchForExistingProduct = (): void => {
+    if (!scannedExistingProduct) return;
+    setExistingProductBatchForm({
+      ...EMPTY_BATCH_FORM,
+      isOpen: true,
+      productId: scannedExistingProduct.id,
+      productName: scannedExistingProduct.name,
+    });
+    setScannedExistingProduct(null);
+  };
+
+  const updateBatchForm = (
+    patch: Partial<ExistingProductBatchFormState>,
+  ): void => {
+    setExistingProductBatchForm((current) => ({
+      ...current,
+      ...patch,
+      error: patch.error ?? null,
+    }));
+  };
+
+  const handleBatchOpenChange = (open: boolean): void => {
+    if (!open) {
+      setExistingProductBatchForm(EMPTY_BATCH_FORM);
+    }
+  };
+
+  const handleConfirmBatch = async (): Promise<void> => {
+    const quantity = Number(existingProductBatchForm.quantity);
+    if (!quantity || quantity <= 0) {
+      updateBatchForm({ error: "Informe uma quantidade válida para o lote." });
+      return;
+    }
+
+    if (existingProductBatchForm.costPrice === undefined || existingProductBatchForm.costPrice < 0) {
+      updateBatchForm({ error: "Informe um preço de custo válido." });
+      return;
+    }
+
+    if (existingProductBatchForm.sellingPrice === undefined || existingProductBatchForm.sellingPrice < 0) {
+      updateBatchForm({ error: "Informe um preço de venda válido." });
+      return;
+    }
+
+    const item = buildExistingProductBatchItem(
+      existingProductBatchForm.productId,
+      existingProductBatchForm.productName,
+      existingProductBatchForm,
+    );
+
+    await appendExistingProductBatchToDraft(item);
+    toast.success(`${existingProductBatchForm.productName} foi adicionado.`);
+    setExistingProductBatchForm(EMPTY_BATCH_FORM);
+    resetInlineFormForNextProduct();
+  };
+
+  const handleApplyBatchCostPriceSuggestion = (): void => {
+    if (!batchCostPriceSuggestion) return;
+    updateBatchForm({ costPrice: batchCostPriceSuggestion.priceCents });
+  };
+
+  const handleApplyBatchSalePriceSuggestion = (): void => {
+    if (!batchSalePriceSuggestion) return;
+    updateBatchForm({ sellingPrice: batchSalePriceSuggestion.priceCents });
+  };
+
+  const handleBatchQuantityIncrement = (): void => {
+    const current = Number(existingProductBatchForm.quantity) || 0;
+    updateBatchForm({ quantity: String(current + 1) });
+  };
+
+  const handleBatchQuantityDecrement = (): void => {
+    const current = Number(existingProductBatchForm.quantity) || 0;
+    const next = Math.max(current - 1, 0);
+    updateBatchForm({ quantity: next > 0 ? String(next) : "" });
+  };
+
   const updateInlineQuantity = (quantity: number): void => {
     form.setValue("quantity", Math.max(0, quantity), {
       shouldDirty: true,
@@ -475,7 +646,7 @@ export const useNewProductInlineModel = ({
     openScanner: () => setIsScannerOpen(true),
     closeScanner: () => setIsScannerOpen(false),
     isScannerOpen,
-    handleBarcodeScan: (barcode: string) => form.setValue("barcode", barcode),
+    handleBarcodeScan,
     isAiModalOpen,
     openAiModal: () => setIsAiModalOpen(true),
     closeAiModal: () => setIsAiModalOpen(false),
@@ -486,5 +657,26 @@ export const useNewProductInlineModel = ({
     isInlineEdit: isEditingInlineProduct,
     onQuantityIncrement,
     onQuantityDecrement,
+    scannedExistingProduct,
+    onExistingProductModalOpenChange: handleExistingProductModalOpenChange,
+    onCreateBatchForExistingProduct: handleCreateBatchForExistingProduct,
+    batchForm: existingProductBatchForm,
+    onBatchOpenChange: handleBatchOpenChange,
+    onBatchQuantityChange: (quantity: string) => updateBatchForm({ quantity }),
+    onBatchQuantityIncrement: handleBatchQuantityIncrement,
+    onBatchQuantityDecrement: handleBatchQuantityDecrement,
+    onBatchManufacturedDateChange: (date: string) => updateBatchForm({ manufacturedDate: date }),
+    onBatchExpirationDateChange: (date: string) => updateBatchForm({ expirationDate: date }),
+    onBatchCostPriceChange: (price?: number) => updateBatchForm({ costPrice: price }),
+    onBatchSellingPriceChange: (price?: number) => updateBatchForm({ sellingPrice: price }),
+    onApplyBatchCostPriceSuggestion: handleApplyBatchCostPriceSuggestion,
+    onApplyBatchSalePriceSuggestion: handleApplyBatchSalePriceSuggestion,
+    onConfirmBatch: handleConfirmBatch,
+    batchCostPriceSuggestion,
+    batchSalePriceSuggestion,
+    isBatchPriceSuggestionLoading: isLoadingProductBatches,
+    shouldShowMissingBatchCostPriceSuggestion,
+    shouldShowMissingBatchSalePriceSuggestion,
+    batchProfitSummary,
   };
 };
