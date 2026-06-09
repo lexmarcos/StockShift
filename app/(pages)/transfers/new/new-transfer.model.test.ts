@@ -1,12 +1,19 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useNewTransferModel } from "./new-transfer.model";
+import {
+  buildTransferProductBatchesUrl,
+  clampTransferBatchQuantity,
+  filterTransferProductOptions,
+  formatTransferProductLabel,
+  formatTransferProductQuantityLabel,
+  getWarehouseBatchQuantityByProduct,
+  shouldShowTransferFooter,
+  useNewTransferModel,
+} from "./new-transfer.model";
 import type { NewTransferSchema } from "./new-transfer.schema";
+import type { TransferProductOption } from "./new-transfer.types";
 
 type JsonResponse<T> = { json: () => Promise<T> };
-
-type ProductResponse = Array<{ id: string; name: string }> | { content: Array<{ id: string; name: string }> };
-type BatchResponse = Array<{ id: string; code: string; quantity: number; productId: string }> | { content: Array<{ id: string; code: string; quantity: number; productId: string }> };
 
 type SwrState<T> = {
   data?: T;
@@ -14,9 +21,30 @@ type SwrState<T> = {
   isLoading: boolean;
 };
 
-type WarehouseListResponse = { success: boolean; data: Array<{ id: string; name: string }> };
-type ProductListResponse = { success: boolean; data: ProductResponse };
-type BatchListResponse = { success: boolean; data: BatchResponse };
+type WarehouseListResponse = {
+  success: boolean;
+  data: Array<{ id: string; name: string }>;
+};
+type ProductListResponse = {
+  success: boolean;
+  data: TransferProductOption[] | { content: TransferProductOption[] };
+};
+type BatchListResponse = {
+  success: boolean;
+  data:
+    | TransferBatchTestSource[]
+    | { content: TransferBatchTestSource[] };
+};
+type TransferBatchTestSource = {
+  id: string;
+  productId: string;
+  productName?: string;
+  batchCode?: string | null;
+  code?: string | null;
+  quantity: number;
+  manufacturedDate?: string | null;
+  expirationDate?: string | null;
+};
 
 const fakeSWR = vi.hoisted(() => {
   class FakeSWR {
@@ -47,9 +75,9 @@ const fakeSWR = vi.hoisted(() => {
 const fakeApi = vi.hoisted(() => {
   class FakeApi {
     public readonly post = vi.fn<
-      (url: string, body: { json: NewTransferSchema }) => JsonResponse<unknown>
+      (url: string, body: { json: unknown }) => JsonResponse<unknown>
     >();
-    public readonly get = vi.fn<(url: string) => Promise<JsonResponse<unknown>>>();
+    public readonly get = vi.fn<(url: string) => JsonResponse<unknown>>();
   }
 
   return new FakeApi();
@@ -128,6 +156,36 @@ const createResponse = <T>(payload: T): JsonResponse<T> => ({
   json: vi.fn(async () => payload),
 });
 
+const products: TransferProductOption[] = [
+  {
+    id: "prod-leite",
+    name: "Leite Integral",
+    sku: "LEI-01",
+    barcode: "7891000000001",
+    imageUrl: "https://img.test/leite.png",
+    totalQuantity: 12,
+    stockQuantityLabel: "Quantidade: 12 un.",
+  },
+  {
+    id: "prod-cafe",
+    name: "Café Torrado",
+    sku: "CAF-02",
+    barcode: "7891000000002",
+    imageUrl: null,
+    totalQuantity: 7,
+    stockQuantityLabel: "Quantidade: 7 un.",
+  },
+  {
+    id: "prod-cha",
+    name: "Chá Mate",
+    sku: null,
+    barcode: "7891000000003",
+    imageUrl: null,
+    totalQuantity: 0,
+    stockQuantityLabel: "Quantidade: 0 un.",
+  },
+];
+
 const warehousesResponse: WarehouseListResponse = {
   success: true,
   data: [
@@ -139,59 +197,106 @@ const warehousesResponse: WarehouseListResponse = {
 
 const productsArrayResponse: ProductListResponse = {
   success: true,
-  data: [
-    { id: "prod-leite", name: "Leite" },
-    { id: "prod-cafe", name: "Café" },
-  ],
+  data: products,
 };
 
 const productsContentResponse: ProductListResponse = {
   success: true,
-  data: {
-    content: [
-      { id: "prod-suco", name: "Suco" },
-      { id: "prod-cha", name: "Chá" },
-    ],
-  },
+  data: { content: [products[2]] },
 };
 
-const batchContentResponse: BatchListResponse = {
+const leiteBatchResponse: BatchListResponse = {
+  success: true,
+  data: [
+    {
+      id: "batch-leite-1",
+      productId: "prod-leite",
+      productName: "Leite Integral",
+      batchCode: "L-01",
+      quantity: 5,
+      manufacturedDate: "2026-01-01",
+      expirationDate: "2026-12-31",
+    },
+    {
+      id: "batch-leite-2",
+      productId: "prod-leite",
+      productName: "Leite Integral",
+      code: "L-02",
+      quantity: 0,
+      expirationDate: "2027-01-31",
+    },
+  ],
+};
+
+const cafeBatchResponse: BatchListResponse = {
   success: true,
   data: {
     content: [
       {
-        id: "batch-leite-1",
-        code: "L-01",
-        quantity: 5,
-        productId: "prod-leite",
-      },
-      {
-        id: "batch-leite-2",
-        code: "L-02",
-        quantity: 2,
-        productId: "prod-leite",
-      },
-      {
         id: "batch-cafe",
-        code: "C-01",
-        quantity: 10,
         productId: "prod-cafe",
+        productName: "Café Torrado",
+        batchCode: "C-01",
+        quantity: 10,
+        manufacturedDate: null,
+        expirationDate: null,
       },
     ],
   },
 };
 
+const warehouseBatchesResponse: BatchListResponse = {
+  success: true,
+  data: [
+    {
+      id: "batch-leite-warehouse-1",
+      productId: "prod-leite",
+      productName: "Leite Integral",
+      batchCode: "L-WH-01",
+      quantity: 4,
+    },
+    {
+      id: "batch-leite-warehouse-2",
+      productId: "prod-leite",
+      productName: "Leite Integral",
+      batchCode: "L-WH-02",
+      quantity: 6,
+    },
+    {
+      id: "batch-cafe-warehouse",
+      productId: "prod-cafe",
+      productName: "Café Torrado",
+      batchCode: "C-WH-01",
+      quantity: 7,
+    },
+  ],
+};
+
+const getWarehouseBatchSources = (
+  response: BatchListResponse,
+): TransferBatchTestSource[] => {
+  return Array.isArray(response.data) ? response.data : response.data.content;
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.useRealTimers();
   fakeSWR.reset();
   fakeApi.post.mockReset();
   fakeApi.get.mockReset();
-  fakeToast.success.mockClear();
-  fakeToast.error.mockClear();
   fakeRouter.push.mockClear();
   fakeBreadcrumb.useBreadcrumb.mockClear();
   fakeSelectedWarehouse.warehouseId = "warehouse-origin";
   fakeApi.post.mockReturnValue(createResponse({ success: true }));
+  fakeApi.get.mockImplementation((url: string) => {
+    if (url === "products/barcode/7891000000001") {
+      return createResponse({ success: true, data: products[0] });
+    }
+    if (url === "products/barcode/7891000000002") {
+      return createResponse({ success: true, data: products[1] });
+    }
+    throw new Error(`Sem fake para GET ${url}`);
+  });
 
   fakeSWR.setState("warehouses", {
     data: warehousesResponse,
@@ -204,23 +309,126 @@ beforeEach(() => {
     isLoading: false,
   });
   fakeSWR.setState("batches/warehouse/warehouse-origin", {
-    data: batchContentResponse,
+    data: warehouseBatchesResponse,
+    error: null,
+    isLoading: false,
+  });
+  fakeSWR.setState("batches/warehouses/warehouse-origin/products/prod-leite/batches", {
+    data: leiteBatchResponse,
+    error: null,
+    isLoading: false,
+  });
+  fakeSWR.setState("batches/warehouses/warehouse-origin/products/prod-cafe/batches", {
+    data: cafeBatchResponse,
     error: null,
     isLoading: false,
   });
 });
 
+describe("helpers de nova transferência", () => {
+  it("formata produto com SKU quando disponível", () => {
+    expect(formatTransferProductLabel(products[0])).toBe(
+      "Leite Integral (LEI-01)",
+    );
+    expect(formatTransferProductLabel(products[2])).toBe("Chá Mate");
+  });
+
+  it("formata quantidade disponível do produto", () => {
+    expect(formatTransferProductQuantityLabel(products[0])).toBe(
+      "Quantidade: 12 un.",
+    );
+    expect(formatTransferProductQuantityLabel({ id: "p", name: "Produto" })).toBe(
+      "Quantidade: 0 un.",
+    );
+  });
+
+  it("soma quantidades de todos os lotes do produto", () => {
+    const quantityByProduct = getWarehouseBatchQuantityByProduct(
+      getWarehouseBatchSources(warehouseBatchesResponse),
+    );
+
+    expect(quantityByProduct.get("prod-leite")).toBe(10);
+    expect(quantityByProduct.get("prod-cafe")).toBe(7);
+    expect(quantityByProduct.get("prod-cha")).toBeUndefined();
+  });
+
+  it("filtra produtos por nome, SKU e barcode com mínimo de dois caracteres", () => {
+    expect(filterTransferProductOptions(products, " l ")).toEqual([]);
+    expect(filterTransferProductOptions(products, "caf")[0].id).toBe("prod-cafe");
+    expect(filterTransferProductOptions(products, "LEI-01")[0].id).toBe("prod-leite");
+    expect(filterTransferProductOptions(products, "0003")[0].id).toBe("prod-cha");
+  });
+
+  it("limita resultados de autocomplete a cinco produtos", () => {
+    const manyProducts = Array.from({ length: 6 }, (_, index) => ({
+      id: `prod-${index}`,
+      name: `Produto ${index}`,
+    }));
+
+    expect(filterTransferProductOptions(manyProducts, "produto")).toHaveLength(5);
+  });
+
+  it("monta URL de lotes apenas com drawer aberto e IDs válidos", () => {
+    expect(buildTransferProductBatchesUrl(null, "prod-1", true)).toBeNull();
+    expect(buildTransferProductBatchesUrl("wh-1", "", true)).toBeNull();
+    expect(buildTransferProductBatchesUrl("wh-1", "prod-1", false)).toBeNull();
+    expect(buildTransferProductBatchesUrl("wh-1", "prod-1", true)).toBe(
+      "batches/warehouses/wh-1/products/prod-1/batches",
+    );
+  });
+
+  it("limita quantidade do lote entre um e o estoque disponível", () => {
+    expect(clampTransferBatchQuantity("0", 5)).toBe("1");
+    expect(clampTransferBatchQuantity("texto", 5)).toBe("1");
+    expect(clampTransferBatchQuantity("3", 5)).toBe("3");
+    expect(clampTransferBatchQuantity("8", 5)).toBe("5");
+    expect(clampTransferBatchQuantity("8")).toBe("8");
+  });
+
+  it("mostra footer no fim da página ou quando usuário rola para cima", () => {
+    expect(
+      shouldShowTransferFooter({
+        currentScrollY: 200,
+        lastScrollY: 100,
+        maxScrollY: 1000,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowTransferFooter({
+        currentScrollY: 995,
+        lastScrollY: 900,
+        maxScrollY: 1000,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowTransferFooter({
+        currentScrollY: 600,
+        lastScrollY: 700,
+        maxScrollY: 1000,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowTransferFooter({
+        currentScrollY: 0,
+        lastScrollY: 0,
+        maxScrollY: 0,
+      }),
+    ).toBe(true);
+  });
+});
+
 describe("useNewTransferModel", () => {
-  it("mapeia opções de destino ignorando o warehouse atual", () => {
+  it("mapeia destinos e produtos ignorando warehouse atual", () => {
     const { result } = renderHook(() => useNewTransferModel());
 
     expect(result.current.warehouses).toEqual([
       { id: "warehouse-destination", name: "Loja Matriz" },
       { id: "warehouse-destination-b", name: "Loja B" },
     ]);
-    expect(result.current.products).toEqual([
-      { id: "prod-leite", name: "Leite" },
-      { id: "prod-cafe", name: "Café" },
+    expect(result.current.products).toMatchObject([
+      { id: "prod-leite", totalQuantity: 10, stockQuantityLabel: "Quantidade: 10 un." },
+      { id: "prod-cafe", totalQuantity: 7, stockQuantityLabel: "Quantidade: 7 un." },
+      { id: "prod-cha", totalQuantity: 0, stockQuantityLabel: "Quantidade: 0 un." },
     ]);
     expect(result.current.isLoading).toBe(false);
   });
@@ -234,148 +442,227 @@ describe("useNewTransferModel", () => {
 
     const { result } = renderHook(() => useNewTransferModel());
 
-    expect(result.current.products).toEqual([
-      { id: "prod-suco", name: "Suco" },
-      { id: "prod-cha", name: "Chá" },
+    expect(result.current.products).toMatchObject([
+      { id: "prod-cha", totalQuantity: 0, stockQuantityLabel: "Quantidade: 0 un." },
     ]);
   });
 
-  it("limpa seleção e erro ao trocar produto", () => {
+  it("abre autocomplete e seleciona produto para abrir drawer de lote", () => {
     const { result } = renderHook(() => useNewTransferModel());
 
     act(() => {
-      result.current.onProductChange("prod-leite");
-      result.current.onBatchChange("batch-leite-1");
-      result.current.onQuantityChange("1");
-      result.current.onAddItem();
+      result.current.onProductSearchFocus();
+      result.current.onProductSearchChange("lei");
     });
-
-    act(() => {
-      result.current.onProductChange("prod-cafe");
-    });
-
-    expect(result.current.selectedProductId).toBe("prod-cafe");
-    expect(result.current.selectedBatchId).toBe("");
-    expect(result.current.itemQuantity).toBe("");
+    expect(result.current.isProductOptionsOpen).toBe(true);
     expect(result.current.addItemError).toBeNull();
-  });
-
-  it("rejeita inclusão de item sem produto e sem lote", () => {
-    const { result } = renderHook(() => useNewTransferModel());
 
     act(() => {
-      result.current.onAddItem();
-    });
-    expect(result.current.addItemError).toBe("Selecione um produto.");
-
-    act(() => {
-      result.current.onProductChange("prod-leite");
-    });
-    act(() => {
-      result.current.onAddItem();
-    });
-    expect(result.current.addItemError).toBe("Selecione um lote.");
-
-    act(() => {
-      result.current.onBatchChange("batch-leite-1");
-      result.current.onQuantityChange("0");
-    });
-    act(() => {
-      result.current.onAddItem();
-    });
-    expect(result.current.addItemError).toBe("Quantidade inválida.");
-  });
-
-  it("rejeita lote inválido ou quantidade acima do disponível", () => {
-    const { result } = renderHook(() => useNewTransferModel());
-
-    act(() => {
-      result.current.onProductChange("prod-cafe");
-    });
-    act(() => {
-      result.current.onBatchChange("batch-invalido");
-    });
-    act(() => {
-      result.current.onQuantityChange("1");
-    });
-    act(() => {
-      result.current.onAddItem();
+      result.current.onProductSelect(products[0]);
     });
 
-    expect(result.current.addItemError).toBe("Lote inválido.");
-
-    act(() => {
-      result.current.onProductChange("prod-cafe");
+    expect(result.current.selectedProductId).toBe("prod-leite");
+    expect(result.current.productSearchQuery).toBe("Leite Integral (LEI-01)");
+    expect(result.current.batchDrawer).toMatchObject({
+      isOpen: true,
+      productId: "prod-leite",
+      productName: "Leite Integral",
+      quantity: "1",
     });
-    act(() => {
-      result.current.onBatchChange("batch-cafe");
-    });
-    act(() => {
-      result.current.onQuantityChange("11");
-    });
-    act(() => {
-      result.current.onAddItem();
-    });
-
-    expect(result.current.addItemError).toBe(
-      "Quantidade indisponível no lote (Máx: 10).",
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "batches/warehouses/warehouse-origin/products/prod-leite/batches",
+      expect.any(Function),
     );
   });
 
-  it("adiciona item com sucesso e limpa campos do formulário", () => {
-    fakeSWR.setState("batches/warehouse/warehouse-origin", {
-      data: {
-        success: true,
-        data: [
-          {
-            id: "batch-cha-array",
-            code: "CH-99",
-            quantity: 8,
-            productId: "prod-cha",
-          },
-        ],
-      },
-      error: null,
-      isLoading: false,
-    });
-    fakeSWR.setState("products", {
-      data: {
-        success: true,
-        data: {
-          content: [{ id: "prod-cha", name: "Chá" }],
-        },
-      },
-      error: null,
-      isLoading: false,
-    });
-
+  it("limpa seleção quando busca muda após produto selecionado", () => {
     const { result } = renderHook(() => useNewTransferModel());
 
     act(() => {
-      result.current.onProductChange("prod-cha");
+      result.current.onProductSelect(products[0]);
     });
     act(() => {
-      result.current.onBatchChange("batch-cha-array");
+      result.current.onProductSearchChange("outro");
+    });
+
+    expect(result.current.selectedProductId).toBe("");
+    expect(result.current.productSearchQuery).toBe("outro");
+    expect(result.current.addItemError).toBeNull();
+  });
+
+  it("limpa produto, busca e drawer", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[0]);
+      result.current.onProductClear();
+    });
+
+    expect(result.current.selectedProductId).toBe("");
+    expect(result.current.productSearchQuery).toBe("");
+    expect(result.current.batchDrawer.isOpen).toBe(false);
+  });
+
+  it("abre drawer de lote ao ler código de barras", async () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891000000001");
+    });
+
+    expect(fakeApi.get).toHaveBeenCalledWith("products/barcode/7891000000001");
+    expect(result.current.isScannerOpen).toBe(false);
+    expect(result.current.batchDrawer).toMatchObject({
+      isOpen: true,
+      productId: "prod-leite",
+      productName: "Leite Integral",
+    });
+  });
+
+  it("ignora leitura duplicada imediata", async () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891000000001");
+      await result.current.onBarcodeScan("7891000000001");
+    });
+
+    expect(fakeApi.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("mostra erro quando barcode não encontra produto", async () => {
+    fakeApi.get.mockImplementation(() => {
+      throw new Error("não encontrado");
+    });
+    const { result } = renderHook(() => useNewTransferModel());
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891009999999");
+    });
+
+    expect(fakeToast.error).toHaveBeenCalledWith(
+      "Produto com código 7891009999999 não existe.",
+    );
+  });
+
+  it("normaliza lotes e remove lote sem estoque", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[0]);
+    });
+
+    expect(result.current.batches).toEqual([
+      {
+        id: "batch-leite-1",
+        productId: "prod-leite",
+        productName: "Leite Integral",
+        batchCode: "L-01",
+        quantity: 5,
+        manufacturedDate: "2026-01-01",
+        expirationDate: "2026-12-31",
+      },
+    ]);
+  });
+
+  it("exige seleção de lote antes de confirmar", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[0]);
     });
     act(() => {
-      result.current.onQuantityChange("4");
+      result.current.onConfirmBatch();
+    });
+    expect(result.current.batchDrawer.error).toBe("Selecione um lote.");
+  });
+
+  it("mantém quantidade do drawer entre um e o estoque do lote", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[0]);
+      result.current.onQuantityChange("8");
+    });
+    expect(result.current.batchDrawer.quantity).toBe("8");
+
+    act(() => {
+      result.current.onBatchChange("batch-leite-1");
+    });
+    expect(result.current.batchDrawer.quantity).toBe("5");
+
+    act(() => {
+      result.current.onQuantityChange("0");
+    });
+    expect(result.current.batchDrawer.quantity).toBe("1");
+
+    act(() => {
+      result.current.onQuantityDecrement();
+    });
+    expect(result.current.batchDrawer.quantity).toBe("1");
+
+    act(() => {
+      result.current.onQuantityChange("5");
     });
     act(() => {
-      result.current.onAddItem();
+      result.current.onQuantityIncrement();
+    });
+    expect(result.current.batchDrawer.quantity).toBe("5");
+  });
+
+  it("incrementa, decrementa e confirma lote adicionando item", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[0]);
+      result.current.onBatchChange("batch-leite-1");
+      result.current.onQuantityIncrement();
+    });
+    expect(result.current.batchDrawer.quantity).toBe("2");
+
+    act(() => {
+      result.current.onQuantityDecrement();
+    });
+    expect(result.current.batchDrawer.quantity).toBe("1");
+
+    act(() => {
+      result.current.onConfirmBatch();
     });
 
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]).toMatchObject({
-      sourceBatchId: "batch-cha-array",
-      quantity: 4,
-      productName: "Chá",
-      batchCode: "CH-99",
-      availableQuantity: 8,
+      sourceBatchId: "batch-leite-1",
+      quantity: 1,
+      productName: "Leite Integral",
+      batchCode: "L-01",
+      availableQuantity: 5,
     });
     expect(result.current.selectedProductId).toBe("");
-    expect(result.current.selectedBatchId).toBe("");
-    expect(result.current.itemQuantity).toBe("");
-    expect(result.current.addItemError).toBeNull();
+    expect(result.current.productSearchQuery).toBe("");
+    expect(result.current.batchDrawer.isOpen).toBe(false);
+  });
+
+  it("confirma lote com resposta no formato content", () => {
+    const { result } = renderHook(() => useNewTransferModel());
+
+    act(() => {
+      result.current.onProductSelect(products[1]);
+    });
+    act(() => {
+      result.current.onBatchChange("batch-cafe");
+      result.current.onQuantityChange("4");
+    });
+    act(() => {
+      result.current.onConfirmBatch();
+    });
+
+    expect(result.current.items[0]).toMatchObject({
+      sourceBatchId: "batch-cafe",
+      quantity: 4,
+      productName: "Café Torrado",
+      batchCode: "C-01",
+      availableQuantity: 10,
+    });
   });
 
   it("sinaliza erro quando não existe warehouse de origem", async () => {
@@ -387,9 +674,9 @@ describe("useNewTransferModel", () => {
       notes: "",
       items: [
         {
-          sourceBatchId: "batch-leite-1",
+          sourceBatchId: "11111111-1111-4111-8111-111111111111",
           quantity: 1,
-          productName: "Leite",
+          productName: "Leite Integral",
           batchCode: "L-01",
           availableQuantity: 5,
         },
@@ -412,9 +699,9 @@ describe("useNewTransferModel", () => {
       notes: "",
       items: [
         {
-          sourceBatchId: "batch-leite-1",
+          sourceBatchId: "11111111-1111-4111-8111-111111111111",
           quantity: 1,
-          productName: "Leite",
+          productName: "Leite Integral",
           batchCode: "L-01",
           availableQuantity: 5,
         },
@@ -433,21 +720,14 @@ describe("useNewTransferModel", () => {
 
   it("envia nova transferência com sucesso e redireciona", async () => {
     const { result } = renderHook(() => useNewTransferModel());
-    fakeApi.post.mockReturnValue(
-      createResponse({
-        success: true,
-        message: "Transferência criada",
-      }),
-    );
-
     const payload: NewTransferSchema = {
       destinationWarehouseId: "warehouse-destination-b",
       notes: "Observação do lote",
       items: [
         {
-          sourceBatchId: "batch-cafe",
+          sourceBatchId: "11111111-1111-4111-8111-111111111111",
           quantity: 2,
-          productName: "Café",
+          productName: "Café Torrado",
           batchCode: "C-01",
           availableQuantity: 10,
         },
@@ -464,7 +744,7 @@ describe("useNewTransferModel", () => {
         notes: "Observação do lote",
         items: [
           {
-            sourceBatchId: "batch-cafe",
+            sourceBatchId: "11111111-1111-4111-8111-111111111111",
             quantity: 2,
           },
         ],
@@ -480,15 +760,14 @@ describe("useNewTransferModel", () => {
     fakeApi.post.mockImplementation(() => {
       throw new Error("Falha no servidor");
     });
-
     const payload: NewTransferSchema = {
       destinationWarehouseId: "warehouse-destination-b",
       notes: "",
       items: [
         {
-          sourceBatchId: "batch-cafe",
+          sourceBatchId: "11111111-1111-4111-8111-111111111111",
           quantity: 2,
-          productName: "Café",
+          productName: "Café Torrado",
           batchCode: "C-01",
           availableQuantity: 10,
         },
