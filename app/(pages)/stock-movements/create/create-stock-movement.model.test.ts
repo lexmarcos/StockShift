@@ -1122,7 +1122,7 @@ describe("useCreateStockMovementModel", () => {
     });
   });
 
-  it("mostra erro com ação para criação quando produto não existe", async () => {
+  it("abre modal de produto não encontrado quando produto não existe", async () => {
     fakeApi.get.mockRejectedValue(new Error("não encontrado"));
 
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
@@ -1131,13 +1131,8 @@ describe("useCreateStockMovementModel", () => {
       await result.current.onBarcodeScan("7891009999999");
     });
 
-    const lastCall = fakeToast.error.mock.calls.at(-1);
-    expect(lastCall?.[0]).toBe("Produto com código 7891009999999 não existe.");
-    expect(lastCall?.[1]).toMatchObject({
-      action: {
-        label: "Criar Produto",
-      },
-    });
+    expect(result.current.missingProductBarcode).toBe("7891009999999");
+    expect(fakeToast.error).not.toHaveBeenCalled();
   });
 
   it("mostra aviso sem ação para tipo de saída", async () => {

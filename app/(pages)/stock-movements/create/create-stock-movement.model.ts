@@ -283,6 +283,7 @@ export function useCreateStockMovementModel({
   const [addItemError, setAddItemError] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const [missingProductBarcode, setMissingProductBarcode] = useState<string | null>(null);
   const [existingProductBatchForm, setExistingProductBatchForm] =
     useState<ExistingProductBatchFormState>(EMPTY_EXISTING_BATCH_FORM);
   const lastScannedBarcodeRef = useRef<string | null>(null);
@@ -901,14 +902,19 @@ export function useCreateStockMovementModel({
       return;
     }
 
-    toast.error(`Produto com código ${barcode} não existe.`, {
-      action: {
-        label: "Criar Produto",
-        onClick: () => {
-          void navigateToInlineProductWithBarcode(barcode);
-        },
-      },
-    });
+    setMissingProductBarcode(barcode);
+  };
+
+  const handleMissingProductModalOpenChange = (open: boolean): void => {
+    if (!open) {
+      setMissingProductBarcode(null);
+    }
+  };
+
+  const handleCreateProductFromMissingModal = async (): Promise<void> => {
+    if (!missingProductBarcode) return;
+    await navigateToInlineProductWithBarcode(missingProductBarcode);
+    setMissingProductBarcode(null);
   };
 
   const onSubmit = async (data: CreateStockMovementSchema) => {
@@ -1000,5 +1006,8 @@ export function useCreateStockMovementModel({
     shouldShowMissingSalePriceSuggestion,
     existingProductProfitSummary,
     items: fields,
+    missingProductBarcode,
+    onMissingProductModalOpenChange: handleMissingProductModalOpenChange,
+    onCreateProductFromMissingModal: handleCreateProductFromMissingModal,
   };
 }

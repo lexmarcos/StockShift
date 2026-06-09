@@ -126,6 +126,7 @@ function StockMovementCreateOverlays({
     onApplyExistingProductSalePriceSuggestion,
     onBarcodeScan,
     onConfirmExistingProductBatchData,
+    onCreateProductFromMissingModal,
     onExistingProductBatchCostPriceChange,
     onExistingProductBatchExpirationDateChange,
     onExistingProductBatchManufacturedDateChange,
@@ -134,11 +135,13 @@ function StockMovementCreateOverlays({
     onExistingProductBatchQuantityDecrement,
     onExistingProductBatchQuantityIncrement,
     onExistingProductBatchSellingPriceChange,
+    onMissingProductModalOpenChange,
     existingProductCostPriceSuggestion,
     existingProductProfitSummary,
     existingProductSalePriceSuggestion,
     isExistingProductPriceSuggestionLoading,
     isScannerOpen,
+    missingProductBarcode,
     onScannerOpenChange,
     shouldShowMissingCostPriceSuggestion,
     shouldShowMissingSalePriceSuggestion,
@@ -170,6 +173,11 @@ function StockMovementCreateOverlays({
         shouldShowMissingCostPriceSuggestion={shouldShowMissingCostPriceSuggestion}
         shouldShowMissingSalePriceSuggestion={shouldShowMissingSalePriceSuggestion}
         profitSummary={existingProductProfitSummary}
+      />
+      <StockMovementMissingProductModal
+        barcode={missingProductBarcode}
+        onOpenChange={onMissingProductModalOpenChange}
+        onCreateProduct={onCreateProductFromMissingModal}
       />
     </>
   );
@@ -654,5 +662,67 @@ function StockMovementSubmitOverlay({
         </p>
       </div>
     </div>
+  );
+}
+
+function StockMovementMissingProductModal({
+  barcode,
+  onOpenChange,
+  onCreateProduct,
+}: {
+  barcode: string | null;
+  onOpenChange: (open: boolean) => void;
+  onCreateProduct: () => void;
+}) {
+  return (
+    <ResponsiveModal
+      open={barcode !== null}
+      onOpenChange={onOpenChange}
+      title="Produto não encontrado"
+      description={`O produto com código "${barcode}" não foi encontrado no sistema.`}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-10 w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={onCreateProduct}
+            className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
+          >
+            Criar Produto
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4 pb-2 pt-2">
+        <div className="flex items-start gap-3 rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-4 py-3">
+          <AlertCircle className="size-5 shrink-0 text-amber-500" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-amber-400">
+              Produto inexistente
+            </p>
+            <p className="text-xs text-amber-400/80">
+              Deseja criar um novo produto com este código de barras?
+            </p>
+          </div>
+        </div>
+        {barcode && (
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Código de barras
+            </p>
+            <p className="mt-1 font-mono text-sm font-bold text-white">
+              {barcode}
+            </p>
+          </div>
+        )}
+      </div>
+    </ResponsiveModal>
   );
 }
