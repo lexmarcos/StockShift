@@ -6,6 +6,7 @@ import { CustomAttributesBuilder } from "@/components/product/custom-attributes-
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 import { ProductAiFillModal } from "@/components/product/product-ai-fill-modal";
 import { ImageDropzone } from "@/components/product/image-dropzone";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,6 +50,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  AlertCircle,
   Calendar,
   CheckCircle2,
   DollarSign,
@@ -222,6 +224,7 @@ const ProductFormShell = ({
       onClose={productForm.closeScanner}
       onScan={productForm.handleBarcodeScan}
     />
+    <ExistingProductFoundModal productForm={productForm} />
     <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
       <ProductAiModal productForm={productForm} viewState={viewState} />
       <ProductFormBody productForm={productForm} viewState={viewState} />
@@ -229,6 +232,67 @@ const ProductFormShell = ({
     <ProductBatchesDrawer viewState={viewState} />
   </div>
 );
+
+const ExistingProductFoundModal = ({
+  productForm,
+}: {
+  productForm: ProductFormProps;
+}) => {
+  const { scannedExistingProduct, onExistingProductModalOpenChange, onCreateBatchForExistingProduct } = productForm;
+  if (!onExistingProductModalOpenChange || !onCreateBatchForExistingProduct) return null;
+
+  return (
+    <ResponsiveModal
+      open={scannedExistingProduct !== null}
+      onOpenChange={onExistingProductModalOpenChange}
+      title="Produto já existe"
+      description={`O produto "${scannedExistingProduct?.name}" já está cadastrado no sistema.`}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onExistingProductModalOpenChange(false)}
+            className="h-10 w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={onCreateBatchForExistingProduct}
+            className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
+          >
+            Adicionar Lote
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4 pb-2 pt-2">
+        <div className="flex items-start gap-3 rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-4 py-3">
+          <AlertCircle className="size-5 shrink-0 text-amber-500" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-amber-400">
+              Produto existente encontrado
+            </p>
+            <p className="text-xs text-amber-400/80">
+              Não é possível criar um novo produto com este código. Deseja adicionar um novo lote ao produto existente?
+            </p>
+          </div>
+        </div>
+        {scannedExistingProduct && (
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Código de barras
+            </p>
+            <p className="mt-1 font-mono text-sm font-bold text-white">
+              {scannedExistingProduct.barcode}
+            </p>
+          </div>
+        )}
+      </div>
+    </ResponsiveModal>
+  );
+};
 
 const ProductAiModal = ({
   productForm,

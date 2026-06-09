@@ -2,6 +2,11 @@
 import { UseFormReturn } from "react-hook-form";
 import { ProductCreateFormData, AiFillData } from "../create/products-create.types";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
+import type {
+  ExistingProductBatchFormState,
+  ExistingProductPriceSuggestion,
+  ExistingProductProfitSummary,
+} from "../../stock-movements/create/create-stock-movement.types";
 
 interface Category {
   id: string;
@@ -43,6 +48,33 @@ export interface BatchesDrawerProps {
   onSave: (index: number) => void;
   updatingBatchId: string | null;
   form: UseFormReturn<{ batches: BatchDrawerFormItem[] }>;
+}
+
+export interface ExistingProductInfo {
+  id: string;
+  name: string;
+  barcode: string;
+}
+
+export interface NewProductBatchOverlay {
+  batchForm: ExistingProductBatchFormState;
+  onBatchOpenChange: (open: boolean) => void;
+  onBatchQuantityChange: (quantity: string) => void;
+  onBatchQuantityIncrement: () => void;
+  onBatchQuantityDecrement: () => void;
+  onBatchManufacturedDateChange: (date: string) => void;
+  onBatchExpirationDateChange: (date: string) => void;
+  onBatchCostPriceChange: (price?: number) => void;
+  onBatchSellingPriceChange: (price?: number) => void;
+  onApplyBatchCostPriceSuggestion: () => void;
+  onApplyBatchSalePriceSuggestion: () => void;
+  onConfirmBatch: () => void;
+  batchCostPriceSuggestion: ExistingProductPriceSuggestion | null;
+  batchSalePriceSuggestion: ExistingProductPriceSuggestion | null;
+  isBatchPriceSuggestionLoading: boolean;
+  shouldShowMissingBatchCostPriceSuggestion: boolean;
+  shouldShowMissingBatchSalePriceSuggestion: boolean;
+  batchProfitSummary: ExistingProductProfitSummary;
 }
 
 /**
@@ -92,7 +124,32 @@ export interface ProductFormProps {
   openScanner: () => void;
   closeScanner: () => void;
   isScannerOpen: boolean;
-  handleBarcodeScan: (barcode: string) => void;
+  handleBarcodeScan: (barcode: string) => void | Promise<void>;
+
+  // Existing product modal (new-product page)
+  scannedExistingProduct: ExistingProductInfo | null;
+  onExistingProductModalOpenChange?: (open: boolean) => void;
+  onCreateBatchForExistingProduct?: () => void;
+
+  // Batch overlay (new-product page)
+  batchForm?: ExistingProductBatchFormState;
+  onBatchOpenChange?: (open: boolean) => void;
+  onBatchQuantityChange?: (quantity: string) => void;
+  onBatchQuantityIncrement?: () => void;
+  onBatchQuantityDecrement?: () => void;
+  onBatchManufacturedDateChange?: (date: string) => void;
+  onBatchExpirationDateChange?: (date: string) => void;
+  onBatchCostPriceChange?: (price?: number) => void;
+  onBatchSellingPriceChange?: (price?: number) => void;
+  onApplyBatchCostPriceSuggestion?: () => void;
+  onApplyBatchSalePriceSuggestion?: () => void;
+  onConfirmBatch?: () => void;
+  batchCostPriceSuggestion?: ExistingProductPriceSuggestion | null;
+  batchSalePriceSuggestion?: ExistingProductPriceSuggestion | null;
+  isBatchPriceSuggestionLoading?: boolean;
+  shouldShowMissingBatchCostPriceSuggestion?: boolean;
+  shouldShowMissingBatchSalePriceSuggestion?: boolean;
+  batchProfitSummary?: ExistingProductProfitSummary;
 
   // AI Fill
   isAiModalOpen?: boolean;
