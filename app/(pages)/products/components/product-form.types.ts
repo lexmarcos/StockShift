@@ -129,7 +129,7 @@ export interface ProductFormProps {
   // Existing product modal (new-product page)
   scannedExistingProduct: ExistingProductInfo | null;
   onExistingProductModalOpenChange?: (open: boolean) => void;
-  onCreateBatchForExistingProduct?: () => void;
+  onCreateBatchForExistingProduct?: () => void | Promise<void>;
 
   // Batch overlay (new-product page)
   batchForm?: ExistingProductBatchFormState;

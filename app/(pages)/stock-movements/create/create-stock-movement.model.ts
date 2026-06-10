@@ -37,25 +37,20 @@ import {
   buildExistingProductCostPriceSuggestion,
   findMostRecentWarehouseProductBatch,
 } from "./stock-movement-batch-pricing.model";
-
-const getOptionalText = (value: string | undefined): string | undefined => {
-  const trimmedValue = value?.trim();
-  return trimmedValue || undefined;
-};
+import {
+  getOptionalText,
+  validateExistingProductBatchForm,
+} from "./stock-movement-batch-form-validation";
+import {
+  buildRepeatedProductBatchWarning,
+  getPendingInlineProductBarcodeConflictError,
+  hasExistingProductInItems,
+} from "./stock-movement-draft-guards";
+import { lookupStockMovementProductByBarcode } from "./stock-movement-product-lookup";
 
 const resolveExistingProductBatchQuantity = (value: string): number => {
   const quantity = Number(value);
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
-};
-
-const isExistingProductBatchDateRangeInvalid = (
-  manufacturedDate: string,
-  expirationDate: string,
-): boolean => {
-  const optionalManufacturedDate = getOptionalText(manufacturedDate);
-  const optionalExpirationDate = getOptionalText(expirationDate);
-  if (!optionalManufacturedDate || !optionalExpirationDate) return false;
-  return new Date(optionalExpirationDate) < new Date(optionalManufacturedDate);
 };
 
 const buildExistingProductItemPayload = (
@@ -201,11 +196,6 @@ interface ProductListResponse {
     | StockMovementProductOption[];
 }
 
-interface ProductByBarcodeResponse {
-  success: boolean;
-  data: StockMovementProductOption;
-}
-
 interface CreateStockMovementModelParams {
   typeParam?: string | null;
 }
@@ -244,25 +234,28 @@ export const formatStockMovementProductLabel = (
   product: StockMovementProductOption,
 ): string => (product.sku ? `${product.name} (${product.sku})` : product.name);
 
-export const filterStockMovementProductOptions = (
-  products: StockMovementProductOption[],
-  query: string,
+export const mapStockMovementProductOptions = (
+  response: ProductListResponse | null | undefined,
 ): StockMovementProductOption[] => {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (normalizedQuery.length < 2) return [];
+  const rawProducts = response?.data;
+  const productList = Array.isArray(rawProducts)
+    ? rawProducts
+    : rawProducts?.content || [];
+  return productList.map((product) => ({
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    barcode: product.barcode,
+    imageUrl: product.imageUrl,
+  }));
+};
 
-  return products
-    .filter((product) => {
-      const searchText = [
-        product.name,
-        product.sku || "",
-        product.barcode || "",
-      ]
-        .join(" ")
-        .toLowerCase();
-      return searchText.includes(normalizedQuery);
-    })
-    .slice(0, PRODUCT_SEARCH_LIMIT);
+export const buildStockMovementProductSearchUrl = (
+  query: string,
+): string | null => {
+  const normalizedQuery = query.trim();
+  if (normalizedQuery.length < 2) return null;
+  return `products/search?q=${encodeURIComponent(normalizedQuery)}`;
 };
 
 export function useCreateStockMovementModel({
@@ -291,6 +284,8 @@ export function useCreateStockMovementModel({
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
   const inlineProductBarcodeRef = useRef<string | undefined>(undefined);
+  const draftRevisionRef = useRef(0);
+  const persistQueueRef = useRef<Promise<void>>(Promise.resolve());
   const selectedMovementType = isManualMovementType(typeParam)
     ? typeParam
     : undefined;
@@ -335,7 +330,8 @@ export function useCreateStockMovementModel({
       const draft = await readStockMovementDraft();
       if (!isMounted) return;
 
-      if (draft?.type === selectedMovementType) {
+      draftRevisionRef.current = draft?.revision ?? 0;
+      if (draft?.type === selectedMovementType && draft.warehouseId === warehouseId) {
         form.reset({
           type: draft.type,
           notes: draft.notes,
@@ -356,7 +352,7 @@ export function useCreateStockMovementModel({
     return () => {
       isMounted = false;
     };
-  }, [form, selectedMovementType]);
+  }, [form, selectedMovementType, warehouseId]);
 
   const { data: productsData, isLoading: isLoadingProducts } =
     useSWR<ProductListResponse>("products", (url: string) =>
@@ -393,16 +389,15 @@ export function useCreateStockMovementModel({
       !existingProductCostPriceSuggestion,
   );
 
-  const rawProducts = productsData?.data;
-  const products = (
-    Array.isArray(rawProducts) ? rawProducts : rawProducts?.content || []
-  ).map((p) => ({
-    id: p.id,
-    name: p.name,
-    sku: p.sku,
-    barcode: p.barcode,
-    imageUrl: p.imageUrl,
-  }));
+  const products = mapStockMovementProductOptions(productsData);
+
+  const productSearchUrl = selectedProduct
+    ? null
+    : buildStockMovementProductSearchUrl(debouncedProductSearchQuery);
+  const { data: productSearchData, isLoading: isSearchingProducts } =
+    useSWR<ProductListResponse>(productSearchUrl, (url: string) =>
+      api.get(url).json<ProductListResponse>(),
+    );
 
   useEffect(() => {
     if (!selectedProductId || productSearchQuery || products.length === 0) return;
@@ -419,6 +414,7 @@ export function useCreateStockMovementModel({
       if (!selectedMovementType) return null;
       return {
         type: selectedMovementType,
+        warehouseId,
         notes: form.getValues("notes") || "",
         items: form.getValues("items"),
         selectedProductId,
@@ -426,14 +422,23 @@ export function useCreateStockMovementModel({
         inlineProductBarcode,
       };
     },
-    [form, itemQuantity, selectedMovementType, selectedProductId],
+    [form, itemQuantity, selectedMovementType, selectedProductId, warehouseId],
   );
 
   const persistCurrentDraft = useCallback(
-    async (inlineProductBarcode = inlineProductBarcodeRef.current): Promise<void> => {
+    (inlineProductBarcode = inlineProductBarcodeRef.current): Promise<void> => {
       const draft = buildCurrentDraft(inlineProductBarcode);
-      if (!draft) return;
-      await writeStockMovementDraft(draft);
+      if (!draft) return Promise.resolve();
+
+      const queuedWrite = persistQueueRef.current.then(async () => {
+        const writeResult = await writeStockMovementDraft(
+          draft,
+          draftRevisionRef.current,
+        );
+        draftRevisionRef.current = writeResult.revision;
+      });
+      persistQueueRef.current = queuedWrite.catch(() => undefined);
+      return queuedWrite;
     },
     [buildCurrentDraft],
   );
@@ -516,10 +521,12 @@ export function useCreateStockMovementModel({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const productOptions = filterStockMovementProductOptions(
-    products,
-    debouncedProductSearchQuery,
-  );
+  const productOptions = productSearchUrl
+    ? mapStockMovementProductOptions(productSearchData).slice(
+        0,
+        PRODUCT_SEARCH_LIMIT,
+      )
+    : [];
 
   const clearProductSearchBlurTimeout = () => {
     if (!productSearchBlurTimeoutRef.current) return;
@@ -527,7 +534,23 @@ export function useCreateStockMovementModel({
     productSearchBlurTimeoutRef.current = null;
   };
 
+  const findScannedProductBarcodeConflict = (
+    barcode: string | null | undefined,
+  ): string | null => {
+    return getPendingInlineProductBarcodeConflictError(
+      form.getValues("items"),
+      barcode,
+    );
+  };
+
   const handleProductSelect = (product: StockMovementProductOption) => {
+    const barcodeConflictError = findScannedProductBarcodeConflict(product.barcode);
+    if (barcodeConflictError) {
+      setIsProductOptionsOpen(false);
+      setAddItemError(barcodeConflictError);
+      return;
+    }
+
     setSelectedProduct(product);
     setSelectedProductId(product.id);
     setProductSearchQuery(formatStockMovementProductLabel(product));
@@ -597,6 +620,16 @@ export function useCreateStockMovementModel({
     setExistingProductBatchForm(EMPTY_EXISTING_BATCH_FORM);
   };
 
+  const buildBatchRepeatedProductWarning = (
+    params: Pick<ExistingProductBatchFormState, "productId" | "productName" | "editingIndex">,
+  ): string | null => {
+    if (params.editingIndex !== null) return null;
+    if (!hasExistingProductInItems(form.getValues("items"), params.productId)) {
+      return null;
+    }
+    return buildRepeatedProductBatchWarning(params.productName);
+  };
+
   const openExistingProductBatchForm = (
     params: Omit<ExistingProductBatchFormState, "isOpen" | "error">,
   ): void => {
@@ -604,6 +637,7 @@ export function useCreateStockMovementModel({
       ...params,
       isOpen: true,
       error: null,
+      repeatedProductWarning: buildBatchRepeatedProductWarning(params),
     });
   };
 
@@ -617,7 +651,7 @@ export function useCreateStockMovementModel({
   };
 
   const hasExistingProductAlreadyAdded = (productId: string): boolean => {
-    return form.getValues("items").some((item) => item.productId === productId);
+    return hasExistingProductInItems(form.getValues("items"), productId);
   };
 
   const getSelectedProductQuantity = (): number | null => {
@@ -635,6 +669,12 @@ export function useCreateStockMovementModel({
     const product =
       selectedProduct || products.find((p) => p.id === selectedProductId);
     const productName = product?.name || "Produto";
+
+    const barcodeConflictError = findScannedProductBarcodeConflict(product?.barcode);
+    if (barcodeConflictError) {
+      setAddItemError(barcodeConflictError);
+      return;
+    }
 
     if (isSelectedInMovement()) {
       openExistingProductBatchForm({
@@ -733,31 +773,11 @@ export function useCreateStockMovementModel({
   });
 
   const handleConfirmExistingProductBatchData = (): void => {
-    const quantity = Number(existingProductBatchForm.quantity);
-    if (!quantity || quantity <= 0) {
-      updateExistingProductBatchForm({
-        error: "Informe uma quantidade válida para o lote.",
-      });
-      return;
-    }
-
-    if (existingProductBatchForm.costPrice === undefined || existingProductBatchForm.costPrice < 0) {
-      updateExistingProductBatchForm({ error: "Informe um preço de custo válido." });
-      return;
-    }
-
-    if (existingProductBatchForm.sellingPrice === undefined || existingProductBatchForm.sellingPrice < 0) {
-      updateExistingProductBatchForm({ error: "Informe um preço de venda válido." });
-      return;
-    }
-
-    if (
-      isExistingProductBatchDateRangeInvalid(
-        existingProductBatchForm.manufacturedDate,
-        existingProductBatchForm.expirationDate,
-      )
-    ) {
-      updateExistingProductBatchForm({ error: "A data de validade não pode ser anterior à data de fabricação." });
+    const validationError = validateExistingProductBatchForm(
+      existingProductBatchForm,
+    );
+    if (validationError) {
+      updateExistingProductBatchForm({ error: validationError });
       return;
     }
 
@@ -843,6 +863,12 @@ export function useCreateStockMovementModel({
   };
 
   const appendScannedProduct = (product: StockMovementProductOption) => {
+    const barcodeConflictError = findScannedProductBarcodeConflict(product.barcode);
+    if (barcodeConflictError) {
+      toast.error(barcodeConflictError);
+      return;
+    }
+
     if (isSelectedInMovement()) {
       setIsScannerOpen(false);
       openExistingProductBatchForm({
@@ -878,14 +904,16 @@ export function useCreateStockMovementModel({
       lastScannedBarcodeRef.current = null;
     }, 1500);
 
-    try {
-      const response = await api
-        .get(`products/barcode/${encodeURIComponent(barcode)}`)
-        .json<ProductByBarcodeResponse>();
-      appendScannedProduct(response.data);
-    } catch {
-      showMissingProductToast(barcode);
+    const lookup = await lookupStockMovementProductByBarcode(barcode);
+    if (lookup.status === "found") {
+      appendScannedProduct(lookup.product);
+      return;
     }
+    if (lookup.status === "not-found") {
+      showMissingProductToast(barcode);
+      return;
+    }
+    toast.error(lookup.message);
   };
 
   const showMissingProductToast = (barcode: string) => {
@@ -937,6 +965,7 @@ export function useCreateStockMovementModel({
 
       setSubmittingStep("Finalizando…");
       await clearStockMovementDraft();
+      draftRevisionRef.current = 0;
       toast.success("Movimentação criada com sucesso!");
       router.push("/stock-movements");
     } catch (err: unknown) {
@@ -960,8 +989,7 @@ export function useCreateStockMovementModel({
     productSearchQuery,
     productOptions,
     isProductOptionsOpen,
-    isProductSearchLoading:
-      isLoadingProducts && debouncedProductSearchQuery.trim().length >= 2,
+    isProductSearchLoading: Boolean(productSearchUrl) && isSearchingProducts,
     itemQuantity,
     addItemError,
     isScannerOpen,

@@ -34,9 +34,11 @@ const brandsResponse = {
 };
 
 const createDraft = (overrides?: Partial<StockMovementDraft>): StockMovementDraft => ({
-  schemaVersion: 1,
+  schemaVersion: 2,
   updatedAt: "2026-01-20T09:00:00.000Z",
+  revision: 1,
   type: "PURCHASE_IN",
+  warehouseId: "wh-1",
   notes: "",
   items: [],
   selectedProductId: "",
@@ -44,6 +46,9 @@ const createDraft = (overrides?: Partial<StockMovementDraft>): StockMovementDraf
   inlineProductBarcode: "7891000000001",
   ...overrides,
 });
+
+const notFoundApiError = (): Error =>
+  Object.assign(new Error("não encontrado"), { notFound: true });
 
 const buildFormData = (
   overrides: Partial<ProductCreateFormData> = {},
@@ -80,6 +85,8 @@ vi.mock("@/lib/api", () => ({
   api: {
     get: (...args: unknown[]) => mockGet(...args),
   },
+  isApiNotFoundError: (error: unknown) =>
+    Boolean((error as { notFound?: boolean })?.notFound),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -121,9 +128,18 @@ vi.mock("../create-stock-movement.storage", () => ({
     dataUrl: string;
   }) => new File(["x"], image.name, { type: image.type }),
   readStockMovementDraft: async () => currentDraft,
-  writeStockMovementDraft: async (draft: StockMovementDraft) => {
-    currentDraft = draft;
-    mockWriteDraft(draft);
+  mutateStockMovementDraft: async (
+    buildNextDraft: (draft: StockMovementDraft) => StockMovementDraft,
+  ) => {
+    if (!currentDraft) return null;
+    const nextRevision = currentDraft.revision + 1;
+    currentDraft = {
+      ...currentDraft,
+      ...buildNextDraft(currentDraft),
+      revision: nextRevision,
+    };
+    mockWriteDraft(currentDraft);
+    return currentDraft;
   },
 }));
 
@@ -508,10 +524,14 @@ describe("useNewProductInlineModel", () => {
   it("alterna estado do scanner e preenche barcode quando produto não existe na API", async () => {
     mockGet.mockReset();
     mockGet.mockImplementation(() => ({
-      json: vi.fn(async () => { throw new Error("não encontrado"); }),
+      json: vi.fn(async () => { throw notFoundApiError(); }),
     }));
 
     const { result } = renderHook(() => useNewProductInlineModel({ movementType, editItem: editItemQuery }));
+
+    await waitFor(() => {
+      expect(result.current.form.getValues("barcode")).toBe("7891000000001");
+    });
 
     expect(result.current.isScannerOpen).toBe(false);
     act(() => {
@@ -525,11 +545,34 @@ describe("useNewProductInlineModel", () => {
 
     expect(mockGet).toHaveBeenCalledWith("products/barcode/123456789");
     expect(result.current.scannedExistingProduct).toBeNull();
+    expect(result.current.form.getValues("barcode")).toBe("123456789");
+    expect(toastError).not.toHaveBeenCalled();
 
     act(() => {
       result.current.closeScanner();
     });
     expect(result.current.isScannerOpen).toBe(false);
+  });
+
+  it("mostra erro e não preenche barcode quando a consulta do scanner falha", async () => {
+    mockGet.mockReset();
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => { throw new Error("timeout"); }),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("123456789");
+    });
+
+    expect(toastError).toHaveBeenCalledWith(
+      "Não foi possível consultar o código 123456789 (timeout). Verifique a conexão e tente novamente.",
+    );
+    expect(result.current.form.getValues("barcode")).not.toBe("123456789");
+    expect(result.current.scannedExistingProduct).toBeNull();
   });
 
   it("abre modal de produto existente quando barcode escaneado encontra produto", async () => {
@@ -568,14 +611,15 @@ describe("useNewProductInlineModel", () => {
       await result.current.handleBarcodeScan("987654321");
     });
 
-    act(() => {
-      result.current.onCreateBatchForExistingProduct?.();
+    await act(async () => {
+      await result.current.onCreateBatchForExistingProduct?.();
     });
 
     expect(result.current.scannedExistingProduct).toBeNull();
     expect(result.current.batchForm?.isOpen).toBe(true);
     expect(result.current.batchForm?.productId).toBe("p-123");
     expect(result.current.batchForm?.productName).toBe("Produto Existente");
+    expect(result.current.batchForm?.repeatedProductWarning).toBeNull();
 
     act(() => {
       result.current.onBatchQuantityChange?.("5");
@@ -591,6 +635,226 @@ describe("useNewProductInlineModel", () => {
     expect(result.current.batchForm?.isOpen).toBe(false);
     expect(result.current.form.getValues("name")).toBe("");
     expect(mockWriteDraft).toHaveBeenCalled();
+  });
+
+  it("redireciona quando o draft é de outro tipo de movimentação", async () => {
+    currentDraft = createDraft({ type: "ADJUSTMENT_IN" });
+    movementType = "PURCHASE_IN";
+
+    renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
+    });
+  });
+
+  it("redireciona quando o draft pertence a outro warehouse", async () => {
+    currentDraft = createDraft({ warehouseId: "wh-2" });
+
+    renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/stock-movements");
+    });
+  });
+
+  it("abre modal de produto existente quando barcode digitado já está cadastrado", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-9", name: "Produto Cadastrado", barcode: "789000111" },
+      })),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({ name: "Produto Manual", barcode: "789000111" }),
+      );
+    });
+
+    expect(result.current.scannedExistingProduct).toEqual({
+      id: "p-9",
+      name: "Produto Cadastrado",
+      barcode: "789000111",
+    });
+    expect(mockWriteDraft).not.toHaveBeenCalled();
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it("salva produto quando barcode digitado não existe na API", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => { throw notFoundApiError(); }),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({ name: "Produto Manual", barcode: "789000111" }),
+      );
+    });
+
+    expect(mockWriteDraft).toHaveBeenCalledTimes(1);
+    expect(result.current.scannedExistingProduct).toBeNull();
+  });
+
+  it("bloqueia envio quando a consulta do barcode digitado falha", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => { throw new Error("erro 500"); }),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({ name: "Produto Manual", barcode: "789000111" }),
+      );
+    });
+
+    expect(toastError).toHaveBeenCalledWith(
+      "Não foi possível consultar o código 789000111 (erro 500). Verifique a conexão e tente novamente.",
+    );
+    expect(mockWriteDraft).not.toHaveBeenCalled();
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it("recusa produto novo com barcode já usado por outro produto novo do draft", async () => {
+    currentDraft = createDraft({
+      items: [
+        {
+          quantity: 1,
+          productName: "Produto A",
+          newProductData: { name: "Produto A", barcode: "789000111" },
+        },
+      ],
+    });
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({ name: "Produto B", barcode: "789000111" }),
+      );
+    });
+
+    expect(toastError).toHaveBeenCalledWith(
+      'O código 789000111 já está em uso pelo produto "Produto A" nesta movimentação.',
+    );
+    expect(mockWriteDraft).not.toHaveBeenCalled();
+  });
+
+  it("bloqueia lote de produto existente quando há produto novo pendente com o mesmo barcode", async () => {
+    currentDraft = createDraft({
+      items: [
+        {
+          quantity: 1,
+          productName: "Produto Pendente",
+          newProductData: { name: "Produto Pendente", barcode: "987654321" },
+        },
+      ],
+    });
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-123", name: "Produto Existente", barcode: "987654321" },
+      })),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("987654321");
+    });
+    await act(async () => {
+      await result.current.onCreateBatchForExistingProduct?.();
+    });
+
+    expect(toastError).toHaveBeenCalledWith(
+      'O código 987654321 já pertence ao produto novo "Produto Pendente" nesta movimentação. Remova-o antes de adicionar o produto existente.',
+    );
+    expect(result.current.batchForm?.isOpen).toBe(false);
+    expect(result.current.scannedExistingProduct).toBeNull();
+  });
+
+  it("avisa quando o produto existente já está na movimentação ao abrir o lote", async () => {
+    currentDraft = createDraft({
+      items: [{ productId: "p-123", quantity: 2, productName: "Produto Existente" }],
+    });
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-123", name: "Produto Existente", barcode: "987654321" },
+      })),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("987654321");
+    });
+    await act(async () => {
+      await result.current.onCreateBatchForExistingProduct?.();
+    });
+
+    expect(result.current.batchForm?.isOpen).toBe(true);
+    expect(result.current.batchForm?.repeatedProductWarning).toBe(
+      "Produto Existente já está na movimentação. Este lote será adicionado como um novo item.",
+    );
+  });
+
+  it("recusa lote de produto existente com validade anterior à fabricação", async () => {
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => ({
+        success: true,
+        data: { id: "p-123", name: "Produto Existente", barcode: "987654321" },
+      })),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("987654321");
+    });
+    await act(async () => {
+      await result.current.onCreateBatchForExistingProduct?.();
+    });
+
+    act(() => {
+      result.current.onBatchQuantityChange?.("5");
+      result.current.onBatchCostPriceChange?.(1000);
+      result.current.onBatchSellingPriceChange?.(1500);
+      result.current.onBatchManufacturedDateChange?.("2026-06-01");
+      result.current.onBatchExpirationDateChange?.("2026-01-01");
+    });
+
+    await act(async () => {
+      await result.current.onConfirmBatch?.();
+    });
+
+    expect(result.current.batchForm?.error).toBe(
+      "A data de validade não pode ser anterior à data de fabricação.",
+    );
+    expect(mockWriteDraft).not.toHaveBeenCalled();
   });
 
   it("controla quantidade com incremento e decremento sem ficar negativa", () => {

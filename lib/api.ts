@@ -1,4 +1,8 @@
-import ky from "ky";
+import ky, { HTTPError } from "ky";
+
+export const isApiNotFoundError = (error: unknown): boolean => {
+  return error instanceof HTTPError && error.response.status === 404;
+};
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 

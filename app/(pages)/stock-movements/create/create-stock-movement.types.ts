@@ -46,6 +46,7 @@ export interface ExistingProductBatchFormState {
   sellingPrice?: number;
   editingIndex: number | null;
   error: string | null;
+  repeatedProductWarning?: string | null;
 }
 
 export interface StockMovementProductBatchPriceSource {

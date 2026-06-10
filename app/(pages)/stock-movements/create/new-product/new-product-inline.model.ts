@@ -25,14 +25,13 @@ import type {
   StockMovementDraftItem,
   ExistingProductBatchFormState,
   StockMovementProductBatchesResponse,
-  StockMovementProductOption,
 } from "../create-stock-movement.types";
 import { isManualMovementType } from "../../stock-movements.constants";
 import {
   fileToInlineProductImage,
   inlineProductImageToFile,
+  mutateStockMovementDraft,
   readStockMovementDraft,
-  writeStockMovementDraft,
 } from "../create-stock-movement.storage";
 import type { StockMovementDraft } from "../create-stock-movement.storage";
 import {
@@ -42,6 +41,14 @@ import {
   buildExistingProductCostPriceSuggestion,
   findMostRecentWarehouseProductBatch,
 } from "../stock-movement-batch-pricing.model";
+import { validateExistingProductBatchForm } from "../stock-movement-batch-form-validation";
+import {
+  buildRepeatedProductBatchWarning,
+  findDuplicateInlineProductError,
+  getPendingInlineProductBarcodeConflictError,
+  hasExistingProductInItems,
+} from "../stock-movement-draft-guards";
+import { lookupStockMovementProductByBarcode } from "../stock-movement-product-lookup";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
@@ -97,19 +104,6 @@ const buildInlineProductData = async (
   image: image ? await fileToInlineProductImage(image) : undefined,
 });
 
-const hasDuplicateInlineProductName = (
-  productName: string,
-  draft: StockMovementDraft | null,
-  ignoredIndex: number | null,
-): boolean => {
-  const normalizedName = productName.toLowerCase();
-  const duplicateInDraft = draft?.items.some((item, index) => {
-    if (index === ignoredIndex) return false;
-    return item.newProductData?.name.toLowerCase() === normalizedName;
-  });
-  return Boolean(duplicateInDraft);
-};
-
 const buildInlineMovementItem = (
   product: InlineProductData,
   quantity: number,
@@ -147,20 +141,21 @@ const EMPTY_BATCH_FORM: ExistingProductBatchFormState = {
 const isInlineProductRouteReady = (
   movementType: string | null,
   initialDraft: StockMovementDraft | null,
+  warehouseId: string | null,
   editItemIndex: number | null,
   isEditingInlineProduct: boolean,
 ): boolean => {
-  const hasValidEditItem = editItemIndex === null || isEditingInlineProduct;
-  return Boolean(
-    isManualMovementType(movementType) && initialDraft && hasValidEditItem,
-  );
+  if (!isManualMovementType(movementType)) return false;
+  if (!initialDraft || initialDraft.type !== movementType) return false;
+  if (initialDraft.warehouseId !== warehouseId) return false;
+  return editItemIndex === null || isEditingInlineProduct;
 };
 
-const appendProductToMovementDraft = (
+const appendProductToMovementDraft = async (
   product: InlineProductData,
   quantity: number,
 ): Promise<void> => {
-  return updateMovementDraft((draft) => ({
+  await mutateStockMovementDraft((draft) => ({
     ...draft,
     items: [...draft.items, buildInlineMovementItem(product, quantity)],
     selectedProductId: "",
@@ -169,10 +164,10 @@ const appendProductToMovementDraft = (
   }));
 };
 
-const appendExistingProductBatchToDraft = (
+const appendExistingProductBatchToDraft = async (
   item: StockMovementDraftItem,
 ): Promise<void> => {
-  return updateMovementDraft((draft) => ({
+  await mutateStockMovementDraft((draft) => ({
     ...draft,
     items: [...draft.items, item],
     selectedProductId: "",
@@ -181,20 +176,12 @@ const appendExistingProductBatchToDraft = (
   }));
 };
 
-const updateMovementDraft = async (
-  buildNextDraft: (draft: StockMovementDraft) => StockMovementDraft,
-): Promise<void> => {
-  const draft = await readStockMovementDraft();
-  if (!draft) return;
-  await writeStockMovementDraft(buildNextDraft(draft));
-};
-
-const updateProductInMovementDraft = (
+const updateProductInMovementDraft = async (
   index: number,
   product: InlineProductData,
   quantity: number,
 ): Promise<void> => {
-  return updateMovementDraft((draft) => ({
+  await mutateStockMovementDraft((draft) => ({
     ...draft,
     items: draft.items.map((item, itemIndex) => {
       return itemIndex === index
@@ -322,6 +309,7 @@ export const useNewProductInlineModel = ({
       isInlineProductRouteReady(
         movementType,
         initialDraft,
+        warehouseId,
         editItemIndex,
         isEditingInlineProduct,
       )
@@ -336,6 +324,7 @@ export const useNewProductInlineModel = ({
     isEditingInlineProduct,
     movementType,
     router,
+    warehouseId,
   ]);
 
   useEffect(() => {
@@ -344,6 +333,7 @@ export const useNewProductInlineModel = ({
       !isInlineProductRouteReady(
         movementType,
         initialDraft,
+        warehouseId,
         editItemIndex,
         isEditingInlineProduct,
       )
@@ -382,6 +372,7 @@ export const useNewProductInlineModel = ({
     isDraftLoaded,
     isEditingInlineProduct,
     movementType,
+    warehouseId,
   ]);
 
   const addCustomAttribute = (): void => {
@@ -465,18 +456,20 @@ export const useNewProductInlineModel = ({
   };
 
   const handleBarcodeScan = async (barcode: string): Promise<void> => {
-    try {
-      const response = await api
-        .get(`products/barcode/${encodeURIComponent(barcode)}`)
-        .json<{ success: boolean; data: StockMovementProductOption }>();
+    const lookup = await lookupStockMovementProductByBarcode(barcode);
+    if (lookup.status === "found") {
       setScannedExistingProduct({
-        id: response.data.id,
-        name: response.data.name,
+        id: lookup.product.id,
+        name: lookup.product.name,
         barcode,
       });
-    } catch {
-      form.setValue("barcode", barcode);
+      return;
     }
+    if (lookup.status === "not-found") {
+      form.setValue("barcode", barcode);
+      return;
+    }
+    toast.error(lookup.message);
   };
 
   const handleExistingProductModalOpenChange = (open: boolean): void => {
@@ -485,13 +478,32 @@ export const useNewProductInlineModel = ({
     }
   };
 
-  const handleCreateBatchForExistingProduct = (): void => {
+  const handleCreateBatchForExistingProduct = async (): Promise<void> => {
     if (!scannedExistingProduct) return;
+    const draft = await readStockMovementDraft();
+    const draftItems = draft?.items ?? [];
+
+    const barcodeConflictError = getPendingInlineProductBarcodeConflictError(
+      draftItems,
+      scannedExistingProduct.barcode,
+    );
+    if (barcodeConflictError) {
+      toast.error(barcodeConflictError);
+      setScannedExistingProduct(null);
+      return;
+    }
+
     setExistingProductBatchForm({
       ...EMPTY_BATCH_FORM,
       isOpen: true,
       productId: scannedExistingProduct.id,
       productName: scannedExistingProduct.name,
+      repeatedProductWarning: hasExistingProductInItems(
+        draftItems,
+        scannedExistingProduct.id,
+      )
+        ? buildRepeatedProductBatchWarning(scannedExistingProduct.name)
+        : null,
     });
     setScannedExistingProduct(null);
   };
@@ -513,19 +525,11 @@ export const useNewProductInlineModel = ({
   };
 
   const handleConfirmBatch = async (): Promise<void> => {
-    const quantity = Number(existingProductBatchForm.quantity);
-    if (!quantity || quantity <= 0) {
-      updateBatchForm({ error: "Informe uma quantidade válida para o lote." });
-      return;
-    }
-
-    if (existingProductBatchForm.costPrice === undefined || existingProductBatchForm.costPrice < 0) {
-      updateBatchForm({ error: "Informe um preço de custo válido." });
-      return;
-    }
-
-    if (existingProductBatchForm.sellingPrice === undefined || existingProductBatchForm.sellingPrice < 0) {
-      updateBatchForm({ error: "Informe um preço de venda válido." });
+    const validationError = validateExistingProductBatchForm(
+      existingProductBatchForm,
+    );
+    if (validationError) {
+      updateBatchForm({ error: validationError });
       return;
     }
 
@@ -577,50 +581,75 @@ export const useNewProductInlineModel = ({
     updateInlineQuantity((form.getValues("quantity") || 0) - 1);
   };
 
+  const ensureInlineBarcodeIsAvailable = async (
+    barcode: string,
+  ): Promise<boolean> => {
+    const lookup = await lookupStockMovementProductByBarcode(barcode);
+    if (lookup.status === "not-found") return true;
+    if (lookup.status === "error") {
+      toast.error(lookup.message);
+      return false;
+    }
+    setScannedExistingProduct({
+      id: lookup.product.id,
+      name: lookup.product.name,
+      barcode,
+    });
+    return false;
+  };
+
+  const saveInlineProductToDraft = async (
+    data: ProductCreateFormData,
+  ): Promise<void> => {
+    const product = await buildInlineProductData(
+      data,
+      mergeAttributes(data),
+      productImage,
+    );
+    if (isEditingInlineProduct && editItemIndex !== null) {
+      await updateProductInMovementDraft(editItemIndex, product, data.quantity);
+      toast.success(`${data.name} foi atualizado na movimentação.`);
+      router.push(cancelHref);
+      return;
+    }
+
+    await appendProductToMovementDraft(product, data.quantity);
+    if (data.continuousMode) {
+      toast.success(
+        `${data.name} já está na movimentação. Continue adicionando novos produtos.`,
+      );
+      resetInlineFormForNextProduct();
+      return;
+    }
+
+    router.push(cancelHref);
+  };
+
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
-    const currentDraft = await readStockMovementDraft();
-    if (!currentDraft) {
-      router.replace("/stock-movements");
-      return;
-    }
-
-    if (
-      hasDuplicateInlineProductName(
-        data.name,
-        currentDraft,
-        editItemIndex,
-      )
-    ) {
-      toast.error(`O produto "${data.name}" já foi adicionado nesta movimentação.`);
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const product = await buildInlineProductData(
-        data,
-        mergeAttributes(data),
-        productImage,
+      const currentDraft = await readStockMovementDraft();
+      if (!currentDraft) {
+        router.replace("/stock-movements");
+        return;
+      }
+
+      const duplicateError = findDuplicateInlineProductError(
+        { name: data.name, barcode: data.barcode },
+        currentDraft.items,
+        editItemIndex,
       );
-      if (isEditingInlineProduct && editItemIndex !== null) {
-        await updateProductInMovementDraft(editItemIndex, product, data.quantity);
-        toast.success(`${data.name} foi atualizado na movimentação.`);
-        router.push(cancelHref);
+      if (duplicateError) {
+        toast.error(duplicateError);
         return;
       }
 
-      await appendProductToMovementDraft(product, data.quantity);
-      if (data.continuousMode) {
-        toast.success(
-          `${data.name} já está na movimentação. Continue adicionando novos produtos.`,
-        );
-        resetInlineFormForNextProduct();
-        return;
-      }
+      const barcode = data.barcode?.trim();
+      if (barcode && !(await ensureInlineBarcodeIsAvailable(barcode))) return;
 
-      router.push(cancelHref);
+      await saveInlineProductToDraft(data);
     } catch {
       toast.error("Não foi possível preparar a imagem do produto.");
     } finally {

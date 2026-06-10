@@ -9,7 +9,7 @@ const DRAFT_DATABASE_NAME = "stockshift";
 const DRAFT_DATABASE_VERSION = 1;
 const DRAFT_STORE_NAME = "stockMovementDrafts";
 const DRAFT_STORAGE_KEY = "current";
-export const STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION = 1;
+export const STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION = 2;
 
 const createStockMovementDraftRuntimeId = (): string => {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -25,7 +25,9 @@ const STOCK_MOVEMENT_DRAFT_RUNTIME_ID = createStockMovementDraftRuntimeId();
 export interface StockMovementDraft {
   schemaVersion: typeof STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION;
   updatedAt: string;
+  revision: number;
   type: ManualMovementType;
+  warehouseId: string | null;
   notes: string;
   items: StockMovementDraftItem[];
   selectedProductId: string;
@@ -36,9 +38,14 @@ export interface StockMovementDraft {
 
 export type WritableStockMovementDraft = Omit<
   StockMovementDraft,
-  "schemaVersion" | "updatedAt"
+  "schemaVersion" | "updatedAt" | "revision"
 > &
-  Partial<Pick<StockMovementDraft, "schemaVersion" | "updatedAt">>;
+  Partial<Pick<StockMovementDraft, "schemaVersion" | "updatedAt" | "revision">>;
+
+export interface StockMovementDraftWriteResult {
+  status: "written" | "conflict";
+  revision: number;
+}
 
 let fallbackDraft: StockMovementDraft | null = null;
 
@@ -95,18 +102,27 @@ const readDraftFromIndexedDb = async (): Promise<unknown> => {
   });
 };
 
-const writeDraftToIndexedDb = async (
-  draft: StockMovementDraft,
-): Promise<void> => {
+const applyDraftTransaction = async (
+  buildNextDraft: (storedDraft: StockMovementDraft | null) => StockMovementDraft | null,
+): Promise<StockMovementDraft | null> => {
   const database = await openDraftDatabase();
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(DRAFT_STORE_NAME, "readwrite");
     const store = transaction.objectStore(DRAFT_STORE_NAME);
-    const request = store.put(draft, DRAFT_STORAGE_KEY);
-    request.onerror = () => reject(createRequestError("gravar", request.error));
+    const readRequest = store.get(DRAFT_STORAGE_KEY);
+    let nextDraft: StockMovementDraft | null = null;
+    readRequest.onerror = () =>
+      reject(createRequestError("ler", readRequest.error));
+    readRequest.onsuccess = () => {
+      nextDraft = buildNextDraft(normalizeStoredDraft(readRequest.result));
+      if (!nextDraft) return;
+      const writeRequest = store.put(nextDraft, DRAFT_STORAGE_KEY);
+      writeRequest.onerror = () =>
+        reject(createRequestError("gravar", writeRequest.error));
+    };
     transaction.oncomplete = () => {
       database.close();
-      resolve();
+      resolve(nextDraft);
     };
     transaction.onabort = () => {
       database.close();
@@ -221,15 +237,23 @@ const normalizeStoredDraft = (
   if (typeof parsedDraft.itemQuantity !== "string") return null;
   if (!isOptionalString(parsedDraft.inlineProductBarcode)) return null;
   if (!isOptionalString(parsedDraft.runtimeId)) return null;
+  if (typeof parsedDraft.revision !== "number" || !Number.isFinite(parsedDraft.revision)) {
+    return null;
+  }
+  if (parsedDraft.warehouseId !== null && typeof parsedDraft.warehouseId !== "string") {
+    return null;
+  }
   return parsedDraft as unknown as StockMovementDraft;
 };
 
 const buildPersistedDraft = (
   draft: WritableStockMovementDraft,
+  revision: number,
 ): StockMovementDraft => ({
   ...draft,
   schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
   updatedAt: new Date().toISOString(),
+  revision,
   runtimeId: STOCK_MOVEMENT_DRAFT_RUNTIME_ID,
 });
 
@@ -256,15 +280,67 @@ export const readStockMovementDraft =
     }
   };
 
+const writeDraftToMemoryFallback = (
+  draft: WritableStockMovementDraft,
+  expectedRevision?: number,
+): StockMovementDraftWriteResult => {
+  const storedRevision = fallbackDraft?.revision ?? 0;
+  if (expectedRevision !== undefined && storedRevision !== expectedRevision) {
+    return { status: "conflict", revision: storedRevision };
+  }
+  fallbackDraft = buildPersistedDraft(draft, storedRevision + 1);
+  return { status: "written", revision: fallbackDraft.revision };
+};
+
 export const writeStockMovementDraft = async (
   draft: WritableStockMovementDraft,
-): Promise<void> => {
-  const persistedDraft = buildPersistedDraft(draft);
-  fallbackDraft = persistedDraft;
+  expectedRevision?: number,
+): Promise<StockMovementDraftWriteResult> => {
   try {
-    await writeDraftToIndexedDb(persistedDraft);
+    let writeResult: StockMovementDraftWriteResult = {
+      status: "conflict",
+      revision: expectedRevision ?? 0,
+    };
+    await applyDraftTransaction((storedDraft) => {
+      const storedRevision = storedDraft?.revision ?? 0;
+      if (expectedRevision !== undefined && storedRevision !== expectedRevision) {
+        writeResult = { status: "conflict", revision: storedRevision };
+        return null;
+      }
+      const persistedDraft = buildPersistedDraft(draft, storedRevision + 1);
+      fallbackDraft = persistedDraft;
+      writeResult = { status: "written", revision: persistedDraft.revision };
+      return persistedDraft;
+    });
+    return writeResult;
   } catch (error) {
     logDraftStorageError("gravar", error);
+    return writeDraftToMemoryFallback(draft, expectedRevision);
+  }
+};
+
+export const mutateStockMovementDraft = async (
+  buildNextDraft: (draft: StockMovementDraft) => WritableStockMovementDraft,
+): Promise<StockMovementDraft | null> => {
+  try {
+    return await applyDraftTransaction((storedDraft) => {
+      const baseDraft = storedDraft ?? fallbackDraft;
+      if (!baseDraft) return null;
+      const persistedDraft = buildPersistedDraft(
+        buildNextDraft(baseDraft),
+        baseDraft.revision + 1,
+      );
+      fallbackDraft = persistedDraft;
+      return persistedDraft;
+    });
+  } catch (error) {
+    logDraftStorageError("gravar", error);
+    if (!fallbackDraft) return null;
+    fallbackDraft = buildPersistedDraft(
+      buildNextDraft(fallbackDraft),
+      fallbackDraft.revision + 1,
+    );
+    return fallbackDraft;
   }
 };
 

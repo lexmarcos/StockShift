@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearStockMovementDraft,
   isStockMovementDraftRecoveredFromPreviousRuntime,
+  mutateStockMovementDraft,
   readStockMovementDraft,
   STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
   writeStockMovementDraft,
@@ -39,35 +40,39 @@ const createMutableOpenRequest = (): MutableOpenRequest => ({
 class FakeObjectStore {
   public constructor(
     private readonly values: Map<string, unknown>,
-    private readonly completeTransaction: () => void,
+    private readonly registerRequest: () => void,
+    private readonly settleRequest: () => void,
   ) {}
 
   public get(key: IDBValidKey): IDBRequest<unknown> {
     const request = createMutableRequest<unknown>(undefined);
+    this.registerRequest();
     queueMicrotask(() => {
       request.result = this.values.get(String(key));
       request.onsuccess?.call(request as IDBRequest<unknown>, new Event("success"));
-      this.completeTransaction();
+      this.settleRequest();
     });
     return request as IDBRequest<unknown>;
   }
 
   public put(value: unknown, key?: IDBValidKey): IDBRequest<IDBValidKey> {
     const request = createMutableRequest<IDBValidKey>(key ?? DRAFT_KEY);
+    this.registerRequest();
     queueMicrotask(() => {
       this.values.set(String(key ?? DRAFT_KEY), value);
       request.onsuccess?.call(request as IDBRequest<IDBValidKey>, new Event("success"));
-      this.completeTransaction();
+      this.settleRequest();
     });
     return request as IDBRequest<IDBValidKey>;
   }
 
   public delete(key: IDBValidKey): IDBRequest<undefined> {
     const request = createMutableRequest<undefined>(undefined);
+    this.registerRequest();
     queueMicrotask(() => {
       this.values.delete(String(key));
       request.onsuccess?.call(request as IDBRequest<undefined>, new Event("success"));
-      this.completeTransaction();
+      this.settleRequest();
     });
     return request as IDBRequest<undefined>;
   }
@@ -79,13 +84,24 @@ class FakeTransaction {
     null;
   public onabort: ((this: IDBTransaction, event: Event) => unknown) | null =
     null;
+  private pendingRequests = 0;
+  private hasCompleted = false;
 
   public constructor(private readonly values: Map<string, unknown>) {}
 
   public objectStore(): IDBObjectStore {
-    return new FakeObjectStore(this.values, () => {
-      this.oncomplete?.call(this as unknown as IDBTransaction, new Event("complete"));
-    }) as unknown as IDBObjectStore;
+    return new FakeObjectStore(
+      this.values,
+      () => {
+        this.pendingRequests += 1;
+      },
+      () => {
+        this.pendingRequests -= 1;
+        if (this.pendingRequests > 0 || this.hasCompleted) return;
+        this.hasCompleted = true;
+        this.oncomplete?.call(this as unknown as IDBTransaction, new Event("complete"));
+      },
+    ) as unknown as IDBObjectStore;
   }
 }
 
@@ -99,7 +115,7 @@ class FakeDatabase {
   public createObjectStore(storeName: string): IDBObjectStore {
     const values = new Map<string, unknown>();
     this.stores.set(storeName, values);
-    return new FakeObjectStore(values, () => {}) as unknown as IDBObjectStore;
+    return new FakeObjectStore(values, () => {}, () => {}) as unknown as IDBObjectStore;
   }
 
   public transaction(storeName: string): IDBTransaction {
@@ -156,6 +172,7 @@ class FakeIndexedDb {
 
 const createDraft = (): WritableStockMovementDraft => ({
   type: "PURCHASE_IN",
+  warehouseId: "wh-1",
   notes: "Observação",
   selectedProductId: "product-1",
   itemQuantity: "3",
@@ -200,14 +217,58 @@ describe("create-stock-movement.storage", () => {
     expect(draft).toMatchObject({
       schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
       type: "PURCHASE_IN",
+      warehouseId: "wh-1",
       notes: "Observação",
       selectedProductId: "product-1",
       itemQuantity: "3",
+      revision: 1,
     });
     expect(typeof draft?.updatedAt).toBe("string");
     expect(typeof draft?.runtimeId).toBe("string");
 
     await clearStockMovementDraft();
+    expect(await readStockMovementDraft()).toBeNull();
+  });
+
+  it("incrementa a revisão a cada gravação", async () => {
+    const firstWrite = await writeStockMovementDraft(createDraft());
+    const secondWrite = await writeStockMovementDraft(createDraft());
+
+    expect(firstWrite).toEqual({ status: "written", revision: 1 });
+    expect(secondWrite).toEqual({ status: "written", revision: 2 });
+    expect((await readStockMovementDraft())?.revision).toBe(2);
+  });
+
+  it("rejeita gravação com revisão esperada desatualizada", async () => {
+    await writeStockMovementDraft(createDraft());
+    await writeStockMovementDraft({ ...createDraft(), notes: "Mais nova" }, 1);
+
+    const staleWrite = await writeStockMovementDraft(
+      { ...createDraft(), notes: "Antiga" },
+      1,
+    );
+
+    expect(staleWrite).toEqual({ status: "conflict", revision: 2 });
+    expect((await readStockMovementDraft())?.notes).toBe("Mais nova");
+  });
+
+  it("aplica mutação atômica sobre o draft atual", async () => {
+    await writeStockMovementDraft(createDraft());
+
+    const mutatedDraft = await mutateStockMovementDraft((draft) => ({
+      ...draft,
+      items: [...draft.items, { quantity: 1, productName: "Novo item" }],
+    }));
+
+    expect(mutatedDraft?.items).toHaveLength(2);
+    expect(mutatedDraft?.revision).toBe(2);
+    expect((await readStockMovementDraft())?.items).toHaveLength(2);
+  });
+
+  it("não aplica mutação quando não há draft salvo", async () => {
+    const mutatedDraft = await mutateStockMovementDraft((draft) => draft);
+
+    expect(mutatedDraft).toBeNull();
     expect(await readStockMovementDraft()).toBeNull();
   });
 
@@ -220,9 +281,24 @@ describe("create-stock-movement.storage", () => {
 
   it("ignora draft com schema incompatível", async () => {
     fakeIndexedDb.putStoredDraft({
-      schemaVersion: 999,
+      schemaVersion: 1,
       type: "PURCHASE_IN",
       notes: "inválido",
+      items: [],
+      selectedProductId: "",
+      itemQuantity: "",
+      updatedAt: "2026-01-20T10:00:00.000Z",
+    });
+
+    expect(await readStockMovementDraft()).toBeNull();
+    expect(fakeIndexedDb.getStoredDraft()).toBeUndefined();
+  });
+
+  it("ignora draft sem warehouseId ou sem revisão", async () => {
+    fakeIndexedDb.putStoredDraft({
+      schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
+      type: "PURCHASE_IN",
+      notes: "sem campos novos",
       items: [],
       selectedProductId: "",
       itemQuantity: "",
@@ -249,10 +325,11 @@ describe("create-stock-movement.storage", () => {
   it("mantém fallback em memória quando IndexedDB falha", async () => {
     fakeIndexedDb.shouldFailOpen = true;
 
-    await writeStockMovementDraft(createDraft());
+    const writeResult = await writeStockMovementDraft(createDraft());
 
     const draft = await readStockMovementDraft();
 
+    expect(writeResult).toEqual({ status: "written", revision: 1 });
     expect(draft?.notes).toBe("Observação");
     expect(console.error).toHaveBeenCalled();
   });
@@ -278,10 +355,12 @@ describe("create-stock-movement.storage", () => {
     ).toBe(true);
   });
 
-  it("mantém compatibilidade com rascunho legado sem runtimeId", async () => {
+  it("mantém compatibilidade com rascunho sem runtimeId", async () => {
     fakeIndexedDb.putStoredDraft({
       schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
       type: "PURCHASE_IN",
+      warehouseId: "wh-1",
+      revision: 1,
       notes: "legado",
       items: [],
       selectedProductId: "",
