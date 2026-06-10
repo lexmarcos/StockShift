@@ -3,7 +3,6 @@
 import {
   createContext,
   use,
-  useEffect,
   useState,
   useSyncExternalStore,
   ReactNode,
@@ -28,21 +27,20 @@ const getClientSnapshot = (): boolean => true;
 
 const getServerSnapshot = (): boolean => false;
 
+const readStoredWarehouseId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(WAREHOUSE_STORAGE_KEY);
+};
+
 export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedWarehouseId, setSelectedWarehouseIdState] = useState<string | null>(null);
+  const [selectedWarehouseId, setSelectedWarehouseIdState] =
+    useState<string | null>(readStoredWarehouseId);
   const isClient = useSyncExternalStore(
     subscribeToClientHydration,
     getClientSnapshot,
     getServerSnapshot,
   );
   const { push } = useRouter();
-
-  useEffect(() => {
-    const stored = localStorage.getItem(WAREHOUSE_STORAGE_KEY);
-    if (stored) {
-      setSelectedWarehouseIdState(stored);
-    }
-  }, []);
 
   const setSelectedWarehouseId = (id: string) => {
     setSelectedWarehouseIdState(id);
