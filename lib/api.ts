@@ -51,6 +51,25 @@ export const shouldRefreshAccessToken = async (response: Response) => {
   }
 };
 
+export const attachApiErrorMessage = async (
+  error: HTTPError,
+): Promise<HTTPError> => {
+  const { response } = error;
+
+  if (isRedirectingToLogin) return error;
+
+  if (response && response.status !== 403) {
+    try {
+      const body = (await response.json()) as { message?: string };
+      error.message = body.message || error.message;
+    } catch {
+      // Se não conseguir parsear, mantém mensagem original
+    }
+  }
+
+  return error;
+};
+
 const redirectToLogin = () => {
   if (typeof window === "undefined" || isRedirectingToLogin) return;
   isRedirectingToLogin = true;
@@ -59,32 +78,22 @@ const redirectToLogin = () => {
   window.location.href = "/login";
 };
 
+const retryAfterRefreshClient = ky.create({
+  credentials: "include",
+  timeout: 30000,
+  retry: 0,
+  hooks: {
+    beforeError: [attachApiErrorMessage],
+  },
+});
+
 export const api = ky.create({
   prefixUrl: `${API_BASE_URL}/api`,
   credentials: "include",
   timeout: 30000,
   retry: 0,
   hooks: {
-    beforeError: [
-      async (error) => {
-        const { response } = error;
-
-        // Não tenta processar se já estamos redirecionando
-        if (isRedirectingToLogin) return error;
-
-        // Para erros que não são 403, tenta extrair mensagem da API
-        if (response && response.status !== 403) {
-          try {
-            const body = (await response.json()) as { message?: string };
-            error.message = body.message || error.message;
-          } catch {
-            // Se não conseguir parsear, mantém mensagem original
-          }
-        }
-
-        return error;
-      },
-    ],
+    beforeError: [attachApiErrorMessage],
     afterResponse: [
       async (request, _options, response) => {
         // Se já estamos redirecionando, não processa mais nada
@@ -103,9 +112,7 @@ export const api = ky.create({
               isRefreshing = false;
 
               // Retry da requisição original
-              return ky(request.clone(), {
-                credentials: "include",
-              });
+              return retryAfterRefreshClient(request.clone());
             } catch (refreshError) {
               processQueue(refreshError as Error);
               isRefreshing = false;
@@ -125,9 +132,7 @@ export const api = ky.create({
               if (isRedirectingToLogin) return response;
 
               // Retry da requisição original após refresh
-              return ky(request.clone(), {
-                credentials: "include",
-              });
+              return retryAfterRefreshClient(request.clone());
             } catch {
               // Refresh falhou enquanto esperava na fila
               return response;
