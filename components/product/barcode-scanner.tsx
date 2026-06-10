@@ -1,48 +1,49 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { DetectedBarcode } from "barcode-detector/ponyfill";
 import {
-  Scanner,
-  type IScannerProps,
-} from "@yudiel/react-qr-scanner";
-import { Button } from "@/components/ui/button";
-import { ResponsiveModal } from "@/components/ui/responsive-modal";
-import {
-  barcodeScannerFormats,
   createBarcodeScannerCameraConstraints,
   getBarcodeScannerDeviceIds,
   shouldRetryBarcodeScannerCamera,
 } from "@/components/product/barcode-scanner-camera";
-
-type BarcodeScannerProps = Omit<IScannerProps, "constraints" | "formats">;
+import {
+  BarcodeScannerErrorModal,
+  formatBarcodeScannerError,
+} from "@/components/product/barcode-scanner-error-modal";
+import { useBarcodeDetectionLoop } from "@/components/product/use-barcode-detection-loop";
+import { useBarcodeScannerStream } from "@/components/product/use-barcode-scanner-stream";
+import type {
+  BarcodeScannerDetectedCode,
+  BarcodeScannerProps,
+} from "@/components/product/barcode-scanner.types";
 
 const BARCODE_SCANNER_DEVICE_REFRESH_DELAYS_MS = [750, 2500] as const;
+const BARCODE_SCANNER_RESCAN_DELAY_MS = 1500;
+const BARCODE_SCANNER_MAX_CAMERA_RETRIES = 4;
 
-const formatBarcodeScannerError = (error: unknown): string => {
-  if (error instanceof Error) {
-    return JSON.stringify(
-      {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-      null,
-      2,
-    );
-  }
+const toBarcodeScannerDetectedCode = (
+  detectedBarcode: DetectedBarcode,
+): BarcodeScannerDetectedCode => ({
+  rawValue: detectedBarcode.rawValue,
+  format: detectedBarcode.format,
+});
 
-  try {
-    return JSON.stringify(error, null, 2);
-  } catch {
-    return String(error);
-  }
-};
+const BarcodeScannerFinder = () => (
+  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+    <div className="h-[45%] w-[80%] rounded-[4px] border-2 border-white/70" />
+  </div>
+);
 
 export const BarcodeScanner = ({
-  onError,
   onScan,
-  ...scannerProps
+  onError,
+  styles,
+  components,
 }: BarcodeScannerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastScanRef = useRef({ value: "", scannedAt: 0 });
+  const cameraRetryCountRef = useRef(0);
   const [usesCompatibleCamera, setUsesCompatibleCamera] = useState(false);
   const [cameraDeviceIds, setCameraDeviceIds] = useState<string[]>([]);
   const [cameraDeviceIndex, setCameraDeviceIndex] = useState(0);
@@ -58,10 +59,6 @@ export const BarcodeScanner = ({
     [selectedCameraDeviceId, usesCompatibleCamera],
   );
 
-  const scannerKey = `${selectedCameraDeviceId ?? "environment"}:${
-    usesCompatibleCamera ? "compatible" : "preferred"
-  }`;
-
   const refreshCameraDevices = useCallback(async (): Promise<void> => {
     if (!navigator.mediaDevices?.enumerateDevices) return;
 
@@ -70,12 +67,20 @@ export const BarcodeScanner = ({
   }, []);
 
   const selectNextCameraConfiguration = useCallback(() => {
+    if (cameraRetryCountRef.current >= BARCODE_SCANNER_MAX_CAMERA_RETRIES) return;
+
+    cameraRetryCountRef.current += 1;
     setUsesCompatibleCamera(true);
     setCameraDeviceIndex((currentIndex) => {
       if (cameraDeviceIds.length < 2) return currentIndex;
       return (currentIndex + 1) % cameraDeviceIds.length;
     });
   }, [cameraDeviceIds.length]);
+
+  const handleStreamStart = useCallback(() => {
+    cameraRetryCountRef.current = 0;
+    void refreshCameraDevices();
+  }, [refreshCameraDevices]);
 
   const handleScannerError = useCallback(
     (error: unknown) => {
@@ -91,10 +96,33 @@ export const BarcodeScanner = ({
     [onError, refreshCameraDevices, selectNextCameraConfiguration],
   );
 
-  const handleCopyScannerError = useCallback((): void => {
-    if (!scannerErrorContent) return;
-    void navigator.clipboard?.writeText(scannerErrorContent);
-  }, [scannerErrorContent]);
+  const emitDetectedBarcodes = useCallback(
+    (detectedBarcodes: DetectedBarcode[]) => {
+      const scannedValue = detectedBarcodes[0]?.rawValue;
+      if (!scannedValue) return;
+
+      const scannedAt = Date.now();
+      const lastScan = lastScanRef.current;
+      const isRepeatedScan =
+        scannedValue === lastScan.value &&
+        scannedAt - lastScan.scannedAt < BARCODE_SCANNER_RESCAN_DELAY_MS;
+
+      lastScanRef.current = { value: scannedValue, scannedAt };
+      if (isRepeatedScan) return;
+
+      onScan(detectedBarcodes.map(toBarcodeScannerDetectedCode));
+    },
+    [onScan],
+  );
+
+  useBarcodeScannerStream({
+    videoRef,
+    constraints: cameraConstraints,
+    onStreamStart: handleStreamStart,
+    onStreamError: handleScannerError,
+  });
+
+  useBarcodeDetectionLoop({ videoRef, onDetect: emitDetectedBarcodes });
 
   useEffect(() => {
     void refreshCameraDevices();
@@ -115,43 +143,32 @@ export const BarcodeScanner = ({
 
   return (
     <>
-      <Scanner
-        key={scannerKey}
-        {...scannerProps}
-        constraints={cameraConstraints}
-        formats={barcodeScannerFormats}
-        onScan={onScan}
-        onError={handleScannerError}
-      />
-      <ResponsiveModal
-        open={scannerErrorContent !== null}
-        onOpenChange={(open) => !open && setScannerErrorContent(null)}
-        title="Erro no leitor"
-        description="Conteúdo capturado pelo leitor de código de barras."
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setScannerErrorContent(null)}
-              className="h-10 w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
-            >
-              Fechar
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCopyScannerError}
-              className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
-            >
-              Copiar Conteúdo
-            </Button>
-          </>
-        }
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          overflow: "hidden",
+          ...styles?.container,
+        }}
       >
-        <pre className="max-h-[360px] overflow-auto rounded-[4px] border border-neutral-800 bg-neutral-950 p-3 text-xs text-neutral-300 whitespace-pre-wrap">
-          {scannerErrorContent}
-        </pre>
-      </ResponsiveModal>
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            ...styles?.video,
+          }}
+        />
+        {components?.finder !== false && <BarcodeScannerFinder />}
+      </div>
+      <BarcodeScannerErrorModal
+        content={scannerErrorContent}
+        onClose={() => setScannerErrorContent(null)}
+      />
     </>
   );
 };

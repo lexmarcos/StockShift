@@ -1,6 +1,6 @@
 "use client";
 
-import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type BarcodeScannerDetectedCode } from "@/components/product/barcode-scanner.types";
 import { ScanLine, X } from "lucide-react";
 
 import { BarcodeScanner } from "@/components/product/barcode-scanner";
@@ -24,7 +24,7 @@ export function NewTransferScanner({
   onOpenChange,
   onScan,
 }: NewTransferScannerProps) {
-  const handleScan = (detectedCodes: IDetectedBarcode[]): void => {
+  const handleScan = (detectedCodes: BarcodeScannerDetectedCode[]): void => {
     const barcode = detectedCodes[0]?.rawValue;
     if (!barcode) return;
     onScan(barcode);
@@ -67,12 +67,7 @@ export function NewTransferScanner({
             <BarcodeScanner
               onScan={handleScan}
               onError={handleError}
-              components={{
-                finder: true,
-                onOff: false,
-                torch: false,
-                zoom: false,
-              }}
+              components={{ finder: true }}
               styles={{
                 container: { width: "100%", height: "min(64vh, 420px)" },
                 video: { objectFit: "cover" },

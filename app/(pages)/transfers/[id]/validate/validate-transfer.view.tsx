@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type BarcodeScannerDetectedCode } from "@/components/product/barcode-scanner.types";
 import {
   AlertCircle,
   AlertTriangle,
@@ -40,7 +40,7 @@ import type {
 interface ValidateTransferViewState extends ValidateTransferViewProps {
   circumference: number;
   completedItems: number;
-  handleCameraScan: (detectedCodes: IDetectedBarcode[]) => void;
+  handleCameraScan: (detectedCodes: BarcodeScannerDetectedCode[]) => void;
   handleSubmit: (event: FormEvent) => void;
   radius: number;
   setShowScanner: Dispatch<SetStateAction<boolean>>;
@@ -63,7 +63,7 @@ export function ValidateTransferView(props: ValidateTransferViewProps) {
     event.preventDefault();
     props.onScan();
   };
-  const handleCameraScan = (detectedCodes: IDetectedBarcode[]) => {
+  const handleCameraScan = (detectedCodes: BarcodeScannerDetectedCode[]) => {
     if (!detectedCodes || detectedCodes.length === 0) return;
     props.onBarcodeChange(detectedCodes[0].rawValue);
     setShowScanner(false);
@@ -542,12 +542,7 @@ function CameraScannerModal({
             container: { width: "100%", height: "280px" },
             video: { objectFit: "cover" },
           }}
-          components={{
-            onOff: false,
-            torch: false,
-            zoom: false,
-            finder: true,
-          }}
+          components={{ finder: true }}
         />
         <CameraScannerOverlay />
       </div>
