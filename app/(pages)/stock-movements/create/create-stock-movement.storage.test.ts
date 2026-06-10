@@ -185,7 +185,7 @@ const createDraft = (): WritableStockMovementDraft => ({
         image: {
           name: "produto.png",
           type: "image/png",
-          dataUrl: "data:image/png;base64,YQ==",
+          blob: new Blob(["a"], { type: "image/png" }),
         },
       },
     },
@@ -309,17 +309,46 @@ describe("create-stock-movement.storage", () => {
     expect(fakeIndexedDb.getStoredDraft()).toBeUndefined();
   });
 
-  it("preserva imagem inline em dataUrl", async () => {
+  it("preserva imagem inline em blob", async () => {
     await writeStockMovementDraft(createDraft());
 
     const draft = await readStockMovementDraft();
-    const image = draft?.items[0].newProductData?.image;
+    const savedImage = draft?.items[0].newProductData?.image;
 
-    expect(image).toEqual({
-      name: "produto.png",
-      type: "image/png",
-      dataUrl: "data:image/png;base64,YQ==",
+    expect(savedImage).toBeDefined();
+    expect(savedImage!.name).toBe("produto.png");
+    expect(savedImage!.type).toBe("image/png");
+    expect(savedImage!.blob).toBeInstanceOf(Blob);
+  });
+
+  it("rejeita draft com imagem cujo blob não é Blob", async () => {
+    fakeIndexedDb.putStoredDraft({
+      schemaVersion: STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION,
+      type: "PURCHASE_IN",
+      warehouseId: "wh-1",
+      revision: 1,
+      notes: "draft inválido",
+      items: [
+        {
+          quantity: 1,
+          productName: "Produto quebrado",
+          newProductData: {
+            name: "Produto quebrado",
+            image: {
+              name: "foto.png",
+              type: "image/png",
+              blob: "not-a-blob",
+            },
+          },
+        },
+      ],
+      selectedProductId: "",
+      itemQuantity: "",
+      updatedAt: "2026-01-20T10:00:00.000Z",
     });
+
+    expect(await readStockMovementDraft()).toBeNull();
+    expect(fakeIndexedDb.getStoredDraft()).toBeUndefined();
   });
 
   it("mantém fallback em memória quando IndexedDB falha", async () => {

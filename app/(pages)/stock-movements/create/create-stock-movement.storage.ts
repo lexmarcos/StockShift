@@ -9,7 +9,7 @@ const DRAFT_DATABASE_NAME = "stockshift";
 const DRAFT_DATABASE_VERSION = 1;
 const DRAFT_STORE_NAME = "stockMovementDrafts";
 const DRAFT_STORAGE_KEY = "current";
-export const STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION = 2;
+export const STOCK_MOVEMENT_DRAFT_SCHEMA_VERSION = 3;
 
 const createStockMovementDraftRuntimeId = (): string => {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -172,7 +172,7 @@ const isInlineProductImageData = (
     isRecord(value) &&
     typeof value.name === "string" &&
     typeof value.type === "string" &&
-    typeof value.dataUrl === "string"
+    value.blob instanceof Blob
   );
 };
 
@@ -355,30 +355,12 @@ export const clearStockMovementDraft = async (): Promise<void> => {
 
 export const fileToInlineProductImage = (
   file: File,
-): Promise<InlineProductImageData> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error(`Falha ao ler a imagem ${file.name}`));
-    reader.onload = () => {
-      resolve({
-        name: file.name,
-        type: file.type,
-        dataUrl: String(reader.result),
-      });
-    };
-    reader.readAsDataURL(file);
-  });
-};
+): InlineProductImageData => ({
+  name: file.name,
+  type: file.type,
+  blob: file,
+});
 
 export const inlineProductImageToFile = (
   image: InlineProductImageData,
-): File => {
-  const [metadata, base64] = image.dataUrl.split(",");
-  const mime = metadata.match(/data:(.*);base64/)?.[1] || image.type;
-  const bytes = window.atob(base64);
-  const buffer = new Uint8Array(bytes.length);
-  for (let index = 0; index < bytes.length; index += 1) {
-    buffer[index] = bytes.charCodeAt(index);
-  }
-  return new File([buffer], image.name, { type: mime });
-};
+): File => new File([image.blob], image.name, { type: image.type });

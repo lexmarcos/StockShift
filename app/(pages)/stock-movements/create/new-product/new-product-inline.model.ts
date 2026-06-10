@@ -83,11 +83,11 @@ const resolveInitialProductImage = (
   return product?.image ? inlineProductImageToFile(product.image) : null;
 };
 
-const buildInlineProductData = async (
+const buildInlineProductData = (
   data: ProductCreateFormData,
   attributes: Record<string, string> | undefined,
   image: File | null,
-): Promise<InlineProductData> => ({
+): InlineProductData => ({
   name: data.name,
   description: data.description || undefined,
   barcode: data.barcode || undefined,
@@ -101,7 +101,7 @@ const buildInlineProductData = async (
   expirationDate: data.expirationDate || undefined,
   costPrice: data.costPrice,
   sellingPrice: data.sellingPrice,
-  image: image ? await fileToInlineProductImage(image) : undefined,
+  image: image ? fileToInlineProductImage(image) : undefined,
 });
 
 const buildInlineMovementItem = (
@@ -407,14 +407,14 @@ export const useNewProductInlineModel = ({
       return !attr.key.trim() || !attr.value.trim();
     });
     if (invalidIndex >= 0) {
-      toast.error(`Atributo ${invalidIndex + 1}: Nome e valor são obrigatórios`);
+      toast.warning(`Atributo ${invalidIndex + 1}: Nome e valor são obrigatórios`);
       return false;
     }
 
     const keys = customAttributes.map((attr) => attr.key.trim().toLowerCase());
     const duplicate = keys.find((key, index) => keys.indexOf(key) !== index);
     if (duplicate) {
-      toast.error(`Já existe um atributo com o nome "${duplicate}"`);
+      toast.warning(`Já existe um atributo com o nome "${duplicate}"`);
       return false;
     }
 
@@ -601,7 +601,7 @@ export const useNewProductInlineModel = ({
   const saveInlineProductToDraft = async (
     data: ProductCreateFormData,
   ): Promise<void> => {
-    const product = await buildInlineProductData(
+    const product = buildInlineProductData(
       data,
       mergeAttributes(data),
       productImage,

@@ -14,6 +14,7 @@ const mockRedirect = vi.fn((url: string): never => {
 const mockWriteDraft = vi.fn();
 const toastSuccess = vi.fn();
 const toastError = vi.fn();
+const toastWarning = vi.fn();
 
 let movementType: string | null = "PURCHASE_IN";
 let editItemQuery: string | null = null;
@@ -34,7 +35,7 @@ const brandsResponse = {
 };
 
 const createDraft = (overrides?: Partial<StockMovementDraft>): StockMovementDraft => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   updatedAt: "2026-01-20T09:00:00.000Z",
   revision: 1,
   type: "PURCHASE_IN",
@@ -105,6 +106,7 @@ vi.mock("sonner", () => ({
   toast: {
     success: (...args: unknown[]) => toastSuccess(...args),
     error: (...args: unknown[]) => toastError(...args),
+    warning: (...args: unknown[]) => toastWarning(...args),
   },
 }));
 
@@ -117,16 +119,16 @@ vi.mock("@/hooks/use-selected-warehouse", () => ({
 }));
 
 vi.mock("../create-stock-movement.storage", () => ({
-  fileToInlineProductImage: async (file: File) => ({
+  fileToInlineProductImage: (file: File) => ({
     name: file.name,
     type: file.type,
-    dataUrl: "data:application/octet-stream;base64,Yg==",
+    blob: file,
   }),
   inlineProductImageToFile: (image: {
     name: string;
     type: string;
-    dataUrl: string;
-  }) => new File(["x"], image.name, { type: image.type }),
+    blob: Blob;
+  }) => new File([image.blob], image.name, { type: image.type }),
   readStockMovementDraft: async () => currentDraft,
   mutateStockMovementDraft: async (
     buildNextDraft: (draft: StockMovementDraft) => StockMovementDraft,
@@ -260,7 +262,7 @@ describe("useNewProductInlineModel", () => {
             image: {
               name: "inline.png",
               type: "image/png",
-              dataUrl: "data:image/png;base64,YQ==",
+              blob: new Blob(["a"], { type: "image/png" }),
             },
           },
         },
@@ -316,7 +318,7 @@ describe("useNewProductInlineModel", () => {
       await result.current.onSubmit(buildFormData());
     });
 
-    expect(toastError).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
+    expect(toastWarning).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
     expect(mockWriteDraft).not.toHaveBeenCalled();
     expect(result.current.isSubmitting).toBe(false);
   });

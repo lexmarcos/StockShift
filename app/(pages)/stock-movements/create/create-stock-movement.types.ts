@@ -21,7 +21,7 @@ export interface InlineProductData {
 export interface InlineProductImageData {
   name: string;
   type: string;
-  dataUrl: string;
+  blob: Blob;
 }
 
 export interface StockMovementDraftItem {

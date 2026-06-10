@@ -113,6 +113,7 @@ const fakeToast = vi.hoisted(() => {
   class FakeToast {
     public readonly success = vi.fn<(message: string) => void>();
     public readonly error = vi.fn<(message: string, options?: unknown) => void>();
+    public readonly warning = vi.fn<(message: string) => void>();
   }
 
   return new FakeToast();
@@ -143,7 +144,7 @@ const fakeStorage = vi.hoisted(() => {
         }
         this.draftState = {
           ...draft,
-          schemaVersion: 2,
+          schemaVersion: 3,
           updatedAt: "2026-01-20T10:00:00.000Z",
           revision: storedRevision + 1,
           runtimeId: this.currentRuntimeId,
@@ -233,17 +234,16 @@ vi.mock("./create-stock-movement.storage", () => ({
   inlineProductImageToFile: (image: {
     name: string;
     type: string;
-    dataUrl: string;
+    blob: Blob;
   }): File =>
-    new File(["img"], image.name, {
+    new File([image.blob], image.name, {
       type: image.type,
     }),
-  fileToInlineProductImage: (file: File) =>
-    Promise.resolve({
-      name: file.name,
-      type: file.type,
-      dataUrl: "data:image/png;base64,YQ==",
-    }),
+  fileToInlineProductImage: (file: File) => ({
+    name: file.name,
+    type: file.type,
+    blob: file,
+  }),
 }));
 
 const movementProducts: StockMovementProductOption[] = [
@@ -319,7 +319,7 @@ const barcodeIndex: Record<string, StockMovementProductOption> = {
 const createDraftState = (
   overrides?: Partial<StockMovementDraft>,
 ): StockMovementDraft => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   updatedAt: "2026-01-20T09:00:00.000Z",
   revision: 1,
   type: "PURCHASE_IN",
@@ -384,7 +384,7 @@ const createInlineSubmitPayload = (): CreateStockMovementSchema => ({
         image: {
           name: "inline.png",
           type: "image/png",
-          dataUrl: "data:image/png;base64,ZmFrZQ==",
+          blob: new Blob(["fake"], { type: "image/png" }),
         },
       },
     },

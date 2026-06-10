@@ -51,7 +51,7 @@ describe("createStockMovementSchema", () => {
             image: {
               name: "foto.png",
               type: "image/png",
-              dataUrl: "data:image/png;base64,YQ==",
+              blob: new Blob(["a"], { type: "image/png" }),
             },
           },
         },
@@ -140,7 +140,7 @@ describe("createStockMovementSchema", () => {
             image: {
               name: "",
               type: "",
-              dataUrl: "",
+              blob: "not-a-blob",
             },
           },
         },
