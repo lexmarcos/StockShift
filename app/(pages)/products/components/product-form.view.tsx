@@ -243,7 +243,7 @@ const ExistingProductFoundModal = ({
 
   return (
     <ResponsiveModal
-      open={scannedExistingProduct !== null}
+      open={scannedExistingProduct != null}
       onOpenChange={onExistingProductModalOpenChange}
       title="Produto já existe"
       description={`O produto "${scannedExistingProduct?.name}" já está cadastrado no sistema.`}

@@ -17,7 +17,7 @@ const baseTransferPayload: NewTransferSchema = {
   ],
 };
 
-const expectErrorPath = (result: { success: false; error: { issues: { path: (string | number)[] }[] } }, path: string): void => {
+const expectErrorPath = (result: { success: false; error: { issues: { path: PropertyKey[] }[] } }, path: string): void => {
   if (result.success) {
     throw new Error("Parsing deveria falhar");
   }
@@ -40,6 +40,7 @@ describe("newTransferSchema", () => {
     });
 
     expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected parse failure");
     expectErrorPath(result, "destinationWarehouseId");
   });
 
@@ -50,6 +51,7 @@ describe("newTransferSchema", () => {
     });
 
     expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected parse failure");
     expectErrorPath(result, "items");
   });
 
@@ -65,6 +67,7 @@ describe("newTransferSchema", () => {
     });
 
     expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected parse failure");
     expectErrorPath(result, "items");
   });
 

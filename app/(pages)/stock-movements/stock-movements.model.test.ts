@@ -33,7 +33,7 @@ const fakeSWR = vi.hoisted(() => {
 
     public reset(): void {
       this.states.clear();
-      this.defaultState.mutate.mockClear();
+      vi.mocked(this.defaultState.mutate).mockClear();
       this.hook.mockClear();
     }
   }
@@ -66,7 +66,7 @@ const fakeWarehouse = vi.hoisted(() => {
 });
 
 vi.mock("swr", () => ({
-  default: (...args: unknown[]) => fakeSWR.hook(...args),
+  default: (...args: [string | null, unknown?]) => fakeSWR.hook(...args),
 }));
 
 vi.mock("@/lib/api", () => ({

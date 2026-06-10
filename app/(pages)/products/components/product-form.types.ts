@@ -127,7 +127,7 @@ export interface ProductFormProps {
   handleBarcodeScan: (barcode: string) => void | Promise<void>;
 
   // Existing product modal (new-product page)
-  scannedExistingProduct: ExistingProductInfo | null;
+  scannedExistingProduct?: ExistingProductInfo | null;
   onExistingProductModalOpenChange?: (open: boolean) => void;
   onCreateBatchForExistingProduct?: () => void | Promise<void>;
 

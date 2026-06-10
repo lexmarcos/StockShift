@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { NormalizedOptions } from "ky";
 import { useChangePasswordModel } from "./change-password.model";
 import { changePasswordSchema, type ChangePasswordFormData } from "./change-password.schema";
 
@@ -195,7 +196,7 @@ describe("useChangePasswordModel", () => {
     const response = new Response(JSON.stringify({ message: "Senha incorreta" }), {
       status: 400,
     });
-    const httpError = new HTTPError(response, new Request("http://localhost"));
+    const httpError = new HTTPError(response, new Request("http://localhost"), {} as unknown as NormalizedOptions);
 
     fakeApi.post.mockReturnValue(
       new FakeApiJsonResponse({
@@ -219,7 +220,7 @@ describe("useChangePasswordModel", () => {
   it("falls back to generic message when HTTP error has no message", async () => {
     const { HTTPError } = await import("ky");
     const response = new Response("not-json", { status: 400 });
-    const httpError = new HTTPError(response, new Request("http://localhost"));
+    const httpError = new HTTPError(response, new Request("http://localhost"), {} as unknown as NormalizedOptions);
 
     fakeApi.post.mockReturnValue(
       new FakeApiJsonResponse({

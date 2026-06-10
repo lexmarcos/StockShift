@@ -82,6 +82,7 @@ describe("TransfersView", () => {
     onTabChange: vi.fn(),
     stats: { total: 1, inTransit: 0, pending: 1, completed: 0 },
     onRetry: vi.fn(),
+    onNewTransfer: vi.fn(),
   };
 
   it("renders the header and tab buttons", () => {

@@ -30,7 +30,7 @@ const fakeSWR = vi.hoisted(() => {
 
     public reset(): void {
       this.responses.clear();
-      this.defaultState.mutate.mockClear();
+      vi.mocked(this.defaultState.mutate).mockClear();
       this.hook.mockClear();
     }
   }

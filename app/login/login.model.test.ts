@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { NormalizedOptions } from "ky";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useLoginModel } from "./login.model";
 import { loginSchema } from "./login.schema";
@@ -197,7 +198,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 401 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -228,7 +229,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -258,7 +259,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -298,7 +299,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -354,7 +355,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -402,7 +403,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response("not json", { status: 500 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
@@ -474,7 +475,7 @@ describe("useLoginModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorData), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({
