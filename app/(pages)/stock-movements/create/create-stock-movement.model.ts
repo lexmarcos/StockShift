@@ -12,7 +12,6 @@ import {
 } from "./create-stock-movement.schema";
 import {
   CreateStockMovementViewProps,
-  ExistingProductBatchFormState,
   StockMovementProductBatchesResponse,
   StockMovementProductOption,
 } from "./create-stock-movement.types";
@@ -20,14 +19,12 @@ import { useBreadcrumb } from "@/components/breadcrumb";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   isManualMovementType,
-  MANUAL_IN_MOVEMENT_TYPES,
 } from "../stock-movements.constants";
 import {
   clearStockMovementDraft,
 } from "./create-stock-movement.storage";
 import {
   buildMovementPayload,
-  resolveExistingProductBatchQuantity,
   uploadInlineProductImages,
 } from "./create-stock-movement.payload";
 import {
@@ -38,15 +35,9 @@ import {
   findMostRecentWarehouseProductBatch,
 } from "./stock-movement-batch-pricing.model";
 import {
-  getOptionalText,
-  validateExistingProductBatchForm,
-} from "./stock-movement-batch-form-validation";
-import {
-  buildRepeatedProductBatchWarning,
   getPendingInlineProductBarcodeConflictError,
   hasExistingProductInItems,
 } from "./stock-movement-draft-guards";
-import { lookupStockMovementProductByBarcode } from "./stock-movement-product-lookup";
 import {
   buildStockMovementProductSearchUrl,
   formatStockMovementProductLabel,
@@ -56,21 +47,12 @@ import {
   type ProductListResponse,
 } from "./stock-movement-product-options";
 import { useStockMovementDraftPersistence } from "./use-stock-movement-draft-persistence.model";
+import { useExistingProductBatchForm } from "./use-existing-product-batch-form.model";
+import { isSelectedInMovement, useStockMovementScanner } from "./use-stock-movement-scanner.model";
 
 interface CreateStockMovementModelParams {
   typeParam?: string | null;
 }
-
-const EMPTY_EXISTING_BATCH_FORM: ExistingProductBatchFormState = {
-  isOpen: false,
-  productId: "",
-  productName: "",
-  quantity: "",
-  manufacturedDate: "",
-  expirationDate: "",
-  editingIndex: null,
-  error: null,
-};
 
 export function useCreateStockMovementModel({
   typeParam = null,
@@ -88,12 +70,7 @@ export function useCreateStockMovementModel({
   const [isProductOptionsOpen, setIsProductOptionsOpen] = useState(false);
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
-  const [missingProductBarcode, setMissingProductBarcode] = useState<string | null>(null);
-  const [existingProductBatchForm, setExistingProductBatchForm] =
-    useState<ExistingProductBatchFormState>(EMPTY_EXISTING_BATCH_FORM);
-  const lastScannedBarcodeRef = useRef<string | null>(null);
   const lastScrollYRef = useRef(0);
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -136,7 +113,6 @@ export function useCreateStockMovementModel({
   );
 
   const {
-    isDraftHydrated,
     persistCurrentDraft,
     inlineProductBarcodeRef,
     resetDraftRevision,
@@ -153,6 +129,61 @@ export function useCreateStockMovementModel({
     useSWR<ProductListResponse>("products", (url: string) =>
       api.get(url).json<ProductListResponse>(),
     );
+
+  const resetProductBuilder = (): void => {
+    setSelectedProductId("");
+    setSelectedProduct(null);
+    setProductSearchQuery("");
+    setItemQuantity("");
+  };
+
+  const salePriceSuggestionRef = useRef<{ priceCents: number } | undefined>(undefined);
+  const costPriceSuggestionRef = useRef<{ priceCents: number } | undefined>(undefined);
+
+  const {
+    existingProductBatchForm,
+    onExistingProductBatchOpenChange,
+    onExistingProductBatchQuantityChange,
+    onExistingProductBatchQuantityIncrement,
+    onExistingProductBatchQuantityDecrement,
+    onExistingProductBatchManufacturedDateChange,
+    onExistingProductBatchExpirationDateChange,
+    onExistingProductBatchCostPriceChange,
+    onExistingProductBatchSellingPriceChange,
+    onApplyExistingProductCostPriceSuggestion,
+    onApplyExistingProductSalePriceSuggestion,
+    onConfirmExistingProductBatchData,
+    openExistingProductBatchForm,
+  } = useExistingProductBatchForm({
+    formItems: fields,
+    append,
+    update,
+    onItemConfirmed: resetProductBuilder,
+    salePriceSuggestionRef,
+    costPriceSuggestionRef,
+  });
+
+  const {
+    isScannerOpen,
+    setScannerOpen,
+    onBarcodeScan,
+    missingProductBarcode,
+    onMissingProductModalOpenChange,
+    onCreateProductFromMissingModal,
+    onCreateNewProduct,
+    onEditNewProductItem,
+    onEditExistingProductBatchData,
+  } = useStockMovementScanner({
+    selectedMovementType,
+    router,
+    form,
+    append,
+    persistCurrentDraft,
+    inlineProductBarcodeRef,
+    itemQuantity,
+    openExistingProductBatchForm,
+    setAddItemError,
+  });
 
   const productBatchesUrl = buildExistingProductBatchesUrl(
     warehouseId,
@@ -183,6 +214,9 @@ export function useCreateStockMovementModel({
       !isLoadingProductBatches &&
       !existingProductCostPriceSuggestion,
   );
+
+  salePriceSuggestionRef.current = existingProductSalePriceSuggestion ?? undefined;
+  costPriceSuggestionRef.current = existingProductCostPriceSuggestion ?? undefined;
 
   const products = mapStockMovementProductOptions(productsData);
 
@@ -251,17 +285,11 @@ export function useCreateStockMovementModel({
     productSearchBlurTimeoutRef.current = null;
   };
 
-  const findScannedProductBarcodeConflict = (
-    barcode: string | null | undefined,
-  ): string | null => {
-    return getPendingInlineProductBarcodeConflictError(
-      form.getValues("items"),
-      barcode,
-    );
-  };
+  const findBarcodeConflict = (barcode: string | null | undefined): string | null =>
+    getPendingInlineProductBarcodeConflictError(form.getValues("items"), barcode);
 
   const handleProductSelect = (product: StockMovementProductOption) => {
-    const barcodeConflictError = findScannedProductBarcodeConflict(product.barcode);
+    const barcodeConflictError = findBarcodeConflict(product.barcode);
     if (barcodeConflictError) {
       setIsProductOptionsOpen(false);
       setAddItemError(barcodeConflictError);
@@ -274,7 +302,7 @@ export function useCreateStockMovementModel({
     setIsProductOptionsOpen(false);
     setAddItemError(null);
 
-    if (isSelectedInMovement()) {
+    if (isSelectedInMovement(selectedMovementType)) {
       openExistingProductBatchForm({
         productId: product.id,
         productName: product.name,
@@ -319,45 +347,6 @@ export function useCreateStockMovementModel({
     setAddItemError(null);
   };
 
-  const isSelectedInMovement = (): boolean => {
-    if (!selectedMovementType) return false;
-    return MANUAL_IN_MOVEMENT_TYPES.includes(
-      selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
-    );
-  };
-
-  const resetProductBuilder = (): void => {
-    setSelectedProductId("");
-    setSelectedProduct(null);
-    setProductSearchQuery("");
-    setItemQuantity("");
-  };
-
-  const closeExistingProductBatchForm = (): void => {
-    setExistingProductBatchForm(EMPTY_EXISTING_BATCH_FORM);
-  };
-
-  const buildBatchRepeatedProductWarning = (
-    params: Pick<ExistingProductBatchFormState, "productId" | "productName" | "editingIndex">,
-  ): string | null => {
-    if (params.editingIndex !== null) return null;
-    if (!hasExistingProductInItems(form.getValues("items"), params.productId)) {
-      return null;
-    }
-    return buildRepeatedProductBatchWarning(params.productName);
-  };
-
-  const openExistingProductBatchForm = (
-    params: Omit<ExistingProductBatchFormState, "isOpen" | "error">,
-  ): void => {
-    setExistingProductBatchForm({
-      ...params,
-      isOpen: true,
-      error: null,
-      repeatedProductWarning: buildBatchRepeatedProductWarning(params),
-    });
-  };
-
   const appendExistingProductItem = (
     productId: string,
     productName: string,
@@ -387,13 +376,13 @@ export function useCreateStockMovementModel({
       selectedProduct || products.find((p) => p.id === selectedProductId);
     const productName = product?.name || "Produto";
 
-    const barcodeConflictError = findScannedProductBarcodeConflict(product?.barcode);
+    const barcodeConflictError = findBarcodeConflict(product?.barcode);
     if (barcodeConflictError) {
       setAddItemError(barcodeConflictError);
       return;
     }
 
-    if (isSelectedInMovement()) {
+    if (isSelectedInMovement(selectedMovementType)) {
       openExistingProductBatchForm({
         productId: selectedProductId,
         productName,
@@ -421,245 +410,6 @@ export function useCreateStockMovementModel({
     }
 
     appendExistingProductItem(selectedProductId, productName, quantity);
-  };
-
-  const handleExistingProductBatchOpenChange = (open: boolean): void => {
-    if (open) {
-      setExistingProductBatchForm((current) => ({ ...current, isOpen: true }));
-      return;
-    }
-    closeExistingProductBatchForm();
-  };
-
-  const updateExistingProductBatchForm = (
-    patch: Partial<ExistingProductBatchFormState>,
-  ): void => {
-    setExistingProductBatchForm((current) => ({
-      ...current,
-      ...patch,
-      error: patch.error ?? null,
-    }));
-  };
-
-  const updateExistingProductBatchQuantity = (
-    calculateNextQuantity: (quantity: number) => number,
-  ): void => {
-    setExistingProductBatchForm((current) => {
-      const currentQuantity = resolveExistingProductBatchQuantity(
-        current.quantity,
-      );
-      const nextQuantity = Math.max(calculateNextQuantity(currentQuantity), 0);
-      return {
-        ...current,
-        quantity: nextQuantity > 0 ? String(nextQuantity) : "",
-        error: null,
-      };
-    });
-  };
-
-  const handleExistingProductBatchQuantityIncrement = (): void => {
-    updateExistingProductBatchQuantity((quantity) => quantity + 1);
-  };
-
-  const handleExistingProductBatchQuantityDecrement = (): void => {
-    updateExistingProductBatchQuantity((quantity) => quantity - 1);
-  };
-
-  const handleApplyExistingProductSalePriceSuggestion = (): void => {
-    if (!existingProductSalePriceSuggestion) return;
-    updateExistingProductBatchForm({
-      sellingPrice: existingProductSalePriceSuggestion.priceCents,
-    });
-  };
-
-  const handleApplyExistingProductCostPriceSuggestion = (): void => {
-    if (!existingProductCostPriceSuggestion) return;
-    updateExistingProductBatchForm({
-      costPrice: existingProductCostPriceSuggestion.priceCents,
-    });
-  };
-
-  const buildExistingProductBatchItem = (): CreateStockMovementSchema["items"][number] => ({
-    productId: existingProductBatchForm.productId,
-    productName: existingProductBatchForm.productName,
-    quantity: Number(existingProductBatchForm.quantity),
-    manufacturedDate: getOptionalText(existingProductBatchForm.manufacturedDate),
-    expirationDate: getOptionalText(existingProductBatchForm.expirationDate),
-    costPrice: existingProductBatchForm.costPrice,
-    sellingPrice: existingProductBatchForm.sellingPrice,
-  });
-
-  const handleConfirmExistingProductBatchData = (): void => {
-    const validationError = validateExistingProductBatchForm(
-      existingProductBatchForm,
-    );
-    if (validationError) {
-      updateExistingProductBatchForm({ error: validationError });
-      return;
-    }
-
-    const item = buildExistingProductBatchItem();
-    if (existingProductBatchForm.editingIndex !== null) {
-      update(existingProductBatchForm.editingIndex, item);
-    } else {
-      append(item);
-      resetProductBuilder();
-    }
-    closeExistingProductBatchForm();
-  };
-
-  const handleCreateNewProduct = async (): Promise<void> => {
-    setAddItemError(null);
-
-    if (!selectedMovementType) {
-      toast.warning("Selecione o tipo de movimentação antes de continuar.");
-      router.replace("/stock-movements");
-      return;
-    }
-
-    if (
-      !MANUAL_IN_MOVEMENT_TYPES.includes(
-        selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
-      )
-    ) {
-      setAddItemError(
-        "Novos produtos só podem ser criados em movimentações de entrada.",
-      );
-      return;
-    }
-
-    inlineProductBarcodeRef.current = undefined;
-    await persistCurrentDraft(undefined);
-    router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
-  };
-
-  const navigateToInlineProductWithBarcode = async (
-    barcode: string,
-  ): Promise<void> => {
-    if (!selectedMovementType) return;
-
-    inlineProductBarcodeRef.current = barcode;
-    await persistCurrentDraft(barcode);
-    setIsScannerOpen(false);
-    router.push(`/stock-movements/create/new-product?type=${selectedMovementType}`);
-  };
-
-  const handleEditNewProductItem = async (index: number): Promise<void> => {
-    if (!selectedMovementType) return;
-
-    const item = form.getValues("items")[index];
-    if (!item?.newProductData) return;
-
-    inlineProductBarcodeRef.current = undefined;
-    await persistCurrentDraft(undefined);
-    router.push(
-      `/stock-movements/create/new-product?type=${selectedMovementType}&editItem=${index}`,
-    );
-  };
-
-  const handleEditExistingProductBatchData = (index: number): void => {
-    if (!isSelectedInMovement()) return;
-    const item = form.getValues("items")[index];
-    if (!item?.productId || item.newProductData) return;
-
-    openExistingProductBatchForm({
-      productId: item.productId,
-      productName: item.productName || "Produto",
-      quantity: String(item.quantity),
-      manufacturedDate: item.manufacturedDate || "",
-      expirationDate: item.expirationDate || "",
-      costPrice: item.costPrice,
-      sellingPrice: item.sellingPrice,
-      editingIndex: index,
-    });
-  };
-
-  const resolveScannerQuantity = (): number => {
-    const qty = Number(itemQuantity);
-    return qty > 0 ? qty : 1;
-  };
-
-  const appendScannedProduct = (product: StockMovementProductOption) => {
-    const barcodeConflictError = findScannedProductBarcodeConflict(product.barcode);
-    if (barcodeConflictError) {
-      toast.error(barcodeConflictError);
-      return;
-    }
-
-    if (isSelectedInMovement()) {
-      setIsScannerOpen(false);
-      openExistingProductBatchForm({
-        productId: product.id,
-        productName: product.name,
-        quantity: "",
-        manufacturedDate: "",
-        expirationDate: "",
-        costPrice: undefined,
-        sellingPrice: undefined,
-        editingIndex: null,
-      });
-      return;
-    }
-
-    if (hasExistingProductAlreadyAdded(product.id)) {
-      toast.warning(`${product.name} já está na movimentação.`);
-      return;
-    }
-
-    append({
-      productId: product.id,
-      productName: product.name,
-      quantity: resolveScannerQuantity(),
-    });
-    toast.success(`${product.name} foi adicionado.`);
-  };
-
-  const handleBarcodeScan = async (barcode: string) => {
-    if (lastScannedBarcodeRef.current === barcode) return;
-    lastScannedBarcodeRef.current = barcode;
-    window.setTimeout(() => {
-      lastScannedBarcodeRef.current = null;
-    }, 1500);
-
-    const lookup = await lookupStockMovementProductByBarcode(barcode);
-    if (lookup.status === "found") {
-      appendScannedProduct(lookup.product);
-      return;
-    }
-    if (lookup.status === "not-found") {
-      showMissingProductToast(barcode);
-      return;
-    }
-    toast.error(lookup.message);
-  };
-
-  const showMissingProductToast = (barcode: string) => {
-    if (!selectedMovementType) {
-      toast.error(`Produto com código ${barcode} não existe.`);
-      return;
-    }
-
-    const canCreateInline = MANUAL_IN_MOVEMENT_TYPES.includes(
-      selectedMovementType as (typeof MANUAL_IN_MOVEMENT_TYPES)[number],
-    );
-    if (!canCreateInline) {
-      toast.error(`Produto com código ${barcode} não existe.`);
-      return;
-    }
-
-    setMissingProductBarcode(barcode);
-  };
-
-  const handleMissingProductModalOpenChange = (open: boolean): void => {
-    if (!open) {
-      setMissingProductBarcode(null);
-    }
-  };
-
-  const handleCreateProductFromMissingModal = async (): Promise<void> => {
-    if (!missingProductBarcode) return;
-    await navigateToInlineProductWithBarcode(missingProductBarcode);
-    setMissingProductBarcode(null);
   };
 
   const onSubmit = async (data: CreateStockMovementSchema) => {
@@ -717,33 +467,24 @@ export function useCreateStockMovementModel({
     onProductClear: handleProductClear,
     onQuantityChange: setItemQuantity,
     onAddItem: handleAddItem,
-    onCreateNewProduct: handleCreateNewProduct,
-    onEditNewProductItem: handleEditNewProductItem,
-    onEditExistingProductBatchData: handleEditExistingProductBatchData,
-    onScannerOpenChange: setIsScannerOpen,
-    onBarcodeScan: handleBarcodeScan,
+    onCreateNewProduct,
+    onEditNewProductItem,
+    onEditExistingProductBatchData,
+    onScannerOpenChange: setScannerOpen,
+    onBarcodeScan,
     onRemoveItem: remove,
     existingProductBatchForm,
-    onExistingProductBatchOpenChange: handleExistingProductBatchOpenChange,
-    onExistingProductBatchQuantityChange: (quantity: string) =>
-      updateExistingProductBatchForm({ quantity }),
-    onExistingProductBatchQuantityIncrement:
-      handleExistingProductBatchQuantityIncrement,
-    onExistingProductBatchQuantityDecrement:
-      handleExistingProductBatchQuantityDecrement,
-    onExistingProductBatchManufacturedDateChange: (manufacturedDate: string) =>
-      updateExistingProductBatchForm({ manufacturedDate }),
-    onExistingProductBatchExpirationDateChange: (expirationDate: string) =>
-      updateExistingProductBatchForm({ expirationDate }),
-    onExistingProductBatchCostPriceChange: (costPrice?: number) =>
-      updateExistingProductBatchForm({ costPrice }),
-    onExistingProductBatchSellingPriceChange: (sellingPrice?: number) =>
-      updateExistingProductBatchForm({ sellingPrice }),
-    onApplyExistingProductCostPriceSuggestion:
-      handleApplyExistingProductCostPriceSuggestion,
-    onApplyExistingProductSalePriceSuggestion:
-      handleApplyExistingProductSalePriceSuggestion,
-    onConfirmExistingProductBatchData: handleConfirmExistingProductBatchData,
+    onExistingProductBatchOpenChange,
+    onExistingProductBatchQuantityChange,
+    onExistingProductBatchQuantityIncrement,
+    onExistingProductBatchQuantityDecrement,
+    onExistingProductBatchManufacturedDateChange,
+    onExistingProductBatchExpirationDateChange,
+    onExistingProductBatchCostPriceChange,
+    onExistingProductBatchSellingPriceChange,
+    onApplyExistingProductCostPriceSuggestion,
+    onApplyExistingProductSalePriceSuggestion,
+    onConfirmExistingProductBatchData,
     existingProductCostPriceSuggestion,
     existingProductSalePriceSuggestion,
     isExistingProductPriceSuggestionLoading: isLoadingProductBatches,
@@ -752,7 +493,7 @@ export function useCreateStockMovementModel({
     existingProductProfitSummary,
     items: fields,
     missingProductBarcode,
-    onMissingProductModalOpenChange: handleMissingProductModalOpenChange,
-    onCreateProductFromMissingModal: handleCreateProductFromMissingModal,
+    onMissingProductModalOpenChange,
+    onCreateProductFromMissingModal,
   };
 }
