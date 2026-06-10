@@ -2,12 +2,12 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
 import {
-  buildMovementPayload,
   buildStockMovementProductSearchUrl,
   formatStockMovementProductLabel,
   mapStockMovementProductOptions,
   shouldShowStockMovementFooter,
 } from "./create-stock-movement.model";
+import { buildMovementPayload } from "./create-stock-movement.payload";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
 import type {
   StockMovementDraft,
