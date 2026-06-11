@@ -308,7 +308,7 @@ export const useBatchCreateModel = () => {
 
   const onSubmit = async (data: BatchCreateFormData) => {
     if (!warehouseId) {
-      toast.error("Selecione um warehouse ativo para criar o batch");
+      toast.warning("Selecione um estoque ativo para criar o lote");
       return;
     }
 
@@ -320,11 +320,11 @@ export const useBatchCreateModel = () => {
         .json<BatchCreateResponse>();
 
       if (response.success) {
-        toast.success("Batch criado com sucesso");
+        toast.success("Lote criado com sucesso");
         router.push(`/batches/${response.data.id}`);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao criar batch";
+      const message = err instanceof Error ? err.message : "Erro ao criar lote";
       toast.error(message);
     }
   };

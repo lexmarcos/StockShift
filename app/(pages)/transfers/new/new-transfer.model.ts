@@ -471,7 +471,7 @@ export function useNewTransferModel(): NewTransferViewProps {
 
   const onSubmit = async (data: NewTransferSchema): Promise<void> => {
     if (!currentWarehouseId) {
-      toast.error("Selecione um warehouse de origem.");
+      toast.warning("Selecione um estoque de origem.");
       return;
     }
 

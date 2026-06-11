@@ -256,7 +256,7 @@ export function usePdvModel(): PdvViewProps {
   const onSubmit = useCallback(
     async (data: PdvSchema) => {
       if (cart.length === 0 || !warehouseId) {
-        toast.error("Adicione pelo menos um produto ao carrinho");
+        toast.warning("Adicione pelo menos um produto ao carrinho");
         return;
       }
       setIsSubmitting(true);
@@ -344,7 +344,7 @@ export function usePdvModel(): PdvViewProps {
   const onBarcodeScanned = useCallback(
     async (barcode: string) => {
       if (!warehouseId) {
-        toast.error("Nenhum armazém selecionado");
+        toast.error("Nenhum estoque selecionado");
         return;
       }
 

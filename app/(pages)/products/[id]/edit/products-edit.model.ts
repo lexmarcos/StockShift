@@ -354,7 +354,7 @@ export const useProductEditModel = (productId: string) => {
     for (let i = 0; i < customAttributes.length; i++) {
       const attr = customAttributes[i];
       if (!attr.key.trim() || !attr.value.trim()) {
-        toast.error(`Atributo ${i + 1}: Nome e valor são obrigatórios`);
+        toast.warning(`Atributo ${i + 1}: Nome e valor são obrigatórios`);
         return false;
       }
     }
@@ -362,7 +362,7 @@ export const useProductEditModel = (productId: string) => {
     const keys = customAttributes.map((a) => a.key.trim().toLowerCase());
     const duplicates = keys.filter((key, index) => keys.indexOf(key) !== index);
     if (duplicates.length > 0) {
-      toast.error(`Já existe um atributo com o nome "${duplicates[0]}"`);
+      toast.warning(`Já existe um atributo com o nome "${duplicates[0]}"`);
       return false;
     }
 
@@ -394,7 +394,7 @@ export const useProductEditModel = (productId: string) => {
     }
 
     if (isImageProcessing) {
-      toast.error("Aguarde a imagem terminar de processar antes de salvar.");
+      toast.warning("Aguarde a imagem terminar de processar antes de salvar.");
       return;
     }
 
@@ -478,13 +478,13 @@ export const useProductEditModel = (productId: string) => {
       await api.put(`batches/${batch.id}`, { json: payload }).json();
 
       mutate(`batches/product/${productId}`);
-      toast.success("Batch atualizado com sucesso!");
+      toast.success("Lote atualizado com sucesso!");
     } catch (error) {
       console.error("Erro ao atualizar batch:", error);
       if (error instanceof Error) {
-        toast.error(error.message || "Erro ao atualizar batch");
+        toast.error(error.message || "Erro ao atualizar lote");
       } else {
-        toast.error("Erro ao atualizar batch");
+        toast.error("Erro ao atualizar lote");
       }
     } finally {
       setUpdatingBatchId(null);

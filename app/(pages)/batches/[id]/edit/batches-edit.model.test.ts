@@ -242,7 +242,7 @@ describe("useBatchEditModel", () => {
     expect(fakeApi.put).toHaveBeenCalledWith("batches/batch-1", {
       json: values,
     });
-    expect(fakeToast.success).toHaveBeenCalledWith("Batch atualizado");
+    expect(fakeToast.success).toHaveBeenCalledWith("Lote atualizado");
     expect(fakeRouter.push).toHaveBeenCalledWith("/batches/batch-1");
   });
 
@@ -258,11 +258,11 @@ describe("useBatchEditModel", () => {
       await result.current.onSubmit(baseFormValues);
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao atualizar batch");
+    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao atualizar lote");
   });
 
   it("exibe mensagem de erro retornada pela API na atualização", async () => {
-    const updateError = new Error("Falha ao atualizar batch");
+    const updateError = new Error("Falha ao atualizar lote");
     fakeApi.put.mockReturnValueOnce({
       json: vi.fn(async () => {
         throw updateError;
@@ -274,6 +274,6 @@ describe("useBatchEditModel", () => {
       await result.current.onSubmit(baseFormValues);
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith("Falha ao atualizar batch");
+    expect(fakeToast.error).toHaveBeenCalledWith("Falha ao atualizar lote");
   });
 });

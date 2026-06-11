@@ -264,7 +264,7 @@ export const useProductsModel = () => {
         `batches/warehouses/${warehouseId}/products/${deleteProduct.id}/batches`;
       await api.delete(deleteBatchesEndpoint).json();
 
-      toast.success("Produto removido do armazém com sucesso");
+      toast.success("Produto removido do estoque com sucesso");
       mutate();
       mutateGlobal((key) =>
         typeof key === "string" &&

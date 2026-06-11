@@ -118,6 +118,7 @@ const fakeToast = vi.hoisted(() => {
   class FakeToast {
     public readonly success = vi.fn<(message: string) => void>();
     public readonly error = vi.fn<(message: string) => void>();
+    public readonly warning = vi.fn<(message: string) => void>();
   }
 
   return new FakeToast();
@@ -687,7 +688,7 @@ describe("useNewTransferModel", () => {
       await result.current.onSubmit(payload);
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith("Selecione um warehouse de origem.");
+    expect(fakeToast.warning).toHaveBeenCalledWith("Selecione um estoque de origem.");
     expect(fakeApi.post).not.toHaveBeenCalled();
   });
 

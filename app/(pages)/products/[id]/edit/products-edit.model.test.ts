@@ -31,7 +31,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
 vi.mock("@/components/breadcrumb", () => ({
@@ -328,7 +328,7 @@ describe("useProductEditModel batches drawer", () => {
       });
     });
 
-    expect(toast.error).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
+    expect(toast.warning).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
     expect(api.put).not.toHaveBeenCalledWith("products/prod-1", expect.anything());
   });
 
@@ -361,7 +361,7 @@ describe("useProductEditModel batches drawer", () => {
     });
 
     expect(api.put).not.toHaveBeenCalledWith("products/prod-1", expect.anything());
-    expect(toast.error).toHaveBeenCalledWith(
+    expect(toast.warning).toHaveBeenCalledWith(
       "Aguarde a imagem terminar de processar antes de salvar.",
     );
   });
@@ -462,13 +462,13 @@ describe("useProductEditModel batches drawer", () => {
     });
 
     vi.mocked(api.put).mockImplementationOnce(() => {
-      throw new Error("Batch falhou");
+      throw new Error("Lote falhou");
     });
 
     await act(async () => {
       await result.current.batchesDrawer.onSave(0);
     });
 
-    expect(toast.error).toHaveBeenCalledWith("Batch falhou");
+    expect(toast.error).toHaveBeenCalledWith("Lote falhou");
   });
 });

@@ -176,13 +176,13 @@ export const useWarehousesModel = () => {
 
       if (response.success) {
         setWarehouseId(id);
-        toast.success(response.message || "Armazém selecionado");
+        toast.success("Estoque selecionado");
       }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
         error.response?.data?.message ||
-        "Erro ao selecionar armazém. Tente novamente.";
+        "Erro ao selecionar estoque. Tente novamente.";
 
       toast.error(errorMessage);
     }
@@ -198,7 +198,7 @@ export const useWarehousesModel = () => {
           .json<UpdateWarehouseResponse>();
 
         if (response.success) {
-          toast.success(response.message || "Armazém atualizado com sucesso");
+          toast.success("Estoque atualizado com sucesso");
           mutate();
           closeModal();
         }
@@ -209,7 +209,7 @@ export const useWarehousesModel = () => {
           .json<CreateWarehouseResponse>();
 
         if (response.success) {
-          toast.success(response.message || "Armazém criado com sucesso");
+          toast.success("Estoque criado com sucesso");
           mutate();
           closeModal();
         }
@@ -218,7 +218,7 @@ export const useWarehousesModel = () => {
       const error = err as { response?: { data?: { message?: string } } };
       const errorMessage =
         error.response?.data?.message ||
-        "Erro ao salvar armazém. Tente novamente.";
+        "Erro ao salvar estoque. Tente novamente.";
 
       toast.error(errorMessage);
     }
@@ -243,18 +243,18 @@ export const useWarehousesModel = () => {
         .json<DeleteWarehouseResponse>();
 
       if (response.success) {
-        toast.success(response.message || "Armazém deletado com sucesso");
+        toast.success("Estoque deletado com sucesso");
         mutate();
         closeDeleteDialog();
       }
     } catch (err) {
       const error = err as { response?: { status?: number; data?: { message?: string } } };
-      const errorMessage = error.response?.data?.message || "Erro ao deletar armazém";
+      const errorMessage = error.response?.data?.message || "Erro ao deletar estoque";
 
       // Check if deletion is blocked by stock
       if (error.response?.status === 400 && errorMessage.includes("stock")) {
         toast.error(
-          `${errorMessage}. Desative o armazém ou transfira o estoque primeiro.`
+          `${errorMessage}. Desative o estoque ou transfira o estoque primeiro.`
         );
       } else {
         toast.error(errorMessage);

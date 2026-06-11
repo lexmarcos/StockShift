@@ -11,6 +11,7 @@ const mockSWR = vi.fn();
 const toastError = vi.fn();
 const toastSuccess = vi.fn();
 const toastInfo = vi.fn();
+const toastWarning = vi.fn();
 const routerPush = vi.fn();
 
 let activeWarehouseId: string | null = "warehouse-1";
@@ -77,6 +78,7 @@ vi.mock("sonner", () => ({
     success: (...args: unknown[]) => toastSuccess(...args),
     error: (...args: unknown[]) => toastError(...args),
     info: (...args: unknown[]) => toastInfo(...args),
+    warning: (...args: unknown[]) => toastWarning(...args),
   },
 }));
 
@@ -326,7 +328,7 @@ describe("usePdvModel", () => {
       await result.current.onBarcodeScanned("000999");
     });
 
-    expect(toastError).toHaveBeenCalledWith("Nenhum armazém selecionado");
+    expect(toastError).toHaveBeenCalledWith("Nenhum estoque selecionado");
     expect(mockGet).not.toHaveBeenCalled();
   });
 
@@ -478,7 +480,7 @@ describe("usePdvModel", () => {
       await result.current.onSubmit(submitData());
     });
 
-    expect(toastError).toHaveBeenCalledWith("Adicione pelo menos um produto ao carrinho");
+    expect(toastWarning).toHaveBeenCalledWith("Adicione pelo menos um produto ao carrinho");
     expect(mockPost).not.toHaveBeenCalled();
     expect(result.current.cart).toHaveLength(0);
   });
