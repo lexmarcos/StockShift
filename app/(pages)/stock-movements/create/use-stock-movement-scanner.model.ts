@@ -145,6 +145,18 @@ export function useStockMovementScanner({
     setMissingProductBarcode(barcode);
   };
 
+  const showPendingInlineProductToast = (barcode: string): boolean => {
+    const inlineItem = form.getValues("items").find((item) => {
+      return item.newProductData?.barcode === barcode;
+    });
+    if (!inlineItem) return false;
+
+    const productName =
+      inlineItem.productName || inlineItem.newProductData?.name || "Produto";
+    toast.warning(`${productName} já está na movimentação como produto novo.`);
+    return true;
+  };
+
   const handleBarcodeScan = async (barcode: string) => {
     if (lastScannedBarcodeRef.current === barcode) return;
     lastScannedBarcodeRef.current = barcode;
@@ -158,6 +170,7 @@ export function useStockMovementScanner({
       return;
     }
     if (lookup.status === "not-found") {
+      if (showPendingInlineProductToast(barcode)) return;
       showMissingProductToast(barcode);
       return;
     }

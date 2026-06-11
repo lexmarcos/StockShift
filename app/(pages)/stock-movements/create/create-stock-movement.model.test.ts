@@ -1170,6 +1170,35 @@ describe("useCreateStockMovementModel", () => {
     expect(fakeToast.error).not.toHaveBeenCalled();
   });
 
+  it("não abre modal de produto não encontrado quando barcode pertence a produto inline pendente", async () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          quantity: 1,
+          productName: "Produto Inline",
+          newProductData: {
+            name: "Produto Inline",
+            barcode: "7891009999999",
+          },
+        },
+      ]);
+    });
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891009999999");
+    });
+
+    expect(result.current.missingProductBarcode).toBeNull();
+    expect(fakeToast.warning).toHaveBeenCalledWith(
+      "Produto Inline já está na movimentação como produto novo.",
+    );
+    expect(fakeToast.error).not.toHaveBeenCalled();
+  });
+
   it("mostra aviso sem ação para tipo de saída", async () => {
     fakeSearchParams.setType("USAGE");
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
