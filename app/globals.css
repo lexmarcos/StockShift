@@ -138,3 +138,55 @@
     animation: shimmer 3s ease-in-out infinite;
   }
 }
+
+.toaster {
+  --normal-bg: #171717;
+  --normal-text: #FAFAFA;
+  --normal-border: #262626;
+}
+
+.toaster [data-sonner-toast] {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid var(--normal-border);
+  background: var(--normal-bg);
+  color: var(--normal-text);
+}
+
+.toaster .toast-success {
+  background: #059669;
+  border-color: #059669;
+  color: #FFFFFF;
+}
+
+.toaster .toast-error {
+  background: #E11D48;
+  border-color: #E11D48;
+  color: #FFFFFF;
+}
+
+.toaster .toast-warning {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #000000;
+}
+
+.toaster .toast-info {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.toaster .toast-description {
+  color: inherit;
+  opacity: 0.9;
+}
+
+.toaster .toast-close-button {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.toaster .toast-close-button:hover {
+  opacity: 1;
+}
