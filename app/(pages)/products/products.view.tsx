@@ -57,6 +57,7 @@ import {
   PowerOff,
   LayoutList,
   ArrowDownUp,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -594,8 +595,18 @@ const ProductsSearchInput = ({ props }: { props: ProductsViewProps }) => (
       placeholder="Pesquisar no inventário (nome, SKU, código)..."
       value={props.filters.searchQuery}
       onChange={(event) => props.onSearchChange(event.target.value)}
-      className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 transition-all hover:border-neutral-700 focus:border-blue-600 focus:ring-0"
+      className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 pr-10 text-sm text-neutral-200 placeholder:text-neutral-600 transition-all hover:border-neutral-700 focus:border-blue-600 focus:ring-0"
     />
+    {props.filters.searchQuery && (
+      <button
+        type="button"
+        onClick={() => props.onSearchChange("")}
+        aria-label="Limpar pesquisa"
+        className="absolute right-3 flex items-center justify-center text-neutral-500 transition-colors hover:text-neutral-200"
+      >
+        <X className="size-4" strokeWidth={2.5} />
+      </button>
+    )}
   </div>
 );
 
