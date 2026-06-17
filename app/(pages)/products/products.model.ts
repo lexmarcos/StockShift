@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import useSWR, { mutate as mutateGlobal } from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -20,7 +22,9 @@ interface BatchesResponse {
   data: Batch[];
 }
 
-const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
+type TableFilters = Omit<ProductFilters, "searchQuery">;
+
+const DEFAULT_FILTERS: TableFilters = {
   sortBy: "name",
   sortOrder: "asc",
   stockStatus: "all",
@@ -28,6 +32,10 @@ const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
   page: 0,
   pageSize: 20,
 };
+
+// Key for the search query persisted in the URL via nuqs, so it survives
+// navigating into a product detail and coming back.
+const SEARCH_QUERY_PARAM = "q";
 
 const DEFAULT_DRAFT: ProductFilterDraft = {
   stockStatus: "all",
@@ -70,10 +78,30 @@ const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
 
-  const [filters, setFilters] = useState<ProductFilters>({
-    searchQuery: "",
-    ...DEFAULT_FILTERS,
-  });
+  const [searchQuery, setSearchQuery] = useQueryState(
+    SEARCH_QUERY_PARAM,
+    parseAsString.withDefault("")
+  );
+  const [tableFilters, setTableFilters] =
+    useState<TableFilters>(DEFAULT_FILTERS);
+
+  const filters = useMemo<ProductFilters>(
+    () => ({ ...tableFilters, searchQuery }),
+    [tableFilters, searchQuery]
+  );
+
+  // Mirrors the original Dispatch<SetStateAction<ProductFilters>> contract,
+  // routing searchQuery to the URL and the remaining filters to local state.
+  const setFilters = useCallback<Dispatch<SetStateAction<ProductFilters>>>(
+    (update) => {
+      const next = typeof update === "function" ? update(filters) : update;
+      const { searchQuery: nextSearch, ...rest } = next;
+      if (nextSearch !== searchQuery) setSearchQuery(nextSearch);
+      setTableFilters(rest);
+    },
+    [filters, searchQuery, setSearchQuery]
+  );
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
@@ -143,23 +171,24 @@ export const useProductsModel = () => {
       };
 
   const onPageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setTableFilters((prev) => ({ ...prev, page }));
   };
 
   const onPageSizeChange = (pageSize: number) => {
-    setFilters((prev) => ({ ...prev, pageSize, page: 0 }));
+    setTableFilters((prev) => ({ ...prev, pageSize, page: 0 }));
   };
 
-  const onSearchChange = (searchQuery: string) => {
-    setFilters((prev) => ({ ...prev, searchQuery, page: 0 }));
+  const onSearchChange = (nextSearch: string) => {
+    setSearchQuery(nextSearch);
+    setTableFilters((prev) => ({ ...prev, page: 0 }));
   };
 
   const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
-    setFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
+    setTableFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
   };
 
   const onOutOfStockKpiClick = () => {
-    setFilters((prev) => ({
+    setTableFilters((prev) => ({
       ...prev,
       stockStatus: "outOfStock",
       page: 0,
@@ -181,7 +210,7 @@ export const useProductsModel = () => {
   };
 
   const onApplyMobileFilters = () => {
-    setFilters((prev) => ({
+    setTableFilters((prev) => ({
       ...prev,
       stockStatus: mobileFiltersDraft.stockStatus,
       activeStatus: mobileFiltersDraft.activeStatus,
@@ -192,19 +221,13 @@ export const useProductsModel = () => {
   };
 
   const onClearFilters = () => {
-    setFilters((prev) => ({
-      ...prev,
-      searchQuery: "",
-      ...DEFAULT_FILTERS,
-    }));
+    setSearchQuery("");
+    setTableFilters(DEFAULT_FILTERS);
   };
 
   const onClearMobileFilters = () => {
-    const nextFilters = {
-      searchQuery: "",
-      ...DEFAULT_FILTERS,
-    };
-    setFilters(nextFilters);
+    setSearchQuery("");
+    setTableFilters(DEFAULT_FILTERS);
     setMobileFiltersDraft(DEFAULT_DRAFT);
   };
 

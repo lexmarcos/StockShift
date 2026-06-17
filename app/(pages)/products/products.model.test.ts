@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { useProductsModel } from "./products.model";
 import { toast } from "sonner";
+
+const renderModel = () =>
+  renderHook(() => useProductsModel(), {
+    wrapper: ({ children }: { children: ReactNode }) =>
+      createElement(NuqsTestingAdapter, null, children),
+  });
 
 const mockMutate = vi.fn();
 const mockGlobalMutate = vi.fn();
@@ -138,7 +146,7 @@ describe("useProductsModel - delete flow", () => {
       })),
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
@@ -179,7 +187,7 @@ describe("useProductsModel - delete flow", () => {
       })),
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
@@ -234,7 +242,7 @@ describe("useProductsModel - delete flow", () => {
       })),
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
@@ -252,7 +260,7 @@ describe("useProductsModel - delete flow", () => {
   });
 
   it("updates pagination, search and sort filters", () => {
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     act(() => {
       result.current.onPageChange(2);
@@ -272,7 +280,7 @@ describe("useProductsModel - delete flow", () => {
   });
 
   it("filters products without stock from KPI action", () => {
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     act(() => {
       result.current.onPageChange(2);
@@ -301,7 +309,7 @@ describe("useProductsModel - delete flow", () => {
       })),
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
@@ -326,7 +334,7 @@ describe("useProductsModel - delete flow", () => {
       throw { response: { data: { message: "Falha ao verificar" } } };
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
@@ -357,7 +365,7 @@ describe("useProductsModel - delete flow", () => {
       throw {};
     });
 
-    const { result } = renderHook(() => useProductsModel());
+    const { result } = renderModel();
 
     await act(async () => {
       await result.current.onOpenDeleteDialog(result.current.products[0]);
