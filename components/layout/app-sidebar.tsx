@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   Activity,
   ShoppingCart,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth-context";
@@ -65,6 +66,11 @@ const navItems: NavItem[] = [
     label: "Categorias",
     Icon: Folder,
     requiredPermission: "categories:read",
+  },
+  {
+    href: "/exploratory-tests",
+    label: "Testes",
+    Icon: ClipboardCheck,
   },
 ];
 
