@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildRepeatedProductBatchWarning,
   findDuplicateInlineProductError,
+  findScannedInlineProductDuplicateWarning,
   getPendingInlineProductBarcodeConflictError,
   hasExistingProductInItems,
 } from "./stock-movement-draft-guards";
@@ -78,6 +79,27 @@ describe("getPendingInlineProductBarcodeConflictError", () => {
     expect(getPendingInlineProductBarcodeConflictError(draftItems, "")).toBeNull();
     expect(
       getPendingInlineProductBarcodeConflictError(draftItems, "789100000999"),
+    ).toBeNull();
+  });
+});
+
+describe("findScannedInlineProductDuplicateWarning", () => {
+  it("avisa quando barcode escaneado já pertence a produto novo do draft", () => {
+    expect(
+      findScannedInlineProductDuplicateWarning(draftItems, "789100000001"),
+    ).toBe(
+      'O produto "Produto Novo A" já está na lista de produtos da movimentação como um novo produto e não pode ser adicionado novamente.',
+    );
+  });
+
+  it("ignora o item em edição, barcode vazio e produto existente", () => {
+    expect(
+      findScannedInlineProductDuplicateWarning(draftItems, "789100000001", 0),
+    ).toBeNull();
+    expect(findScannedInlineProductDuplicateWarning(draftItems, null)).toBeNull();
+    expect(findScannedInlineProductDuplicateWarning(draftItems, "  ")).toBeNull();
+    expect(
+      findScannedInlineProductDuplicateWarning(draftItems, "789100000999"),
     ).toBeNull();
   });
 });

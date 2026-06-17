@@ -131,6 +131,10 @@ export interface ProductFormProps {
   onExistingProductModalOpenChange?: (open: boolean) => void;
   onCreateBatchForExistingProduct?: () => void | Promise<void>;
 
+  // Inline duplicate barcode warning drawer (new-product page)
+  inlineDuplicateWarning?: string | null;
+  onInlineDuplicateWarningOpenChange?: (open: boolean) => void;
+
   // Batch overlay (new-product page)
   batchForm?: ExistingProductBatchFormState;
   onBatchOpenChange?: (open: boolean) => void;

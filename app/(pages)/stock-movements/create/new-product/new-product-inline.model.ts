@@ -45,6 +45,7 @@ import { validateExistingProductBatchForm } from "../stock-movement-batch-form-v
 import {
   buildRepeatedProductBatchWarning,
   findDuplicateInlineProductError,
+  findScannedInlineProductDuplicateWarning,
   getPendingInlineProductBarcodeConflictError,
   hasExistingProductInItems,
 } from "../stock-movement-draft-guards";
@@ -220,6 +221,7 @@ export const useNewProductInlineModel = ({
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [scannedExistingProduct, setScannedExistingProduct] = useState<ExistingProductInfo | null>(null);
+  const [inlineDuplicateWarning, setInlineDuplicateWarning] = useState<string | null>(null);
   const [existingProductBatchForm, setExistingProductBatchForm] = useState<ExistingProductBatchFormState>(EMPTY_BATCH_FORM);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const { warehouseId } = useSelectedWarehouse();
@@ -465,11 +467,29 @@ export const useNewProductInlineModel = ({
       });
       return;
     }
-    if (lookup.status === "not-found") {
-      form.setValue("barcode", barcode);
+    if (lookup.status === "error") {
+      toast.error(lookup.message);
       return;
     }
-    toast.error(lookup.message);
+
+    // Product is not in stock (online catalog): make sure it isn't already in
+    // the movement as an inline (new) product before filling the barcode field.
+    const draft = await readStockMovementDraft();
+    const duplicateWarning = findScannedInlineProductDuplicateWarning(
+      draft?.items ?? [],
+      barcode,
+      editItemIndex,
+    );
+    if (duplicateWarning) {
+      setInlineDuplicateWarning(duplicateWarning);
+      return;
+    }
+
+    form.setValue("barcode", barcode);
+  };
+
+  const handleInlineDuplicateWarningOpenChange = (open: boolean): void => {
+    if (!open) setInlineDuplicateWarning(null);
   };
 
   const handleExistingProductModalOpenChange = (open: boolean): void => {
@@ -689,6 +709,8 @@ export const useNewProductInlineModel = ({
     scannedExistingProduct,
     onExistingProductModalOpenChange: handleExistingProductModalOpenChange,
     onCreateBatchForExistingProduct: handleCreateBatchForExistingProduct,
+    inlineDuplicateWarning,
+    onInlineDuplicateWarningOpenChange: handleInlineDuplicateWarningOpenChange,
     batchForm: existingProductBatchForm,
     onBatchOpenChange: handleBatchOpenChange,
     onBatchQuantityChange: (quantity: string) => updateBatchForm({ quantity }),

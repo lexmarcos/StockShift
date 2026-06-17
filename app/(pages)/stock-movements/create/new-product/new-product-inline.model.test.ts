@@ -759,6 +759,82 @@ describe("useNewProductInlineModel", () => {
     expect(mockWriteDraft).not.toHaveBeenCalled();
   });
 
+  it("avisa e não preenche barcode ao escanear produto novo já presente no inline", async () => {
+    currentDraft = createDraft({
+      items: [
+        {
+          quantity: 1,
+          productName: "Produto Inline",
+          newProductData: { name: "Produto Inline", barcode: "555000111" },
+        },
+      ],
+    });
+    mockGet.mockReset();
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => {
+        throw notFoundApiError();
+      }),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("555000111");
+    });
+
+    expect(result.current.inlineDuplicateWarning).toBe(
+      'O produto "Produto Inline" já está na lista de produtos da movimentação como um novo produto e não pode ser adicionado novamente.',
+    );
+    expect(toastWarning).not.toHaveBeenCalled();
+    expect(result.current.form.getValues("barcode")).not.toBe("555000111");
+    expect(result.current.scannedExistingProduct).toBeNull();
+
+    act(() => {
+      result.current.onInlineDuplicateWarningOpenChange?.(false);
+    });
+    expect(result.current.inlineDuplicateWarning).toBeNull();
+  });
+
+  it("acusa falha ao insistir em adicionar produto inline já escaneado", async () => {
+    currentDraft = createDraft({
+      items: [
+        {
+          quantity: 1,
+          productName: "Produto Inline",
+          newProductData: { name: "Produto Inline", barcode: "555000111" },
+        },
+      ],
+    });
+    mockGet.mockReset();
+    mockGet.mockImplementation(() => ({
+      json: vi.fn(async () => {
+        throw notFoundApiError();
+      }),
+    }));
+
+    const { result } = renderHook(() =>
+      useNewProductInlineModel({ movementType, editItem: editItemQuery }),
+    );
+
+    await act(async () => {
+      await result.current.handleBarcodeScan("555000111");
+    });
+    expect(result.current.inlineDuplicateWarning).not.toBeNull();
+
+    await act(async () => {
+      await result.current.onSubmit(
+        buildFormData({ name: "Outro Nome", barcode: "555000111" }),
+      );
+    });
+
+    expect(toastError).toHaveBeenCalledWith(
+      'O código 555000111 já está em uso pelo produto "Produto Inline" nesta movimentação.',
+    );
+    expect(mockWriteDraft).not.toHaveBeenCalled();
+  });
+
   it("bloqueia lote de produto existente quando há produto novo pendente com o mesmo barcode", async () => {
     currentDraft = createDraft({
       items: [

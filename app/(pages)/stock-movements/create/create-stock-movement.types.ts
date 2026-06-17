@@ -157,6 +157,8 @@ export interface CreateStockMovementViewProps {
   missingProductBarcode: string | null;
   onMissingProductModalOpenChange: (open: boolean) => void;
   onCreateProductFromMissingModal: () => void;
+  inlineDuplicateWarning: string | null;
+  onInlineDuplicateWarningOpenChange: (open: boolean) => void;
   items: Array<{
     id: string;
     productId?: string;

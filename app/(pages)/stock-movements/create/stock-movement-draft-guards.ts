@@ -48,6 +48,22 @@ export const getPendingInlineProductBarcodeConflictError = (
   return `O código ${barcode} já pertence ao produto novo "${conflictingItem.productName}" nesta movimentação. Remova-o antes de adicionar o produto existente.`;
 };
 
+export const findScannedInlineProductDuplicateWarning = (
+  items: StockMovementDraftItem[],
+  barcode: string | null | undefined,
+  ignoredIndex: number | null = null,
+): string | null => {
+  const normalizedBarcode = barcode?.trim();
+  if (!normalizedBarcode) return null;
+  const conflictingItem = withoutIgnoredIndex(items, ignoredIndex).find(
+    (item) => item.newProductData?.barcode === normalizedBarcode,
+  );
+  if (!conflictingItem) return null;
+  const productName =
+    conflictingItem.newProductData?.name ?? conflictingItem.productName ?? "";
+  return `O produto "${productName}" já está na lista de produtos da movimentação como um novo produto e não pode ser adicionado novamente.`;
+};
+
 export const hasExistingProductInItems = (
   items: StockMovementDraftItem[],
   productId: string,

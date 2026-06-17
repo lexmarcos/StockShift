@@ -33,6 +33,7 @@ import { PermissionGate } from "@/components/permission-gate";
 import { cn } from "@/lib/utils";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { StockMovementScanner } from "./stock-movement-scanner.view";
+import { InlineDuplicateWarningDrawer } from "@/components/stock-movement/inline-duplicate-warning-drawer";
 import { StockMovementBatchDataModal } from "./stock-movement-batch-data-modal.view";
 import { StockMovementItemsList } from "./stock-movement-items-list.view";
 import {
@@ -145,6 +146,8 @@ function StockMovementCreateOverlays({
     onScannerOpenChange,
     shouldShowMissingCostPriceSuggestion,
     shouldShowMissingSalePriceSuggestion,
+    inlineDuplicateWarning,
+    onInlineDuplicateWarningOpenChange,
   } = viewState;
 
   return (
@@ -178,6 +181,10 @@ function StockMovementCreateOverlays({
         barcode={missingProductBarcode}
         onOpenChange={onMissingProductModalOpenChange}
         onCreateProduct={onCreateProductFromMissingModal}
+      />
+      <InlineDuplicateWarningDrawer
+        message={inlineDuplicateWarning}
+        onOpenChange={onInlineDuplicateWarningOpenChange}
       />
     </>
   );

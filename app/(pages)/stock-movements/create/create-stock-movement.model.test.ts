@@ -1193,10 +1193,16 @@ describe("useCreateStockMovementModel", () => {
     });
 
     expect(result.current.missingProductBarcode).toBeNull();
-    expect(fakeToast.warning).toHaveBeenCalledWith(
+    expect(result.current.inlineDuplicateWarning).toBe(
       "Produto Inline já está na movimentação como produto novo.",
     );
+    expect(fakeToast.warning).not.toHaveBeenCalled();
     expect(fakeToast.error).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.onInlineDuplicateWarningOpenChange(false);
+    });
+    expect(result.current.inlineDuplicateWarning).toBeNull();
   });
 
   it("mostra aviso sem ação para tipo de saída", async () => {

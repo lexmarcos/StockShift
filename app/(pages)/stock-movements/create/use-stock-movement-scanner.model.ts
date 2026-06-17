@@ -39,6 +39,8 @@ interface StockMovementScannerReturn {
   onBarcodeScan: (barcode: string) => Promise<void>;
   missingProductBarcode: string | null;
   onMissingProductModalOpenChange: (open: boolean) => void;
+  inlineDuplicateWarning: string | null;
+  onInlineDuplicateWarningOpenChange: (open: boolean) => void;
   onCreateProductFromMissingModal: () => Promise<void>;
   onCreateNewProduct: () => Promise<void>;
   onEditNewProductItem: (index: number) => Promise<void>;
@@ -67,6 +69,7 @@ export function useStockMovementScanner({
   const lastScannedBarcodeRef = useRef<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [missingProductBarcode, setMissingProductBarcode] = useState<string | null>(null);
+  const [inlineDuplicateWarning, setInlineDuplicateWarning] = useState<string | null>(null);
 
   const findScannedProductBarcodeConflict = (
     barcode: string | null | undefined,
@@ -145,7 +148,7 @@ export function useStockMovementScanner({
     setMissingProductBarcode(barcode);
   };
 
-  const showPendingInlineProductToast = (barcode: string): boolean => {
+  const showPendingInlineProductWarning = (barcode: string): boolean => {
     const inlineItem = form.getValues("items").find((item) => {
       return item.newProductData?.barcode === barcode;
     });
@@ -153,8 +156,14 @@ export function useStockMovementScanner({
 
     const productName =
       inlineItem.productName || inlineItem.newProductData?.name || "Produto";
-    toast.warning(`${productName} já está na movimentação como produto novo.`);
+    setInlineDuplicateWarning(
+      `${productName} já está na movimentação como produto novo.`,
+    );
     return true;
+  };
+
+  const handleInlineDuplicateWarningOpenChange = (open: boolean): void => {
+    if (!open) setInlineDuplicateWarning(null);
   };
 
   const handleBarcodeScan = async (barcode: string) => {
@@ -170,7 +179,7 @@ export function useStockMovementScanner({
       return;
     }
     if (lookup.status === "not-found") {
-      if (showPendingInlineProductToast(barcode)) return;
+      if (showPendingInlineProductWarning(barcode)) return;
       showMissingProductToast(barcode);
       return;
     }
@@ -250,6 +259,8 @@ export function useStockMovementScanner({
     onBarcodeScan: handleBarcodeScan,
     missingProductBarcode,
     onMissingProductModalOpenChange: handleMissingProductModalOpenChange,
+    inlineDuplicateWarning,
+    onInlineDuplicateWarningOpenChange: handleInlineDuplicateWarningOpenChange,
     onCreateProductFromMissingModal: handleCreateProductFromMissingModal,
     onCreateNewProduct: handleCreateNewProduct,
     onEditNewProductItem: handleEditNewProductItem,

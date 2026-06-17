@@ -22,6 +22,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { InlineDuplicateWarningDrawer } from "@/components/stock-movement/inline-duplicate-warning-drawer";
 import {
   Accordion,
   AccordionContent,
@@ -225,6 +226,12 @@ const ProductFormShell = ({
       onScan={productForm.handleBarcodeScan}
     />
     <ExistingProductFoundModal productForm={productForm} />
+    {productForm.onInlineDuplicateWarningOpenChange && (
+      <InlineDuplicateWarningDrawer
+        message={productForm.inlineDuplicateWarning}
+        onOpenChange={productForm.onInlineDuplicateWarningOpenChange}
+      />
+    )}
     <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
       <ProductAiModal productForm={productForm} viewState={viewState} />
       <ProductFormBody productForm={productForm} viewState={viewState} />

@@ -173,6 +173,8 @@ export function useCreateStockMovementModel({
     onCreateNewProduct,
     onEditNewProductItem,
     onEditExistingProductBatchData,
+    inlineDuplicateWarning,
+    onInlineDuplicateWarningOpenChange,
   } = useStockMovementScanner({
     selectedMovementType,
     router,
@@ -495,5 +497,7 @@ export function useCreateStockMovementModel({
     missingProductBarcode,
     onMissingProductModalOpenChange,
     onCreateProductFromMissingModal,
+    inlineDuplicateWarning,
+    onInlineDuplicateWarningOpenChange,
   };
 }
