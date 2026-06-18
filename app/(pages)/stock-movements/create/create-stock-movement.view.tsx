@@ -589,7 +589,7 @@ function StockMovementSubmitBar({
   return (
     <FixedBottomBar
       className={cn(
-        "bg-[#0A0A0A]/95 backdrop-blur-sm",
+        "bg-[#0A0A0A]/95 backdrop-blur-sm transition-transform duration-200 ease-in-out motion-reduce:transition-none",
         isFooterVisible
           ? "pointer-events-auto translate-y-0"
           : "pointer-events-none translate-y-[calc(100%+1rem)]",

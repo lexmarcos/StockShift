@@ -43,9 +43,9 @@ import {
   formatStockMovementProductLabel,
   mapStockMovementProductOptions,
   PRODUCT_SEARCH_LIMIT,
-  shouldShowStockMovementFooter,
   type ProductListResponse,
 } from "./stock-movement-product-options";
+import { useFooterVisibility } from "@/hooks/footer-visibility/use-footer-visibility";
 import { useStockMovementDraftPersistence } from "./use-stock-movement-draft-persistence.model";
 import { useExistingProductBatchForm } from "./use-existing-product-batch-form.model";
 import { isSelectedInMovement, useStockMovementScanner } from "./use-stock-movement-scanner.model";
@@ -70,8 +70,7 @@ export function useCreateStockMovementModel({
   const [isProductOptionsOpen, setIsProductOptionsOpen] = useState(false);
   const [itemQuantity, setItemQuantity] = useState("");
   const [addItemError, setAddItemError] = useState<string | null>(null);
-  const [isFooterVisible, setIsFooterVisible] = useState(false);
-  const lastScrollYRef = useRef(0);
+  const { isFooterVisible } = useFooterVisibility();
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedMovementType = isManualMovementType(typeParam)
@@ -253,25 +252,6 @@ export function useCreateStockMovementModel({
       if (!productSearchBlurTimeoutRef.current) return;
       clearTimeout(productSearchBlurTimeoutRef.current);
     };
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = (): void => {
-      const currentScrollY = window.scrollY;
-      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
-      setIsFooterVisible(
-        shouldShowStockMovementFooter({
-          currentScrollY,
-          lastScrollY: lastScrollYRef.current,
-          maxScrollY,
-        }),
-      );
-      lastScrollYRef.current = Math.max(currentScrollY, 0);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const productOptions = productSearchUrl

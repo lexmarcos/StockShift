@@ -9,23 +9,6 @@ export interface ProductListResponse {
 
 export const PRODUCT_SEARCH_LIMIT = 5;
 
-interface FooterVisibilityParams {
-  currentScrollY: number;
-  lastScrollY: number;
-  maxScrollY: number;
-}
-
-export const shouldShowStockMovementFooter = ({
-  currentScrollY,
-  lastScrollY,
-  maxScrollY,
-}: FooterVisibilityParams): boolean => {
-  const isShortPage = maxScrollY <= 8;
-  const isAtPageEnd = currentScrollY >= maxScrollY - 8;
-  const isScrollingUp = currentScrollY < lastScrollY;
-  return isShortPage || isAtPageEnd || isScrollingUp;
-};
-
 export const formatStockMovementProductLabel = (
   product: StockMovementProductOption,
 ): string => (product.sku ? `${product.name} (${product.sku})` : product.name);

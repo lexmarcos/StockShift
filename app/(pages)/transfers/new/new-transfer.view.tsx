@@ -316,7 +316,7 @@ function TransferSubmitBar({
   return (
     <FixedBottomBar
       className={cn(
-        "bg-[#0A0A0A]/95 backdrop-blur-sm transition-transform duration-200 ease-in-out",
+        "bg-[#0A0A0A]/95 backdrop-blur-sm transition-transform duration-200 ease-in-out motion-reduce:transition-none",
         isFooterVisible
           ? "translate-y-0"
           : "pointer-events-none translate-y-[calc(100%+1rem)]",

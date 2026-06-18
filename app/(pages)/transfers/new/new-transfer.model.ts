@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { useBreadcrumb } from "@/components/breadcrumb";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
+import { useFooterVisibility } from "@/hooks/footer-visibility/use-footer-visibility";
 import { api } from "@/lib/api";
 import { newTransferSchema, type NewTransferSchema } from "./new-transfer.schema";
 import type {
@@ -134,23 +135,6 @@ export const getWarehouseBatchQuantityByProduct = (
   }, new Map<string, number>());
 };
 
-interface TransferFooterVisibilityParams {
-  currentScrollY: number;
-  lastScrollY: number;
-  maxScrollY: number;
-}
-
-export const shouldShowTransferFooter = ({
-  currentScrollY,
-  lastScrollY,
-  maxScrollY,
-}: TransferFooterVisibilityParams): boolean => {
-  const isShortPage = maxScrollY <= 8;
-  const isAtPageEnd = currentScrollY >= maxScrollY - 8;
-  const isScrollingUp = currentScrollY < lastScrollY;
-  return isShortPage || isAtPageEnd || isScrollingUp;
-};
-
 const resolvePositiveQuantity = (value: string): number => {
   const quantity = Number(value);
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
@@ -171,14 +155,13 @@ export function useNewTransferModel(): NewTransferViewProps {
   const [batchDrawer, setBatchDrawer] =
     useState<TransferBatchDrawerState>(EMPTY_BATCH_DRAWER);
   const [addItemError, setAddItemError] = useState<string | null>(null);
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const { isFooterVisible } = useFooterVisibility();
   const productSearchBlurTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastScannedBarcodeRef = useRef<string | null>(null);
   const barcodeResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const lastScrollYRef = useRef(0);
 
   useBreadcrumb({
     title: "Nova Transferência",
@@ -238,26 +221,6 @@ export function useNewTransferModel(): NewTransferViewProps {
       if (!barcodeResetTimeoutRef.current) return;
       clearTimeout(barcodeResetTimeoutRef.current);
     };
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = (): void => {
-      const currentScrollY = window.scrollY;
-      const maxScrollY =
-        document.documentElement.scrollHeight - window.innerHeight;
-      setIsFooterVisible(
-        shouldShowTransferFooter({
-          currentScrollY,
-          lastScrollY: lastScrollYRef.current,
-          maxScrollY,
-        }),
-      );
-      lastScrollYRef.current = Math.max(currentScrollY, 0);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const warehouses = (warehousesData?.data || []).flatMap((warehouse) =>

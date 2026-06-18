@@ -7,7 +7,6 @@ import {
   formatTransferProductLabel,
   formatTransferProductQuantityLabel,
   getWarehouseBatchQuantityByProduct,
-  shouldShowTransferFooter,
   useNewTransferModel,
 } from "./new-transfer.model";
 import type { NewTransferSchema } from "./new-transfer.schema";
@@ -384,37 +383,6 @@ describe("helpers de nova transferência", () => {
     expect(clampTransferBatchQuantity("3", 5)).toBe("3");
     expect(clampTransferBatchQuantity("8", 5)).toBe("5");
     expect(clampTransferBatchQuantity("8")).toBe("8");
-  });
-
-  it("mostra footer no fim da página ou quando usuário rola para cima", () => {
-    expect(
-      shouldShowTransferFooter({
-        currentScrollY: 200,
-        lastScrollY: 100,
-        maxScrollY: 1000,
-      }),
-    ).toBe(false);
-    expect(
-      shouldShowTransferFooter({
-        currentScrollY: 995,
-        lastScrollY: 900,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowTransferFooter({
-        currentScrollY: 600,
-        lastScrollY: 700,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowTransferFooter({
-        currentScrollY: 0,
-        lastScrollY: 0,
-        maxScrollY: 0,
-      }),
-    ).toBe(true);
   });
 });
 

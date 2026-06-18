@@ -6,7 +6,6 @@ import {
   buildStockMovementProductSearchUrl,
   formatStockMovementProductLabel,
   mapStockMovementProductOptions,
-  shouldShowStockMovementFooter,
 } from "./stock-movement-product-options";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
 import type {
@@ -524,37 +523,6 @@ describe("helpers de produto", () => {
       costPrice: 1290,
       sellingPrice: 2490,
     });
-  });
-
-  it("exibe footer no fim da pagina ou quando usuario rola para cima", () => {
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 200,
-        lastScrollY: 100,
-        maxScrollY: 1000,
-      }),
-    ).toBe(false);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 995,
-        lastScrollY: 900,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 600,
-        lastScrollY: 700,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 0,
-        lastScrollY: 0,
-        maxScrollY: 0,
-      }),
-    ).toBe(true);
   });
 });
 

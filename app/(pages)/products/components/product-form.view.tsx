@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 import { ProductAiFillModal } from "@/components/product/product-ai-fill-modal";
@@ -72,6 +72,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
+import { useFooterVisibility } from "@/hooks/footer-visibility/use-footer-visibility";
 import type { BatchesDrawerProps, ProductFormProps } from "./product-form.types";
 import { cn } from "@/lib/utils";
 
@@ -152,31 +153,15 @@ export const ProductForm = (productForm: ProductFormProps) => {
   const isInlineEdit = Boolean(productForm.isInlineEdit);
   const profit = sellingPrice - costPrice;
   const margin = costPrice > 0 ? (profit / costPrice) * 100 : 0;
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const { isFooterVisible } = useFooterVisibility();
   const [showMobileBatchModeToggle, setShowMobileBatchModeToggle] = useState(
     isInlineMode && !isInlineEdit && continuousMode,
   );
-  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     if (!isInlineMode || isInlineEdit || !continuousMode) return;
     setShowMobileBatchModeToggle(true);
   }, [continuousMode, isInlineEdit, isInlineMode]);
-
-  useEffect(() => {
-    const handleScroll = (): void => {
-      const currentScrollY = window.scrollY;
-      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
-      const isAtPageEnd = currentScrollY >= maxScrollY - 8;
-      const isScrollingUp = currentScrollY < lastScrollYRef.current;
-      setIsFooterVisible(isScrollingUp || isAtPageEnd || currentScrollY < 8);
-      lastScrollYRef.current = Math.max(currentScrollY, 0);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const viewState: ProductFormViewState = {
     batchesDrawerState: mode === "edit" ? productForm.batchesDrawer : undefined,
@@ -331,7 +316,12 @@ const ProductFormBody = ({
   viewState: ProductFormViewState;
 }) => (
   <Form {...productForm.form}>
-    <form onSubmit={productForm.form.handleSubmit(productForm.onSubmit)}>
+    <form
+      onSubmit={productForm.form.handleSubmit(
+        productForm.onSubmit,
+        productForm.onInvalidSubmit,
+      )}
+    >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <ProductMainColumn productForm={productForm} viewState={viewState} />
         <ProductSidebar productForm={productForm} viewState={viewState} />
@@ -1149,10 +1139,10 @@ const ProductFooterActionBar = ({
 }) => (
   <div
     className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm md:ml-[var(--sidebar-width)]",
+      "fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm transition-transform duration-200 ease-in-out motion-reduce:transition-none md:ml-[var(--sidebar-width)]",
       viewState.isFooterVisible
         ? "translate-y-0"
-        : "translate-y-[calc(100%+1rem)]",
+        : "pointer-events-none translate-y-[calc(100%+1rem)]",
     )}
   >
     <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 px-4 md:flex-row md:justify-end md:px-6 lg:px-8">

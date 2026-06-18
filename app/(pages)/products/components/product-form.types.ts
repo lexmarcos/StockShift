@@ -93,6 +93,7 @@ export interface NewProductBatchOverlay {
 export interface ProductFormProps {
   mode: 'create' | 'edit' | 'inline';
   onSubmit: (data: ProductCreateFormData) => void;
+  onInvalidSubmit?: () => void; // Called when submit fails validation (e.g. to scroll to the first errored field)
   isSubmitting: boolean;
   form: UseFormReturn<ProductCreateFormData>;
 
