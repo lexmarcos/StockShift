@@ -153,25 +153,25 @@
   color: var(--normal-text);
 }
 
-.toaster .toast-success {
+.toaster [data-sonner-toast].toast-success {
   background: #059669;
   border-color: #059669;
   color: #FFFFFF;
 }
 
-.toaster .toast-error {
+.toaster [data-sonner-toast].toast-error {
   background: #E11D48;
   border-color: #E11D48;
   color: #FFFFFF;
 }
 
-.toaster .toast-warning {
+.toaster [data-sonner-toast].toast-warning {
   background: #F59E0B;
   border-color: #F59E0B;
   color: #000000;
 }
 
-.toaster .toast-info {
+.toaster [data-sonner-toast].toast-info {
   background: #2563EB;
   border-color: #2563EB;
   color: #FFFFFF;
