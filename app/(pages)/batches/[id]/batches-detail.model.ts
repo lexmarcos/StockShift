@@ -11,6 +11,7 @@ import {
   parseISO,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCentsToBRL } from "@/lib/currency";
 import { useBreadcrumb } from "@/components/breadcrumb";
 import type {
   BatchDetail,
@@ -64,10 +65,6 @@ const STATUS_MAP: Record<BatchStatusKind, BatchStatusView> = {
   },
 };
 
-const BATCH_DETAIL_CURRENCY_FORMATTER = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
 
 /* ─── Pure Functions ─── */
 
@@ -96,10 +93,7 @@ export const computeBatchStatus = (
   return STATUS_MAP.ok;
 };
 
-export const formatCentsToBRL = (cents: number | null | undefined): string => {
-  if (cents === null || cents === undefined) return "-";
-  return BATCH_DETAIL_CURRENCY_FORMATTER.format(cents / 100);
-};
+export { formatCentsToBRL };
 
 export const formatCentsTotal = (
   unitCents: number | null | undefined,

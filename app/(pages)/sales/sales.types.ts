@@ -133,9 +133,4 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   CANCELLED: "Cancelada",
 };
 
-export function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+export { formatCents } from "@/lib/currency";
