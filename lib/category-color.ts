@@ -1,4 +1,4 @@
-const CATEGORY_FALLBACK_COLOR = "#404040";
+const CATEGORY_FALLBACK_COLOR = "#A3A3A3";
 
 const hslToHex = (hue: number, saturation: number, lightness: number): string => {
   const s = saturation / 100;
@@ -30,13 +30,38 @@ const hashStringToInt = (value: string): number => {
   return Math.abs(hash);
 };
 
-// Deterministic, dark (lightness 30%) badge color derived from a category name,
-// suitable as a background for white text in the dark theme.
+const hexToRgba = (hex: string, alpha: number): string => {
+  const r = Number.parseInt(hex.slice(1, 3), 16);
+  const g = Number.parseInt(hex.slice(3, 5), 16);
+  const b = Number.parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Deterministic, vibrant (lightness 65%) base color derived from a category
+// name, light enough to be read as solid text on the dark theme surfaces.
 export const categoryNameToHexColor = (
   name: string | null | undefined,
 ): string => {
   const trimmed = name?.trim();
   if (!trimmed) return CATEGORY_FALLBACK_COLOR;
   const hue = hashStringToInt(trimmed) % 360;
-  return hslToHex(hue, 55, 30);
+  return hslToHex(hue, 65, 65);
+};
+
+export interface CategoryBadgeStyle {
+  color: string;
+  backgroundColor: string;
+  borderColor: string;
+}
+
+// From a single base color: translucent fill, semi-opaque border and solid text.
+export const buildCategoryBadgeStyle = (
+  name: string | null | undefined,
+): CategoryBadgeStyle => {
+  const base = categoryNameToHexColor(name);
+  return {
+    color: base,
+    backgroundColor: hexToRgba(base, 0.12),
+    borderColor: hexToRgba(base, 0.4),
+  };
 };

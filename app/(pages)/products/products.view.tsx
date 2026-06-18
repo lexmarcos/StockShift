@@ -74,7 +74,7 @@ import {
   ProductFilters,
   LatestBatchPrice,
 } from "./products.types";
-import { categoryNameToHexColor } from "@/lib/category-color";
+import { buildCategoryBadgeStyle } from "@/lib/category-color";
 import { cn } from "@/lib/utils";
 
 const STOCK_FILTER_OPTIONS: Array<{
@@ -1044,13 +1044,10 @@ const ProductCardImage = ({ product }: { product: Product }) => {
 const ProductCategoryBadge = ({ name }: { name: string | null }) => {
   const trimmedName = name?.trim();
   if (!trimmedName) return null;
-  // categoryNameToHexColor always returns a dark (lightness 30%) color, so
-  // white text is always the readable choice.
-  const backgroundColor = categoryNameToHexColor(trimmedName);
   return (
     <span
-      className="w-fit break-words rounded-[4px] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider leading-tight text-white"
-      style={{ backgroundColor }}
+      className="w-fit break-words rounded-[4px] border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider leading-tight"
+      style={buildCategoryBadgeStyle(trimmedName)}
     >
       {trimmedName}
     </span>
