@@ -15,6 +15,7 @@ export interface Product {
   barcode: string | null;
   barcodeType: string | null;
   description: string | null;
+  imageUrl: string | null;
   categoryId: string | null;
   categoryName: string | null;
   brand: Brand | null;
@@ -35,6 +36,30 @@ export interface Batch {
   quantity: number;
   batchNumber: string;
   expirationDate: string | null;
+}
+
+export interface ProductBatchPriceSource {
+  id: string;
+  productId: string;
+  sellingPrice: number | null;
+  costPrice: number | null;
+  createdAt: string;
+}
+
+export interface WarehouseBatchesResponse {
+  success: boolean;
+  data: ProductBatchPriceSource[];
+}
+
+export interface ProductImageResponse {
+  success: boolean;
+  data: { imageUrl: string | null };
+}
+
+export interface LatestBatchPrice {
+  batchId: string;
+  sellingPriceCents: number | null;
+  sellingPriceLabel: string;
 }
 
 interface ProductsPageable {
@@ -84,6 +109,7 @@ export interface ProductFilterDraft {
 export interface ProductsViewProps {
   products: Product[];
   filteredProducts: Product[];
+  latestBatchPriceByProduct: Record<string, LatestBatchPrice | null>;
   isLoading: boolean;
   error: Error | null;
   requiresWarehouse: boolean;

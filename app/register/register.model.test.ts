@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { NormalizedOptions } from "ky";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useRegisterModel } from "./register.model";
 import { registerSchema } from "./register.schema";
@@ -163,7 +164,7 @@ describe("useRegisterModel", () => {
     const httpError = new HTTPError(
       new Response(JSON.stringify(errorResponse), { status: 400 }),
       new Request("http://test.com"),
-      {}
+      {} as unknown as NormalizedOptions
     );
 
     mockApiPost.mockReturnValue({

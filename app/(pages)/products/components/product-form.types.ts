@@ -2,6 +2,11 @@
 import { UseFormReturn } from "react-hook-form";
 import { ProductCreateFormData, AiFillData } from "../create/products-create.types";
 import { CustomAttribute } from "@/components/product/custom-attributes-builder";
+import type {
+  ExistingProductBatchFormState,
+  ExistingProductPriceSuggestion,
+  ExistingProductProfitSummary,
+} from "../../stock-movements/create/create-stock-movement.types";
 
 interface Category {
   id: string;
@@ -45,6 +50,33 @@ export interface BatchesDrawerProps {
   form: UseFormReturn<{ batches: BatchDrawerFormItem[] }>;
 }
 
+export interface ExistingProductInfo {
+  id: string;
+  name: string;
+  barcode: string;
+}
+
+export interface NewProductBatchOverlay {
+  batchForm: ExistingProductBatchFormState;
+  onBatchOpenChange: (open: boolean) => void;
+  onBatchQuantityChange: (quantity: string) => void;
+  onBatchQuantityIncrement: () => void;
+  onBatchQuantityDecrement: () => void;
+  onBatchManufacturedDateChange: (date: string) => void;
+  onBatchExpirationDateChange: (date: string) => void;
+  onBatchCostPriceChange: (price?: number) => void;
+  onBatchSellingPriceChange: (price?: number) => void;
+  onApplyBatchCostPriceSuggestion: () => void;
+  onApplyBatchSalePriceSuggestion: () => void;
+  onConfirmBatch: () => void;
+  batchCostPriceSuggestion: ExistingProductPriceSuggestion | null;
+  batchSalePriceSuggestion: ExistingProductPriceSuggestion | null;
+  isBatchPriceSuggestionLoading: boolean;
+  shouldShowMissingBatchCostPriceSuggestion: boolean;
+  shouldShowMissingBatchSalePriceSuggestion: boolean;
+  batchProfitSummary: ExistingProductProfitSummary;
+}
+
 /**
  * Props for the shared ProductForm component used in both create and edit modes.
  *
@@ -61,6 +93,7 @@ export interface BatchesDrawerProps {
 export interface ProductFormProps {
   mode: 'create' | 'edit' | 'inline';
   onSubmit: (data: ProductCreateFormData) => void;
+  onInvalidSubmit?: () => void; // Called when submit fails validation (e.g. to scroll to the first errored field)
   isSubmitting: boolean;
   form: UseFormReturn<ProductCreateFormData>;
 
@@ -92,7 +125,36 @@ export interface ProductFormProps {
   openScanner: () => void;
   closeScanner: () => void;
   isScannerOpen: boolean;
-  handleBarcodeScan: (barcode: string) => void;
+  handleBarcodeScan: (barcode: string) => void | Promise<void>;
+
+  // Existing product modal (new-product page)
+  scannedExistingProduct?: ExistingProductInfo | null;
+  onExistingProductModalOpenChange?: (open: boolean) => void;
+  onCreateBatchForExistingProduct?: () => void | Promise<void>;
+
+  // Inline duplicate barcode warning drawer (new-product page)
+  inlineDuplicateWarning?: string | null;
+  onInlineDuplicateWarningOpenChange?: (open: boolean) => void;
+
+  // Batch overlay (new-product page)
+  batchForm?: ExistingProductBatchFormState;
+  onBatchOpenChange?: (open: boolean) => void;
+  onBatchQuantityChange?: (quantity: string) => void;
+  onBatchQuantityIncrement?: () => void;
+  onBatchQuantityDecrement?: () => void;
+  onBatchManufacturedDateChange?: (date: string) => void;
+  onBatchExpirationDateChange?: (date: string) => void;
+  onBatchCostPriceChange?: (price?: number) => void;
+  onBatchSellingPriceChange?: (price?: number) => void;
+  onApplyBatchCostPriceSuggestion?: () => void;
+  onApplyBatchSalePriceSuggestion?: () => void;
+  onConfirmBatch?: () => void;
+  batchCostPriceSuggestion?: ExistingProductPriceSuggestion | null;
+  batchSalePriceSuggestion?: ExistingProductPriceSuggestion | null;
+  isBatchPriceSuggestionLoading?: boolean;
+  shouldShowMissingBatchCostPriceSuggestion?: boolean;
+  shouldShowMissingBatchSalePriceSuggestion?: boolean;
+  batchProfitSummary?: ExistingProductProfitSummary;
 
   // AI Fill
   isAiModalOpen?: boolean;

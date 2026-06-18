@@ -38,13 +38,9 @@ vi.mock("@/lib/contexts/warehouse-context", () => ({
   }),
 }));
 
-vi.mock(
-  "@/components/layout/mobile-menu-context",
-  () => ({
-    useMobileMenu: () => mobileMenuMock,
-  }),
-  { virtual: true }
-);
+vi.mock("@/components/layout/mobile-menu-context", () => ({
+  useMobileMenu: () => mobileMenuMock,
+}));
 
 const getClassTokens = (element: Element | null): string[] =>
   element?.getAttribute("class")?.split(/\s+/) ?? [];

@@ -4,7 +4,7 @@ import { MANUAL_MOVEMENT_TYPES } from "../stock-movements.constants";
 const inlineProductImageSchema = z.object({
   name: z.string().min(1),
   type: z.string().min(1),
-  dataUrl: z.string().min(1),
+  blob: z.instanceof(Blob),
 });
 
 const inlineProductSchema = z.object({

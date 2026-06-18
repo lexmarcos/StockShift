@@ -323,7 +323,7 @@ describe("useWarehousesModel", () => {
     });
 
     expect(api.post).toHaveBeenCalledWith("warehouses", { json: payload });
-    expect(toast.success).toHaveBeenCalledWith("Warehouse created successfully");
+    expect(toast.success).toHaveBeenCalledWith("Estoque criado com sucesso");
 
     act(() => {
       result.current.openEditModal(result.current.warehouses[0]);
@@ -334,7 +334,7 @@ describe("useWarehousesModel", () => {
     });
 
     expect(api.put).toHaveBeenCalledWith("warehouses/1", { json: payload });
-    expect(toast.success).toHaveBeenCalledWith("Warehouse updated successfully");
+    expect(toast.success).toHaveBeenCalledWith("Estoque atualizado com sucesso");
   });
 
   it("should show save fallback error when submit fails", async () => {
@@ -353,7 +353,7 @@ describe("useWarehousesModel", () => {
       });
     });
 
-    expect(toast.error).toHaveBeenCalledWith("Erro ao salvar armazém. Tente novamente.");
+    expect(toast.error).toHaveBeenCalledWith("Erro ao salvar estoque. Tente novamente.");
   });
 
   it("should select warehouse and handle selection errors", async () => {
@@ -366,7 +366,7 @@ describe("useWarehousesModel", () => {
     expect(api.post).toHaveBeenCalledWith("auth/switch-warehouse", {
       json: { warehouseId: "2" },
     });
-    expect(toast.success).toHaveBeenCalledWith("Warehouse created successfully");
+    expect(toast.success).toHaveBeenCalledWith("Estoque selecionado");
 
     vi.mocked(api.post).mockImplementationOnce(() => {
       throw { response: { data: { message: "Sem acesso" } } };
@@ -391,7 +391,7 @@ describe("useWarehousesModel", () => {
     });
 
     expect(api.delete).toHaveBeenCalledWith("warehouses/1");
-    expect(toast.success).toHaveBeenCalledWith("Warehouse deleted successfully");
+    expect(toast.success).toHaveBeenCalledWith("Estoque deletado com sucesso");
     expect(result.current.isDeleting).toBe(false);
 
     vi.mocked(api.delete).mockImplementationOnce(() => {
@@ -412,7 +412,7 @@ describe("useWarehousesModel", () => {
     });
 
     expect(toast.error).toHaveBeenCalledWith(
-      "warehouse has stock. Desative o armazém ou transfira o estoque primeiro.",
+      "warehouse has stock. Desative o estoque ou transfira o estoque primeiro.",
     );
     expect(result.current.isDeleting).toBe(false);
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type BarcodeScannerDetectedCode } from "@/components/product/barcode-scanner.types";
 import { AlertCircle } from "lucide-react";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export const BarcodeScannerModal = ({
   onClose,
   onScan,
 }: BarcodeScannerModalProps) => {
-  const handleScan = (detectedCodes: IDetectedBarcode[]) => {
+  const handleScan = (detectedCodes: BarcodeScannerDetectedCode[]) => {
     if (detectedCodes && detectedCodes.length > 0) {
       const code = detectedCodes[0].rawValue;
       onScan(code);
@@ -61,12 +61,7 @@ export const BarcodeScannerModal = ({
                 objectFit: "cover",
               },
             }}
-            components={{
-              onOff: false,
-              torch: false,
-              zoom: false,
-              finder: true,
-            }}
+            components={{ finder: true }}
           />
 
           {/* Overlay Instructions - Corporate Solid */}

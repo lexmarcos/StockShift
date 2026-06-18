@@ -129,6 +129,8 @@ describe("useAuth", () => {
         },
         isLoading: false,
         mutate: vi.fn(),
+        error: undefined,
+        isValidating: false,
       } as ReturnType<typeof useSWR.default>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -149,6 +151,8 @@ describe("useAuth", () => {
         data: mockMeData,
         isLoading: false,
         mutate: vi.fn(),
+        error: undefined,
+        isValidating: false,
       } as ReturnType<typeof useSWR.default>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -179,6 +183,8 @@ describe("useAuth", () => {
         data: mockMeData,
         isLoading: false,
         mutate: vi.fn(),
+        error: undefined,
+        isValidating: false,
       } as ReturnType<typeof useSWR.default>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -203,6 +209,8 @@ describe("useAuth", () => {
         },
         isLoading: false,
         mutate: vi.fn(),
+        error: undefined,
+        isValidating: false,
       } as ReturnType<typeof useSWR.default>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });

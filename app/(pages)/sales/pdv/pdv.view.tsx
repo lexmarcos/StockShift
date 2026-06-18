@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { PointerEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { type IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { type BarcodeScannerDetectedCode } from "@/components/product/barcode-scanner.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
@@ -128,7 +128,7 @@ export const PdvView = ({
     selectedPayment && METHODS_WITH_INSTALLMENTS.includes(selectedPayment) && selectedMode !== "LINK";
 
   const handleBarcodeScan = useCallback(
-    (detectedCodes: IDetectedBarcode[]) => {
+    (detectedCodes: BarcodeScannerDetectedCode[]) => {
       if (detectedCodes && detectedCodes.length > 0) {
         const code = detectedCodes[0].rawValue;
         if (code) onBarcodeScanned(code);
@@ -673,7 +673,7 @@ function DiscountRow({ form, discountAmount }: DiscountRowProps) {
 interface BarcodeDrawerProps {
   open: boolean;
   onClose: () => void;
-  onScan: (codes: IDetectedBarcode[]) => void;
+  onScan: (codes: BarcodeScannerDetectedCode[]) => void;
 }
 
 function BarcodeDrawer({ open, onClose, onScan }: BarcodeDrawerProps) {
@@ -692,7 +692,7 @@ function BarcodeDrawer({ open, onClose, onScan }: BarcodeDrawerProps) {
               onScan={onScan}
               onError={(err: unknown) => console.error("Camera error:", err)}
               styles={{ container: { width: "100%", height: "280px" }, video: { objectFit: "cover" } }}
-              components={{ onOff: false, torch: false, zoom: false, finder: true }}
+              components={{ finder: true }}
             />
           </div>
           <Button

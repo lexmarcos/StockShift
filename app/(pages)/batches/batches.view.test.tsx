@@ -32,7 +32,7 @@ const baseProps = {
     status: "all" as const,
     lowStockThreshold: 10,
   },
-  sortConfig: { key: "createdAt", direction: "desc" as const },
+  sortConfig: { key: "createdAt" as const, direction: "desc" as const },
   isGroupedByProduct: false,
   isMobileFiltersOpen: false,
   mobileFiltersDraft: {

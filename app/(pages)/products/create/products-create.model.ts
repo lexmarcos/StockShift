@@ -177,7 +177,7 @@ export const useProductCreateModel = () => {
     for (let i = 0; i < customAttributes.length; i++) {
       const attr = customAttributes[i];
       if (!attr.key.trim() || !attr.value.trim()) {
-        toast.error(`Atributo ${i + 1}: Nome e valor são obrigatórios`);
+        toast.warning(`Atributo ${i + 1}: Nome e valor são obrigatórios`);
         return false;
       }
     }
@@ -186,7 +186,7 @@ export const useProductCreateModel = () => {
     const keys = customAttributes.map((a) => a.key.trim().toLowerCase());
     const duplicates = keys.filter((key, index) => keys.indexOf(key) !== index);
     if (duplicates.length > 0) {
-      toast.error(`Já existe um atributo com o nome "${duplicates[0]}"`);
+      toast.warning(`Já existe um atributo com o nome "${duplicates[0]}"`);
       return false;
     }
 
@@ -255,12 +255,12 @@ export const useProductCreateModel = () => {
     }
 
     if (!warehouseId) {
-      toast.error("Selecione um warehouse para criar o produto");
+      toast.warning("Selecione um estoque para criar o produto");
       return;
     }
 
     if (isImageProcessing) {
-      toast.error("Aguarde a imagem terminar de processar antes de salvar.");
+      toast.warning("Aguarde a imagem terminar de processar antes de salvar.");
       return;
     }
 

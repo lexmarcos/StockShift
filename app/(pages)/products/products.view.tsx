@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -57,6 +58,7 @@ import {
   PowerOff,
   LayoutList,
   ArrowDownUp,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -70,7 +72,9 @@ import {
   StockStatus,
   ActiveStatus,
   ProductFilters,
+  LatestBatchPrice,
 } from "./products.types";
+import { buildCategoryBadgeStyle } from "@/lib/category-color";
 import { cn } from "@/lib/utils";
 
 const STOCK_FILTER_OPTIONS: Array<{
@@ -594,8 +598,18 @@ const ProductsSearchInput = ({ props }: { props: ProductsViewProps }) => (
       placeholder="Pesquisar no inventário (nome, SKU, código)..."
       value={props.filters.searchQuery}
       onChange={(event) => props.onSearchChange(event.target.value)}
-      className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 text-sm text-neutral-200 placeholder:text-neutral-600 transition-all hover:border-neutral-700 focus:border-blue-600 focus:ring-0"
+      className="w-full rounded-[4px] border-neutral-800 bg-[#171717] pl-10 pr-10 text-sm text-neutral-200 placeholder:text-neutral-600 transition-all hover:border-neutral-700 focus:border-blue-600 focus:ring-0"
     />
+    {props.filters.searchQuery && (
+      <button
+        type="button"
+        onClick={() => props.onSearchChange("")}
+        aria-label="Limpar pesquisa"
+        className="absolute right-3 flex items-center justify-center text-neutral-500 transition-colors hover:text-neutral-200"
+      >
+        <X className="size-4" strokeWidth={2.5} />
+      </button>
+    )}
   </div>
 );
 
@@ -955,11 +969,12 @@ const ProductTableActions = ({
 );
 
 const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
-  <div className="grid gap-3 md:hidden">
+  <div className="grid gap-2 md:hidden">
     {props.filteredProducts.map((product) => (
       <ProductMobileCard
         key={product.id}
         product={product}
+        latestBatchPrice={props.latestBatchPriceByProduct[product.id] ?? null}
         onOpenDeleteDialog={props.onOpenDeleteDialog}
       />
     ))}
@@ -968,35 +983,74 @@ const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
 
 const ProductMobileCard = ({
   product,
+  latestBatchPrice,
   onOpenDeleteDialog,
 }: {
   product: Product;
+  latestBatchPrice: LatestBatchPrice | null;
   onOpenDeleteDialog: (product: Product) => void;
 }) => {
-  const stockStatus = getStockStatus(product.totalQuantity);
+  const priceLabel = latestBatchPrice?.sellingPriceLabel ?? "Sem preço";
 
   return (
-    <div className="relative flex flex-col gap-3 rounded-[4px] border border-neutral-800 bg-[#171717] p-4 transition-colors hover:border-neutral-700">
-      <div className="flex items-start justify-between">
-        <div className="min-w-0 flex-1 pr-2">
-          <h3 className="font-semibold text-white">{product.name}</h3>
-          <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
-            <span className="min-w-0 truncate font-mono">
-              {product.barcode || "SEM COD. BARRAS"}
-            </span>
-            <span>•</span>
-            <span>{product.categoryName}</span>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <ProductStockBadge
-            label={`${product.totalQuantity} un`}
-            stockStatus={stockStatus}
-          />
-          <ProductActions product={product} onOpenDeleteDialog={onOpenDeleteDialog} />
-        </div>
+    <div
+      data-testid="product-mobile-card"
+      className="flex max-w-full items-start gap-2.5 overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] p-2.5 transition-colors hover:border-neutral-700"
+    >
+      <ProductCardImage product={product} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h3 className="truncate text-sm font-semibold text-white">
+          {product.name}
+        </h3>
+        <ProductCategoryBadge name={product.categoryName} />
+        <span className="font-mono text-xs font-medium text-neutral-300">
+          {priceLabel} • {product.totalQuantity} Unids
+        </span>
+      </div>
+      <div className="flex shrink-0 self-start">
+        <ProductActions product={product} onOpenDeleteDialog={onOpenDeleteDialog} />
       </div>
     </div>
+  );
+};
+
+const ProductCardImage = ({ product }: { product: Product }) => {
+  if (product.imageUrl) {
+    return (
+      <span className="relative block w-10 h-15 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900">
+        <Image
+          src={product.imageUrl}
+          alt={`Foto de ${product.name}`}
+          fill
+          sizes="68px"
+          unoptimized
+          className="object-cover"
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      role="img"
+      aria-label="Produto sem foto"
+      className="flex size-10 shrink-0 items-center justify-center rounded-[4px] border border-neutral-800 bg-neutral-900 text-neutral-600"
+    >
+      <Package className="size-4" strokeWidth={2} />
+    </span>
+  );
+};
+
+const ProductCategoryBadge = ({ name }: { name: string | null }) => {
+  const trimmedName = name?.trim();
+  if (!trimmedName) return null;
+  return (
+    <span
+      className="w-fit break-words rounded-[4px] border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider leading-tight"
+      style={buildCategoryBadgeStyle(trimmedName)}
+    >
+      {trimmedName}
+    </span>
   );
 };
 

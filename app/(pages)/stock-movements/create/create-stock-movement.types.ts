@@ -21,7 +21,7 @@ export interface InlineProductData {
 export interface InlineProductImageData {
   name: string;
   type: string;
-  dataUrl: string;
+  blob: Blob;
 }
 
 export interface StockMovementDraftItem {
@@ -46,6 +46,7 @@ export interface ExistingProductBatchFormState {
   sellingPrice?: number;
   editingIndex: number | null;
   error: string | null;
+  repeatedProductWarning?: string | null;
 }
 
 export interface StockMovementProductBatchPriceSource {
@@ -153,6 +154,11 @@ export interface CreateStockMovementViewProps {
   shouldShowMissingCostPriceSuggestion: boolean;
   shouldShowMissingSalePriceSuggestion: boolean;
   existingProductProfitSummary: ExistingProductProfitSummary;
+  missingProductBarcode: string | null;
+  onMissingProductModalOpenChange: (open: boolean) => void;
+  onCreateProductFromMissingModal: () => void;
+  inlineDuplicateWarning: string | null;
+  onInlineDuplicateWarningOpenChange: (open: boolean) => void;
   items: Array<{
     id: string;
     productId?: string;

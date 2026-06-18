@@ -40,6 +40,7 @@ vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    warning: vi.fn(),
   },
 }));
 
@@ -143,7 +144,7 @@ describe("useProductCreateModel - multipart submit", () => {
     });
 
     expect(mockPost).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith(
+    expect(toast.warning).toHaveBeenCalledWith(
       "Aguarde a imagem terminar de processar antes de salvar.",
     );
   });
@@ -189,7 +190,7 @@ describe("useProductCreateModel - multipart submit", () => {
     });
 
     expect(mockPost).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith("Selecione um warehouse para criar o produto");
+    expect(toast.warning).toHaveBeenCalledWith("Selecione um estoque para criar o produto");
   });
 
   it("blocks submit when custom attribute is incomplete or duplicated", async () => {
@@ -203,7 +204,7 @@ describe("useProductCreateModel - multipart submit", () => {
       await result.current.onSubmit(baseFormData);
     });
 
-    expect(toast.error).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
+    expect(toast.warning).toHaveBeenCalledWith("Atributo 1: Nome e valor são obrigatórios");
 
     act(() => {
       result.current.updateCustomAttribute(0, "key", "color");
@@ -220,7 +221,7 @@ describe("useProductCreateModel - multipart submit", () => {
       await result.current.onSubmit(baseFormData);
     });
 
-    expect(toast.error).toHaveBeenCalledWith('Já existe um atributo com o nome "color"');
+    expect(toast.warning).toHaveBeenCalledWith('Já existe um atributo com o nome "color"');
     expect(mockPost).not.toHaveBeenCalled();
   });
 

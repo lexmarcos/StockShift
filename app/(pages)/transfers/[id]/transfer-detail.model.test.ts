@@ -30,7 +30,7 @@ const fakeSWR = vi.hoisted(() => {
 
     public reset(): void {
       this.responses.clear();
-      this.defaultState.mutate.mockClear();
+      vi.mocked(this.defaultState.mutate).mockClear();
       this.hook.mockClear();
     }
   }
@@ -131,7 +131,7 @@ const baseTransfer: Transfer = {
   destinationWarehouseId: "warehouse-destination",
   destinationWarehouseName: "Loja Centro",
   status: TransferStatus.DRAFT,
-  notes: null,
+  notes: undefined,
   items: [],
   createdAt: "2026-01-01T09:00:00.000Z",
 };

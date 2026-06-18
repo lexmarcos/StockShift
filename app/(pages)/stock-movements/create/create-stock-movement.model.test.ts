@@ -1,12 +1,12 @@
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateStockMovementModel } from "./create-stock-movement.model";
+import { buildMovementPayload } from "./create-stock-movement.payload";
 import {
-  buildMovementPayload,
-  filterStockMovementProductOptions,
+  buildStockMovementProductSearchUrl,
   formatStockMovementProductLabel,
-  shouldShowStockMovementFooter,
-} from "./create-stock-movement.model";
+  mapStockMovementProductOptions,
+} from "./stock-movement-product-options";
 import type { CreateStockMovementSchema } from "./create-stock-movement.schema";
 import type {
   StockMovementDraft,
@@ -112,6 +112,7 @@ const fakeToast = vi.hoisted(() => {
   class FakeToast {
     public readonly success = vi.fn<(message: string) => void>();
     public readonly error = vi.fn<(message: string, options?: unknown) => void>();
+    public readonly warning = vi.fn<(message: string) => void>();
   }
 
   return new FakeToast();
@@ -134,14 +135,20 @@ const fakeStorage = vi.hoisted(() => {
     public readonly readStockMovementDraft = vi.fn<() => Promise<StockMovementDraft | null>>(async () => {
       return this.draftState;
     });
-    public readonly writeStockMovementDraft = vi.fn<(draft: WritableStockMovementDraft) => Promise<void>>(
-      async (draft) => {
+    public readonly writeStockMovementDraft = vi.fn(
+      async (draft: WritableStockMovementDraft, expectedRevision?: number) => {
+        const storedRevision = this.draftState?.revision ?? 0;
+        if (expectedRevision !== undefined && storedRevision !== expectedRevision) {
+          return { status: "conflict" as const, revision: storedRevision };
+        }
         this.draftState = {
           ...draft,
-          schemaVersion: 1,
+          schemaVersion: 3,
           updatedAt: "2026-01-20T10:00:00.000Z",
+          revision: storedRevision + 1,
           runtimeId: this.currentRuntimeId,
         };
+        return { status: "written" as const, revision: storedRevision + 1 };
       },
     );
     public readonly clearStockMovementDraft = vi.fn(async () => {
@@ -210,29 +217,32 @@ vi.mock("@/hooks/use-selected-warehouse", () => ({
 
 vi.mock("@/lib/api", () => ({
   api: fakeApi,
+  isApiNotFoundError: (error: unknown) =>
+    Boolean((error as { notFound?: boolean })?.notFound),
 }));
 
 vi.mock("./create-stock-movement.storage", () => ({
   readStockMovementDraft: () => fakeStorage.readStockMovementDraft(),
   isStockMovementDraftRecoveredFromPreviousRuntime: (draft: StockMovementDraft) =>
     fakeStorage.isStockMovementDraftRecoveredFromPreviousRuntime(draft),
-  writeStockMovementDraft: (draft: WritableStockMovementDraft) =>
-    fakeStorage.writeStockMovementDraft(draft),
+  writeStockMovementDraft: (
+    draft: WritableStockMovementDraft,
+    expectedRevision?: number,
+  ) => fakeStorage.writeStockMovementDraft(draft, expectedRevision),
   clearStockMovementDraft: () => fakeStorage.clearStockMovementDraft(),
   inlineProductImageToFile: (image: {
     name: string;
     type: string;
-    dataUrl: string;
+    blob: Blob;
   }): File =>
-    new File(["img"], image.name, {
+    new File([image.blob], image.name, {
       type: image.type,
     }),
-  fileToInlineProductImage: (file: File) =>
-    Promise.resolve({
-      name: file.name,
-      type: file.type,
-      dataUrl: "data:image/png;base64,YQ==",
-    }),
+  fileToInlineProductImage: (file: File) => ({
+    name: file.name,
+    type: file.type,
+    blob: file,
+  }),
 }));
 
 const movementProducts: StockMovementProductOption[] = [
@@ -308,9 +318,11 @@ const barcodeIndex: Record<string, StockMovementProductOption> = {
 const createDraftState = (
   overrides?: Partial<StockMovementDraft>,
 ): StockMovementDraft => ({
-  schemaVersion: 1,
+  schemaVersion: 3,
   updatedAt: "2026-01-20T09:00:00.000Z",
+  revision: 1,
   type: "PURCHASE_IN",
+  warehouseId: "wh-1",
   notes: "Notas iniciais",
   items: [
     {
@@ -371,7 +383,7 @@ const createInlineSubmitPayload = (): CreateStockMovementSchema => ({
         image: {
           name: "inline.png",
           type: "image/png",
-          dataUrl: "data:image/png;base64,ZmFrZQ==",
+          blob: new Blob(["fake"], { type: "image/png" }),
         },
       },
     },
@@ -406,7 +418,12 @@ beforeEach(() => {
     if (url.startsWith("products/barcode/")) {
       const barcode = decodeURIComponent(url.replace("products/barcode/", ""));
       const product = barcodeIndex[barcode];
-      if (!product) throw new Error(`Produto com código ${barcode} não existe.`);
+      if (!product) {
+        throw Object.assign(
+          new Error(`Produto com código ${barcode} não existe.`),
+          { notFound: true },
+        );
+      }
       return createJsonResponse({
         success: true,
         data: product,
@@ -440,23 +457,28 @@ afterEach(() => {
 describe("helpers de produto", () => {
   const products: StockMovementProductOption[] = movementProducts;
 
-  it("exige pelo menos dois caracteres para filtrar", () => {
-    expect(filterStockMovementProductOptions(products, " c ")).toEqual([]);
+  it("não monta URL de busca com menos de dois caracteres", () => {
+    expect(buildStockMovementProductSearchUrl(" c ")).toBeNull();
+    expect(buildStockMovementProductSearchUrl("")).toBeNull();
   });
 
-  it("busca por nome, sku e código de barras", () => {
-    expect(filterStockMovementProductOptions(products, "fil")[0].id).toBe("p-2");
-    expect(filterStockMovementProductOptions(products, "ACU")[0].id).toBe("p-3");
-    expect(filterStockMovementProductOptions(products, "0001")[0].id).toBe("p-1");
+  it("monta URL de busca com query escapada", () => {
+    expect(buildStockMovementProductSearchUrl(" café cristal ")).toBe(
+      "products/search?q=caf%C3%A9%20cristal",
+    );
   });
 
-  it("limita os resultados da busca para cinco itens", () => {
-    const manyProducts = Array.from({ length: 6 }, (_, index) => ({
-      id: `extra-${index}`,
-      name: `Produto ${index}`,
-    }));
-
-    expect(filterStockMovementProductOptions(manyProducts, "produto")).toHaveLength(5);
+  it("mapeia resposta de produtos em lista ou paginada", () => {
+    expect(
+      mapStockMovementProductOptions({ success: true, data: products }),
+    ).toHaveLength(4);
+    expect(
+      mapStockMovementProductOptions({
+        success: true,
+        data: { content: products.slice(0, 2) },
+      }),
+    ).toHaveLength(2);
+    expect(mapStockMovementProductOptions(null)).toEqual([]);
   });
 
   it("mostra SKU quando disponível", () => {
@@ -501,37 +523,6 @@ describe("helpers de produto", () => {
       costPrice: 1290,
       sellingPrice: 2490,
     });
-  });
-
-  it("exibe footer no fim da pagina ou quando usuario rola para cima", () => {
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 200,
-        lastScrollY: 100,
-        maxScrollY: 1000,
-      }),
-    ).toBe(false);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 995,
-        lastScrollY: 900,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 600,
-        lastScrollY: 700,
-        maxScrollY: 1000,
-      }),
-    ).toBe(true);
-    expect(
-      shouldShowStockMovementFooter({
-        currentScrollY: 0,
-        lastScrollY: 0,
-        maxScrollY: 0,
-      }),
-    ).toBe(true);
   });
 });
 
@@ -669,6 +660,7 @@ describe("useCreateStockMovementModel", () => {
         expect.objectContaining({
           notes: "Nova observação",
         }),
+        expect.any(Number),
       );
     });
 
@@ -686,6 +678,7 @@ describe("useCreateStockMovementModel", () => {
     await waitFor(() => {
       expect(fakeStorage.writeStockMovementDraft).toHaveBeenCalledWith(
         expect.objectContaining({
+          warehouseId: "wh-1",
           items: [
             {
               productId: validExistingProductUuid,
@@ -694,12 +687,19 @@ describe("useCreateStockMovementModel", () => {
             },
           ],
         }),
+        expect.any(Number),
       );
     });
   });
 
-  it("aplica debounce de busca de produto", () => {
+  it("aplica debounce e busca produtos na API de pesquisa", () => {
     vi.useFakeTimers();
+    fakeSWR.setState("products/search?q=filtro", {
+      data: { success: true, data: [movementProducts[1]] },
+      error: null,
+      isLoading: false,
+      mutate: vi.fn(),
+    });
     const { result } = renderHook(() =>
       useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
     );
@@ -714,7 +714,12 @@ describe("useCreateStockMovementModel", () => {
     act(() => {
       vi.advanceTimersByTime(350);
     });
+    expect(fakeSWR.hook).toHaveBeenCalledWith(
+      "products/search?q=filtro",
+      expect.any(Function),
+    );
     expect(result.current.productOptions).toHaveLength(1);
+    expect(result.current.productOptions[0].id).toBe("p-2");
   });
 
   it("cancela debounce de busca ao desmontar", () => {
@@ -1122,28 +1127,55 @@ describe("useCreateStockMovementModel", () => {
     });
   });
 
-  it("mostra erro com ação para criação quando produto não existe", async () => {
-    fakeApi.get.mockRejectedValue(new Error("não encontrado"));
-
+  it("abre modal de produto não encontrado quando produto não existe", async () => {
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
 
     await act(async () => {
       await result.current.onBarcodeScan("7891009999999");
     });
 
-    const lastCall = fakeToast.error.mock.calls.at(-1);
-    expect(lastCall?.[0]).toBe("Produto com código 7891009999999 não existe.");
-    expect(lastCall?.[1]).toMatchObject({
-      action: {
-        label: "Criar Produto",
-      },
+    expect(result.current.missingProductBarcode).toBe("7891009999999");
+    expect(fakeToast.error).not.toHaveBeenCalled();
+  });
+
+  it("não abre modal de produto não encontrado quando barcode pertence a produto inline pendente", async () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          quantity: 1,
+          productName: "Produto Inline",
+          newProductData: {
+            name: "Produto Inline",
+            barcode: "7891009999999",
+          },
+        },
+      ]);
     });
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891009999999");
+    });
+
+    expect(result.current.missingProductBarcode).toBeNull();
+    expect(result.current.inlineDuplicateWarning).toBe(
+      "Produto Inline já está na movimentação como produto novo.",
+    );
+    expect(fakeToast.warning).not.toHaveBeenCalled();
+    expect(fakeToast.error).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.onInlineDuplicateWarningOpenChange(false);
+    });
+    expect(result.current.inlineDuplicateWarning).toBeNull();
   });
 
   it("mostra aviso sem ação para tipo de saída", async () => {
     fakeSearchParams.setType("USAGE");
     const { result } = renderHook(() => useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }));
-    fakeApi.get.mockRejectedValue(new Error("não encontrado"));
 
     await act(async () => {
       await result.current.onBarcodeScan("7891009999999");
@@ -1154,6 +1186,131 @@ describe("useCreateStockMovementModel", () => {
     );
     const lastCall = fakeToast.error.mock.calls.at(-1);
     expect(lastCall?.[1]).toBeUndefined();
+  });
+
+  it("não trata falha de rede do scanner como produto inexistente", async () => {
+    fakeApi.get.mockImplementation(() => {
+      throw new Error("timeout");
+    });
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891009999999");
+    });
+
+    expect(result.current.missingProductBarcode).toBeNull();
+    expect(fakeToast.error).toHaveBeenCalledWith(
+      "Não foi possível consultar o código 7891009999999 (timeout). Verifique a conexão e tente novamente.",
+    );
+  });
+
+  it("bloqueia produto existente quando há produto novo pendente com o mesmo barcode", async () => {
+    fakeSearchParams.setType("USAGE");
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          quantity: 1,
+          productName: "Produto Pendente",
+          newProductData: {
+            name: "Produto Pendente",
+            barcode: "7891000000004",
+            active: true,
+            isKit: false,
+            hasExpiration: false,
+          },
+        },
+      ]);
+    });
+
+    await act(async () => {
+      await result.current.onBarcodeScan("7891000000004");
+    });
+
+    expect(fakeToast.error).toHaveBeenCalledWith(
+      'O código 7891000000004 já pertence ao produto novo "Produto Pendente" nesta movimentação. Remova-o antes de adicionar o produto existente.',
+    );
+    expect(result.current.form.getValues("items")).toHaveLength(1);
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[3]);
+    });
+
+    expect(result.current.selectedProductId).toBe("");
+    expect(result.current.addItemError).toBe(
+      'O código 7891000000004 já pertence ao produto novo "Produto Pendente" nesta movimentação. Remova-o antes de adicionar o produto existente.',
+    );
+  });
+
+  it("avisa ao abrir dados de lote de produto que já está na movimentação", () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.form.setValue("items", [
+        {
+          productId: "p-1",
+          productName: "Café Torrado",
+          quantity: 2,
+        },
+      ]);
+    });
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+
+    expect(result.current.existingProductBatchForm.isOpen).toBe(true);
+    expect(result.current.existingProductBatchForm.repeatedProductWarning).toBe(
+      "Café Torrado já está na movimentação. Este lote será adicionado como um novo item.",
+    );
+  });
+
+  it("não restaura rascunho de outro warehouse", async () => {
+    fakeStorage.setDraftState(
+      createDraftState({ warehouseId: "wh-2", selectedProductId: "p-2" }),
+    );
+
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    await waitFor(() => {
+      expect(fakeStorage.readStockMovementDraft).toHaveBeenCalled();
+    });
+
+    expect(result.current.form.getValues("notes")).toBe("");
+    expect(result.current.selectedProductId).toBe("");
+  });
+
+  it("recusa lote com validade anterior à fabricação", () => {
+    const { result } = renderHook(() =>
+      useCreateStockMovementModel({ typeParam: fakeSearchParams.get("type") }),
+    );
+
+    act(() => {
+      result.current.onProductSelect(movementProducts[0]);
+    });
+    act(() => {
+      result.current.onExistingProductBatchQuantityChange("2");
+      result.current.onExistingProductBatchCostPriceChange(1290);
+      result.current.onExistingProductBatchSellingPriceChange(2490);
+      result.current.onExistingProductBatchManufacturedDateChange("2026-06-01");
+      result.current.onExistingProductBatchExpirationDateChange("2026-01-01");
+    });
+    act(() => {
+      result.current.onConfirmExistingProductBatchData();
+    });
+
+    expect(result.current.existingProductBatchForm.error).toBe(
+      "A data de validade não pode ser anterior à data de fabricação.",
+    );
+    expect(result.current.items).toHaveLength(0);
   });
 
   it("abre editor de produto novo quando o item do índice é válido", async () => {

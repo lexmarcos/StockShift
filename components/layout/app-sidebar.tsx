@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   Activity,
   ShoppingCart,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth-context";
@@ -21,7 +22,10 @@ type NavItem = {
   Icon: typeof Package;
   requiredPermission?: string;
   adminOnly?: boolean;
+  devOnly?: boolean;
 };
+
+const IS_DEV = process.env.NODE_ENV === "development";
 
 const navItems: NavItem[] = [
   {
@@ -66,6 +70,12 @@ const navItems: NavItem[] = [
     Icon: Folder,
     requiredPermission: "categories:read",
   },
+  {
+    href: "/exploratory-tests",
+    label: "Testes",
+    Icon: ClipboardCheck,
+    devOnly: true,
+  },
 ];
 
 export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
@@ -73,6 +83,7 @@ export const AppSidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { isAdmin, hasPermission } = useAuth();
 
   const visibleNavItems = navItems.filter((item) => {
+    if (item.devOnly && !IS_DEV) return false;
     if (item.adminOnly && !isAdmin) return false;
     if (!item.requiredPermission) return true;
     return hasPermission(item.requiredPermission);

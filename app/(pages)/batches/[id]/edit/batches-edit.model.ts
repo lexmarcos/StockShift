@@ -65,10 +65,10 @@ export const useBatchEditModel = (batchId: string) => {
     try {
       const { api } = await import("@/lib/api");
       await api.put(`batches/${batchId}`, { json: values }).json();
-      toast.success("Batch atualizado");
+      toast.success("Lote atualizado");
       router.push(`/batches/${batchId}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao atualizar batch";
+      const message = err instanceof Error ? err.message : "Erro ao atualizar lote";
       toast.error(message);
     }
   };

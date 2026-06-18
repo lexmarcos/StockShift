@@ -105,6 +105,7 @@ const fakeToast = vi.hoisted(() => {
   class FakeBatchCreateToast {
     public readonly success = vi.fn<(message: string) => void>();
     public readonly error = vi.fn<(message: string) => void>();
+    public readonly warning = vi.fn<(message: string) => void>();
   }
 
   return new FakeBatchCreateToast();
@@ -543,8 +544,8 @@ describe("useBatchCreateModel", () => {
       await result.current.onSubmit(validSubmitData);
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith(
-      "Selecione um warehouse ativo para criar o batch",
+    expect(fakeToast.warning).toHaveBeenCalledWith(
+      "Selecione um estoque ativo para criar o lote",
     );
     expect(fakeApi.post).not.toHaveBeenCalled();
   });
@@ -596,7 +597,7 @@ describe("useBatchCreateModel", () => {
     expect(fakeApi.post).toHaveBeenCalledWith("batches", {
       json: buildBatchPayload(validSubmitData, "wh-1"),
     });
-    expect(fakeToast.success).toHaveBeenCalledWith("Batch criado com sucesso");
+    expect(fakeToast.success).toHaveBeenCalledWith("Lote criado com sucesso");
     expect(fakeRouter.push).toHaveBeenCalledWith("/batches/batch-2026");
   });
 
@@ -627,6 +628,6 @@ describe("useBatchCreateModel", () => {
       await result.current.onSubmit(validSubmitData);
     });
 
-    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao criar batch");
+    expect(fakeToast.error).toHaveBeenCalledWith("Erro ao criar lote");
   });
 });

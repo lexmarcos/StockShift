@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/contexts/auth-context";
 import { LayoutContent } from "@/components/layout/layout-content";
 import { MobileMenuProvider } from "@/components/layout/mobile-menu-context";
 import { Toaster } from "@/components/ui/sonner";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -174,13 +175,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
       >
-        <AuthProvider>
-          <WarehouseProvider>
-            <MobileMenuProvider>
-              <LayoutContent>{children}</LayoutContent>
-            </MobileMenuProvider>
-          </WarehouseProvider>
-        </AuthProvider>
+        <NuqsAdapter>
+          <AuthProvider>
+            <WarehouseProvider>
+              <MobileMenuProvider>
+                <LayoutContent>{children}</LayoutContent>
+              </MobileMenuProvider>
+            </WarehouseProvider>
+          </AuthProvider>
+        </NuqsAdapter>
         <Toaster />
         {SHOULD_LOAD_CLARITY && (
           <Script

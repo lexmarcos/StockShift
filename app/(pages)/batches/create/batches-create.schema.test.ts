@@ -10,7 +10,7 @@ const baseData = {
 };
 
 const expectErrorPath = (
-  result: { success: false; error: { issues: { path: (string | number)[]; message: string }[] } },
+  result: { success: false; error: { issues: { path: PropertyKey[]; message: string }[] } },
   path: string,
 ): void => {
   if (result.success) {
@@ -52,6 +52,7 @@ describe("batchCreateSchema", () => {
       productId: "",
     });
     expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected parse failure");
     expectErrorPath(result, "productId");
   });
 
@@ -61,6 +62,7 @@ describe("batchCreateSchema", () => {
       quantity: 0,
     });
     expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected parse failure");
     expectErrorPath(result, "quantity");
   });
 

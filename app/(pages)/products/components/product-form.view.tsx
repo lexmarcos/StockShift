@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
 import { ProductAiFillModal } from "@/components/product/product-ai-fill-modal";
 import { ImageDropzone } from "@/components/product/image-dropzone";
+import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +22,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { InlineDuplicateWarningDrawer } from "@/components/stock-movement/inline-duplicate-warning-drawer";
 import {
   Accordion,
   AccordionContent,
@@ -49,6 +51,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  AlertCircle,
   Calendar,
   CheckCircle2,
   DollarSign,
@@ -69,6 +72,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PermissionGate } from "@/components/permission-gate";
+import { useFooterVisibility } from "@/hooks/footer-visibility/use-footer-visibility";
 import type { BatchesDrawerProps, ProductFormProps } from "./product-form.types";
 import { cn } from "@/lib/utils";
 
@@ -149,31 +153,15 @@ export const ProductForm = (productForm: ProductFormProps) => {
   const isInlineEdit = Boolean(productForm.isInlineEdit);
   const profit = sellingPrice - costPrice;
   const margin = costPrice > 0 ? (profit / costPrice) * 100 : 0;
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const { isFooterVisible } = useFooterVisibility();
   const [showMobileBatchModeToggle, setShowMobileBatchModeToggle] = useState(
     isInlineMode && !isInlineEdit && continuousMode,
   );
-  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     if (!isInlineMode || isInlineEdit || !continuousMode) return;
     setShowMobileBatchModeToggle(true);
   }, [continuousMode, isInlineEdit, isInlineMode]);
-
-  useEffect(() => {
-    const handleScroll = (): void => {
-      const currentScrollY = window.scrollY;
-      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
-      const isAtPageEnd = currentScrollY >= maxScrollY - 8;
-      const isScrollingUp = currentScrollY < lastScrollYRef.current;
-      setIsFooterVisible(isScrollingUp || isAtPageEnd || currentScrollY < 8);
-      lastScrollYRef.current = Math.max(currentScrollY, 0);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const viewState: ProductFormViewState = {
     batchesDrawerState: mode === "edit" ? productForm.batchesDrawer : undefined,
@@ -222,6 +210,13 @@ const ProductFormShell = ({
       onClose={productForm.closeScanner}
       onScan={productForm.handleBarcodeScan}
     />
+    <ExistingProductFoundModal productForm={productForm} />
+    {productForm.onInlineDuplicateWarningOpenChange && (
+      <InlineDuplicateWarningDrawer
+        message={productForm.inlineDuplicateWarning}
+        onOpenChange={productForm.onInlineDuplicateWarningOpenChange}
+      />
+    )}
     <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8">
       <ProductAiModal productForm={productForm} viewState={viewState} />
       <ProductFormBody productForm={productForm} viewState={viewState} />
@@ -229,6 +224,67 @@ const ProductFormShell = ({
     <ProductBatchesDrawer viewState={viewState} />
   </div>
 );
+
+const ExistingProductFoundModal = ({
+  productForm,
+}: {
+  productForm: ProductFormProps;
+}) => {
+  const { scannedExistingProduct, onExistingProductModalOpenChange, onCreateBatchForExistingProduct } = productForm;
+  if (!onExistingProductModalOpenChange || !onCreateBatchForExistingProduct) return null;
+
+  return (
+    <ResponsiveModal
+      open={scannedExistingProduct != null}
+      onOpenChange={onExistingProductModalOpenChange}
+      title="Produto já existe"
+      description={`O produto "${scannedExistingProduct?.name}" já está cadastrado no sistema.`}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onExistingProductModalOpenChange(false)}
+            className="h-10 w-full rounded-[4px] border-neutral-800 text-xs font-bold uppercase tracking-wide md:w-auto"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={onCreateBatchForExistingProduct}
+            className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
+          >
+            Adicionar Lote
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4 pb-2 pt-2">
+        <div className="flex items-start gap-3 rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-4 py-3">
+          <AlertCircle className="size-5 shrink-0 text-amber-500" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-amber-400">
+              Produto existente encontrado
+            </p>
+            <p className="text-xs text-amber-400/80">
+              Não é possível criar um novo produto com este código. Deseja adicionar um novo lote ao produto existente?
+            </p>
+          </div>
+        </div>
+        {scannedExistingProduct && (
+          <div className="rounded-[4px] border border-neutral-800 bg-neutral-900 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Código de barras
+            </p>
+            <p className="mt-1 font-mono text-sm font-bold text-white">
+              {scannedExistingProduct.barcode}
+            </p>
+          </div>
+        )}
+      </div>
+    </ResponsiveModal>
+  );
+};
 
 const ProductAiModal = ({
   productForm,
@@ -260,7 +316,12 @@ const ProductFormBody = ({
   viewState: ProductFormViewState;
 }) => (
   <Form {...productForm.form}>
-    <form onSubmit={productForm.form.handleSubmit(productForm.onSubmit)}>
+    <form
+      onSubmit={productForm.form.handleSubmit(
+        productForm.onSubmit,
+        productForm.onInvalidSubmit,
+      )}
+    >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <ProductMainColumn productForm={productForm} viewState={viewState} />
         <ProductSidebar productForm={productForm} viewState={viewState} />
@@ -1078,10 +1139,10 @@ const ProductFooterActionBar = ({
 }) => (
   <div
     className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm md:ml-[var(--sidebar-width)]",
+      "fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-800 bg-[#0A0A0A]/95 p-4 backdrop-blur-sm transition-transform duration-200 ease-in-out motion-reduce:transition-none md:ml-[var(--sidebar-width)]",
       viewState.isFooterVisible
         ? "translate-y-0"
-        : "translate-y-[calc(100%+1rem)]",
+        : "pointer-events-none translate-y-[calc(100%+1rem)]",
     )}
   >
     <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 px-4 md:flex-row md:justify-end md:px-6 lg:px-8">

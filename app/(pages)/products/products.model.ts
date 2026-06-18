@@ -1,11 +1,17 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import useSWR, { mutate as mutateGlobal } from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { formatCentsToBRL } from "@/lib/currency";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   Batch,
+  LatestBatchPrice,
   Product,
+  ProductBatchPriceSource,
+  ProductImageResponse,
   ProductsResponse,
   ProductFilters,
   ProductFilterDraft,
@@ -13,6 +19,7 @@ import {
   SortOrder,
   StockStatus,
   ActiveStatus,
+  WarehouseBatchesResponse,
 } from "./products.types";
 
 interface BatchesResponse {
@@ -20,7 +27,9 @@ interface BatchesResponse {
   data: Batch[];
 }
 
-const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
+type TableFilters = Omit<ProductFilters, "searchQuery">;
+
+const DEFAULT_FILTERS: TableFilters = {
   sortBy: "name",
   sortOrder: "asc",
   stockStatus: "all",
@@ -29,11 +38,63 @@ const DEFAULT_FILTERS: Omit<ProductFilters, "searchQuery"> = {
   pageSize: 20,
 };
 
+// Key for the search query persisted in the URL via nuqs, so it survives
+// navigating into a product detail and coming back.
+const SEARCH_QUERY_PARAM = "q";
+
 const DEFAULT_DRAFT: ProductFilterDraft = {
   stockStatus: "all",
   activeStatus: "all",
   sortBy: "name",
   sortOrder: "asc",
+};
+
+export const findMostRecentBatch = (
+  batches: readonly ProductBatchPriceSource[],
+): ProductBatchPriceSource | null => {
+  return batches.reduce<ProductBatchPriceSource | null>((latest, batch) => {
+    if (!latest) return batch;
+    const batchTime = new Date(batch.createdAt).getTime();
+    const latestTime = new Date(latest.createdAt).getTime();
+    if (!Number.isFinite(batchTime)) return latest;
+    if (!Number.isFinite(latestTime)) return batch;
+    return batchTime > latestTime ? batch : latest;
+  }, null);
+};
+
+export const buildLatestBatchPrice = (
+  batch: ProductBatchPriceSource | null,
+): LatestBatchPrice | null => {
+  if (!batch) return null;
+  return {
+    batchId: batch.id,
+    sellingPriceCents: batch.sellingPrice,
+    sellingPriceLabel: formatCentsToBRL(batch.sellingPrice, "Sem preço"),
+  };
+};
+
+const groupBatchesByProduct = (
+  batches: readonly ProductBatchPriceSource[],
+): Map<string, ProductBatchPriceSource[]> =>
+  batches.reduce<Map<string, ProductBatchPriceSource[]>>((groups, batch) => {
+    const existing = groups.get(batch.productId) ?? [];
+    existing.push(batch);
+    groups.set(batch.productId, existing);
+    return groups;
+  }, new Map());
+
+export const buildLatestBatchPriceByProduct = (
+  batches: readonly ProductBatchPriceSource[],
+): Record<string, LatestBatchPrice | null> => {
+  const groups = groupBatchesByProduct(batches);
+  const result: Record<string, LatestBatchPrice | null> = {};
+  for (const [productId, productBatches] of groups) {
+    // Ignore batches without a price so a newer price-less batch never hides
+    // the known price of an earlier batch.
+    const priced = productBatches.filter((batch) => batch.sellingPrice !== null);
+    result[productId] = buildLatestBatchPrice(findMostRecentBatch(priced));
+  }
+  return result;
 };
 
 const buildFilterDraft = (filters: ProductFilters): ProductFilterDraft => ({
@@ -67,13 +128,78 @@ const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
   }
 };
 
+const fetchProductImage = async (
+  id: string,
+): Promise<{ id: string; imageUrl: string | null }> => {
+  try {
+    const response = await api
+      .get(`products/${id}`)
+      .json<ProductImageResponse>();
+    return { id, imageUrl: response.data.imageUrl ?? null };
+  } catch {
+    return { id, imageUrl: null };
+  }
+};
+
+const fetchProductImages = async (
+  productIds: string[],
+): Promise<Record<string, string | null>> => {
+  const results = await Promise.all(productIds.map(fetchProductImage));
+  return Object.fromEntries(results.map((result) => [result.id, result.imageUrl]));
+};
+
+const buildProductImagesKey = (
+  products: readonly Product[],
+): string | null => {
+  const ids = products
+    .filter((product) => !product.imageUrl)
+    .map((product) => product.id)
+    .sort();
+  if (ids.length === 0) return null;
+  return `product-images-${ids.join(",")}`;
+};
+
+const parseProductImageIds = (key: string): string[] =>
+  key.replace("product-images-", "").split(",");
+
+const mergeProductImages = (
+  products: Product[],
+  images: Record<string, string | null> | undefined,
+): Product[] => {
+  if (!images) return products;
+  return products.map((product) => ({
+    ...product,
+    imageUrl: product.imageUrl ?? images[product.id] ?? null,
+  }));
+};
+
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
 
-  const [filters, setFilters] = useState<ProductFilters>({
-    searchQuery: "",
-    ...DEFAULT_FILTERS,
-  });
+  const [searchQuery, setSearchQuery] = useQueryState(
+    SEARCH_QUERY_PARAM,
+    parseAsString.withDefault("")
+  );
+  const [tableFilters, setTableFilters] =
+    useState<TableFilters>(DEFAULT_FILTERS);
+
+  const filters = useMemo<ProductFilters>(
+    () => ({ ...tableFilters, searchQuery }),
+    [tableFilters, searchQuery]
+  );
+
+  // Mirrors the original Dispatch<SetStateAction<ProductFilters>> contract,
+  // routing searchQuery to the URL and the remaining filters to local state.
+  const setFilters = useCallback<Dispatch<SetStateAction<ProductFilters>>>(
+    (update) => {
+      const next = typeof update === "function" ? update(filters) : update;
+      const { searchQuery: nextSearch, ...rest } = next;
+      if (nextSearch !== searchQuery) setSearchQuery(nextSearch);
+      setTableFilters(rest);
+    },
+    [filters, searchQuery, setSearchQuery]
+  );
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
@@ -115,17 +241,55 @@ export const useProductsModel = () => {
     }
   );
 
+  // Fetch batches for the warehouse to derive the most recent batch selling
+  // price per product. Used by the mobile product card.
+  const warehouseBatchesUrl = warehouseId ? `batches/warehouse/${warehouseId}` : null;
+  const { data: warehouseBatchesData } = useSWR<WarehouseBatchesResponse>(
+    warehouseBatchesUrl,
+    async (requestUrl: string) => {
+      try {
+        return await api.get(requestUrl).json<WarehouseBatchesResponse>();
+      } catch (err) {
+        console.error("Erro ao carregar lotes do armazém:", err);
+        return { success: true, data: [] };
+      }
+    },
+    { revalidateOnFocus: false }
+  );
+
   // Client-side filtering for stock status and active status
   const products = useMemo(() => data?.data.content ?? [], [data]);
 
+  // The warehouse products list may not return imageUrl. Fetch missing
+  // images individually so the mobile card can show the product photo.
+  const productImagesKey = useMemo(
+    () => buildProductImagesKey(products),
+    [products]
+  );
+  const { data: productImagesData } = useSWR<Record<string, string | null>>(
+    productImagesKey,
+    async (key: string) => fetchProductImages(parseProductImageIds(key)),
+    { revalidateOnFocus: false }
+  );
+
+  const productsWithImages = useMemo(
+    () => mergeProductImages(products, productImagesData),
+    [products, productImagesData]
+  );
+
+  const latestBatchPriceByProduct = useMemo(
+    () => buildLatestBatchPriceByProduct(warehouseBatchesData?.data ?? []),
+    [warehouseBatchesData]
+  );
+
   const filteredProducts = useMemo(
     () =>
-      products.filter(
+      productsWithImages.filter(
         (p) =>
           filterByStockStatus(p, filters.stockStatus) &&
           filterByActiveStatus(p, filters.activeStatus)
       ),
-    [products, filters.stockStatus, filters.activeStatus]
+    [productsWithImages, filters.stockStatus, filters.activeStatus]
   );
 
   const pagination = data?.data
@@ -143,23 +307,24 @@ export const useProductsModel = () => {
       };
 
   const onPageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setTableFilters((prev) => ({ ...prev, page }));
   };
 
   const onPageSizeChange = (pageSize: number) => {
-    setFilters((prev) => ({ ...prev, pageSize, page: 0 }));
+    setTableFilters((prev) => ({ ...prev, pageSize, page: 0 }));
   };
 
-  const onSearchChange = (searchQuery: string) => {
-    setFilters((prev) => ({ ...prev, searchQuery, page: 0 }));
+  const onSearchChange = (nextSearch: string) => {
+    setSearchQuery(nextSearch);
+    setTableFilters((prev) => ({ ...prev, page: 0 }));
   };
 
   const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
-    setFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
+    setTableFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
   };
 
   const onOutOfStockKpiClick = () => {
-    setFilters((prev) => ({
+    setTableFilters((prev) => ({
       ...prev,
       stockStatus: "outOfStock",
       page: 0,
@@ -181,7 +346,7 @@ export const useProductsModel = () => {
   };
 
   const onApplyMobileFilters = () => {
-    setFilters((prev) => ({
+    setTableFilters((prev) => ({
       ...prev,
       stockStatus: mobileFiltersDraft.stockStatus,
       activeStatus: mobileFiltersDraft.activeStatus,
@@ -192,19 +357,13 @@ export const useProductsModel = () => {
   };
 
   const onClearFilters = () => {
-    setFilters((prev) => ({
-      ...prev,
-      searchQuery: "",
-      ...DEFAULT_FILTERS,
-    }));
+    setSearchQuery("");
+    setTableFilters(DEFAULT_FILTERS);
   };
 
   const onClearMobileFilters = () => {
-    const nextFilters = {
-      searchQuery: "",
-      ...DEFAULT_FILTERS,
-    };
-    setFilters(nextFilters);
+    setSearchQuery("");
+    setTableFilters(DEFAULT_FILTERS);
     setMobileFiltersDraft(DEFAULT_DRAFT);
   };
 
@@ -264,7 +423,7 @@ export const useProductsModel = () => {
         `batches/warehouses/${warehouseId}/products/${deleteProduct.id}/batches`;
       await api.delete(deleteBatchesEndpoint).json();
 
-      toast.success("Produto removido do armazém com sucesso");
+      toast.success("Produto removido do estoque com sucesso");
       mutate();
       mutateGlobal((key) =>
         typeof key === "string" &&
@@ -300,6 +459,7 @@ export const useProductsModel = () => {
   return {
     products,
     filteredProducts,
+    latestBatchPriceByProduct,
     isLoading,
     error: error || null,
     requiresWarehouse: !warehouseId,

@@ -1,6 +1,6 @@
-import type { IScannerProps } from "@yudiel/react-qr-scanner";
+import type { BarcodeFormat } from "barcode-detector/ponyfill";
 
-type BarcodeScannerFormatList = NonNullable<IScannerProps["formats"]>;
+type BarcodeScannerFormatList = BarcodeFormat[];
 
 type BarcodeScannerCameraOptions = {
   deviceId: string | null;

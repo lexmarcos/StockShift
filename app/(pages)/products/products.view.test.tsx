@@ -39,6 +39,7 @@ afterEach(() => cleanup());
 const baseProps = {
   products: [],
   filteredProducts: [],
+  latestBatchPriceByProduct: {},
   isLoading: false,
   error: null,
   requiresWarehouse: false,
@@ -96,6 +97,7 @@ const productItem = {
   barcode: "123",
   barcodeType: "EAN13",
   description: null,
+  imageUrl: null,
   categoryId: null,
   categoryName: null,
   brand: null,
@@ -213,5 +215,111 @@ describe("ProductsView - delete action", () => {
     );
 
     expect(screen.getByText(/confirmação final/i)).toBeTruthy();
+  });
+
+  it("renders compact mobile card with photo, name, quantity, category badge and latest batch price", () => {
+    const productWithCategoryAndImage = {
+      ...productItem,
+      id: "prod-cafe",
+      name: "Café Torrado 1kg",
+      imageUrl: "https://example.com/cafe.png",
+      categoryName: "Bebidas",
+      totalQuantity: 12,
+    };
+
+    render(
+      <ProductsView
+        {...baseProps}
+        products={[productWithCategoryAndImage]}
+        filteredProducts={[productWithCategoryAndImage]}
+        latestBatchPriceByProduct={{
+          "prod-cafe": {
+            batchId: "batch-1",
+            sellingPriceCents: 2000,
+            sellingPriceLabel: "R$ 20,00",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getAllByText("Café Torrado 1kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Bebidas").length).toBeGreaterThan(0);
+    expect(screen.getByText("R$ 20,00 • 12 Unids")).toBeTruthy();
+    expect(screen.getByRole("img", { name: /foto de café torrado/i })).toBeTruthy();
+  });
+
+  it("renders product image placeholder when product has no photo", () => {
+    const productWithoutImage = {
+      ...productItem,
+      id: "prod-sem-foto",
+      name: "Produto Sem Foto",
+      categoryName: "Outros",
+      totalQuantity: 5,
+    };
+
+    render(
+      <ProductsView
+        {...baseProps}
+        products={[productWithoutImage]}
+        filteredProducts={[productWithoutImage]}
+      />
+    );
+
+    expect(screen.getByRole("img", { name: /produto sem foto/i })).toBeTruthy();
+  });
+
+  it("hides category badge when product has no category", () => {
+    render(
+      <ProductsView
+        {...baseProps}
+        products={[productItem]}
+        filteredProducts={[productItem]}
+      />
+    );
+
+    expect(screen.queryByText(/sem categoria/i)).toBeNull();
+  });
+
+  it("shows fallback price label when product has no latest batch", () => {
+    const productWithoutBatch = {
+      ...productItem,
+      id: "prod-no-batch",
+      name: "Produto Sem Lote",
+      totalQuantity: 3,
+    };
+
+    render(
+      <ProductsView
+        {...baseProps}
+        products={[productWithoutBatch]}
+        filteredProducts={[productWithoutBatch]}
+        latestBatchPriceByProduct={{}}
+      />
+    );
+
+    expect(screen.getByText(/Sem preço.*Unids/)).toBeTruthy();
+  });
+
+  it("truncates long product names in the mobile card", () => {
+    const productWithLongName = {
+      ...productItem,
+      id: "prod-longo",
+      name: "Perfume Importado Eau de Parfum 100ml Edição Limitada",
+      categoryName: "Perfumes Importados Femininos",
+      totalQuantity: 7,
+    };
+
+    const { container } = render(
+      <ProductsView
+        {...baseProps}
+        products={[productWithLongName]}
+        filteredProducts={[productWithLongName]}
+      />
+    );
+
+    const card = container.querySelector('[data-testid="product-mobile-card"]');
+    const name = card?.querySelector("h3");
+
+    expect(name?.classList.contains("truncate")).toBe(true);
   });
 });

@@ -397,10 +397,10 @@ function notifyProductPromptUnsupportedShare(
   copyResult: ProductPromptTextCopyResult
 ): void {
   if (copyResult === "text") {
-    toast.error("Prompt copiado, mas este navegador não permite compartilhar imagens.");
+    toast.warning("Prompt copiado, mas este navegador não permite compartilhar imagens.");
     return;
   }
-  toast.error("Este navegador não permite compartilhar imagens automaticamente.");
+  toast.warning("Este navegador não permite compartilhar imagens automaticamente.");
 }
 
 function notifyProductPromptShareFailure(copyResult: ProductPromptTextCopyResult): void {

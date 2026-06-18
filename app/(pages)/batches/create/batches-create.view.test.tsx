@@ -67,7 +67,11 @@ const baseProps = {
   selectedWarehouseId: "wh-1",
   onQuantityIncrement: vi.fn(),
   onQuantityDecrement: vi.fn(),
-  selectedProduct: { hasExpiration: false },
+  selectedProduct: { id: "prod-1", name: "Produto A", hasExpiration: false },
+  latestBatchPriceSuggestion: null,
+  isLatestBatchPriceLoading: false,
+  onApplyLatestCostPrice: vi.fn(),
+  onApplyLatestSellingPrice: vi.fn(),
 };
 
 const Wrapper = ({

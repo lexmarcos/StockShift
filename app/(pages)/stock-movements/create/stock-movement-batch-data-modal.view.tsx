@@ -227,6 +227,12 @@ export function StockMovementBatchDataModal({
           </div>
         </div>
 
+        {form.repeatedProductWarning && (
+          <div className="rounded-[4px] border border-amber-900/30 bg-amber-950/10 px-4 py-3 text-xs font-medium text-amber-400">
+            {form.repeatedProductWarning}
+          </div>
+        )}
+
         {form.error && (
           <div className="rounded-[4px] border border-rose-900/30 bg-rose-950/10 px-4 py-3 text-xs font-medium text-rose-400">
             {form.error}
