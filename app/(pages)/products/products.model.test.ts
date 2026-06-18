@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
-import { useProductsModel } from "./products.model";
+import {
+  buildLatestBatchPrice,
+  buildLatestBatchPriceByProduct,
+  findMostRecentBatch,
+  useProductsModel,
+} from "./products.model";
+import type { ProductBatchPriceSource } from "./products.types";
 import { toast } from "sonner";
 
 const renderModel = () =>
@@ -23,6 +29,7 @@ const baseProduct = {
   barcode: "123",
   barcodeType: "EAN13",
   description: null,
+  imageUrl: null,
   categoryId: null,
   categoryName: null,
   brand: null,
@@ -55,9 +62,25 @@ let swrData: {
   };
 } | undefined;
 
+let warehouseBatchesData:
+  | { success: boolean; data: ProductBatchPriceSource[] }
+  | undefined;
+
+let productImagesData: Record<string, string | null> | undefined;
+
+const resolveSwrData = (key: unknown) => {
+  if (typeof key === "string" && key.startsWith("batches/warehouse/")) {
+    return warehouseBatchesData;
+  }
+  if (typeof key === "string" && key.startsWith("product-images-")) {
+    return productImagesData;
+  }
+  return swrData;
+};
+
 vi.mock("swr", () => ({
-  default: vi.fn(() => ({
-    data: swrData,
+  default: vi.fn((key: unknown) => ({
+    data: resolveSwrData(key),
     error: null,
     isLoading: false,
     mutate: mockMutate,
@@ -108,6 +131,8 @@ describe("useProductsModel - delete flow", () => {
         empty: false,
       },
     };
+    warehouseBatchesData = { success: true, data: [] };
+    productImagesData = {};
   });
 
   it("loads selected warehouse batches with positive stock", async () => {
@@ -388,5 +413,132 @@ describe("useProductsModel - delete flow", () => {
       "Erro ao remover produto do armazém"
     );
     expect(result.current.isDeletingProduct).toBe(false);
+  });
+
+  it("exposes latest batch selling price per product from warehouse batches", async () => {
+    warehouseBatchesData = {
+      success: true,
+      data: [
+        {
+          id: "batch-old",
+          productId: "prod-1",
+          sellingPrice: 1500,
+          costPrice: 1000,
+          createdAt: "2025-01-01T00:00:00Z",
+        },
+        {
+          id: "batch-new",
+          productId: "prod-1",
+          sellingPrice: 2500,
+          costPrice: 1800,
+          createdAt: "2025-06-01T00:00:00Z",
+        },
+      ],
+    };
+
+    const { result } = renderModel();
+
+    await waitFor(() => {
+      expect(result.current.latestBatchPriceByProduct["prod-1"]).not.toBeNull();
+    });
+
+    expect(result.current.latestBatchPriceByProduct["prod-1"]).toMatchObject({
+      batchId: "batch-new",
+      sellingPriceCents: 2500,
+    });
+  });
+
+  it("fetches missing product images and merges them into filtered products", async () => {
+    productImagesData = { "prod-1": "https://example.com/prod-1.png" };
+
+    const { result } = renderModel();
+
+    await waitFor(() => {
+      expect(result.current.filteredProducts[0]?.imageUrl).toBe(
+        "https://example.com/prod-1.png"
+      );
+    });
+  });
+});
+
+describe("findMostRecentBatch", () => {
+  const batches: ProductBatchPriceSource[] = [
+    { id: "b1", productId: "p1", sellingPrice: 100, costPrice: 50, createdAt: "2025-01-01T00:00:00Z" },
+    { id: "b2", productId: "p1", sellingPrice: 200, costPrice: 80, createdAt: "2025-06-01T00:00:00Z" },
+  ];
+
+  it("returns the batch with the latest createdAt", () => {
+    expect(findMostRecentBatch(batches)?.id).toBe("b2");
+  });
+
+  it("returns null for an empty list", () => {
+    expect(findMostRecentBatch([])).toBeNull();
+  });
+
+  it("does not let an invalid first date poison selection of valid batches", () => {
+    const withInvalidFirst: ProductBatchPriceSource[] = [
+      { id: "bad", productId: "p1", sellingPrice: 100, costPrice: 50, createdAt: "not-a-date" },
+      { id: "good", productId: "p1", sellingPrice: 200, costPrice: 80, createdAt: "2025-06-01T00:00:00Z" },
+    ];
+    expect(findMostRecentBatch(withInvalidFirst)?.id).toBe("good");
+  });
+});
+
+describe("buildLatestBatchPrice", () => {
+  it("builds price info from a batch", () => {
+    const batch: ProductBatchPriceSource = {
+      id: "b1",
+      productId: "p1",
+      sellingPrice: 2500,
+      costPrice: 1800,
+      createdAt: "2025-06-01T00:00:00Z",
+    };
+    expect(buildLatestBatchPrice(batch)).toMatchObject({
+      batchId: "b1",
+      sellingPriceCents: 2500,
+    });
+  });
+
+  it("returns null when batch is null", () => {
+    expect(buildLatestBatchPrice(null)).toBeNull();
+  });
+});
+
+describe("buildLatestBatchPriceByProduct", () => {
+  it("groups batches by product and keeps only the most recent per product", () => {
+    const batches: ProductBatchPriceSource[] = [
+      { id: "b1", productId: "p1", sellingPrice: 100, costPrice: 50, createdAt: "2025-01-01T00:00:00Z" },
+      { id: "b2", productId: "p1", sellingPrice: 200, costPrice: 80, createdAt: "2025-06-01T00:00:00Z" },
+      { id: "b3", productId: "p2", sellingPrice: 300, costPrice: 150, createdAt: "2025-03-01T00:00:00Z" },
+    ];
+
+    const map = buildLatestBatchPriceByProduct(batches);
+
+    expect(map["p1"]?.batchId).toBe("b2");
+    expect(map["p1"]?.sellingPriceCents).toBe(200);
+    expect(map["p2"]?.batchId).toBe("b3");
+  });
+
+  it("returns an empty map for an empty batch list", () => {
+    expect(buildLatestBatchPriceByProduct([])).toEqual({});
+  });
+
+  it("skips price-less batches so an earlier priced batch still wins", () => {
+    const batches: ProductBatchPriceSource[] = [
+      { id: "older", productId: "p1", sellingPrice: 1500, costPrice: 1000, createdAt: "2025-01-01T00:00:00Z" },
+      { id: "newer", productId: "p1", sellingPrice: null, costPrice: null, createdAt: "2025-06-01T00:00:00Z" },
+    ];
+
+    const map = buildLatestBatchPriceByProduct(batches);
+
+    expect(map["p1"]).toMatchObject({ batchId: "older", sellingPriceCents: 1500 });
+  });
+
+  it("returns null when a product has only price-less batches", () => {
+    const batches: ProductBatchPriceSource[] = [
+      { id: "b1", productId: "p1", sellingPrice: null, costPrice: null, createdAt: "2025-06-01T00:00:00Z" },
+    ];
+
+    expect(buildLatestBatchPriceByProduct(batches)["p1"]).toBeNull();
   });
 });
