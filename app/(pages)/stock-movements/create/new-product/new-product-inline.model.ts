@@ -50,6 +50,14 @@ import {
   hasExistingProductInItems,
 } from "../stock-movement-draft-guards";
 import { lookupStockMovementProductByBarcode } from "../stock-movement-product-lookup";
+import {
+  scrollToFieldById,
+  scrollToFirstInvalidField,
+} from "./scroll-to-first-invalid-field";
+import {
+  customAttributeFieldId,
+  findCustomAttributeError,
+} from "./custom-attribute-validation";
 
 const buildReturnHref = (type: string | null): string => {
   if (!isManualMovementType(type)) return "/stock-movements/create";
@@ -405,22 +413,12 @@ export const useNewProductInlineModel = ({
   };
 
   const validateCustomAttributes = (): boolean => {
-    const invalidIndex = customAttributes.findIndex((attr) => {
-      return !attr.key.trim() || !attr.value.trim();
-    });
-    if (invalidIndex >= 0) {
-      toast.warning(`Atributo ${invalidIndex + 1}: Nome e valor são obrigatórios`);
-      return false;
-    }
+    const error = findCustomAttributeError(customAttributes);
+    if (!error) return true;
 
-    const keys = customAttributes.map((attr) => attr.key.trim().toLowerCase());
-    const duplicate = keys.find((key, index) => keys.indexOf(key) !== index);
-    if (duplicate) {
-      toast.warning(`Já existe um atributo com o nome "${duplicate}"`);
-      return false;
-    }
-
-    return true;
+    toast.warning(error.message);
+    scrollToFieldById(customAttributeFieldId(error.index, error.field));
+    return false;
   };
 
   const mergeAttributes = (data: ProductCreateFormData): Record<string, string> | undefined => {
@@ -645,6 +643,11 @@ export const useNewProductInlineModel = ({
     router.push(cancelHref);
   };
 
+  const handleInvalidSubmit = (): void => {
+    // Defer one frame so react-hook-form has committed `aria-invalid` to the DOM.
+    requestAnimationFrame(() => scrollToFirstInvalidField());
+  };
+
   const onSubmit = async (data: ProductCreateFormData): Promise<void> => {
     if (!validateCustomAttributes()) return;
 
@@ -681,6 +684,7 @@ export const useNewProductInlineModel = ({
     mode: "inline",
     form,
     onSubmit,
+    onInvalidSubmit: handleInvalidSubmit,
     isSubmitting,
     categories: categoriesData?.data || [],
     isLoadingCategories,
