@@ -4,8 +4,10 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Páginas públicas que não precisam de autenticação
-  const publicPaths = ["/login", "/register"];
+  // Páginas públicas que não precisam de autenticação.
+  // "/offline" é pública para o service worker pré-cachear a página de offline
+  // real, e não o HTML de /login (redirecionamento de auth corromperia o fallback).
+  const publicPaths = ["/login", "/register", "/offline"];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
   // Se for uma página pública, permite o acesso
