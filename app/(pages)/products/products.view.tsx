@@ -74,6 +74,7 @@ import {
   ProductFilters,
   LatestBatchPrice,
 } from "./products.types";
+import { useProductImageUrl } from "./products.model";
 import { buildCategoryBadgeStyle } from "@/lib/category-color";
 import { cn } from "@/lib/utils";
 
@@ -1015,11 +1016,12 @@ const ProductMobileCard = ({
 };
 
 const ProductCardImage = ({ product }: { product: Product }) => {
-  if (product.imageUrl) {
+  const imageUrl = useProductImageUrl(product);
+  if (imageUrl) {
     return (
       <span className="relative block w-10 h-15 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900">
         <RemoteImage
-          src={product.imageUrl}
+          src={imageUrl}
           alt={`Foto de ${product.name}`}
           fill
           sizes="120px"

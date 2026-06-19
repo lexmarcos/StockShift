@@ -134,64 +134,36 @@ const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
   }
 };
 
-// Session cache of product images keyed by id. The warehouse products list does
-// not include imageUrl, so images are fetched per product; caching them keeps
-// paging back and forth from re-issuing the same image requests on every visit.
-const productImageCache = new Map<string, string | null>();
+// The warehouse products list omits imageUrl, so each product's image is
+// fetched on demand. Keying it as a "products/..." sub-resource lets the
+// edit/create/delete flows invalidate it through their existing
+// mutate((key) => key.includes("products")) call, so a changed image shows up
+// on /products without a full reload. SWR also dedups and caches it per id.
+export const productImageKey = (id: string): string => `products/${id}/image`;
 
-const fetchProductImage = async (
+export const fetchProductImageUrl = async (
   id: string,
-): Promise<{ id: string; imageUrl: string | null }> => {
+): Promise<string | null> => {
   try {
     const response = await api
       .get(`products/${id}`)
       .json<ProductImageResponse>();
-    return { id, imageUrl: response.data.imageUrl ?? null };
+    return response.data.imageUrl ?? null;
   } catch {
-    return { id, imageUrl: null };
+    return null;
   }
 };
 
-const fetchProductImages = async (
-  productIds: string[],
-): Promise<Record<string, string | null>> => {
-  const results = await Promise.all(productIds.map(fetchProductImage));
-  const images: Record<string, string | null> = {};
-  for (const result of results) {
-    productImageCache.set(result.id, result.imageUrl);
-    images[result.id] = result.imageUrl;
-  }
-  return images;
+// Resolves a product's thumbnail: prefer the URL already on the list row, else
+// lazily fetch it. Each card owns one SWR subscription, deduped by product id.
+export const useProductImageUrl = (product: Product): string | null => {
+  const { data } = useSWR<string | null>(
+    product.imageUrl ? null : productImageKey(product.id),
+    () => fetchProductImageUrl(product.id),
+    { revalidateOnFocus: false },
+  );
+  return product.imageUrl ?? data ?? null;
 };
-
-const buildProductImagesKey = (
-  products: readonly Product[],
-): string | null => {
-  const ids = products
-    .filter(
-      (product) => !product.imageUrl && !productImageCache.has(product.id),
-    )
-    .map((product) => product.id)
-    .sort();
-  if (ids.length === 0) return null;
-  return `product-images-${ids.join(",")}`;
-};
-
-const parseProductImageIds = (key: string): string[] =>
-  key.replace("product-images-", "").split(",");
-
-const mergeProductImages = (
-  products: Product[],
-  images: Record<string, string | null> | undefined,
-): Product[] =>
-  products.map((product) => ({
-    ...product,
-    imageUrl:
-      product.imageUrl ??
-      images?.[product.id] ??
-      productImageCache.get(product.id) ??
-      null,
-  }));
 
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
@@ -295,36 +267,21 @@ export const useProductsModel = () => {
   // Client-side filtering for stock status and active status
   const products = useMemo(() => data?.data.content ?? [], [data]);
 
-  // The warehouse products list may not return imageUrl. Fetch missing
-  // images individually so the mobile card can show the product photo.
-  const productImagesKey = useMemo(
-    () => buildProductImagesKey(products),
-    [products]
-  );
-  const { data: productImagesData } = useSWR<Record<string, string | null>>(
-    productImagesKey,
-    async (key: string) => fetchProductImages(parseProductImageIds(key)),
-    { revalidateOnFocus: false }
-  );
-
-  const productsWithImages = useMemo(
-    () => mergeProductImages(products, productImagesData),
-    [products, productImagesData]
-  );
-
   const latestBatchPriceByProduct = useMemo(
     () => buildLatestBatchPriceByProduct(warehouseBatchesData?.data ?? []),
     [warehouseBatchesData]
   );
 
+  // Each mobile card lazily fetches its own image via useProductImageUrl, so the
+  // list only filters here; missing thumbnails are resolved per row.
   const filteredProducts = useMemo(
     () =>
-      productsWithImages.filter(
+      products.filter(
         (p) =>
           filterByStockStatus(p, filters.stockStatus) &&
           filterByActiveStatus(p, filters.activeStatus)
       ),
-    [productsWithImages, filters.stockStatus, filters.activeStatus]
+    [products, filters.stockStatus, filters.activeStatus]
   );
 
   // The requested page/size (persisted in the URL) are the source of truth for

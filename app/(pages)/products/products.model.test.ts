@@ -5,7 +5,9 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import {
   buildLatestBatchPrice,
   buildLatestBatchPriceByProduct,
+  fetchProductImageUrl,
   findMostRecentBatch,
+  productImageKey,
   useProductsModel,
 } from "./products.model";
 import type { ProductBatchPriceSource } from "./products.types";
@@ -66,14 +68,9 @@ let warehouseBatchesData:
   | { success: boolean; data: ProductBatchPriceSource[] }
   | undefined;
 
-let productImagesData: Record<string, string | null> | undefined;
-
 const resolveSwrData = (key: unknown) => {
   if (typeof key === "string" && key.startsWith("batches/warehouse/")) {
     return warehouseBatchesData;
-  }
-  if (typeof key === "string" && key.startsWith("product-images-")) {
-    return productImagesData;
   }
   return swrData;
 };
@@ -132,7 +129,6 @@ describe("useProductsModel - delete flow", () => {
       },
     };
     warehouseBatchesData = { success: true, data: [] };
-    productImagesData = {};
   });
 
   it("loads selected warehouse batches with positive stock", async () => {
@@ -448,16 +444,46 @@ describe("useProductsModel - delete flow", () => {
     });
   });
 
-  it("fetches missing product images and merges them into filtered products", async () => {
-    productImagesData = { "prod-1": "https://example.com/prod-1.png" };
+});
 
-    const { result } = renderModel();
+describe("product image fetching", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    await waitFor(() => {
-      expect(result.current.filteredProducts[0]?.imageUrl).toBe(
-        "https://example.com/prod-1.png"
-      );
+  it("keys the image as a products sub-resource so edit invalidation reaches it", () => {
+    const key = productImageKey("prod-1");
+    expect(key).toBe("products/prod-1/image");
+    expect(key.includes("products")).toBe(true);
+  });
+
+  it("returns the fetched imageUrl for a product", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({
+        data: { imageUrl: "https://example.com/prod-1.png" },
+      })),
     });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBe(
+      "https://example.com/prod-1.png"
+    );
+    expect(mockGet).toHaveBeenCalledWith("products/prod-1");
+  });
+
+  it("returns null when the product has no image", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({ data: { imageUrl: null } })),
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBeNull();
+  });
+
+  it("returns null instead of throwing when the request fails", async () => {
+    mockGet.mockImplementationOnce(() => {
+      throw new Error("network down");
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBeNull();
   });
 });
 
@@ -485,7 +511,6 @@ describe("useProductsModel - pagination persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     warehouseBatchesData = { success: true, data: [] };
-    productImagesData = {};
     swrData = buildPagedData(5, 0);
   });
 
