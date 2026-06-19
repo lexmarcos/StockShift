@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { useEffect, useState } from "react";
 import { CustomAttributesBuilder } from "@/components/product/custom-attributes-builder";
 import { BarcodeScannerModal } from "@/components/product/barcode-scanner-modal";
@@ -1026,12 +1026,11 @@ const BrandSelectItem = ({
   >
     <div className="flex items-center gap-2">
       {brand.logoUrl ? (
-        <Image
+        <RemoteImage
           src={brand.logoUrl}
           alt={brand.name}
           width={16}
           height={16}
-          unoptimized
           className="size-4 rounded-[2px] object-contain"
         />
       ) : (

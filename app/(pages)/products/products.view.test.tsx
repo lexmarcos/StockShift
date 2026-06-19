@@ -23,6 +23,13 @@ vi.mock("@/components/product/scanner-drawer/scanner-drawer", () => ({
   ScannerDrawer: () => null,
 }));
 
+// The card resolves its thumbnail through a per-product SWR hook; stub it so the
+// view test stays free of network I/O and just exercises the rendered markup.
+vi.mock("./products.model", () => ({
+  useProductImageUrl: (product: { imageUrl: string | null }) =>
+    product.imageUrl ?? null,
+}));
+
 vi.mock("@/components/ui/responsive-modal", () => ({
   ResponsiveModal: ({ children, open, title, footer }: { children: React.ReactNode; open: boolean; title: string; footer: React.ReactNode }) =>
     open ? (

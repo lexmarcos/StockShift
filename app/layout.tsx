@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/contexts/auth-context";
 import { LayoutContent } from "@/components/layout/layout-content";
 import { MobileMenuProvider } from "@/components/layout/mobile-menu-context";
 import { Toaster } from "@/components/ui/sonner";
+import { ServiceWorkerProvider } from "@/components/pwa/service-worker-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
@@ -185,6 +186,7 @@ export default function RootLayout({
           </AuthProvider>
         </NuqsAdapter>
         <Toaster />
+        <ServiceWorkerProvider />
         {SHOULD_LOAD_CLARITY && (
           <Script
             id="microsoft-clarity"

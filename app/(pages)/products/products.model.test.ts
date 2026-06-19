@@ -5,7 +5,9 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import {
   buildLatestBatchPrice,
   buildLatestBatchPriceByProduct,
+  fetchProductImageUrl,
   findMostRecentBatch,
+  productImageKey,
   useProductsModel,
 } from "./products.model";
 import type { ProductBatchPriceSource } from "./products.types";
@@ -66,14 +68,9 @@ let warehouseBatchesData:
   | { success: boolean; data: ProductBatchPriceSource[] }
   | undefined;
 
-let productImagesData: Record<string, string | null> | undefined;
-
 const resolveSwrData = (key: unknown) => {
   if (typeof key === "string" && key.startsWith("batches/warehouse/")) {
     return warehouseBatchesData;
-  }
-  if (typeof key === "string" && key.startsWith("product-images-")) {
-    return productImagesData;
   }
   return swrData;
 };
@@ -132,7 +129,6 @@ describe("useProductsModel - delete flow", () => {
       },
     };
     warehouseBatchesData = { success: true, data: [] };
-    productImagesData = {};
   });
 
   it("loads selected warehouse batches with positive stock", async () => {
@@ -448,15 +444,109 @@ describe("useProductsModel - delete flow", () => {
     });
   });
 
-  it("fetches missing product images and merges them into filtered products", async () => {
-    productImagesData = { "prod-1": "https://example.com/prod-1.png" };
+});
 
+describe("product image fetching", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("keys the image as a products sub-resource so edit invalidation reaches it", () => {
+    const key = productImageKey("prod-1");
+    expect(key).toBe("products/prod-1/image");
+    expect(key.includes("products")).toBe(true);
+  });
+
+  it("returns the fetched imageUrl for a product", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({
+        data: { imageUrl: "https://example.com/prod-1.png" },
+      })),
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBe(
+      "https://example.com/prod-1.png"
+    );
+    expect(mockGet).toHaveBeenCalledWith("products/prod-1");
+  });
+
+  it("returns null when the product has no image", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({ data: { imageUrl: null } })),
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBeNull();
+  });
+
+  it("returns null instead of throwing when the request fails", async () => {
+    mockGet.mockImplementationOnce(() => {
+      throw new Error("network down");
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBeNull();
+  });
+});
+
+describe("useProductsModel - pagination persistence", () => {
+  const buildPagedData = (totalPages: number, number: number) => ({
+    success: true,
+    data: {
+      content: [baseProduct],
+      pageable: {
+        pageNumber: number,
+        pageSize: 20,
+        sort: [],
+        offset: number * 20,
+        unpaged: false,
+        paged: true,
+      },
+      totalElements: totalPages * 20,
+      totalPages,
+      number,
+      size: 20,
+      empty: false,
+    },
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    warehouseBatchesData = { success: true, data: [] };
+    swrData = buildPagedData(5, 0);
+  });
+
+  it("exposes the requested page and size for the pagination controls", () => {
     const { result } = renderModel();
 
+    act(() => {
+      result.current.onPageChange(3);
+    });
+
+    expect(result.current.pagination.page).toBe(3);
+    expect(result.current.filters.page).toBe(3);
+  });
+
+  it("returns to the first page when the page size changes", () => {
+    const { result } = renderModel();
+
+    act(() => {
+      result.current.onPageChange(3);
+      result.current.onPageSizeChange(50);
+    });
+
+    expect(result.current.filters.page).toBe(0);
+    expect(result.current.filters.pageSize).toBe(50);
+  });
+
+  it("clamps a page that points past the last available page", async () => {
+    swrData = buildPagedData(3, 0);
+    const { result } = renderModel();
+
+    act(() => {
+      result.current.onPageChange(9);
+    });
+
     await waitFor(() => {
-      expect(result.current.filteredProducts[0]?.imageUrl).toBe(
-        "https://example.com/prod-1.png"
-      );
+      expect(result.current.pagination.page).toBe(2);
     });
   });
 });
