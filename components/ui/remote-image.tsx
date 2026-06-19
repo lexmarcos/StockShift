@@ -15,6 +15,9 @@ function canOptimize(src: ImageProps["src"]): boolean {
   if (src.startsWith("blob:") || src.startsWith("data:")) return false;
   try {
     const url = new URL(src);
+    // next.config remotePatterns only whitelists https R2; an http:// src would
+    // make /_next/image return 400, so leave non-https URLs unoptimized.
+    if (url.protocol !== "https:") return false;
     if (url.pathname.toLowerCase().endsWith(".svg")) return false;
     return url.hostname.endsWith(OPTIMIZABLE_HOST_SUFFIX);
   } catch {
