@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Product, ProductBatch } from "./products-detail.types";
 import {
   Package,
@@ -215,12 +215,11 @@ function ProductImageContent({ product }: { product: Product }) {
     <div className="flex aspect-[3/4] w-full items-center justify-center bg-neutral-950/50 p-4 md:p-5">
       {product.imageUrl ? (
         <div className="relative h-full w-full rounded-[10px] overflow-hidden border border-neutral-800/60">
-          <Image
+          <RemoteImage
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(min-width: 768px) 33vw, 100vw"
-            unoptimized
             className="object-cover rounded-[10px]"
           />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { ArrowLeft, BadgePercent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
@@ -129,11 +129,10 @@ function SelectedPromptSummary({
   return (
     <div className="flex gap-3 rounded-[4px] border border-neutral-800 bg-neutral-950/40 p-3">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-[4px] bg-neutral-900">
-        <Image
+        <RemoteImage
           src={prompt.imageUrl}
           alt={prompt.name}
           fill
-          unoptimized
           className="object-cover"
         />
       </div>

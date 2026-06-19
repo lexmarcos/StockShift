@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -425,12 +425,11 @@ function BrandLogo({
       className={`relative flex ${containerClassName} items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 shadow-inner transition-colors group-hover:border-neutral-700`}
     >
       {brand.logoUrl ? (
-        <Image
+        <RemoteImage
           src={brand.logoUrl}
           alt={brand.name}
           fill
           sizes={sizes}
-          unoptimized
           className="object-cover"
         />
       ) : (
@@ -674,12 +673,11 @@ function BrandLogoPreview({ viewState }: { viewState: BrandsViewState }) {
       </span>
       {!logoError ? (
         <div className="relative h-20 w-full">
-          <Image
+          <RemoteImage
             src={logoPreview}
             alt="Brand Identity"
             fill
             sizes="240px"
-            unoptimized
             className="rounded-[2px] object-contain shadow-sm"
             onError={() => setFailedLogoPreview(logoPreview)}
           />

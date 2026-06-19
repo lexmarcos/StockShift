@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { useEffect, useState, type ChangeEvent, type DragEvent } from "react";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,12 +88,11 @@ export const CompanyLogoUpload = ({
         <div className="pointer-events-none relative z-20 grid gap-4 sm:grid-cols-[112px_1fr] sm:items-center">
           <div className="flex aspect-square size-28 items-center justify-center overflow-hidden rounded-[4px] border border-neutral-800 bg-[#0A0A0A]">
             {activeLogoUrl ? (
-              <Image
+              <RemoteImage
                 src={activeLogoUrl}
                 alt="Logo da empresa"
                 width={112}
                 height={112}
-                unoptimized
                 className="h-full w-full object-contain p-2"
               />
             ) : (

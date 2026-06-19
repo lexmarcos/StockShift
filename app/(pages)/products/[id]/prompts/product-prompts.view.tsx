@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import Link from "next/link";
 import {
   Image as ImageIcon,
@@ -130,11 +130,10 @@ function ProductPromptCard({
       className="group block overflow-hidden rounded-[4px] border border-neutral-800 bg-[#171717] text-left hover:border-blue-600"
     >
       <div className="relative aspect-[4/5] bg-neutral-950">
-        <Image
+        <RemoteImage
           src={prompt.imageUrl}
           alt={prompt.name}
           fill
-          unoptimized
           sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw"
           className="object-cover"
         />

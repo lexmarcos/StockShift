@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import Link from "next/link";
 import {
   ArrowDownRight,
@@ -32,12 +32,11 @@ const ProductThumb = ({ src, alt, className }: ProductThumbProps) => (
     )}
   >
     {src ? (
-      <Image
+      <RemoteImage
         src={src}
         alt={alt}
         fill
         sizes="56px"
-        unoptimized
         className="object-cover"
       />
     ) : (

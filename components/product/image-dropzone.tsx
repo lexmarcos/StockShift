@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,12 +73,11 @@ const ImagePreviewFrame = ({
   alt: string;
 }) => (
   <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-border/40 bg-background/30">
-    <Image
+    <RemoteImage
       src={src}
       alt={alt}
       fill
       sizes="100vw"
-      unoptimized
       className="object-contain"
     />
   </div>

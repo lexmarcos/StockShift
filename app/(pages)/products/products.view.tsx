@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -1018,12 +1018,11 @@ const ProductCardImage = ({ product }: { product: Product }) => {
   if (product.imageUrl) {
     return (
       <span className="relative block w-10 h-15 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900">
-        <Image
+        <RemoteImage
           src={product.imageUrl}
           alt={`Foto de ${product.name}`}
           fill
-          sizes="68px"
-          unoptimized
+          sizes="120px"
           className="object-cover"
         />
       </span>

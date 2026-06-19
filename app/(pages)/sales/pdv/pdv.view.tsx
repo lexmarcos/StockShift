@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/ui/remote-image";
 import {
   useCallback,
   useRef,
@@ -354,12 +354,11 @@ function ProductSearchRow({ product, onAdd }: ProductSearchRowProps) {
     >
       <div className="relative size-9 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
         {product.imageUrl ? (
-          <Image
+          <RemoteImage
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="36px"
-            unoptimized
             className="object-cover"
           />
         ) : (
@@ -402,12 +401,11 @@ function FavoritesGrid({ favorites, onAddProduct }: FavoritesGridProps) {
           >
             <div className="relative size-10 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
               {product.imageUrl ? (
-                <Image
+                <RemoteImage
                   src={product.imageUrl}
                   alt={product.name}
                   fill
                   sizes="40px"
-                  unoptimized
                   className="object-cover"
                 />
               ) : (
@@ -542,12 +540,11 @@ function CartItemCard({
         {/* Thumbnail */}
         <div className="relative size-11 shrink-0 overflow-hidden rounded-[4px] border border-neutral-800 bg-neutral-900 flex items-center justify-center">
           {item.productImageUrl ? (
-            <Image
+            <RemoteImage
               src={item.productImageUrl}
               alt={item.productName}
               fill
               sizes="44px"
-              unoptimized
               className="object-cover"
             />
           ) : (
