@@ -461,6 +461,71 @@ describe("useProductsModel - delete flow", () => {
   });
 });
 
+describe("useProductsModel - pagination persistence", () => {
+  const buildPagedData = (totalPages: number, number: number) => ({
+    success: true,
+    data: {
+      content: [baseProduct],
+      pageable: {
+        pageNumber: number,
+        pageSize: 20,
+        sort: [],
+        offset: number * 20,
+        unpaged: false,
+        paged: true,
+      },
+      totalElements: totalPages * 20,
+      totalPages,
+      number,
+      size: 20,
+      empty: false,
+    },
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    warehouseBatchesData = { success: true, data: [] };
+    productImagesData = {};
+    swrData = buildPagedData(5, 0);
+  });
+
+  it("exposes the requested page and size for the pagination controls", () => {
+    const { result } = renderModel();
+
+    act(() => {
+      result.current.onPageChange(3);
+    });
+
+    expect(result.current.pagination.page).toBe(3);
+    expect(result.current.filters.page).toBe(3);
+  });
+
+  it("returns to the first page when the page size changes", () => {
+    const { result } = renderModel();
+
+    act(() => {
+      result.current.onPageChange(3);
+      result.current.onPageSizeChange(50);
+    });
+
+    expect(result.current.filters.page).toBe(0);
+    expect(result.current.filters.pageSize).toBe(50);
+  });
+
+  it("clamps a page that points past the last available page", async () => {
+    swrData = buildPagedData(3, 0);
+    const { result } = renderModel();
+
+    act(() => {
+      result.current.onPageChange(9);
+    });
+
+    await waitFor(() => {
+      expect(result.current.pagination.page).toBe(2);
+    });
+  });
+});
+
 describe("findMostRecentBatch", () => {
   const batches: ProductBatchPriceSource[] = [
     { id: "b1", productId: "p1", sellingPrice: 100, costPrice: 50, createdAt: "2025-01-01T00:00:00Z" },

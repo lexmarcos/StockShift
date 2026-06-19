@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { useQueryState, parseAsString } from "nuqs";
+import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
 import useSWR, { mutate as mutateGlobal } from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -27,20 +27,26 @@ interface BatchesResponse {
   data: Batch[];
 }
 
-type TableFilters = Omit<ProductFilters, "searchQuery">;
+type LocalTableFilters = Pick<
+  ProductFilters,
+  "sortBy" | "sortOrder" | "stockStatus" | "activeStatus"
+>;
 
-const DEFAULT_FILTERS: TableFilters = {
+const DEFAULT_LOCAL_FILTERS: LocalTableFilters = {
   sortBy: "name",
   sortOrder: "asc",
   stockStatus: "all",
   activeStatus: "all",
-  page: 0,
-  pageSize: 20,
 };
 
-// Key for the search query persisted in the URL via nuqs, so it survives
-// navigating into a product detail and coming back.
+const DEFAULT_PAGE_SIZE = 20;
+
+// Query-string keys persisted in the URL via nuqs, so the search, current page
+// and page size survive navigating into a product detail (or reloading) and
+// coming back. Page/size mirror the backend's 0-indexed pagination.
 const SEARCH_QUERY_PARAM = "q";
+const PAGE_PARAM = "page";
+const PAGE_SIZE_PARAM = "size";
 
 const DEFAULT_DRAFT: ProductFilterDraft = {
   stockStatus: "all",
@@ -128,6 +134,11 @@ const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
   }
 };
 
+// Session cache of product images keyed by id. The warehouse products list does
+// not include imageUrl, so images are fetched per product; caching them keeps
+// paging back and forth from re-issuing the same image requests on every visit.
+const productImageCache = new Map<string, string | null>();
+
 const fetchProductImage = async (
   id: string,
 ): Promise<{ id: string; imageUrl: string | null }> => {
@@ -145,14 +156,21 @@ const fetchProductImages = async (
   productIds: string[],
 ): Promise<Record<string, string | null>> => {
   const results = await Promise.all(productIds.map(fetchProductImage));
-  return Object.fromEntries(results.map((result) => [result.id, result.imageUrl]));
+  const images: Record<string, string | null> = {};
+  for (const result of results) {
+    productImageCache.set(result.id, result.imageUrl);
+    images[result.id] = result.imageUrl;
+  }
+  return images;
 };
 
 const buildProductImagesKey = (
   products: readonly Product[],
 ): string | null => {
   const ids = products
-    .filter((product) => !product.imageUrl)
+    .filter(
+      (product) => !product.imageUrl && !productImageCache.has(product.id),
+    )
     .map((product) => product.id)
     .sort();
   if (ids.length === 0) return null;
@@ -165,13 +183,15 @@ const parseProductImageIds = (key: string): string[] =>
 const mergeProductImages = (
   products: Product[],
   images: Record<string, string | null> | undefined,
-): Product[] => {
-  if (!images) return products;
-  return products.map((product) => ({
+): Product[] =>
+  products.map((product) => ({
     ...product,
-    imageUrl: product.imageUrl ?? images[product.id] ?? null,
+    imageUrl:
+      product.imageUrl ??
+      images?.[product.id] ??
+      productImageCache.get(product.id) ??
+      null,
   }));
-};
 
 export const useProductsModel = () => {
   const { warehouseId } = useSelectedWarehouse();
@@ -180,24 +200,38 @@ export const useProductsModel = () => {
     SEARCH_QUERY_PARAM,
     parseAsString.withDefault("")
   );
-  const [tableFilters, setTableFilters] =
-    useState<TableFilters>(DEFAULT_FILTERS);
+  const [page, setPage] = useQueryState(
+    PAGE_PARAM,
+    parseAsInteger.withDefault(0)
+  );
+  const [pageSize, setPageSize] = useQueryState(
+    PAGE_SIZE_PARAM,
+    parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
+  );
+  const [localFilters, setLocalFilters] =
+    useState<LocalTableFilters>(DEFAULT_LOCAL_FILTERS);
 
   const filters = useMemo<ProductFilters>(
-    () => ({ ...tableFilters, searchQuery }),
-    [tableFilters, searchQuery]
+    () => ({ ...localFilters, searchQuery, page, pageSize }),
+    [localFilters, searchQuery, page, pageSize]
   );
 
   // Mirrors the original Dispatch<SetStateAction<ProductFilters>> contract,
-  // routing searchQuery to the URL and the remaining filters to local state.
+  // routing searchQuery/page/pageSize to the URL and the rest to local state.
   const setFilters = useCallback<Dispatch<SetStateAction<ProductFilters>>>(
     (update) => {
       const next = typeof update === "function" ? update(filters) : update;
-      const { searchQuery: nextSearch, ...rest } = next;
-      if (nextSearch !== searchQuery) setSearchQuery(nextSearch);
-      setTableFilters(rest);
+      if (next.searchQuery !== searchQuery) setSearchQuery(next.searchQuery);
+      if (next.page !== page) setPage(next.page);
+      if (next.pageSize !== pageSize) setPageSize(next.pageSize);
+      setLocalFilters({
+        sortBy: next.sortBy,
+        sortOrder: next.sortOrder,
+        stockStatus: next.stockStatus,
+        activeStatus: next.activeStatus,
+      });
     },
-    [filters, searchQuery, setSearchQuery]
+    [filters, searchQuery, page, pageSize, setSearchQuery, setPage, setPageSize]
   );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -238,7 +272,8 @@ export const useProductsModel = () => {
         toast.error("Erro ao carregar produtos");
         throw err;
       }
-    }
+    },
+    { keepPreviousData: true, revalidateOnFocus: false }
   );
 
   // Fetch batches for the warehouse to derive the most recent batch selling
@@ -292,43 +327,53 @@ export const useProductsModel = () => {
     [productsWithImages, filters.stockStatus, filters.activeStatus]
   );
 
-  const pagination = data?.data
-    ? {
-        page: data.data.number,
-        pageSize: data.data.size,
-        totalPages: data.data.totalPages,
-        totalElements: data.data.totalElements,
-      }
-    : {
-        page: 0,
-        pageSize: 20,
-        totalPages: 0,
-        totalElements: 0,
-      };
-
-  const onPageChange = (page: number) => {
-    setTableFilters((prev) => ({ ...prev, page }));
+  // The requested page/size (persisted in the URL) are the source of truth for
+  // the controls, so they update instantly and survive reloads; totals come
+  // from the server response.
+  const pagination = {
+    page,
+    pageSize,
+    totalPages: data?.data?.totalPages ?? 0,
+    totalElements: data?.data?.totalElements ?? 0,
   };
 
-  const onPageSizeChange = (pageSize: number) => {
-    setTableFilters((prev) => ({ ...prev, pageSize, page: 0 }));
+  // Keep the persisted page within the available range. A page restored from
+  // the URL (or left over after the result set shrank) can point past the last
+  // page, which makes the API return an empty/out-of-range result on every
+  // retry — clamp it down instead of looping on a page that no longer exists.
+  useEffect(() => {
+    if (page < 0) {
+      setPage(0);
+      return;
+    }
+    const totalPages = data?.data?.totalPages ?? 0;
+    if (!isLoading && totalPages > 0 && page > totalPages - 1) {
+      setPage(totalPages - 1);
+    }
+  }, [page, data, isLoading, setPage]);
+
+  const onPageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
+
+  const onPageSizeChange = (nextPageSize: number) => {
+    setPageSize(nextPageSize);
+    setPage(0);
   };
 
   const onSearchChange = (nextSearch: string) => {
     setSearchQuery(nextSearch);
-    setTableFilters((prev) => ({ ...prev, page: 0 }));
+    setPage(0);
   };
 
   const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
-    setTableFilters((prev) => ({ ...prev, sortBy, sortOrder, page: 0 }));
+    setLocalFilters((prev) => ({ ...prev, sortBy, sortOrder }));
+    setPage(0);
   };
 
   const onOutOfStockKpiClick = () => {
-    setTableFilters((prev) => ({
-      ...prev,
-      stockStatus: "outOfStock",
-      page: 0,
-    }));
+    setLocalFilters((prev) => ({ ...prev, stockStatus: "outOfStock" }));
+    setPage(0);
   };
 
   // Mobile filter handlers
@@ -346,24 +391,29 @@ export const useProductsModel = () => {
   };
 
   const onApplyMobileFilters = () => {
-    setTableFilters((prev) => ({
+    setLocalFilters((prev) => ({
       ...prev,
       stockStatus: mobileFiltersDraft.stockStatus,
       activeStatus: mobileFiltersDraft.activeStatus,
       sortBy: mobileFiltersDraft.sortBy,
       sortOrder: mobileFiltersDraft.sortOrder,
     }));
+    setPage(0);
     setIsMobileFiltersOpen(false);
   };
 
   const onClearFilters = () => {
     setSearchQuery("");
-    setTableFilters(DEFAULT_FILTERS);
+    setPage(0);
+    setPageSize(DEFAULT_PAGE_SIZE);
+    setLocalFilters(DEFAULT_LOCAL_FILTERS);
   };
 
   const onClearMobileFilters = () => {
     setSearchQuery("");
-    setTableFilters(DEFAULT_FILTERS);
+    setPage(0);
+    setPageSize(DEFAULT_PAGE_SIZE);
+    setLocalFilters(DEFAULT_LOCAL_FILTERS);
     setMobileFiltersDraft(DEFAULT_DRAFT);
   };
 
