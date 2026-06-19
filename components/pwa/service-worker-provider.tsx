@@ -19,9 +19,14 @@ export function ServiceWorkerProvider(): null {
       return;
     }
 
+    // controllerchange also fires on the first install, since sw.js calls
+    // clients.claim() on activate. Reloading on every change would reload the
+    // page during a user's first visit and discard whatever they were doing,
+    // so only reload once this tab's user has accepted an update via the toast.
     let hasReloaded = false;
+    let updateAccepted = false;
     const reloadOnControllerChange = (): void => {
-      if (hasReloaded) return;
+      if (!updateAccepted || hasReloaded) return;
       hasReloaded = true;
       window.location.reload();
     };
@@ -35,7 +40,10 @@ export function ServiceWorkerProvider(): null {
         duration: Infinity,
         action: {
           label: UPDATE_ACTION_LABEL,
-          onClick: () => worker.postMessage({ type: "SKIP_WAITING" }),
+          onClick: () => {
+            updateAccepted = true;
+            worker.postMessage({ type: "SKIP_WAITING" });
+          },
         },
       });
     };
