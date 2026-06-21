@@ -107,7 +107,7 @@ export const buildLatestBatchPriceByProduct = (
 // Largest page count rendered without truncation. Below this every page gets
 // its own button; above it the range collapses to first, last and a window
 // around the current page, with ellipses marking the hidden gaps.
-const MAX_FLAT_PAGES = 7;
+const MAX_FLAT_PAGES = 5;
 
 const rangeInclusive = (start: number, end: number): number[] => {
   const result: number[] = [];

@@ -682,14 +682,34 @@ describe("buildPageRange", () => {
   });
 
   it("lists every page when the page count fits the flat threshold", () => {
-    expect(buildPageRange(0, 7)).toEqual([
+    expect(buildPageRange(0, 5)).toEqual([
       { kind: "page", page: 0 },
       { kind: "page", page: 1 },
       { kind: "page", page: 2 },
       { kind: "page", page: 3 },
       { kind: "page", page: 4 },
-      { kind: "page", page: 5 },
+    ]);
+  });
+
+  it("collapses to first, last and a 3-page window once past the flat threshold", () => {
+    expect(buildPageRange(3, 7)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 2 },
+      { kind: "page", page: 3 },
+      { kind: "page", page: 4 },
+      { kind: "ellipsis" },
       { kind: "page", page: 6 },
+    ]);
+  });
+
+  it("matches the design: page 2 of 12 renders 1 2 3 … 12", () => {
+    expect(buildPageRange(1, 12)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "page", page: 1 },
+      { kind: "page", page: 2 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 11 },
     ]);
   });
 
