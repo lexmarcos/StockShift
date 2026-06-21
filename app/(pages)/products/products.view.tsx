@@ -1098,7 +1098,7 @@ const ProductsPagination = ({ props }: { props: ProductsViewProps }) => {
       aria-label="Paginação de produtos"
       className="flex flex-col items-center gap-3 border-t border-neutral-800 pt-6"
     >
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
         <PaginationStepButton
           direction="prev"
           disabled={isOnFirstPage}
