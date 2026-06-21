@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
 import useSWR, { mutate as mutateGlobal } from "swr";
@@ -9,6 +9,7 @@ import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import {
   Batch,
   LatestBatchPrice,
+  PageRangeItem,
   Product,
   ProductBatchPriceSource,
   ProductImageResponse,
@@ -101,6 +102,71 @@ export const buildLatestBatchPriceByProduct = (
     result[productId] = buildLatestBatchPrice(findMostRecentBatch(priced));
   }
   return result;
+};
+
+// Largest page count rendered without truncation. Below this every page gets
+// its own button; above it the range collapses to first, last and a window
+// around the current page, with ellipses marking the hidden gaps.
+const MAX_FLAT_PAGES = 7;
+
+const rangeInclusive = (start: number, end: number): number[] => {
+  const result: number[] = [];
+  for (let page = start; page <= end; page += 1) result.push(page);
+  return result;
+};
+
+/**
+ * Builds the page selector items for the pagination control. Pages are
+ * 0-indexed to match the backend's pagination contract; the view renders them
+ * as `page + 1`. Returns an empty list when there is nothing to paginate.
+ */
+export const buildPageRange = (
+  currentPage: number,
+  totalPages: number,
+): PageRangeItem[] => {
+  if (totalPages <= 1) return [];
+  if (totalPages <= MAX_FLAT_PAGES) {
+    return rangeInclusive(0, totalPages - 1).map((page) => ({
+      kind: "page",
+      page,
+    }));
+  }
+
+  const firstPage = 0;
+  const lastPage = totalPages - 1;
+  const windowStart = Math.max(1, currentPage - 1);
+  const windowEnd = Math.min(lastPage - 1, currentPage + 1);
+
+  const items: PageRangeItem[] = [{ kind: "page", page: firstPage }];
+  if (windowStart > firstPage + 1) items.push({ kind: "ellipsis" });
+  for (const page of rangeInclusive(windowStart, windowEnd)) {
+    items.push({ kind: "page", page });
+  }
+  if (windowEnd < lastPage - 1) items.push({ kind: "ellipsis" });
+  items.push({ kind: "page", page: lastPage });
+  return items;
+};
+
+const prefersReducedMotion = (): boolean =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Scrolls the product listing anchor back into view. Called from
+ * `onPageChange` so flipping pages lands the user on the new page's first
+ * row instead of leaving them at the bottom controls. No-ops when the anchor
+ * is missing (e.g. before the list mounts) or the host lacks scroll support.
+ */
+export const scrollListingToTop = (
+  node: HTMLElement | null,
+): void => {
+  if (!node) return;
+  if (typeof node.scrollIntoView !== "function") return;
+  node.scrollIntoView({
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+    block: "start",
+  });
 };
 
 const buildFilterDraft = (filters: ProductFilters): ProductFilterDraft => ({
@@ -218,6 +284,16 @@ export const useProductsModel = () => {
   const [mobileFiltersDraft, setMobileFiltersDraft] =
     useState<ProductFilterDraft>(DEFAULT_DRAFT);
 
+  // Anchor for the product listing. Scrolling it into view on page change
+  // brings the user back to the top of the results so the new page's first
+  // row is visible instead of leaving them parked at the bottom controls.
+  const listingTopRef = useRef<HTMLDivElement | null>(null);
+
+  // Set when a page change asks for a scroll-to-top, cleared once it runs.
+  // The scroll is deferred (see effect below) instead of firing inline so the
+  // smooth animation starts against the incoming page's final layout.
+  const pendingPageScrollRef = useRef(false);
+
   // Build URL with query params
   const url = useMemo(() => {
     if (!warehouseId) return null;
@@ -287,12 +363,20 @@ export const useProductsModel = () => {
   // The requested page/size (persisted in the URL) are the source of truth for
   // the controls, so they update instantly and survive reloads; totals come
   // from the server response.
+  const totalPages = data?.data?.totalPages ?? 0;
   const pagination = {
     page,
     pageSize,
-    totalPages: data?.data?.totalPages ?? 0,
+    totalPages,
     totalElements: data?.data?.totalElements ?? 0,
   };
+
+  // Page selector tokens (page buttons + ellipses) for the pagination control.
+  // Derived here so the view stays a pure render of pagination state.
+  const pageRange = useMemo(
+    () => buildPageRange(page, totalPages),
+    [page, totalPages],
+  );
 
   // Keep the persisted page within the available range. A page restored from
   // the URL (or left over after the result set shrank) can point past the last
@@ -309,7 +393,22 @@ export const useProductsModel = () => {
     }
   }, [page, data, isLoading, setPage]);
 
+  // Runs the deferred page-change scroll once the requested page's rows have
+  // rendered (server echoes the page in `data.data.number`). Scrolling inline
+  // from onPageChange instead starts a smooth scroll against the outgoing
+  // page's layout, which the browser cancels the moment the new — often
+  // shorter, e.g. the last — page loads and reflows, leaving the first and
+  // last pages parked at the bottom controls.
+  useEffect(() => {
+    if (!pendingPageScrollRef.current) return;
+    if (data?.data?.number !== page) return;
+    pendingPageScrollRef.current = false;
+    scrollListingToTop(listingTopRef.current);
+  }, [data, page]);
+
   const onPageChange = (nextPage: number) => {
+    if (nextPage === page) return;
+    pendingPageScrollRef.current = true;
     setPage(nextPage);
   };
 
@@ -473,8 +572,10 @@ export const useProductsModel = () => {
     filters,
     setFilters,
     pagination,
+    pageRange,
     isMobileFiltersOpen,
     mobileFiltersDraft,
+    listingTopRef,
     onPageChange,
     onPageSizeChange,
     onSearchChange,

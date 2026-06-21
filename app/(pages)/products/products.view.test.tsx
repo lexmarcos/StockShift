@@ -66,6 +66,8 @@ const baseProps = {
     totalPages: 1,
     totalElements: 1,
   },
+  pageRange: [],
+  listingTopRef: { current: null },
   isMobileFiltersOpen: false,
   mobileFiltersDraft: {
     stockStatus: "all" as const,

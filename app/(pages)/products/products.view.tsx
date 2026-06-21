@@ -719,7 +719,7 @@ const ProductsDataDisplay = ({ props }: { props: ProductsViewProps }) => {
   if (props.filteredProducts.length === 0) return <ProductsEmptyState props={props} />;
 
   return (
-    <div className="min-h-[400px]">
+    <div ref={props.listingTopRef} className="min-h-[400px] scroll-mt-24">
       <ProductsTable props={props} />
       <ProductsMobileCards props={props} />
       <ProductsPagination props={props} />
@@ -1090,36 +1090,111 @@ const ProductsPagination = ({ props }: { props: ProductsViewProps }) => {
     (props.pagination.page + 1) * props.pagination.pageSize,
     props.pagination.totalElements,
   );
+  const isOnFirstPage = props.pagination.page === 0;
+  const isOnLastPage = props.pagination.page >= props.pagination.totalPages - 1;
 
   return (
-    <div className="flex items-center justify-between border-t border-neutral-800 pt-6">
-      <div className="text-xs text-neutral-500">
+    <nav
+      aria-label="Paginação de produtos"
+      className="flex flex-col items-center gap-3 border-t border-neutral-800 pt-6"
+    >
+      <div className="flex items-center justify-center gap-1.5">
+        <PaginationStepButton
+          direction="prev"
+          disabled={isOnFirstPage}
+          onClick={() => props.onPageChange(props.pagination.page - 1)}
+        />
+        {props.pageRange.map((item, index) =>
+          item.kind === "ellipsis" ? (
+            <PaginationEllipsis key={`ellipsis-${index}`} />
+          ) : (
+            <PaginationPageButton
+              key={`page-${item.page}`}
+              page={item.page}
+              isActive={item.page === props.pagination.page}
+              onSelect={props.onPageChange}
+            />
+          ),
+        )}
+        <PaginationStepButton
+          direction="next"
+          disabled={isOnLastPage}
+          onClick={() => props.onPageChange(props.pagination.page + 1)}
+        />
+      </div>
+      <p className="text-center text-xs text-neutral-500">
         Mostrando {firstVisibleItem} a {lastVisibleItem} de{" "}
         {props.pagination.totalElements} produtos
-      </div>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => props.onPageChange(props.pagination.page - 1)}
-          disabled={props.pagination.page === 0}
-          className="size-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => props.onPageChange(props.pagination.page + 1)}
-          disabled={props.pagination.page >= props.pagination.totalPages - 1}
-          className="size-8 rounded-[4px] border-neutral-800 bg-[#171717] p-0 hover:bg-neutral-800 disabled:opacity-30"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
-    </div>
+      </p>
+    </nav>
   );
 };
+
+const PaginationPageButton = ({
+  page,
+  isActive,
+  onSelect,
+}: {
+  page: number;
+  isActive: boolean;
+  onSelect: (page: number) => void;
+}) => (
+  <Button
+    type="button"
+    variant="outline"
+    onClick={() => onSelect(page)}
+    aria-current={isActive ? "page" : undefined}
+    className={cn(
+      "size-9 rounded-[4px] border p-0 font-mono text-sm font-bold tabular-nums transition-colors md:size-8",
+      isActive
+        ? // dark: variants are required because the Button outline variant sets
+          // dark:bg-input/30 / dark:border-input, which outrank the unprefixed
+          // bg-white in this dark-only app and would otherwise hide the fill.
+          "border-white bg-white text-black hover:bg-white hover:text-black dark:border-white dark:bg-white dark:text-black dark:hover:bg-white"
+        : "border-neutral-800 bg-[#171717] text-neutral-300 hover:border-neutral-700 hover:bg-neutral-800 hover:text-white",
+    )}
+  >
+    {page + 1}
+  </Button>
+);
+
+const PaginationEllipsis = () => (
+  <span
+    aria-hidden="true"
+    className="px-1 font-mono text-sm font-bold text-neutral-600"
+  >
+    …
+  </span>
+);
+
+const PaginationStepButton = ({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "prev" | "next";
+  disabled: boolean;
+  onClick: () => void;
+}) => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={direction === "prev" ? "Página anterior" : "Próxima página"}
+    className={cn(
+      "size-9 rounded-[4px] border-neutral-800 bg-[#171717] p-0 text-neutral-300 transition-colors hover:border-neutral-700 hover:bg-neutral-800 hover:text-white md:size-8",
+      "disabled:opacity-30 disabled:hover:border-neutral-800 disabled:hover:bg-[#171717] disabled:hover:text-neutral-300",
+    )}
+  >
+    {direction === "prev" ? (
+      <ChevronLeft className="size-4" strokeWidth={2.5} />
+    ) : (
+      <ChevronRight className="size-4" strokeWidth={2.5} />
+    )}
+  </Button>
+);
 
 const ProductsMobileFiltersDrawer = ({ props }: { props: ProductsViewProps }) => (
   <Drawer

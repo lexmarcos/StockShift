@@ -5,9 +5,11 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import {
   buildLatestBatchPrice,
   buildLatestBatchPriceByProduct,
+  buildPageRange,
   fetchProductImageUrl,
   findMostRecentBatch,
   productImageKey,
+  scrollListingToTop,
   useProductsModel,
 } from "./products.model";
 import type { ProductBatchPriceSource } from "./products.types";
@@ -549,6 +551,46 @@ describe("useProductsModel - pagination persistence", () => {
       expect(result.current.pagination.page).toBe(2);
     });
   });
+
+  it("scrolls the listing to the top once the requested page's data renders", async () => {
+    // The server echoes page 3, so the deferred scroll should fire after the
+    // page state catches up to it. Regression for the first/last page never
+    // scrolling because the inline scroll was cancelled by the data reflow.
+    swrData = buildPagedData(5, 3);
+    const scrollIntoView = vi.fn();
+    const { result } = renderModel();
+    result.current.listingTopRef.current = {
+      scrollIntoView,
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.onPageChange(3);
+    });
+
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  });
+
+  it("does not scroll when the rendered page does not match the request yet", () => {
+    // Data still reports page 0 while the request targets page 4: the scroll
+    // must wait instead of yanking the user to the top of the stale rows.
+    swrData = buildPagedData(5, 0);
+    const scrollIntoView = vi.fn();
+    const { result } = renderModel();
+    result.current.listingTopRef.current = {
+      scrollIntoView,
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.onPageChange(4);
+    });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
 });
 
 describe("findMostRecentBatch", () => {
@@ -630,5 +672,95 @@ describe("buildLatestBatchPriceByProduct", () => {
     ];
 
     expect(buildLatestBatchPriceByProduct(batches)["p1"]).toBeNull();
+  });
+});
+
+describe("buildPageRange", () => {
+  it("returns nothing when there is a single page or none", () => {
+    expect(buildPageRange(0, 0)).toEqual([]);
+    expect(buildPageRange(0, 1)).toEqual([]);
+  });
+
+  it("lists every page when the page count fits the flat threshold", () => {
+    expect(buildPageRange(0, 7)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "page", page: 1 },
+      { kind: "page", page: 2 },
+      { kind: "page", page: 3 },
+      { kind: "page", page: 4 },
+      { kind: "page", page: 5 },
+      { kind: "page", page: 6 },
+    ]);
+  });
+
+  it("keeps first, last and a window around the current page with ellipses", () => {
+    expect(buildPageRange(4, 10)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 3 },
+      { kind: "page", page: 4 },
+      { kind: "page", page: 5 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 9 },
+    ]);
+  });
+
+  it("drops the leading ellipsis when the current page is near the start", () => {
+    expect(buildPageRange(0, 10)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "page", page: 1 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 9 },
+    ]);
+  });
+
+  it("drops the trailing ellipsis when the current page is near the end", () => {
+    expect(buildPageRange(9, 10)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 8 },
+      { kind: "page", page: 9 },
+    ]);
+  });
+
+  it("clamps the window so it never reaches beyond the first or last page", () => {
+    expect(buildPageRange(1, 8)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "page", page: 1 },
+      { kind: "page", page: 2 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 7 },
+    ]);
+    expect(buildPageRange(6, 8)).toEqual([
+      { kind: "page", page: 0 },
+      { kind: "ellipsis" },
+      { kind: "page", page: 5 },
+      { kind: "page", page: 6 },
+      { kind: "page", page: 7 },
+    ]);
+  });
+});
+
+describe("scrollListingToTop", () => {
+  it("calls scrollIntoView on the given node", () => {
+    const scrollIntoView = vi.fn();
+    const node = { scrollIntoView } as unknown as HTMLElement;
+
+    scrollListingToTop(node);
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+
+  it("no-ops when there is no anchor node", () => {
+    expect(() => scrollListingToTop(null)).not.toThrow();
+  });
+
+  it("no-ops when the host does not implement scrollIntoView", () => {
+    expect(() =>
+      scrollListingToTop({} as unknown as HTMLElement),
+    ).not.toThrow();
   });
 });
