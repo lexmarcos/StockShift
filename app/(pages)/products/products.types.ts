@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
 
 interface Brand {
   id: string;
@@ -106,6 +106,10 @@ export interface ProductFilterDraft {
   sortOrder: SortOrder;
 }
 
+export type PageRangeItem =
+  | { kind: "page"; page: number }
+  | { kind: "ellipsis" };
+
 export interface ProductsViewProps {
   products: Product[];
   filteredProducts: Product[];
@@ -121,8 +125,10 @@ export interface ProductsViewProps {
     totalPages: number;
     totalElements: number;
   };
+  pageRange: PageRangeItem[];
   isMobileFiltersOpen: boolean;
   mobileFiltersDraft: ProductFilterDraft;
+  listingTopRef: RefObject<HTMLDivElement | null>;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   onSearchChange: (search: string) => void;
