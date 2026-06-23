@@ -60,6 +60,7 @@ const baseProps = {
     pageSize: 20,
   },
   setFilters: vi.fn(),
+  buildEditUrl: (productId: string) => `/products/${productId}/edit`,
   pagination: {
     page: 0,
     pageSize: 20,

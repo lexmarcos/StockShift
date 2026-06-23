@@ -63,7 +63,7 @@ interface ProductResponse {
   data: Product;
 }
 
-export const useProductEditModel = (productId: string) => {
+export const useProductEditModel = (productId: string, returnTo: string) => {
   const router = useRouter();
   const { warehouseId } = useSelectedWarehouse();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -433,7 +433,7 @@ export const useProductEditModel = (productId: string) => {
       mutate(`products/${productId}`);
 
       toast.success("Produto atualizado com sucesso!");
-      router.push("/products");
+      router.push(returnTo);
     } catch (error) {
       console.error("Erro ao atualizar produto:", error);
       toast.error("Erro ao atualizar produto. Verifique os dados.");
@@ -515,6 +515,7 @@ export const useProductEditModel = (productId: string) => {
     handleImageSelect,
     handleImageProcessingChange,
     handleImageRemove,
+    cancelHref: returnTo,
     product,
     isLoadingProduct,
     isFormReady,

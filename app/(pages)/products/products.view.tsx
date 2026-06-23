@@ -832,6 +832,7 @@ const ProductsTable = ({ props }: { props: ProductsViewProps }) => {
             <ProductTableRow
               key={product.id}
               product={product}
+              buildEditUrl={props.buildEditUrl}
               onOpenDeleteDialog={props.onOpenDeleteDialog}
             />
           ))}
@@ -865,9 +866,11 @@ const ProductSortableHead = ({
 
 const ProductTableRow = ({
   product,
+  buildEditUrl,
   onOpenDeleteDialog,
 }: {
   product: Product;
+  buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
 }) => {
   const stockStatus = getStockStatus(product.totalQuantity);
@@ -899,7 +902,7 @@ const ProductTableRow = ({
         <ProductStockBadge label={stockStatus.label} stockStatus={stockStatus} />
       </TableCell>
       <TableCell className="py-3 text-right">
-        <ProductTableActions product={product} onOpenDeleteDialog={onOpenDeleteDialog} />
+        <ProductTableActions product={product} buildEditUrl={buildEditUrl} onOpenDeleteDialog={onOpenDeleteDialog} />
       </TableCell>
     </TableRow>
   );
@@ -927,9 +930,11 @@ const ProductStockBadge = ({
 
 const ProductTableActions = ({
   product,
+  buildEditUrl,
   onOpenDeleteDialog,
 }: {
   product: Product;
+  buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
 }) => (
   <div className="flex justify-end gap-1 transition-opacity">
@@ -950,7 +955,7 @@ const ProductTableActions = ({
         size="icon"
         className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
       >
-        <Link href={`/products/${product.id}/edit`}>
+        <Link href={buildEditUrl(product.id)}>
           <Pencil className="size-4" />
         </Link>
       </Button>
@@ -975,6 +980,7 @@ const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
         key={product.id}
         product={product}
         latestBatchPrice={props.latestBatchPriceByProduct[product.id] ?? null}
+        buildEditUrl={props.buildEditUrl}
         onOpenDeleteDialog={props.onOpenDeleteDialog}
       />
     ))}
@@ -984,10 +990,12 @@ const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
 const ProductMobileCard = ({
   product,
   latestBatchPrice,
+  buildEditUrl,
   onOpenDeleteDialog,
 }: {
   product: Product;
   latestBatchPrice: LatestBatchPrice | null;
+  buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
 }) => {
   const priceLabel = latestBatchPrice?.sellingPriceLabel ?? "Sem preço";
@@ -1008,7 +1016,7 @@ const ProductMobileCard = ({
         </span>
       </div>
       <div className="flex shrink-0 self-start">
-        <ProductActions product={product} onOpenDeleteDialog={onOpenDeleteDialog} />
+        <ProductActions product={product} buildEditUrl={buildEditUrl} onOpenDeleteDialog={onOpenDeleteDialog} />
       </div>
     </div>
   );
@@ -1029,9 +1037,11 @@ const ProductCategoryBadge = ({ name }: { name: string | null }) => {
 
 const ProductActions = ({
   product,
+  buildEditUrl,
   onOpenDeleteDialog,
 }: {
   product: Product;
+  buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
 }) => (
   <DropdownMenu>
@@ -1063,7 +1073,7 @@ const ProductActions = ({
       <PermissionGate permission="products:update">
         <DropdownMenuItem asChild>
           <Link
-            href={`/products/${product.id}/edit`}
+            href={buildEditUrl(product.id)}
             className="flex w-full cursor-pointer items-center focus:bg-neutral-800 focus:text-white"
           >
             <Pencil className="mr-2 size-3.5" /> Editar

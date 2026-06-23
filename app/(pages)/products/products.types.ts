@@ -140,6 +140,7 @@ export interface ProductsViewProps {
   onClearFilters: () => void;
   onClearMobileFilters: () => void;
   onMobileFilterDraftChange: (patch: Partial<ProductFilterDraft>) => void;
+  buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
   onConfirmDelete: () => void;
   onSecondConfirmDelete: () => void;
