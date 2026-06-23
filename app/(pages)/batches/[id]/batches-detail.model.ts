@@ -179,7 +179,7 @@ export const useBatchDetailModel = (batchId: string) => {
 
   useBreadcrumb({
     title: resolveBatchDetailTitle(batch, hasError, isLoading),
-    backUrl: "/batches",
+    backUrl: "/products",
   });
 
   const daysToExpire = batch ? computeExpirationDays(batch.expirationDate) : null;

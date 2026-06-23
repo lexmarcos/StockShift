@@ -43,6 +43,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Layers,
   AlertTriangle,
   Filter,
   ArrowUp,
@@ -955,6 +956,18 @@ const ProductTableActions = ({
         </Link>
       </Button>
     </PermissionGate>
+    <PermissionGate permission="batches:read">
+      <Button
+        asChild
+        variant="ghost"
+        size="icon"
+        className="size-8 rounded-[4px] text-neutral-500 hover:bg-neutral-800 hover:text-white"
+      >
+        <Link href={`/products/${product.id}/batches`}>
+          <Layers className="size-4" />
+        </Link>
+      </Button>
+    </PermissionGate>
     <PermissionGate permission="batches:delete">
       <Button
         variant="ghost"
@@ -1067,6 +1080,16 @@ const ProductActions = ({
             className="flex w-full cursor-pointer items-center focus:bg-neutral-800 focus:text-white"
           >
             <Pencil className="mr-2 size-3.5" /> Editar
+          </Link>
+        </DropdownMenuItem>
+      </PermissionGate>
+      <PermissionGate permission="batches:read">
+        <DropdownMenuItem asChild>
+          <Link
+            href={`/products/${product.id}/batches`}
+            className="flex w-full cursor-pointer items-center focus:bg-neutral-800 focus:text-white"
+          >
+            <Layers className="mr-2 size-3.5" /> Lotes
           </Link>
         </DropdownMenuItem>
       </PermissionGate>
