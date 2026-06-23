@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowUp,
   ArrowDown,
+  ChevronRight,
   Eye,
   Layers,
   Package,
@@ -231,7 +232,7 @@ const MobileCards = ({ batches }: { batches: ProductBatch[] }) => (
             Validade: {formatBatchDate(batch.expirationDate)}
           </span>
         </div>
-        <Eye className="size-4 shrink-0 text-neutral-600" />
+        <ChevronRight className="size-4 shrink-0 text-neutral-600" />
       </Link>
     ))}
   </div>
