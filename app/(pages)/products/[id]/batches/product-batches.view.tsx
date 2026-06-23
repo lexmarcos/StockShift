@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import type { Batch } from "@/app/(pages)/batches/batches.types";
 import {
   deriveBatchStatus,
   formatBatchDate,
@@ -54,7 +55,7 @@ const STATUS_ICONS: Record<string, typeof Package> = {
 /* ─── BatchStatusBadge ─── */
 
 const BatchStatusBadge = ({ batch }: { batch: ProductBatch }) => {
-  const status = deriveBatchStatus(batch);
+  const status = deriveBatchStatus(batch as Batch);
   const Icon = STATUS_ICONS[status.kind] ?? Package;
   return (
     <Badge
