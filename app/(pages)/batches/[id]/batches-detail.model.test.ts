@@ -335,7 +335,7 @@ describe("useBatchDetailModel", () => {
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "BATCH-2026-001",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
@@ -353,7 +353,7 @@ describe("useBatchDetailModel", () => {
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "Lote não encontrado",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
@@ -372,7 +372,7 @@ describe("useBatchDetailModel", () => {
     expect(result.current.error).toBeInstanceOf(Error);
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "Lote não encontrado",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
