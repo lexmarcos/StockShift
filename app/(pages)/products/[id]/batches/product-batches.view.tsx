@@ -24,9 +24,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { Batch } from "@/app/(pages)/batches/batches.types";
 import {
-  deriveBatchStatus,
+  getProductBatchStatus,
   formatBatchDate,
   formatCentsToBRL,
 } from "./product-batches.model";
@@ -55,7 +54,7 @@ const STATUS_ICONS: Record<string, typeof Package> = {
 /* ─── BatchStatusBadge ─── */
 
 const BatchStatusBadge = ({ batch }: { batch: ProductBatch }) => {
-  const status = deriveBatchStatus(batch as Batch);
+  const status = getProductBatchStatus(batch);
   const Icon = STATUS_ICONS[status.kind] ?? Package;
   return (
     <Badge
@@ -164,7 +163,7 @@ const DesktopTable = ({
         {batches.map((batch) => (
           <TableRow
             key={batch.id}
-            className="group border-b border-neutral-800/50 transition-colors hover:bg-neutral-800/50"
+            className="group border-b border-neutral-800/50 hover:bg-neutral-800/50"
           >
             <TableCell className="py-3 font-mono text-xs text-neutral-300">
               {batch.batchCode ?? "—"}
@@ -216,7 +215,7 @@ const MobileCards = ({ batches }: { batches: ProductBatch[] }) => (
       <Link
         key={batch.id}
         href={`/batches/${batch.id}`}
-        className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-[#171717] p-3 transition-colors hover:border-neutral-700"
+        className="flex items-center justify-between rounded-[4px] border border-neutral-800 bg-[#171717] p-3 hover:border-neutral-700"
       >
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">

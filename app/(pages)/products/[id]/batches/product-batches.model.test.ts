@@ -11,6 +11,7 @@ const makeBatch = (overrides: Partial<ProductBatch> = {}): ProductBatch => ({
   sellingPrice: 2000,
   manufacturedDate: "2026-01-01",
   expirationDate: "2026-12-31",
+  createdAt: "2026-01-01T00:00:00Z",
   ...overrides,
 });
 
@@ -50,13 +51,13 @@ describe("sortProductBatches", () => {
     expect(result.map((b) => b.id)).toEqual(["3", "1", "2", "4"]);
   });
 
-  it("sorts by expirationDate descending (nulls last)", () => {
+  it("sorts by expirationDate descending (nulls first)", () => {
     const withNull = [
       ...batches,
       makeBatch({ id: "4", batchCode: "D004", expirationDate: null }),
     ];
     const result = sortProductBatches(withNull, "expirationDate", "desc");
-    expect(result.map((b) => b.id)).toEqual(["2", "1", "3", "4"]);
+    expect(result.map((b) => b.id)).toEqual(["4", "2", "1", "3"]);
   });
 
   it("does not mutate the input array", () => {
@@ -65,7 +66,7 @@ describe("sortProductBatches", () => {
     expect(batches.map((b) => b.id)).toEqual(original.map((b) => b.id));
   });
 
-  it("handles null batchCode (nulls sort last on asc)", () => {
+  it("handles null batchCode (nulls last on asc, first on desc)", () => {
     const withNullCode = [
       makeBatch({ id: "1", batchCode: "B001" }),
       makeBatch({ id: "2", batchCode: null }),
@@ -73,5 +74,7 @@ describe("sortProductBatches", () => {
     ];
     const asc = sortProductBatches(withNullCode, "batchCode", "asc");
     expect(asc.map((b) => b.id)).toEqual(["3", "1", "2"]);
+    const desc = sortProductBatches(withNullCode, "batchCode", "desc");
+    expect(desc.map((b) => b.id)).toEqual(["2", "1", "3"]);
   });
 });

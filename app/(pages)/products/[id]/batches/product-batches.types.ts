@@ -7,6 +7,7 @@ export interface ProductBatch {
   sellingPrice: number | null;
   manufacturedDate: string | null;
   expirationDate: string | null;
+  createdAt: string;
 }
 
 export type SortKey = "batchCode" | "quantity" | "expirationDate";

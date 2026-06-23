@@ -5,6 +5,7 @@ import { useBreadcrumb } from "@/components/breadcrumb";
 import { deriveBatchStatus } from "@/app/(pages)/batches/batches.model";
 import { formatBatchDate } from "@/app/(pages)/batches/[id]/batches-detail.model";
 import { formatCentsToBRL } from "@/lib/currency";
+import type { Batch } from "@/app/(pages)/batches/batches.types";
 import type {
   ProductBatch,
   SortKey,
@@ -15,6 +16,14 @@ interface BatchesResponse {
   success: boolean;
   data: ProductBatch[];
 }
+
+export const getProductBatchStatus = (
+  batch: ProductBatch,
+): ReturnType<typeof deriveBatchStatus> =>
+  deriveBatchStatus({
+    quantity: batch.quantity,
+    expirationDate: batch.expirationDate,
+  } as Batch);
 
 export const sortProductBatches = (
   batches: readonly ProductBatch[],
@@ -30,8 +39,8 @@ export const sortProductBatches = (
         const aCode = a.batchCode ?? "";
         const bCode = b.batchCode ?? "";
         if (!aCode && !bCode) return 0;
-        if (!aCode) return 1;
-        if (!bCode) return -1;
+        if (!aCode) return multiplier;
+        if (!bCode) return -multiplier;
         return multiplier * aCode.localeCompare(bCode);
       }
       case "quantity":
@@ -40,8 +49,8 @@ export const sortProductBatches = (
         const aTime = a.expirationDate ? new Date(a.expirationDate).getTime() : 0;
         const bTime = b.expirationDate ? new Date(b.expirationDate).getTime() : 0;
         if (!aTime && !bTime) return 0;
-        if (!aTime) return 1;
-        if (!bTime) return -1;
+        if (!aTime) return multiplier;
+        if (!bTime) return -multiplier;
         return multiplier * (aTime - bTime);
       }
       default:
