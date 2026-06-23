@@ -219,7 +219,7 @@ const MobileCards = ({ batches }: { batches: ProductBatch[] }) => (
       >
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-block max-w-[140px] truncate font-mono text-sm font-semibold text-white">
+            <span className="inline-block max-w-[240px] truncate font-mono text-sm font-semibold text-white">
               {batch.batchCode ?? "—"}
             </span>
             <BatchStatusBadge batch={batch} />
