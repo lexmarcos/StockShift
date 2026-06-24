@@ -409,7 +409,7 @@ describe("useBatchDetailModel", () => {
 
     expect(fakeApi.delete).toHaveBeenCalledWith("batches/batch-1");
     expect(fakeToast.success).toHaveBeenCalledWith("Lote removido com sucesso");
-    expect(fakeRouter.push).toHaveBeenCalledWith("/batches");
+    expect(fakeRouter.push).toHaveBeenCalledWith("/products");
     expect(mutate).not.toHaveBeenCalled();
     expect(result.current.isDeleteOpen).toBe(false);
     expect(result.current.isDeleting).toBe(false);
