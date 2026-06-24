@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Package,
-  Layers,
   Tag,
   Folder,
   Settings,
@@ -33,12 +32,6 @@ const navItems: NavItem[] = [
     label: "Produtos",
     Icon: Package,
     requiredPermission: "products:read",
-  },
-  {
-    href: "/batches",
-    label: "Lotes",
-    Icon: Layers,
-    requiredPermission: "batches:read",
   },
   {
     href: "/sales",

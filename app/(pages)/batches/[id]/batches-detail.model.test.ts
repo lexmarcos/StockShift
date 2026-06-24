@@ -335,7 +335,7 @@ describe("useBatchDetailModel", () => {
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "BATCH-2026-001",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
@@ -353,7 +353,7 @@ describe("useBatchDetailModel", () => {
     );
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "Lote não encontrado",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
@@ -372,7 +372,7 @@ describe("useBatchDetailModel", () => {
     expect(result.current.error).toBeInstanceOf(Error);
     expect(fakeBreadcrumb.invoke).toHaveBeenCalledWith({
       title: "Lote não encontrado",
-      backUrl: "/batches",
+      backUrl: "/products",
     });
   });
 
@@ -409,7 +409,7 @@ describe("useBatchDetailModel", () => {
 
     expect(fakeApi.delete).toHaveBeenCalledWith("batches/batch-1");
     expect(fakeToast.success).toHaveBeenCalledWith("Lote removido com sucesso");
-    expect(fakeRouter.push).toHaveBeenCalledWith("/batches");
+    expect(fakeRouter.push).toHaveBeenCalledWith("/products");
     expect(mutate).not.toHaveBeenCalled();
     expect(result.current.isDeleteOpen).toBe(false);
     expect(result.current.isDeleting).toBe(false);

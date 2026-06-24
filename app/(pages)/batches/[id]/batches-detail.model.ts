@@ -179,7 +179,7 @@ export const useBatchDetailModel = (batchId: string) => {
 
   useBreadcrumb({
     title: resolveBatchDetailTitle(batch, hasError, isLoading),
-    backUrl: "/batches",
+    backUrl: "/products",
   });
 
   const daysToExpire = batch ? computeExpirationDays(batch.expirationDate) : null;
@@ -195,7 +195,7 @@ export const useBatchDetailModel = (batchId: string) => {
       await api.delete(`batches/${batchId}`).json();
       toast.success("Lote removido com sucesso");
       setDeleteOpen(false);
-      router.push("/batches");
+      router.push("/products");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao remover lote";
       toast.error(message);

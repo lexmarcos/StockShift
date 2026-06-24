@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PageClient } from "./page.client";
 
 export const metadata: Metadata = {
-  title: "Novo lote | StockShift",
-  description: "Cadastre um novo lote de produto.",
+  title: "Lotes do Produto | StockShift",
+  description: "Consulte os lotes do produto no armazém selecionado.",
 };
 
 export default function Page() {
