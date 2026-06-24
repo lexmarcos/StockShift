@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
+import { useQueryState, parseAsString, parseAsInteger, parseAsStringLiteral } from "nuqs";
 import useSWR, { mutate as mutateGlobal } from "swr";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -28,26 +28,17 @@ interface BatchesResponse {
   data: Batch[];
 }
 
-type LocalTableFilters = Pick<
-  ProductFilters,
-  "sortBy" | "sortOrder" | "stockStatus" | "activeStatus"
->;
-
-const DEFAULT_LOCAL_FILTERS: LocalTableFilters = {
-  sortBy: "name",
-  sortOrder: "asc",
-  stockStatus: "all",
-  activeStatus: "all",
-};
-
 const DEFAULT_PAGE_SIZE = 20;
 
-// Query-string keys persisted in the URL via nuqs, so the search, current page
-// and page size survive navigating into a product detail (or reloading) and
-// coming back. Page/size mirror the backend's 0-indexed pagination.
+// Query-string keys persisted in the URL via nuqs. All filter, search, and
+// pagination state survives navigation and reloads.
 const SEARCH_QUERY_PARAM = "q";
 const PAGE_PARAM = "page";
 const PAGE_SIZE_PARAM = "size";
+const SORT_BY_PARAM = "sort";
+const SORT_ORDER_PARAM = "order";
+const STOCK_STATUS_PARAM = "stock";
+const ACTIVE_STATUS_PARAM = "status";
 
 const DEFAULT_DRAFT: ProductFilterDraft = {
   stockStatus: "all",
@@ -246,30 +237,42 @@ export const useProductsModel = () => {
     PAGE_SIZE_PARAM,
     parseAsInteger.withDefault(DEFAULT_PAGE_SIZE)
   );
-  const [localFilters, setLocalFilters] =
-    useState<LocalTableFilters>(DEFAULT_LOCAL_FILTERS);
+  const [sortBy, setSortBy] = useQueryState(
+    SORT_BY_PARAM,
+    parseAsStringLiteral(["name", "sku", "barcode", "active", "createdAt", "updatedAt"] as const).withDefault("name")
+  );
+  const [sortOrder, setSortOrder] = useQueryState(
+    SORT_ORDER_PARAM,
+    parseAsStringLiteral(["asc", "desc"] as const).withDefault("asc")
+  );
+  const [stockStatus, setStockStatus] = useQueryState(
+    STOCK_STATUS_PARAM,
+    parseAsStringLiteral(["all", "inStock", "lowStock", "outOfStock"] as const).withDefault("all")
+  );
+  const [activeStatus, setActiveStatus] = useQueryState(
+    ACTIVE_STATUS_PARAM,
+    parseAsStringLiteral(["all", "active", "inactive"] as const).withDefault("all")
+  );
 
   const filters = useMemo<ProductFilters>(
-    () => ({ ...localFilters, searchQuery, page, pageSize }),
-    [localFilters, searchQuery, page, pageSize]
+    () => ({ searchQuery, sortBy, sortOrder, stockStatus, activeStatus, page, pageSize }),
+    [searchQuery, sortBy, sortOrder, stockStatus, activeStatus, page, pageSize]
   );
 
   // Mirrors the original Dispatch<SetStateAction<ProductFilters>> contract,
-  // routing searchQuery/page/pageSize to the URL and the rest to local state.
+  // routing all fields to the URL via nuqs.
   const setFilters = useCallback<Dispatch<SetStateAction<ProductFilters>>>(
     (update) => {
       const next = typeof update === "function" ? update(filters) : update;
       if (next.searchQuery !== searchQuery) setSearchQuery(next.searchQuery);
       if (next.page !== page) setPage(next.page);
       if (next.pageSize !== pageSize) setPageSize(next.pageSize);
-      setLocalFilters({
-        sortBy: next.sortBy,
-        sortOrder: next.sortOrder,
-        stockStatus: next.stockStatus,
-        activeStatus: next.activeStatus,
-      });
+      if (next.sortBy !== sortBy) setSortBy(next.sortBy);
+      if (next.sortOrder !== sortOrder) setSortOrder(next.sortOrder);
+      if (next.stockStatus !== stockStatus) setStockStatus(next.stockStatus);
+      if (next.activeStatus !== activeStatus) setActiveStatus(next.activeStatus);
     },
-    [filters, searchQuery, page, pageSize, setSearchQuery, setPage, setPageSize]
+    [filters, searchQuery, page, pageSize, sortBy, sortOrder, stockStatus, activeStatus, setSearchQuery, setPage, setPageSize, setSortBy, setSortOrder, setStockStatus, setActiveStatus]
   );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -422,13 +425,14 @@ export const useProductsModel = () => {
     setPage(0);
   };
 
-  const onSortChange = (sortBy: SortField, sortOrder: SortOrder) => {
-    setLocalFilters((prev) => ({ ...prev, sortBy, sortOrder }));
+  const onSortChange = (nextSortBy: SortField, nextSortOrder: SortOrder) => {
+    setSortBy(nextSortBy);
+    setSortOrder(nextSortOrder);
     setPage(0);
   };
 
   const onOutOfStockKpiClick = () => {
-    setLocalFilters((prev) => ({ ...prev, stockStatus: "outOfStock" }));
+    setStockStatus("outOfStock");
     setPage(0);
   };
 
@@ -447,13 +451,10 @@ export const useProductsModel = () => {
   };
 
   const onApplyMobileFilters = () => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      stockStatus: mobileFiltersDraft.stockStatus,
-      activeStatus: mobileFiltersDraft.activeStatus,
-      sortBy: mobileFiltersDraft.sortBy,
-      sortOrder: mobileFiltersDraft.sortOrder,
-    }));
+    setSortBy(mobileFiltersDraft.sortBy);
+    setSortOrder(mobileFiltersDraft.sortOrder);
+    setStockStatus(mobileFiltersDraft.stockStatus);
+    setActiveStatus(mobileFiltersDraft.activeStatus);
     setPage(0);
     setIsMobileFiltersOpen(false);
   };
@@ -462,20 +463,39 @@ export const useProductsModel = () => {
     setSearchQuery("");
     setPage(0);
     setPageSize(DEFAULT_PAGE_SIZE);
-    setLocalFilters(DEFAULT_LOCAL_FILTERS);
+    setSortBy("name");
+    setSortOrder("asc");
+    setStockStatus("all");
+    setActiveStatus("all");
   };
 
   const onClearMobileFilters = () => {
     setSearchQuery("");
     setPage(0);
     setPageSize(DEFAULT_PAGE_SIZE);
-    setLocalFilters(DEFAULT_LOCAL_FILTERS);
+    setSortBy("name");
+    setSortOrder("asc");
+    setStockStatus("all");
+    setActiveStatus("all");
     setMobileFiltersDraft(DEFAULT_DRAFT);
   };
 
   const onMobileFilterDraftChange = (patch: Partial<ProductFilterDraft>) => {
     setMobileFiltersDraft((prev) => ({ ...prev, ...patch }));
   };
+
+  const buildEditUrl = useCallback((productId: string): string => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("q", searchQuery);
+    if (page !== 0) params.set("page", page.toString());
+    if (pageSize !== DEFAULT_PAGE_SIZE) params.set("size", pageSize.toString());
+    if (sortBy !== "name") params.set("sort", sortBy);
+    if (sortOrder !== "asc") params.set("order", sortOrder);
+    if (stockStatus !== "all") params.set("stock", stockStatus);
+    if (activeStatus !== "all") params.set("status", activeStatus);
+    const returnTo = params.size > 0 ? `/products?${params.toString()}` : "/products";
+    return `/products/${productId}/edit?returnTo=${encodeURIComponent(returnTo)}`;
+  }, [searchQuery, page, pageSize, sortBy, sortOrder, stockStatus, activeStatus]);
 
   const onOpenDeleteDialog = async (product: Product) => {
     setDeleteProduct(product);
@@ -571,6 +591,7 @@ export const useProductsModel = () => {
     requiresWarehouse: !warehouseId,
     filters,
     setFilters,
+    buildEditUrl,
     pagination,
     pageRange,
     isMobileFiltersOpen,

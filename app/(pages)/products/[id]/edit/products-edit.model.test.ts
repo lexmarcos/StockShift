@@ -137,7 +137,7 @@ beforeEach(() => {
 describe("useProductEditModel batches drawer", () => {
   it("uses right drawer on lg+", async () => {
     mockMatchMedia(true);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
     await waitFor(() => {
       expect(result.current.batchesDrawer.direction).toBe("right");
     });
@@ -145,7 +145,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("uses bottom drawer below lg", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
     await waitFor(() => {
       expect(result.current.batchesDrawer.direction).toBe("bottom");
     });
@@ -153,7 +153,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("does not fetch batches until drawer opens", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     const hadBatchesKey = swrMock.mock.calls.some(
       ([key]) => typeof key === "string" && key.startsWith("batches/product")
@@ -172,7 +172,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("updates a batch with mapped payload", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     await act(async () => {
       result.current.batchesDrawer.onOpenChange(true);
@@ -203,7 +203,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("omits batch code when empty", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     await act(async () => {
       result.current.batchesDrawer.onOpenChange(true);
@@ -245,7 +245,7 @@ describe("useProductEditModel batches drawer", () => {
     });
     mockMatchMedia(false);
 
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     await waitFor(() => {
       expect(result.current.isFormReady).toBe(true);
@@ -267,7 +267,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("manages scanner, image and custom attribute state", () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
     const image = new File(["img"], "product.png", { type: "image/png" });
 
     act(() => {
@@ -302,7 +302,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("blocks submit when custom attribute is incomplete", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     act(() => {
       result.current.addCustomAttribute();
@@ -334,7 +334,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("blocks submit while image is still processing", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     act(() => {
       result.current.handleImageProcessingChange(true);
@@ -368,7 +368,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("submits product update with image and merged attributes", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
     const image = new File(["img"], "product.png", { type: "image/png" });
 
     act(() => {
@@ -417,7 +417,7 @@ describe("useProductEditModel batches drawer", () => {
       throw new Error("fail");
     });
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     await act(async () => {
       await result.current.onSubmit({
@@ -445,7 +445,7 @@ describe("useProductEditModel batches drawer", () => {
 
   it("does not save invalid or missing batch and reports batch API errors", async () => {
     mockMatchMedia(false);
-    const { result } = renderHook(() => useProductEditModel("prod-1"));
+    const { result } = renderHook(() => useProductEditModel("prod-1", "/products"));
 
     await act(async () => {
       await result.current.batchesDrawer.onSave(99);

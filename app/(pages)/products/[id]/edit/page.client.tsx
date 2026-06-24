@@ -1,18 +1,25 @@
 // app/products/[id]/edit/page.tsx
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useProductEditModel } from "./products-edit.model";
 import { ProductForm } from "../../components/product-form.view";
 import { Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
+const resolveReturnTo = (raw: string | null): string => {
+  if (raw && raw.startsWith("/") && !raw.includes("://")) return raw;
+  return "/products";
+};
+
 export function PageClient() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
+  const returnTo = resolveReturnTo(searchParams.get("returnTo"));
 
   const { isLoadingProduct, product, ...modelProps } =
-    useProductEditModel(productId);
+    useProductEditModel(productId, returnTo);
 
   if (isLoadingProduct) {
     return (
@@ -21,7 +28,7 @@ export function PageClient() {
           <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <Link
-                href="/products"
+                href={returnTo}
                 className="inline-flex size-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
               >
                 <span className="sr-only">Voltar</span>
@@ -50,7 +57,7 @@ export function PageClient() {
           <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <Link
-                href="/products"
+                href={returnTo}
                 className="inline-flex size-8 items-center justify-center rounded-sm border border-border bg-muted/50 hover:bg-muted"
               >
                 <span className="sr-only">Voltar</span>
