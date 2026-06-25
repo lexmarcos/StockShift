@@ -1,4 +1,5 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
+import type { ProductThumbnails } from "@/lib/thumbnails";
 
 interface Brand {
   id: string;
@@ -16,6 +17,7 @@ export interface Product {
   barcodeType: string | null;
   description: string | null;
   imageUrl: string | null;
+  thumbnails?: ProductThumbnails;
   categoryId: string | null;
   categoryName: string | null;
   brand: Brand | null;
@@ -53,7 +55,7 @@ export interface WarehouseBatchesResponse {
 
 export interface ProductImageResponse {
   success: boolean;
-  data: { imageUrl: string | null };
+  data: { imageUrl: string | null; thumbnails?: ProductThumbnails };
 }
 
 export interface LatestBatchPrice {

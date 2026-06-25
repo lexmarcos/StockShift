@@ -239,6 +239,7 @@ export function useNewTransferModel(): NewTransferViewProps {
       sku: product.sku,
       barcode: product.barcode,
       imageUrl: product.imageUrl,
+      thumbnails: product.thumbnails,
       totalQuantity,
       stockQuantityLabel: formatTransferProductQuantityLabel({
         ...product,

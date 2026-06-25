@@ -1,3 +1,4 @@
+import type { ProductThumbnails } from "@/lib/thumbnails";
 import type { StockMovement, StockMovementItem } from "../stock-movements.types";
 
 export type { StockMovement };
@@ -10,7 +11,7 @@ export interface StockMovementDetailResponse {
 
 export interface ProductImageResponse {
   success: boolean;
-  data: { id: string; imageUrl: string | null };
+  data: { id: string; imageUrl: string | null; thumbnails?: ProductThumbnails };
 }
 
 export type StockMovementItemWithImage = StockMovementItem & {
