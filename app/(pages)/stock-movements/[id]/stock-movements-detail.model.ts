@@ -2,6 +2,7 @@ import useSWR from "swr";
 import { format, isValid, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useBreadcrumb } from "@/components/breadcrumb";
+import { resolveThumbnailUrl } from "@/lib/thumbnails";
 import type {
   ProductImageResponse,
   StockMovement,
@@ -150,13 +151,15 @@ const extractUniqueProductIds = (movement: StockMovement | null): string[] => {
   return Array.from(new Set(movement.items.map((item) => item.productId)));
 };
 
+// Each item renders a ~56px thumbnail, so resolve the product's `sm` (150px)
+// thumbnail, falling back to the original imageUrl when none was generated.
 const fetchProductImage = async (
   id: string,
 ): Promise<{ id: string; imageUrl: string | null }> => {
   try {
     const { api } = await import("@/lib/api");
     const res = await api.get(`products/${id}`).json<ProductImageResponse>();
-    return { id, imageUrl: res.data.imageUrl ?? null };
+    return { id, imageUrl: resolveThumbnailUrl(res.data, "sm") };
   } catch {
     return { id, imageUrl: null };
   }

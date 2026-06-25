@@ -1,6 +1,7 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
+import { isBackendThumbnailUrl } from "@/lib/thumbnails";
 
 // Hosts the Next image optimizer is allowed to fetch. Must stay in sync with
 // `images.remotePatterns` in next.config.ts — an optimized src on a host that
@@ -19,7 +20,13 @@ function canOptimize(src: ImageProps["src"]): boolean {
     // make /_next/image return 400, so leave non-https URLs unoptimized.
     if (url.protocol !== "https:") return false;
     if (url.pathname.toLowerCase().endsWith(".svg")) return false;
-    return url.hostname.endsWith(OPTIMIZABLE_HOST_SUFFIX);
+    if (!url.hostname.endsWith(OPTIMIZABLE_HOST_SUFFIX)) return false;
+    // Product thumbnails arrive pre-optimized from the backend (resized JPEG on
+    // R2's CDN), so re-encoding them in the optimizer only burns server CPU. The
+    // original upload has no thumbnail suffix, so it still gets optimized —
+    // including when a product has no generated thumbnails yet.
+    if (isBackendThumbnailUrl(src)) return false;
+    return true;
   } catch {
     return false; // relative/unparseable path → leave as-is
   }

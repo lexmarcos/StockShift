@@ -9,6 +9,7 @@ import { pdvSchema, PdvSchema, METHODS_WITH_INSTALLMENTS, METHODS_WITH_PAYMENT_M
 import { CartItem, BatchOption, ProductWithStock, PdvViewProps, SaleDrawerStep } from "./pdv.types";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { resolveThumbnailUrl, type ProductThumbnails } from "@/lib/thumbnails";
 import {
   buildInfinitePayCallbackUrl,
   buildInfinitePayDeeplink,
@@ -33,7 +34,7 @@ interface ProductsResponse {
 
 interface ProductImageResponse {
   success: boolean;
-  data: { id: string; imageUrl: string | null };
+  data: { id: string; imageUrl: string | null; thumbnails?: ProductThumbnails };
 }
 
 interface InfinitePayConfigResponse {
@@ -425,7 +426,7 @@ const getPdvProductsMissingImages = (products: ProductWithStock[]): string[] => 
   const productIds = new Set<string>();
 
   for (const product of products) {
-    if (!product.imageUrl) {
+    if (!resolveThumbnailUrl(product, "sm")) {
       productIds.add(product.id);
     }
   }
@@ -448,7 +449,7 @@ const mergePdvProductImages = (
   if (!images) return products;
   return products.map((product) => ({
     ...product,
-    imageUrl: product.imageUrl ?? images.get(product.id) ?? null,
+    imageUrl: resolveThumbnailUrl(product, "sm") ?? images.get(product.id) ?? null,
   }));
 };
 
@@ -462,17 +463,20 @@ const fetchPdvProductImages = async (
 const resolvePdvProductImageUrl = async (
   product: ProductWithStock,
 ): Promise<string | null> => {
-  if (product.imageUrl) return product.imageUrl;
+  const rowImageUrl = resolveThumbnailUrl(product, "sm");
+  if (rowImageUrl) return rowImageUrl;
   const result = await fetchPdvProductImage(product.id);
   return result.imageUrl;
 };
 
+// PDV only ever shows a ~40px thumbnail, so resolve the product's `sm` (150px)
+// thumbnail, falling back to the original imageUrl when none was generated.
 const fetchPdvProductImage = async (
   id: string,
 ): Promise<{ id: string; imageUrl: string | null }> => {
   try {
     const res = await api.get(`products/${id}`).json<ProductImageResponse>();
-    return { id, imageUrl: res.data.imageUrl ?? null };
+    return { id, imageUrl: resolveThumbnailUrl(res.data, "sm") };
   } catch {
     return { id, imageUrl: null };
   }

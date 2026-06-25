@@ -4,6 +4,7 @@ import { Loader2, Package, ScanLine, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { resolveThumbnailUrl } from "@/lib/thumbnails";
 import type { NewTransferViewProps } from "./new-transfer.types";
 
 interface NewTransferProductSearchProps {
@@ -173,13 +174,14 @@ function TransferProductOptionImage({
 }: {
   product: NewTransferViewProps["productOptions"][number];
 }) {
-  if (product.imageUrl) {
+  const imageUrl = resolveThumbnailUrl(product, "sm");
+  if (imageUrl) {
     return (
       <span
         role="img"
         aria-label={`Foto de ${product.name}`}
         className="size-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
-        style={{ backgroundImage: `url("${product.imageUrl}")` }}
+        style={{ backgroundImage: `url("${imageUrl}")` }}
       />
     );
   }

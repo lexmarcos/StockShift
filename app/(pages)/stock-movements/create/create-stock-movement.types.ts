@@ -1,4 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
+import type { ProductThumbnails } from "@/lib/thumbnails";
 import { CreateStockMovementSchema } from "./create-stock-movement.schema";
 
 export interface InlineProductData {
@@ -103,6 +104,7 @@ export interface StockMovementProductOption {
   sku?: string | null;
   barcode?: string | null;
   imageUrl?: string | null;
+  thumbnails?: ProductThumbnails;
 }
 
 export interface CreateStockMovementViewProps {

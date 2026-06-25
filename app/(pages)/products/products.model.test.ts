@@ -472,6 +472,24 @@ describe("product image fetching", () => {
     expect(mockGet).toHaveBeenCalledWith("products/prod-1");
   });
 
+  it("prefers the sm thumbnail over the original imageUrl", async () => {
+    mockGet.mockReturnValue({
+      json: vi.fn(async () => ({
+        data: {
+          imageUrl: "https://example.com/prod-1.png",
+          thumbnails: {
+            sm: "https://example.com/prod-1_sm.jpg",
+            md: "https://example.com/prod-1_md.jpg",
+          },
+        },
+      })),
+    });
+
+    await expect(fetchProductImageUrl("prod-1")).resolves.toBe(
+      "https://example.com/prod-1_sm.jpg"
+    );
+  });
+
   it("returns null when the product has no image", async () => {
     mockGet.mockReturnValue({
       json: vi.fn(async () => ({ data: { imageUrl: null } })),

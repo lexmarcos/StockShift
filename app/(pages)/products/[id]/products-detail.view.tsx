@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { RemoteImage } from "@/components/ui/remote-image";
+import { resolveThumbnailUrl } from "@/lib/thumbnails";
 import { Product, ProductBatch } from "./products-detail.types";
 import {
   Package,
@@ -211,12 +212,15 @@ function ProductImagePanel({ viewState }: { viewState: ProductDetailViewState })
 }
 
 function ProductImageContent({ product }: { product: Product }) {
+  // The detail panel is at most ~33vw wide, so the 800px `lg` thumbnail covers
+  // it without pulling the full-resolution original.
+  const imageUrl = resolveThumbnailUrl(product, "lg");
   return (
     <div className="flex aspect-[3/4] w-full items-center justify-center bg-neutral-950/50 p-4 md:p-5">
-      {product.imageUrl ? (
+      {imageUrl ? (
         <div className="relative h-full w-full rounded-[10px] overflow-hidden border border-neutral-800/60">
           <RemoteImage
-            src={product.imageUrl}
+            src={imageUrl}
             alt={product.name}
             fill
             sizes="(min-width: 768px) 33vw, 100vw"

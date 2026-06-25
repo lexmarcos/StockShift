@@ -1,8 +1,11 @@
+import type { ProductThumbnails } from "@/lib/thumbnails";
+
 export interface Product {
   id: string;
   name: string;
   description: string | null;
   imageUrl: string | null;
+  thumbnails?: ProductThumbnails;
   categoryId: string | null;
   categoryName: string | null;
   brand: {

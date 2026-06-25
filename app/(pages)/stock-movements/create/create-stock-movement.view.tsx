@@ -31,6 +31,7 @@ import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";
 import { PermissionGate } from "@/components/permission-gate";
 import { cn } from "@/lib/utils";
+import { resolveThumbnailUrl } from "@/lib/thumbnails";
 import { CreateStockMovementViewProps } from "./create-stock-movement.types";
 import { StockMovementScanner } from "./stock-movement-scanner.view";
 import { InlineDuplicateWarningDrawer } from "@/components/stock-movement/inline-duplicate-warning-drawer";
@@ -454,13 +455,14 @@ function StockMovementProductOptionImage({
 }: {
   product: CreateStockMovementViewProps["productOptions"][number];
 }) {
-  if (product.imageUrl) {
+  const imageUrl = resolveThumbnailUrl(product, "sm");
+  if (imageUrl) {
     return (
       <span
         role="img"
         aria-label={`Foto de ${product.name}`}
         className="size-10 shrink-0 rounded-[4px] border border-neutral-800 bg-neutral-900 bg-cover bg-center"
-        style={{ backgroundImage: `url("${product.imageUrl}")` }}
+        style={{ backgroundImage: `url("${imageUrl}")` }}
       />
     );
   }
