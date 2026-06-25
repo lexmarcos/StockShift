@@ -26,6 +26,7 @@ export const mapStockMovementProductOptions = (
     sku: product.sku,
     barcode: product.barcode,
     imageUrl: product.imageUrl,
+    thumbnails: product.thumbnails,
   }));
 };
 

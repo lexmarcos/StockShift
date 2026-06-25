@@ -1,3 +1,4 @@
+import type { ProductThumbnails } from "@/lib/thumbnails";
 import { PdvSchema } from "./pdv.schema";
 
 export interface CartItem {
@@ -28,6 +29,7 @@ export interface ProductWithStock {
   sku: string | null;
   barcode: string | null;
   imageUrl: string | null;
+  thumbnails?: ProductThumbnails;
   totalQuantity: number;
 }
 

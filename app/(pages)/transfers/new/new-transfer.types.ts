@@ -1,4 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
+import type { ProductThumbnails } from "@/lib/thumbnails";
 import { NewTransferSchema } from "./new-transfer.schema";
 
 export interface TransferProductOption {
@@ -7,6 +8,7 @@ export interface TransferProductOption {
   sku?: string | null;
   barcode?: string | null;
   imageUrl?: string | null;
+  thumbnails?: ProductThumbnails;
   totalQuantity?: number | null;
   stockQuantityLabel?: string;
 }

@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatCentsToBRL } from "@/lib/currency";
 import { useSelectedWarehouse } from "@/hooks/use-selected-warehouse";
+import { resolveThumbnailUrl } from "@/lib/thumbnails";
 import {
   Batch,
   LatestBatchPrice,
@@ -207,6 +208,9 @@ const filterByActiveStatus = (product: Product, status: ActiveStatus) => {
 // on /products without a full reload. SWR also dedups and caches it per id.
 export const productImageKey = (id: string): string => `products/${id}/image`;
 
+// The card renders a ~40px thumbnail, so we fetch the product detail (which the
+// warehouse list omits) and return its `sm` (150px) thumbnail, falling back to
+// the original imageUrl when thumbnails haven't been generated yet.
 export const fetchProductImageUrl = async (
   id: string,
 ): Promise<string | null> => {
@@ -214,7 +218,7 @@ export const fetchProductImageUrl = async (
     const response = await api
       .get(`products/${id}`)
       .json<ProductImageResponse>();
-    return response.data.imageUrl ?? null;
+    return resolveThumbnailUrl(response.data, "sm");
   } catch {
     return null;
   }
@@ -223,12 +227,13 @@ export const fetchProductImageUrl = async (
 // Resolves a product's thumbnail: prefer the URL already on the list row, else
 // lazily fetch it. Each card owns one SWR subscription, deduped by product id.
 export const useProductImageUrl = (product: Product): string | null => {
+  const rowImageUrl = resolveThumbnailUrl(product, "sm");
   const { data } = useSWR<string | null>(
-    product.imageUrl ? null : productImageKey(product.id),
+    rowImageUrl ? null : productImageKey(product.id),
     () => fetchProductImageUrl(product.id),
     { revalidateOnFocus: false },
   );
-  return product.imageUrl ?? data ?? null;
+  return rowImageUrl ?? data ?? null;
 };
 
 export const useProductsModel = () => {
