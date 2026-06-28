@@ -40,6 +40,7 @@ import {
   buildExistingProductSalePriceSuggestion,
   buildExistingProductCostPriceSuggestion,
   findMostRecentWarehouseProductBatch,
+  hasActiveWarehouseProductBatch,
 } from "../stock-movement-batch-pricing.model";
 import { validateExistingProductBatchForm } from "../stock-movement-batch-form-validation";
 import {
@@ -259,6 +260,9 @@ export const useNewProductInlineModel = ({
       (url: string) => api.get(url).json<StockMovementProductBatchesResponse>(),
     );
   const mostRecentBatch = findMostRecentWarehouseProductBatch(productBatchesData?.data ?? []);
+  const batchExistsInStock = hasActiveWarehouseProductBatch(
+    productBatchesData?.data ?? [],
+  );
   const batchCostPriceSuggestion = buildExistingProductCostPriceSuggestion(mostRecentBatch);
   const batchSalePriceSuggestion = buildExistingProductSalePriceSuggestion(mostRecentBatch);
   const batchProfitSummary = buildExistingProductProfitSummary({
@@ -733,5 +737,6 @@ export const useNewProductInlineModel = ({
     shouldShowMissingBatchCostPriceSuggestion,
     shouldShowMissingBatchSalePriceSuggestion,
     batchProfitSummary,
+    batchExistsInStock,
   };
 };

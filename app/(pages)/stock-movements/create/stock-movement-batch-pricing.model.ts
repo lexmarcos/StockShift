@@ -56,6 +56,12 @@ export const findMostRecentWarehouseProductBatch = (
   );
 };
 
+export const hasActiveWarehouseProductBatch = (
+  batches: StockMovementProductBatchPriceSource[],
+): boolean => {
+  return batches.some((batch) => batch.quantity > 0);
+};
+
 export const buildExistingProductSalePriceSuggestion = (
   batch: StockMovementProductBatchPriceSource | null,
 ): ExistingProductPriceSuggestion | null => {

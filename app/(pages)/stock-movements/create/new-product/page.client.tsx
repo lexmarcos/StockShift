@@ -53,6 +53,7 @@ function NewProductInlineContent({
         shouldShowMissingCostPriceSuggestion={model.shouldShowMissingBatchCostPriceSuggestion ?? false}
         shouldShowMissingSalePriceSuggestion={model.shouldShowMissingBatchSalePriceSuggestion ?? false}
         profitSummary={model.batchProfitSummary ?? { kind: "incomplete", title: "" }}
+        existsInStock={model.batchExistsInStock ?? false}
       />
     </>
   );

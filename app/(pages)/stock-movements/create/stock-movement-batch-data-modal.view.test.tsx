@@ -72,6 +72,7 @@ describe("StockMovementBatchDataModal", () => {
           title: "Resumo de lucro",
           description: "Informe custo, venda e quantidade para calcular o lucro.",
         }}
+        existsInStock={false}
       />,
     );
 
@@ -88,5 +89,34 @@ describe("StockMovementBatchDataModal", () => {
     expect(screen.getByText("Preço de venda")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Adicionar lote à movimentação" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeTruthy();
+    expect(screen.queryByText("Esse produto existe no estoque")).toBeNull();
+  });
+
+  it("exibe alerta quando o produto já existe no estoque", () => {
+    render(
+      <StockMovementBatchDataModal
+        form={openBatchForm}
+        onOpenChange={vi.fn()}
+        onQuantityChange={vi.fn()}
+        onQuantityIncrement={vi.fn()}
+        onQuantityDecrement={vi.fn()}
+        onManufacturedDateChange={vi.fn()}
+        onExpirationDateChange={vi.fn()}
+        onCostPriceChange={vi.fn()}
+        onSellingPriceChange={vi.fn()}
+        onApplyCostPriceSuggestion={vi.fn()}
+        onApplySalePriceSuggestion={vi.fn()}
+        onConfirm={vi.fn()}
+        costPriceSuggestion={null}
+        salePriceSuggestion={null}
+        isPriceSuggestionLoading={false}
+        shouldShowMissingCostPriceSuggestion={false}
+        shouldShowMissingSalePriceSuggestion={false}
+        profitSummary={{ kind: "incomplete", title: "Resumo de lucro" }}
+        existsInStock
+      />,
+    );
+
+    expect(screen.getByText("Esse produto existe no estoque")).toBeTruthy();
   });
 });

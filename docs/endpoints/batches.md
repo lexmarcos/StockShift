@@ -834,6 +834,118 @@ Returns 200 with zero count (idempotent operation):
 
 ---
 
+## PATCH /api/batches/warehouses/{warehouseId}/products/{productId}/batches/selling-price
+
+**Summary**: Bulk update selling price for all batches of a product in a warehouse
+
+### Authorization
+
+**Required Permissions**: `BATCH_UPDATE` or `ROLE_ADMIN`
+
+### Description
+
+This endpoint performs a bulk update of the selling price across all non-deleted batches of a specific product in a specific warehouse. It is useful for repricing operations where all stock of a product needs the same price adjustment. The operation is scoped to the current tenant and validates that both the warehouse and product exist.
+
+### Request
+
+**Method**: `PATCH`
+**Content-Type**: `application/json`
+**URL Parameters**:
+
+- `warehouseId` (UUID) - Warehouse identifier
+- `productId` (UUID) - Product identifier
+
+#### Request Body
+
+```json
+{
+  "sellingPrice": 1575
+}
+```
+
+**Field Details**:
+- `sellingPrice`: Required, selling price per unit in cents (e.g., 1575 = R$15,75). Must be zero or positive.
+
+### Response
+
+**Status Code**: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Selling price updated successfully",
+  "data": {
+    "message": "Successfully updated selling price for 3 batches",
+    "affectedCount": 3,
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "warehouseId": "660e8400-e29b-41d4-a716-446655440001"
+  }
+}
+```
+
+**Response Fields**:
+
+- `message`: Descriptive message indicating the number of batches updated
+- `affectedCount`: Integer count of batches that had their selling price changed
+- `productId`: UUID of the product (confirmation)
+- `warehouseId`: UUID of the warehouse (confirmation)
+
+### Success Scenarios
+
+#### Batches Updated
+
+Returns 200 with the count of updated batches (shown above).
+
+#### No Batches to Update
+
+Returns 200 with zero count (idempotent operation):
+
+```json
+{
+  "success": true,
+  "message": "Selling price updated successfully",
+  "data": {
+    "message": "Successfully updated selling price for 0 batches",
+    "affectedCount": 0,
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "warehouseId": "660e8400-e29b-41d4-a716-446655440001"
+  }
+}
+```
+
+### Error Responses
+
+**400 Bad Request** - Invalid selling price:
+```json
+{
+  "status": 400,
+  "error": "Validation Failed",
+  "message": "Invalid input",
+  "path": "/api/batches/warehouses/660e8400-e29b-41d4-a716-446655440001/products/550e8400-e29b-41d4-a716-446655440000/batches/selling-price",
+  "validationErrors": {
+    "sellingPrice": "Selling price must be zero or positive"
+  }
+}
+```
+
+**404 Not Found** - Warehouse or product not found.
+
+### Frontend Implementation Guide
+
+1. **Price Update Modal**: Allow user to input a new selling price and preview how many batches will be affected
+2. **Bulk Repricing**: Use in combination with product search/filter to apply pricing changes across a warehouse
+3. **Confirmation**: Display affected batch count and require confirmation before applying
+4. **Success Feedback**: Show updated count and refresh batch/product views
+
+### When to Use This Endpoint
+
+- ✅ Applying a uniform price change across all batches of a product in a warehouse
+- ✅ Repricing campaigns (e.g., "all batches of Product X now R$15,75")
+- ❌ Setting different prices per batch (use `PUT /api/batches/{id}` individually)
+- ❌ Products without batches in the warehouse (returns affectedCount: 0)
+
+---
+
 ## Frontend Component Examples
 
 ### Batch Table

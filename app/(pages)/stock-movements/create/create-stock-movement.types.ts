@@ -156,6 +156,7 @@ export interface CreateStockMovementViewProps {
   shouldShowMissingCostPriceSuggestion: boolean;
   shouldShowMissingSalePriceSuggestion: boolean;
   existingProductProfitSummary: ExistingProductProfitSummary;
+  existingProductExistsInStock: boolean;
   missingProductBarcode: string | null;
   onMissingProductModalOpenChange: (open: boolean) => void;
   onCreateProductFromMissingModal: () => void;

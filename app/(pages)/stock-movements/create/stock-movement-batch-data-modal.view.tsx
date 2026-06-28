@@ -6,6 +6,7 @@ import {
   History,
   Minus,
   PackageCheck,
+  PackageSearch,
   Plus,
   TrendingDown,
   TrendingUp,
@@ -42,6 +43,7 @@ interface StockMovementBatchDataModalProps {
   shouldShowMissingCostPriceSuggestion: boolean;
   shouldShowMissingSalePriceSuggestion: boolean;
   profitSummary: ExistingProductProfitSummary;
+  existsInStock: boolean;
 }
 
 export function StockMovementBatchDataModal({
@@ -63,6 +65,7 @@ export function StockMovementBatchDataModal({
   shouldShowMissingCostPriceSuggestion,
   shouldShowMissingSalePriceSuggestion,
   profitSummary,
+  existsInStock,
 }: StockMovementBatchDataModalProps) {
   return (
     <ResponsiveModal
@@ -105,6 +108,20 @@ export function StockMovementBatchDataModal({
             </div>
           </div>
         </div>
+
+        {existsInStock && (
+          <div className="flex items-start gap-2.5 rounded-[4px] border border-blue-900/30 bg-blue-950/10 px-4 py-3">
+            <PackageSearch className="mt-0.5 size-4 shrink-0 text-blue-400" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-blue-300">
+                Esse produto existe no estoque
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-blue-400/80">
+                Já existe um lote ativo dele neste estoque.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">

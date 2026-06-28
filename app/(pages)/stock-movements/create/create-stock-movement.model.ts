@@ -33,6 +33,7 @@ import {
   buildExistingProductSalePriceSuggestion,
   buildExistingProductCostPriceSuggestion,
   findMostRecentWarehouseProductBatch,
+  hasActiveWarehouseProductBatch,
 } from "./stock-movement-batch-pricing.model";
 import {
   getPendingInlineProductBarcodeConflictError,
@@ -196,6 +197,9 @@ export function useCreateStockMovementModel({
       (url: string) => api.get(url).json<StockMovementProductBatchesResponse>(),
     );
   const mostRecentBatch = findMostRecentWarehouseProductBatch(productBatchesData?.data ?? []);
+  const existingProductExistsInStock = hasActiveWarehouseProductBatch(
+    productBatchesData?.data ?? [],
+  );
   const existingProductSalePriceSuggestion =
     buildExistingProductSalePriceSuggestion(mostRecentBatch);
   const existingProductCostPriceSuggestion =
@@ -473,6 +477,7 @@ export function useCreateStockMovementModel({
     shouldShowMissingCostPriceSuggestion,
     shouldShowMissingSalePriceSuggestion,
     existingProductProfitSummary,
+    existingProductExistsInStock,
     items: fields,
     missingProductBarcode,
     onMissingProductModalOpenChange,

@@ -140,6 +140,7 @@ function StockMovementCreateOverlays({
     onMissingProductModalOpenChange,
     existingProductCostPriceSuggestion,
     existingProductProfitSummary,
+    existingProductExistsInStock,
     existingProductSalePriceSuggestion,
     isExistingProductPriceSuggestionLoading,
     isScannerOpen,
@@ -177,6 +178,7 @@ function StockMovementCreateOverlays({
         shouldShowMissingCostPriceSuggestion={shouldShowMissingCostPriceSuggestion}
         shouldShowMissingSalePriceSuggestion={shouldShowMissingSalePriceSuggestion}
         profitSummary={existingProductProfitSummary}
+        existsInStock={existingProductExistsInStock}
       />
       <StockMovementMissingProductModal
         barcode={missingProductBarcode}

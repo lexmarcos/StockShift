@@ -6,6 +6,7 @@ import {
   buildExistingProductCostPriceSuggestion,
   findMostRecentWarehouseProductBatch,
   formatStockMovementBatchPrice,
+  hasActiveWarehouseProductBatch,
 } from "./stock-movement-batch-pricing.model";
 import type { StockMovementProductBatchPriceSource } from "./create-stock-movement.types";
 
@@ -55,6 +56,14 @@ describe("stock movement batch pricing helpers", () => {
       ])?.id,
     ).toBe("batch-new");
     expect(findMostRecentWarehouseProductBatch([])).toBeNull();
+  });
+
+  it("indica produto em estoque apenas quando há lote ativo", () => {
+    expect(hasActiveWarehouseProductBatch([olderProductBatch])).toBe(true);
+    expect(
+      hasActiveWarehouseProductBatch([{ ...olderProductBatch, quantity: 0 }]),
+    ).toBe(false);
+    expect(hasActiveWarehouseProductBatch([])).toBe(false);
   });
 
   it("cria sugestão de venda somente quando o lote tem preço", () => {

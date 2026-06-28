@@ -75,6 +75,7 @@ export interface NewProductBatchOverlay {
   shouldShowMissingBatchCostPriceSuggestion: boolean;
   shouldShowMissingBatchSalePriceSuggestion: boolean;
   batchProfitSummary: ExistingProductProfitSummary;
+  batchExistsInStock: boolean;
 }
 
 /**
@@ -155,6 +156,7 @@ export interface ProductFormProps {
   shouldShowMissingBatchCostPriceSuggestion?: boolean;
   shouldShowMissingBatchSalePriceSuggestion?: boolean;
   batchProfitSummary?: ExistingProductProfitSummary;
+  batchExistsInStock?: boolean;
 
   // AI Fill
   isAiModalOpen?: boolean;
