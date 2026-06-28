@@ -116,6 +116,7 @@ export interface ProductsViewProps {
   products: Product[];
   filteredProducts: Product[];
   latestBatchPriceByProduct: Record<string, LatestBatchPrice | null>;
+  batchCountByProduct: Record<string, number>;
   isLoading: boolean;
   error: Error | null;
   requiresWarehouse: boolean;

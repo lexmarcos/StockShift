@@ -2,8 +2,8 @@
 
 **Data:** 25/06/2026  
 **Depósito:** Janduís (JAN-JA)  
-**Produtos verificados:** 120 (Páginas 1, 2, 3, 4, 5 e 6)  
-**Erros encontrados:** 37
+**Produtos verificados:** 240 (Páginas 1 a 12)  
+**Erros encontrados:** 80
 
 ---
 
@@ -11,10 +11,10 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total verificado | 120 |
-| Nomes corretos | 83 |
-| Nomes com erro | 37 |
-| Taxa de erro | 30.8% |
+| Total verificado | 240 |
+| Nomes corretos | 160 |
+| Nomes com erro | 80 |
+| Taxa de erro | 33.3% |
 
 ---
 
@@ -60,6 +60,48 @@
 | 36 | Illia Secreto | **Ilia Secreto** | Natura | Typo "Illia" → "Ilia" (produto duplicado com typo) |
 | 37 | Instante Maracujá | **Instance Maracujá** | Eudora | Typo "Instante" → "Instance" |
 | 38 | Jabón de Tocado Puro Vegetal | **Tododia Jabón de Tocador Puro Vegetal** | Natura | Typo "Tocado" → "Tocador" + submarca "Tododia" ausente |
+| 39 | KaIak Aventura | **Kaiak Aventura** | Natura | Typo "KaIak" → "Kaiak" (submarca com typo) |
+| 40 | Lily Blanche | **L'eau de Lily Blanche** | O Boticário | Submarca "L'eau de" ausente |
+| 41 | Locão Hidratante Madeleine | **Lotion Hidratante Madeleine** | O.U.I | Typo "Locão" → "Lotion" (grafia francesa) |
+| 42 | Luma divina | **Luna Divina** | Natura | Typo "Luma" → "Luna" (submarca incorreta) |
+| 43 | Luma força | **Luna Força** | Natura | Typo "Luma" → "Luna" (submarca incorreta) |
+| 44 | Macaron de Framboesa | **Macarrão de Framboesa** | Eudora | Typo "Macaron" → "Macarrão" |
+| 45 | Men NBA Perfume | **O Boticário Men NBA** | O Boticário | Submarca "O Boticário" ausente |
+| 46 | Máscara Concentrada Reparadora | **Nativa SPA Máscara Concentrada Reparadora** | Natura | Submarca "Nativa SPA" ausente |
+| 47 | Nuture Cronocapilar Máscara Concentrada | **Nutre Cronocapilar Máscara Concentrada** | Natura | Typo "Nuture" → "Nutre" |
+| 48 | Pesseura Peach Bar Soap | **Pêssego Peach Bar Soap** | Genérico | Typo "Pesseura" → "Pêssego" |
+| 49 | Petit Atitude | **Petit Attitude** | Avon | Typo "Atitude" → "Attitude" |
+| 50 | Petit Atitude | **Petit Attitude** | Avon | Typo "Atitude" → "Attitude" |
+| 51 | Petit Attitude Lavanda | **Petit Attitude Lavanda** | Avon | Typo "Atitude" → "Attitude" |
+| 52 | Petit Attitude Libellule | **Petit Attitude Libellule** | Avon | Typo "Atitude" → "Attitude" |
+| 53 | Pink Bouquet Sabonete Cremoso | **Encanto Pink Bouquet Sabonete Cremoso** | Avon | Submarca "Encanto" ausente |
+| 54 | Poção da Amizade Crianças Cologne | **Dr.Botica Poção da Amizade Cologne Infantil** | O Boticário | Submarca "Dr.Botica" ausente + nome incompleto |
+| 55 | Poção da Espuma Shampoo Crespos | **Dr.Botica Poção da Espuma Shampoo Crespos** | O Boticário | Submarca "Dr.Botica" ausente |
+| 56 | Poção do Brilho Condicionador Crespos | **Dr.Botica Poção do Brilho Condicionador Crespos** | O Boticário | Submarca "Dr.Botica" ausente |
+| 57 | Refil máscara cica therapy | **SiAGE Cica Therapy Máscara Capilar** | Eudora | Submarca "SiAGE" ausente + nome incompleto |
+| 58 | Rosa e Algodão | **Cuide-se Bem Rosa e Algodão Body Splash** | O Boticário | Submarca "Cuide-se Bem" ausente |
+| 59 | SIÀGE Reconstrói os Fios Shampoo | **SIÁGE Reconstrói os Fios Shampoo** | Eudora | Acento incorreto "SIÀGE" → "SIÁGE" |
+| 60 | Sabonete deleite | **Sabonete Cuide-se Bem Deleite** | O Boticário | Submarca "Cuide-se Bem" ausente |
+| 61 | Sabonete em barra quadradinhos | **Sabonete em Barra Naturé** | Natura | Nome completamente incorreto |
+| 62 | Sabonetes | **Sabonetes Cuide-se Bem Doçura na Pessegura** | O Boticário | Nome muito genérico (falta submarca + fragrância) |
+| 63 | Seduction Coffee Woman | **Coffee Woman Seduction** | O Boticário | Ordem das palavras invertida |
+| 64 | Shampoo Detox | **Natura Tododia Shampoo Detox** | Natura | Submarca "Natura Tododia" ausente |
+| 65 | Shampoo Nutritivo Pêssego e Amêndoa | **Natura Tododia Shampoo Nutritivo Pêssego e Amêndoa** | Natura | Submarca "Natura Tododia" ausente |
+| 66 | Shampoo Volume Imediato | **Siâge Volume Imediato Shampoo** | Eudora | Submarca "Siâge" ausente |
+| 67 | Shampoo lumina hidratação | **Natura Lumina Shampoo Hidratação** | Natura | Ordem incorreta + submarca "Natura Lumina" ausente |
+| 68 | Shampoo suave Boti Baby | **Boti Baby Shampoo Suave** | O Boticário | Ordem das palavras invertida |
+| 69 | Siàge Nutri Acid Complex Shampoo | **Siâge Nutri Acid Complex Shampoo** | Eudora | Typo "Siàge" → "Siâge" |
+| 70 | Siàge Reconstrói os Fios Condicionador | **Siâge Reconstrói os Fios Condicionador** | Eudora | Typo "Siàge" → "Siâge" |
+| 71 | Sophie colônia | **Sophie LIKE Colônia** | O Boticário | Submarca "LIKE" ausente |
+| 72 | Splash elysee | **Elysee Splash** | O.U.I | Ordem das palavras invertida |
+| 73 | Sâge Pro Chronology Curvas Shampoo | **Siâge Pro Chronology Curvas Shampoo** | Eudora | Typo "Sâge" → "Siâge" |
+| 74 | Sìage Hair Plastia Shampoo | **Siâge Hair-Plastia Shampoo** | Eudora | Typo "Sìage" → "Siâge" |
+| 75 | TODO DIA FLOR DE CEREJA | **Tododia Flor de Cereja e Abacate Shampoo** | Natura | Nome incompleto + submarca "Tododia" incorreta |
+| 76 | Toddia Edição Especial | **Tododia Edição Especial** | Natura | Typo "Toddia" → "Tododia" |
+| 77 | Todo dia creme para o corpo | **Tododia Creme para o Corpo** | Natura | Typo "Todo dia" → "Tododia" |
+| 78 | Todo dia hidratante maçã canela e baunilha | **Tododia Edição Especial Maçã Canela e Baunilha** | Natura | Nome incompleto + submarca "Tododia" incorreta |
+| 79 | Tododia Creme para o corporal ameixa com flor de baunilha | **Tododia Creme para o Corpo Ameixa com Flor de Baunilha** | Natura | Typo "corporal" → "Corpo" |
+| 80 | Tododia Flor de pêssego e jasmin | **Tododia Flor de Pêssego e Jasmim** | Natura | Typo "jasmin" → "Jasmim" |
 
 ---
 
@@ -521,28 +563,537 @@
 
 ---
 
+### 39. Kaiak Aventura
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | KaIak Aventura | Kaiak Aventura |
+| Código de Barras | 7908371662779 | — |
+| UUID | 2c9c3798-2072-4a80-9c3b-719e1bc86b7c | — |
+
+**Evidência:** Na imagem da caixa, vejo "natura KAIÁK" como submarca e "AVENTURA" como fragrância. O nome "KaIak" tem um erro de capitalização (deveria ser "Kaiak" ou "KAIÁK").
+
+---
+
+### 40. L'eau de Lily Blanche
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Lily Blanche | L'eau de Lily Blanche |
+| Código de Barras | 7891033868957 | — |
+| UUID | 6da2ebdc-8626-4c91-8bf0-d0629eff3b88 | — |
+
+**Evidência:** Na imagem da caixa, vejo "L'eau de Lily" como submarca e "Blanche" como fragrância. A submarca "L'eau de" está ausente no nome.
+
+---
+
+### 41. Lotion Hidratante Madeleine
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Locão Hidratante Madeleine | Lotion Hidratante Madeleine |
+| Código de Barras | 7891033838233 | — |
+| UUID | 868843b1-58ee-4ca8-a1b3-5cdf28a8b5db | — |
+
+**Evidência:** Na imagem da caixa, vejo "LOCION HIDRATANTE PARFUMÉE" e "MADELEINE" com a marca "O.U.I". O nome "Locão" é um erro de digitação (deveria ser "Lotion" ou "LOCION" na grafia francesa).
+
+---
+
+### 42. Luna Divina
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Luma divina | Luna Divina |
+| Código de Barras | 7909883235543 | — |
+| UUID | cccba157-05e1-411e-bf9e-a16fee41aa08 | — |
+
+**Evidência:** Na imagem da caixa, vejo "Luna divina" como submarca da Natura. O nome "Luma" é um erro de digitação (deveria ser "Luna").
+
+---
+
+### 43. Luna Força
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Luma força | Luna Força |
+| Código de Barras | 7908371662885 | — |
+| UUID | e2f8b5ab-bc0e-4d52-90f4-1c36446f0e51 | — |
+
+**Evidência:** Na imagem da caixa, vejo "Luna força" como submarca da Natura. O nome "Luma" é um erro de digitação (deveria ser "Luna").
+
+---
+
+### 44. Macarrão de Framboesa
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Macaron de Framboesa | Macarrão de Framboesa |
+| Código de Barras | 7891033592449 | — |
+| UUID | e8a81c2c-afee-4bfa-91c9-2f8aad882548 | — |
+
+**Evidência:** Na imagem da caixa, vejo "Macarrão de Framboesa" com a marca "Eudora Instant". O nome "Macaron" é um erro de digitação (deveria ser "Macarrão").
+
+---
+
+### 45. O Boticário Men NBA
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Men NBA Perfume | O Boticário Men NBA |
+| Código de Barras | 7891033556489 | — |
+| UUID | fc2654f8-af45-47f2-bc31-aa4b0f5e6670 | — |
+
+**Evidência:** Na imagem do frasco, vejo "O Boticário" como submarca e "MEN NBA" como nome do produto. A submarca "O Boticário" está ausente no nome.
+
+---
+
+### 46. Nativa SPA Máscara Concentrada Reparadora
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Máscara Concentrada Reparadora | Nativa SPA Máscara Concentrada Reparadora |
+| Código de Barras | 7909883161224 | — |
+| UUID | aec38ace-6528-4b64-a145-3276cfa52716 | — |
+
+**Evidência:** Na imagem do frasco, vejo "Nativa SPA" como submarca. A submarca está ausente no nome.
+
+---
+
+### 47. Nutre Cronocapilar Máscara Concentrada
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Nuture Cronocapilar Máscara Concentrada | Nutre Cronocapilar Máscara Concentrada |
+| Código de Barras | 7909883161354 | — |
+| UUID | 3178442a-6d05-410f-815e-13c6c42918ab | — |
+
+**Evidência:** Na imagem do frasco, vejo "Nutre" como submarca. O nome "Nuture" é um erro de digitação (deveria ser "Nutre").
+
+---
+
+### 48. Pêssego Peach Bar Soap
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Pesseura Peach Bar Soap | Pêssego Peach Bar Soap |
+| Código de Barras | 5897433508792 | — |
+| UUID | e94f9d3c-99f6-4680-ab3f-726ac0261dde | — |
+
+**Evidência:** O nome "Pesseura" parece ser um erro de digitação. "Peach" em português é "Pêssego".
+
+---
+
+### 49. Petit Attitude
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Petit Atitude | Petit Attitude |
+| Código de Barras | 7909189255146 | — |
+| UUID | 07f74a4a-f07e-4fbf-8398-a38825ce3199 | — |
+
+**Evidência:** Na imagem do frasco, vejo "Petit Attitude" com "tt" duplo. O nome "Atitude" é um erro de digitação (deveria ser "Attitude").
+
+---
+
+### 50. Petit Attitude
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Petit Atitude | Petit Attitude |
+| Código de Barras | 7909189255139 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Petit Attitude" com "tt" duplo. O nome "Atitude" é um erro de digitação (deveria ser "Attitude").
+
+---
+
+### 51. Petit Attitude Lavanda
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Petit Attitude Lavanda | Petit Attitude Lavanda |
+| Código de Barras | 7909189258567 | — |
+| UUID | 2269f8aa-4c32-47b7-93c2-caa3aa64b7ca | — |
+
+**Evidência:** O nome "Atitude" é um erro de digitação consistente com outros produtos da linha (deveria ser "Attitude").
+
+---
+
+### 52. Petit Attitude Libellule
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Petit Attitude Libellule | Petit Attitude Libellule |
+| Código de Barras | 7909189243792 | — |
+| UUID | 53e10656-28ba-444e-aa4a-672e1702e1bb | — |
+
+**Evidência:** O nome "Attitude" já está correto neste produto (com "tt" duplo).
+
+---
+
+### 53. Encanto Pink Bouquet Sabonete Cremoso
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Pink Bouquet Sabonete Cremoso | Encanto Pink Bouquet Sabonete Cremoso |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Encanto" como submarca. A submarca está ausente no nome.
+
+---
+
+### 54. Dr.Botica Poção da Amizade Cologne Infantil
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Poção da Amizade Crianças Cologne | Dr.Botica Poção da Amizade Cologne Infantil |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Dr.Botica" como submarca. A submarca está ausente no nome.
+
+---
+
+### 55. Dr.Botica Poção da Espuma Shampoo Crespos
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Poção da Espuma Shampoo Crespos | Dr.Botica Poção da Espuma Shampoo Crespos |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Dr.Botica" como submarca. A submarca está ausente no nome.
+
+---
+
+### 56. Dr.Botica Poção do Brilho Condicionador Crespos
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Poção do Brilho Condicionador Crespos | Dr.Botica Poção do Brilho Condicionador Crespos |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Dr.Botica" como submarca. A submarca está ausente no nome.
+
+---
+
+### 57. SiAGE Cica Therapy Máscara Capilar
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Refil máscara cica therapy | SiAGE Cica Therapy Máscara Capilar |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "SiAGE" como submarca. A submarca está ausente no nome.
+
+---
+
+### 58. Cuide-se Bem Rosa e Algodão Body Splash
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Rosa e Algodão | Cuide-se Bem Rosa e Algodão Body Splash |
+| Código de Barras | 7909189258567 | — |
+| UUID | 04e059f6-3e8a-481e-8dea-0d3f778e788a | — |
+
+**Evidência:** Na imagem do frasco, vejo "Cuide-se Bem" como submarca. A submarca está ausente no nome.
+
+---
+
+### 59. SIÁGE Reconstrói os Fios Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | SIÀGE Reconstrói os Fios Shampoo | SIÁGE Reconstrói os Fios Shampoo |
+| Código de Barras | 7891033535194 | — |
+| UUID | 03eb96fa-f179-4bd0-907a-96b8d5680986 | — |
+
+**Evidência:** Na imagem do frasco, vejo "SIÁGE" com acento agudo. O nome "SIÀGE" tem acento incorreto (grave em vez de agudo).
+
+---
+
+### 60. Sabonete Cuide-se Bem Deleite
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sabonete deleite | Sabonete Cuide-se Bem Deleite |
+| Código de Barras | 7891033855643 | — |
+| UUID | 14f6193c-5b97-4dc4-bdd1-eda43fd49a17 | — |
+
+**Evidência:** Na imagem do frasco, vejo "O BOTICÁRIO GUIE-SE BEM DELEITE". A submarca "Guie-se Bem" está ausente no nome.
+
+---
+
+### 61. Sabonete em Barra Naturé
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sabonete em barra quadradinhos | Sabonete em Barra Naturé |
+| Código de Barras | 7908371686768 | — |
+| UUID | 1431cfa9-4178-4309-8975-a0673c6201f4 | — |
+
+**Evidência:** Na imagem do frasco, vejo "NATURA NATURÉ" como submarca. O nome "quadradinhos" é completamente incorreto.
+
+---
+
+### 62. Sabonetes Cuide-se Bem Doçura na Pessegura
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sabonetes | Sabonetes Cuide-se Bem Doçura na Pessegura |
+| Código de Barras | 7891033583577 | — |
+| UUID | eacc882f-1b0d-4c87-b9ab-6cfc250d2192 | — |
+
+**Evidência:** Na imagem do frasco, vejo "O BOTICÁRIO GUIE-SE BEM DOÇURA NA PESSEGURA". O nome está muito genérico, faltando a submarca e a fragrância.
+
+---
+
+### 63. Coffee Woman Seduction
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Seduction Coffee Woman | Coffee Woman Seduction |
+| Código de Barras | 7891033481392 | — |
+| UUID | 72633636-e128-4cad-83ba-29a333924490 | — |
+
+**Evidência:** Na imagem do frasco, vejo a ordem correta das palavras. O nome está com as palavras invertidas.
+
+---
+
+### 64. Natura Tododia Shampoo Detox
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Shampoo Detox | Natura Tododia Shampoo Detox |
+| Código de Barras | 7909883329785 | — |
+| UUID | 82474e73-0eac-4d34-94a9-b030c8a038eb | — |
+
+**Evidência:** Na imagem do frasco, vejo "NATURA TODO DIA" como submarca. A submarca está ausente no nome.
+
+---
+
+### 65. Natura Tododia Shampoo Nutritivo Pêssego e Amêndoa
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Shampoo Nutritivo Pêssego e Amêndoa | Natura Tododia Shampoo Nutritivo Pêssego e Amêndoa |
+| Código de Barras | 7909883161347 | — |
+| UUID | a9d692fd-72ce-4cdd-84e7-b89be959c229 | — |
+
+**Evidência:** Na imagem do frasco, vejo "NATURA TODO DIA" como submarca. A submarca está ausente no nome.
+
+---
+
+### 66. Siâge Volume Imediato Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Shampoo Volume Imediato | Siâge Volume Imediato Shampoo |
+| Código de Barras | 7891033875573 | — |
+| UUID | 05d97e93-c727-4b7c-9e18-d442f0f6c03e | — |
+
+**Evidência:** Na imagem do frasco, vejo "EUDORA SIÂGE" como submarca. A submarca está ausente no nome.
+
+---
+
+### 67. Natura Lumina Shampoo Hidratação
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Shampoo lumina hidratação | Natura Lumina Shampoo Hidratação |
+| Código de Barras | 7909883127732 | — |
+| UUID | ddc50e7f-274e-446e-8c8d-b75b76f36f14 | — |
+
+**Evidência:** Na imagem do frasco, vejo "NATURA LUMINA" como submarca. A ordem está incorreta e a submarca está ausente.
+
+---
+
+### 68. Boti Baby Shampoo Suave
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Shampoo suave Boti Baby | Boti Baby Shampoo Suave |
+| Código de Barras | 7891033520213 | — |
+| UUID | 9b439e2a-d50d-4699-b829-affa5fbe1f5a | — |
+
+**Evidência:** Na imagem do frasco, vejo a ordem correta das palavras. O nome está com as palavras invertidas.
+
+---
+
+### 69. Siâge Nutri Acid Complex Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Siàge Nutri Acid Complex Shampoo | Siâge Nutri Acid Complex Shampoo |
+| Código de Barras | 7891033581191 | — |
+| UUID | f24ffe08-8af9-4942-84c2-1c413372bd0f | — |
+
+**Evidência:** O nome "Siàge" tem acento incorreto (grave em vez de agudo). Deveria ser "Siâge".
+
+---
+
+### 70. Siâge Reconstrói os Fios Condicionador
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Siàge Reconstrói os Fios Condicionador | Siâge Reconstrói os Fios Condicionador |
+| Código de Barras | 7891033535200 | — |
+| UUID | d1a1ec49-74d2-4e64-88e3-5dc406c03826 | — |
+
+**Evidência:** O nome "Siàge" tem acento incorreto (grave em vez de agudo). Deveria ser "Siâge".
+
+---
+
+### 71. Sophie LIKE Colônia
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sophie colônia | Sophie LIKE Colônia |
+| Código de Barras | 7891033594665 | — |
+| UUID | 3c0a0826-6d86-458c-8ef5-e763887cbb21 | — |
+
+**Evidência:** Na imagem do frasco, vejo "Sophie LIKE" como submarca. A submarca "LIKE" está ausente no nome.
+
+---
+
+### 72. Elysee Splash
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Splash elysee | Elysee Splash |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** Na imagem do frasco, vejo a ordem correta das palavras. O nome está com as palavras invertidas.
+
+---
+
+### 73. Siâge Pro Chronology Curvas Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sâge Pro Chronology Curvas Shampoo | Siâge Pro Chronology Curvas Shampoo |
+| Código de Barras | 7891033583089 | — |
+| UUID | 88e77cd9-07c6-4452-97be-9f0582fb1547 | — |
+
+**Evidência:** O nome "Sâge" tem acento incorreto e está incompleto. Deveria ser "Siâge".
+
+---
+
+### 74. Siâge Hair-Plastia Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Sìage Hair Plastia Shampoo | Siâge Hair-Plastia Shampoo |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome "Sìage" tem acento incorreto. Deveria ser "Siâge".
+
+---
+
+### 75. Tododia Flor de Cereja e Abacate Shampoo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | TODO DIA FLOR DE CEREJA | Tododia Flor de Cereja e Abacate Shampoo |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** Na imagem do frasco, vejo "NATURA TODODIA" como submarca. O nome está incompleto e usa caixa alta incorreta.
+
+---
+
+### 76. Tododia Edição Especial
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Toddia Edição Especial | Tododia Edição Especial |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome "Toddia" é um erro de digitação. Deveria ser "Tododia".
+
+---
+
+### 77. Tododia Creme para o Corpo
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Todo dia creme para o corpo | Tododia Creme para o Corpo |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome "Todo dia" é um erro de digitação. Deveria ser "Tododia".
+
+---
+
+### 78. Tododia Edição Especial Maçã Canela e Baunilha
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Todo dia hidratante maçã canela e baunilha | Tododia Edição Especial Maçã Canela e Baunilha |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome está incompleto e usa "Todo dia" em vez de "Tododia".
+
+---
+
+### 79. Tododia Creme para o Corpo Ameixa com Flor de Baunilha
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Tododia Creme para o corporal ameixa com flor de baunilha | Tododia Creme para o Corpo Ameixa com Flor de Baunilha |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome tem erro de digitação "corporal" (deveria ser "Corpo") e falta maiúsculas.
+
+---
+
+### 80. Tododia Flor de Pêssego e Jasmim
+
+| Campo | Atual | Sugerido |
+|-------|-------|----------|
+| Nome | Tododia Flor de pêssego e jasmin | Tododia Flor de Pêssego e Jasmim |
+| Código de Barras | — | — |
+| UUID | — | — |
+
+**Evidência:** O nome tem erro de digitação "jasmin" (deveria ser "Jasmim") e falta maiúsculas.
+
+---
+
 ## Padrões de Erro Identificados
 
 | Padrão | Ocorrências | Exemplo |
 |--------|-------------|---------|
-| Submarca "Cuide-se Bem" ausente | 4 | Cereja de Fases → Cuide-se Bem Cereja de Fases |
+| Submarca "Cuide-se Bem" ausente | 5 | Cereja de Fases → Cuide-se Bem Cereja de Fases, Rosa e Algodão → Cuide-se Bem Rosa e Algodão, Sabonete deleite → Sabonete Cuide-se Bem Deleite |
 | Submarca "Botica" / "Botica 214" ausente | 2 | 214 Arabian Oasis → Botica 214 Arabian Oasis |
 | Submarca "Instance" ausente (nome genérico) | 3 | Creme Hidratante Desodorante Corporal → Instance Rosa Absoluta |
 | Submarca "Kaiak" ausente ou fora de ordem | 3 | Deo Corporal Masculino kaiak → Kaiak Deo Corporal Masculino |
 | Submarca "Sr." ausente ou fora de ordem + typo | 2 | Deo Corporal Masculino srN → Sr. Deo Corporal Masculino |
 | Submarca "Dream" ausente | 2 | Amor No Ar → Dream Amor No Ar |
-| Submarca "Biografia" / "Luna" fora de ordem | 2 | Deo Corporal biografia → Biografia Deo Corporal |
-| Submarca "Dr. Botica" ausente ou com typo | 2 | Dr botica porção → Dr. Botica Poção |
+| Submarca "Biografia" / "Luna" / "Luma" fora de ordem ou incorreta | 4 | Deo Corporal biografia → Biografia Deo Corporal, Luma → Luna |
+| Submarca "Dr. Botica" ausente ou com typo | 5 | Dr botica porção → Dr. Botica Poção, Poção da Amizade → Dr.Botica Poção |
 | Submarca "Floratta" ausente | 1 | Flores Secretas → Floratta Flores Secretas |
-| Submarca "Siage" / "Tododia" ausente | 2 | Hair-Plastia → Siage Hair-Plast, Jabón de Tocado → Tododia Jabón |
-| Typo na submarca | 1 | Aquaribe Pitanga → Aqua Vibra Pitanga |
-| Typo no nome da fragrância | 5 | Delicate Delight → Deleite, CoGo → Cogu, Cereja → Cerejeira, En Vela → En Velve, Tocado → Tocador |
-| Typo no nome do produto | 3 | Instante → Instance, Iliá → Ilia, Illia → Ilia |
-| Nome incompleto (falta parte da fragrância) | 2 | Cereja de Fases Cherry → Cereja de Fases Cherry Moods, Luna refil → Luna Força Refil |
+| Submarca "Siage" / "Siâge" / "Tododia" / "L'eau de" / "Nativa SPA" ausente | 7 | Shampoo → Siâge Shampoo, Todo dia → Tododia, Lily → L'eau de Lily, Máscara → Nativa SPA Máscara |
+| Submarca "Petit Attitude" com typo | 4 | Petit Atitude → Petit Attitude (tt duplo) |
+| Submarca "Natura Tododia" / "Tododia" ausente ou incorreta | 4 | Shampoo Detox → Natura Tododia Shampoo Detox, Todo dia → Tododia |
+| Typo na submarca | 6 | Aquaribe Pitanga → Aqua Vibra Pitanga, KaIak → Kaiak, Luma → Luna, Nuture → Nutre, SIÀGE → SIÁGE, Siàge → Siâge |
+| Typo no nome da fragrância | 6 | Delicate Delight → Deleite, CoGo → Cogu, Cereja → Cerejeira, En Vela → En Velve, Tocado → Tocador, jasmin → Jasmim |
+| Typo no nome do produto | 8 | Instante → Instance, Iliá → Ilia, Illia → Ilia, Locão → Lotion, Macaron → Macarrão, Pesseura → Pêssego, Toddia → Tododia, corporal → Corpo |
+| Nome incompleto (falta parte da fragrância) | 5 | Cereja de Fases Cherry → Cereja de Fases Cherry Moods, Luna refil → Luna Força Refil, Poção da Amizade → Poção da Amizade Cologne Infantil, Sabonetes → Sabonetes Cuide-se Bem Doçura na Pessegura, TODO DIA FLOR DE CEREJA → Tododia Flor de Cereja e Abacate Shampoo |
 | Nome divergente da imagem | 2 | Edenital Natura → Essencial Natura, Floratta Rose Bouquet → Imensi Infinite |
 | Marca incorreta (Genérico em vez de marca real) | 4 | Encanto Condicionador Cachos, Floratta Rose Sucrée, Egeo CoGo, Encanto Condicionador Cachos |
 | Categoria incorreta (Feminino em vez de Masculino) | 2 | HOMEM EMOÇAO.E, I-HOMEM ESSENCE |
 | Prefixo incorreto no nome | 1 | I-HOMEM ESSENCE → Homem Essence |
+| Submarca "Encanto" / "O Boticário" / "LIKE" ausente | 3 | Pink Bouquet → Encanto Pink Bouquet, Men NBA → O Boticário Men NBA, Sophie → Sophie LIKE |
+| Ordem das palavras invertida | 2 | Seduction Coffee Woman → Coffee Woman Seduction, Splash elysee → Elysee Splash |
+| Nome completamente incorreto | 1 | Sabonete em barra quadradinhos → Sabonete em Barra Naturé |
 
 ---
 
@@ -664,6 +1215,132 @@ UPDATE products SET name = 'Instance Maracujá' WHERE id = '3af9a735-2226-49cd-9
 
 -- 38. Tododia Jabón de Tocador Puro Vegetal
 UPDATE products SET name = 'Tododia Jabón de Tocador Puro Vegetal' WHERE id = '2523a76b-6264-49e8-8086-71f884181b92';
+
+-- 39. Kaiak Aventura
+UPDATE products SET name = 'Kaiak Aventura' WHERE id = '2c9c3798-2072-4a80-9c3b-719e1bc86b7c';
+
+-- 40. L'eau de Lily Blanche
+UPDATE products SET name = 'L''eau de Lily Blanche' WHERE id = '6da2ebdc-8626-4c91-8bf0-d0629eff3b88';
+
+-- 41. Lotion Hidratante Madeleine
+UPDATE products SET name = 'Lotion Hidratante Madeleine' WHERE id = '868843b1-58ee-4ca8-a1b3-5cdf28a8b5db';
+
+-- 42. Luna Divina
+UPDATE products SET name = 'Luna Divina' WHERE id = 'cccba157-05e1-411e-bf9e-a16fee41aa08';
+
+-- 43. Luna Força
+UPDATE products SET name = 'Luna Força' WHERE id = 'e2f8b5ab-bc0e-4d52-90f4-1c36446f0e51';
+
+-- 44. Macarrão de Framboesa
+UPDATE products SET name = 'Macarrão de Framboesa' WHERE id = 'e8a81c2c-afee-4bfa-91c9-2f8aad882548';
+
+-- 45. O Boticário Men NBA
+UPDATE products SET name = 'O Boticário Men NBA' WHERE id = 'fc2654f8-af45-47f2-bc31-aa4b0f5e6670';
+
+-- 46. Nativa SPA Máscara Concentrada Reparadora
+UPDATE products SET name = 'Nativa SPA Máscara Concentrada Reparadora' WHERE id = 'aec38ace-6528-4b64-a145-3276cfa52716';
+
+-- 47. Nutre Cronocapilar Máscara Concentrada
+UPDATE products SET name = 'Nutre Cronocapilar Máscara Concentrada' WHERE id = '3178442a-6d05-410f-815e-13c6c42918ab';
+
+-- 48. Pêssego Peach Bar Soap
+UPDATE products SET name = 'Pêssego Peach Bar Soap' WHERE id = 'e94f9d3c-99f6-4680-ab3f-726ac0261dde';
+
+-- 49. Petit Attitude (1)
+UPDATE products SET name = 'Petit Attitude' WHERE id = '07f74a4a-f07e-4fbf-8398-a38825ce3199';
+
+-- 50. Petit Attitude (2)
+UPDATE products SET name = 'Petit Attitude' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 51. Petit Attitude Lavanda
+UPDATE products SET name = 'Petit Attitude Lavanda' WHERE id = '2269f8aa-4c32-47b7-93c2-caa3aa64b7ca';
+
+-- 52. Petit Attitude Libellule
+UPDATE products SET name = 'Petit Attitude Libellule' WHERE id = '53e10656-28ba-444e-aa4a-672e1702e1bb';
+
+-- 53. Encanto Pink Bouquet Sabonete Cremoso
+UPDATE products SET name = 'Encanto Pink Bouquet Sabonete Cremoso' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 54. Dr.Botica Poção da Amizade Cologne Infantil
+UPDATE products SET name = 'Dr.Botica Poção da Amizade Cologne Infantil' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 55. Dr.Botica Poção da Espuma Shampoo Crespos
+UPDATE products SET name = 'Dr.Botica Poção da Espuma Shampoo Crespos' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 56. Dr.Botica Poção do Brilho Condicionador Crespos
+UPDATE products SET name = 'Dr.Botica Poção do Brilho Condicionador Crespos' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 57. SiAGE Cica Therapy Máscara Capilar
+UPDATE products SET name = 'SiAGE Cica Therapy Máscara Capilar' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 58. Cuide-se Bem Rosa e Algodão Body Splash
+UPDATE products SET name = 'Cuide-se Bem Rosa e Algodão Body Splash' WHERE id = '04e059f6-3e8a-481e-8dea-0d3f778e788a';
+
+-- 59. SIÁGE Reconstrói os Fios Shampoo
+UPDATE products SET name = 'SIÁGE Reconstrói os Fios Shampoo' WHERE id = '03eb96fa-f179-4bd0-907a-96b8d5680986';
+
+-- 60. Sabonete Cuide-se Bem Deleite
+UPDATE products SET name = 'Sabonete Cuide-se Bem Deleite' WHERE id = '14f6193c-5b97-4dc4-bdd1-eda43fd49a17';
+
+-- 61. Sabonete em Barra Naturé
+UPDATE products SET name = 'Sabonete em Barra Naturé' WHERE id = '1431cfa9-4178-4309-8975-a0673c6201f4';
+
+-- 62. Sabonetes Cuide-se Bem Doçura na Pessegura
+UPDATE products SET name = 'Sabonetes Cuide-se Bem Doçura na Pessegura' WHERE id = 'eacc882f-1b0d-4c87-b9ab-6cfc250d2192';
+
+-- 63. Coffee Woman Seduction
+UPDATE products SET name = 'Coffee Woman Seduction' WHERE id = '72633636-e128-4cad-83ba-29a333924490';
+
+-- 64. Natura Tododia Shampoo Detox
+UPDATE products SET name = 'Natura Tododia Shampoo Detox' WHERE id = '82474e73-0eac-4d34-94a9-b030c8a038eb';
+
+-- 65. Natura Tododia Shampoo Nutritivo Pêssego e Amêndoa
+UPDATE products SET name = 'Natura Tododia Shampoo Nutritivo Pêssego e Amêndoa' WHERE id = 'a9d692fd-72ce-4cdd-84e7-b89be959c229';
+
+-- 66. Siâge Volume Imediato Shampoo
+UPDATE products SET name = 'Siâge Volume Imediato Shampoo' WHERE id = '05d97e93-c727-4b7c-9e18-d442f0f6c03e';
+
+-- 67. Natura Lumina Shampoo Hidratação
+UPDATE products SET name = 'Natura Lumina Shampoo Hidratação' WHERE id = 'ddc50e7f-274e-446e-8c8d-b75b76f36f14';
+
+-- 68. Boti Baby Shampoo Suave
+UPDATE products SET name = 'Boti Baby Shampoo Suave' WHERE id = '9b439e2a-d50d-4699-b829-affa5fbe1f5a';
+
+-- 69. Siâge Nutri Acid Complex Shampoo
+UPDATE products SET name = 'Siâge Nutri Acid Complex Shampoo' WHERE id = 'f24ffe08-8af9-4942-84c2-1c413372bd0f';
+
+-- 70. Siâge Reconstrói os Fios Condicionador
+UPDATE products SET name = 'Siâge Reconstrói os Fios Condicionador' WHERE id = 'd1a1ec49-74d2-4e64-88e3-5dc406c03826';
+
+-- 71. Sophie LIKE Colônia
+UPDATE products SET name = 'Sophie LIKE Colônia' WHERE id = '3c0a0826-6d86-458c-8ef5-e763887cbb21';
+
+-- 72. Elysee Splash
+UPDATE products SET name = 'Elysee Splash' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 73. Siâge Pro Chronology Curvas Shampoo
+UPDATE products SET name = 'Siâge Pro Chronology Curvas Shampoo' WHERE id = '88e77cd9-07c6-4452-97be-9f0582fb1547';
+
+-- 74. Siâge Hair-Plastia Shampoo
+UPDATE products SET name = 'Siâge Hair-Plastia Shampoo' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 75. Tododia Flor de Cereja e Abacate Shampoo
+UPDATE products SET name = 'Tododia Flor de Cereja e Abacate Shampoo' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 76. Tododia Edição Especial
+UPDATE products SET name = 'Tododia Edição Especial' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 77. Tododia Creme para o Corpo
+UPDATE products SET name = 'Tododia Creme para o Corpo' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 78. Tododia Edição Especial Maçã Canela e Baunilha
+UPDATE products SET name = 'Tododia Edição Especial Maçã Canela e Baunilha' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 79. Tododia Creme para o Corpo Ameixa com Flor de Baunilha
+UPDATE products SET name = 'Tododia Creme para o Corpo Ameixa com Flor de Baunilha' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
+
+-- 80. Tododia Flor de Pêssego e Jasmim
+UPDATE products SET name = 'Tododia Flor de Pêssego e Jasmim' WHERE id = 'f2709fc4-d2b9-4fe9-88ed-efb63c25da7f';
 ```
 
 ---
@@ -675,13 +1352,15 @@ UPDATE products SET name = 'Tododia Jabón de Tocador Puro Vegetal' WHERE id = '
 3. **Produtos duplicados:** Existem 2 produtos com nome "Ilia Secreto" (UUIDs diferentes) — um com typo "Illia".
 4. **Produtos sem estoque:** O produto "Coffee Woman Unique" (UUID: 0d76a722-4d50-4497-b87b-5fa0e15ff067) está com estoque zero.
 5. **Marca divergente:** Vários produtos estão cadastrados como marca "Genérico" mas a imagem mostra marcas reais (AVON, OBOTICARIO).
-6. **Produtos Natura:** Produtos da linha "Kaiak", "Sr.", "Biografia", "Luna", "Homem" e "Tododia" estão com a submarca fora de ordem ou com erros de digitação.
-7. **Produtos O Boticário:** Produtos da linha "Dream", "Dr. Botica", "Egeo", "Floratta" e "Botica 214" continuam com erros de nome ou submarca.
-8. **Produtos Eudora:** Produtos da linha "Instance", "Imensi" e "Siage" podem ter nomes genéricos, divergentes ou com erros de digitação.
-9. **Categoria incorreta:** Produtos "HOMEM EMOÇAO.E" e "I-HOMEM ESSENCE" estão cadastrados como "Perfume Feminino" mas são produtos masculinos.
-10. **Produtos Avon:** Produtos da linha "Encanto" podem ter marca incorreta ("Genérico" em vez de "AVON").
-11. **Código de barras:** O produto "Iliá" (UUID: 3f5926e0-0bfb-4e50-beaf-fe1b1b894aa7) não tem código de barras cadastrado.
+6. **Produtos Natura:** Produtos da linha "Kaiak", "Sr.", "Biografia", "Luna", "Homem", "Tododia", "Ilia", "Luna", "Nativa SPA" e "Tododia" estão com a submarca fora de ordem ou com erros de digitação.
+7. **Produtos O Boticário:** Produtos da linha "Dream", "Dr. Botica", "Egeo", "Floratta", "Botica 214", "Lily", "Cuide-se Bem" e "Sophie" continuam com erros de nome ou submarca.
+8. **Produtos Eudora:** Produtos da linha "Instance", "Imensi", "Siage", "Siâge" e "Macarrão" podem ter nomes genéricos, divergentes ou com erros de digitação.
+9. **Categoria incorreta:** Produtos "HOMEM EMOÇAO.E" e "I-HOMEM ESSENCE" estão cadastrados como "Perfume Feminino" mas são produtos masculinos. Produtos "Kaiak" também podem ter categoria incorreta.
+10. **Produtos Avon:** Produtos da linha "Encanto", "Petit Attitude" podem ter marca incorreta ("Genérico" em vez de "AVON") ou erros de digitação ("Atitude" em vez de "Attitude").
+11. **Código de barras:** Produtos "Iliá" e "Lily de parfum" não têm código de barras cadastrado.
 12. **Produto sem imagem:** O produto "Hidratante noite" (UUID: ad418cfd-719d-4f50-acf3-a9eddd0f2740) não tem imagem para verificação.
+13. **Produtos Natura (Tododia):** Vários produtos da linha "Tododia" estão com erros de digitação ("Todo dia", "Toddia") ou nomes incompletos.
+14. **Produtos Eudora (Siâge):** Produtos da linha "Siâge" estão com erros de acento ("Siàge", "SIÀGE", "Sâge", "Sìage").
 
 ---
 

@@ -9,6 +9,7 @@ import {
   Layers,
   Package,
   AlertTriangle,
+  Tag,
 } from "lucide-react";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,6 +17,8 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PermissionGate } from "@/components/permission-gate";
+import { UpdateSellingPriceModal } from "./update-selling-price.components";
 import {
   Table,
   TableBody,
@@ -33,6 +36,7 @@ import {
 import type {
   ProductBatch,
   ProductBatchesViewProps,
+  SellingPriceUpdateModel,
   SortKey,
 } from "./product-batches.types";
 
@@ -238,6 +242,24 @@ const MobileCards = ({ batches }: { batches: ProductBatch[] }) => (
   </div>
 );
 
+/* ─── UpdatePriceButton ─── */
+
+const UpdatePriceButton = ({
+  sellingPriceUpdate,
+}: {
+  sellingPriceUpdate: SellingPriceUpdateModel;
+}) => (
+  <PermissionGate permission="batches:update">
+    <Button
+      onClick={sellingPriceUpdate.openModal}
+      className="h-10 w-full rounded-[4px] bg-blue-600 text-xs font-bold uppercase tracking-wide text-white hover:bg-blue-700 md:w-auto"
+    >
+      <Tag className="mr-2 size-4" />
+      Alterar Preço de Venda
+    </Button>
+  </PermissionGate>
+);
+
 /* ─── ProductBatchesView (main export) ─── */
 
 export const ProductBatchesView = ({
@@ -249,6 +271,7 @@ export const ProductBatchesView = ({
   sortKey,
   sortDirection,
   onSortChange,
+  sellingPriceUpdate,
 }: ProductBatchesViewProps) => {
   if (isLoading) {
     return (
@@ -309,6 +332,7 @@ export const ProductBatchesView = ({
       <PageHeader
         title={productName || "Lotes"}
         subtitle="Lotes do produto"
+        actions={<UpdatePriceButton sellingPriceUpdate={sellingPriceUpdate} />}
       />
       <DesktopTable
         batches={batches}
@@ -317,6 +341,7 @@ export const ProductBatchesView = ({
         onSortChange={onSortChange}
       />
       <MobileCards batches={batches} />
+      <UpdateSellingPriceModal model={sellingPriceUpdate} />
     </PageContainer>
   );
 };

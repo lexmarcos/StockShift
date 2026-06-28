@@ -5,6 +5,7 @@ import { useBreadcrumb } from "@/components/breadcrumb";
 import { deriveBatchStatus } from "@/app/(pages)/batches/batches.model";
 import { formatBatchDate } from "@/app/(pages)/batches/[id]/batches-detail.model";
 import { formatCentsToBRL } from "@/lib/currency";
+import { useUpdateSellingPrice } from "./update-selling-price.model";
 import type { Batch } from "@/app/(pages)/batches/batches.types";
 import type {
   ProductBatch,
@@ -71,7 +72,7 @@ export const useProductBatchesModel = (productId: string) => {
     ? `batches/warehouses/${warehouseId}/products/${productId}/batches`
     : null;
 
-  const { data, error, isLoading } = useSWR<BatchesResponse>(
+  const { data, error, isLoading, mutate } = useSWR<BatchesResponse>(
     url,
     async (requestUrl: string) => {
       const { api } = await import("@/lib/api");
@@ -80,13 +81,22 @@ export const useProductBatchesModel = (productId: string) => {
     { revalidateOnFocus: false },
   );
 
-  const rawBatches = data?.data ?? [];
+  const rawBatches = useMemo(() => data?.data ?? [], [data]);
   const productName = rawBatches.length > 0 ? rawBatches[0].productName ?? "" : "";
 
   const batches = useMemo(
     () => sortProductBatches(rawBatches, sortKey, sortDirection),
     [rawBatches, sortKey, sortDirection],
   );
+
+  const sellingPriceUpdate = useUpdateSellingPrice({
+    warehouseId,
+    productId,
+    batches: rawBatches,
+    onUpdated: () => {
+      void mutate();
+    },
+  });
 
   const onSortChange = (key: SortKey) => {
     if (key === sortKey) {
@@ -111,6 +121,7 @@ export const useProductBatchesModel = (productId: string) => {
     sortKey,
     sortDirection,
     onSortChange,
+    sellingPriceUpdate,
   };
 };
 

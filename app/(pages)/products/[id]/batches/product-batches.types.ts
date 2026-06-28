@@ -1,3 +1,6 @@
+import type { UseFormReturn } from "react-hook-form";
+import type { UpdateSellingPriceFormData } from "./update-selling-price.schema";
+
 export interface ProductBatch {
   id: string;
   productName: string | null;
@@ -13,6 +16,19 @@ export interface ProductBatch {
 export type SortKey = "batchCode" | "quantity" | "expirationDate";
 export type SortDirection = "asc" | "desc";
 
+export interface SellingPriceUpdateModel {
+  form: UseFormReturn<UpdateSellingPriceFormData>;
+  isOpen: boolean;
+  isConfirmOpen: boolean;
+  isSubmitting: boolean;
+  hasDifferentPrices: boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  requestConfirmation: () => void;
+  closeConfirm: () => void;
+  confirmUpdate: () => void;
+}
+
 export interface ProductBatchesViewProps {
   batches: ProductBatch[];
   productName: string;
@@ -22,4 +38,5 @@ export interface ProductBatchesViewProps {
   sortKey: SortKey;
   sortDirection: SortDirection;
   onSortChange: (key: SortKey) => void;
+  sellingPriceUpdate: SellingPriceUpdateModel;
 }

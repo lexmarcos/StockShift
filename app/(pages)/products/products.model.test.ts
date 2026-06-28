@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import {
+  buildBatchCountByProduct,
   buildLatestBatchPrice,
   buildLatestBatchPriceByProduct,
   buildPageRange,
@@ -690,6 +691,34 @@ describe("buildLatestBatchPriceByProduct", () => {
     ];
 
     expect(buildLatestBatchPriceByProduct(batches)["p1"]).toBeNull();
+  });
+});
+
+describe("buildBatchCountByProduct", () => {
+  it("counts how many batches each product has", () => {
+    const batches: ProductBatchPriceSource[] = [
+      { id: "b1", productId: "p1", sellingPrice: 100, costPrice: 50, createdAt: "2025-01-01T00:00:00Z" },
+      { id: "b2", productId: "p1", sellingPrice: 200, costPrice: 80, createdAt: "2025-06-01T00:00:00Z" },
+      { id: "b3", productId: "p2", sellingPrice: 300, costPrice: 150, createdAt: "2025-03-01T00:00:00Z" },
+    ];
+
+    const map = buildBatchCountByProduct(batches);
+
+    expect(map["p1"]).toBe(2);
+    expect(map["p2"]).toBe(1);
+  });
+
+  it("counts price-less batches too", () => {
+    const batches: ProductBatchPriceSource[] = [
+      { id: "b1", productId: "p1", sellingPrice: null, costPrice: null, createdAt: "2025-01-01T00:00:00Z" },
+      { id: "b2", productId: "p1", sellingPrice: 200, costPrice: 80, createdAt: "2025-06-01T00:00:00Z" },
+    ];
+
+    expect(buildBatchCountByProduct(batches)["p1"]).toBe(2);
+  });
+
+  it("returns an empty map for an empty batch list", () => {
+    expect(buildBatchCountByProduct([])).toEqual({});
   });
 });
 
