@@ -114,10 +114,6 @@ describe("useRegisterModel", () => {
         businessName: "Empresa Teste",
         userId: "user-123",
         userEmail: "test@example.com",
-        accessToken: "token-123",
-        refreshToken: "refresh-123",
-        tokenType: "Bearer",
-        expiresIn: 3600000,
       },
     };
 

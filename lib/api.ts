@@ -75,6 +75,7 @@ const redirectToLogin = () => {
   isRedirectingToLogin = true;
   localStorage.removeItem("user-data");
   localStorage.removeItem("selected-warehouse-id");
+  sessionStorage.removeItem("selected-warehouse-id");
   window.location.href = "/login";
 };
 

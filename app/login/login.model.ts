@@ -12,6 +12,11 @@ import { HTTPError } from "ky";
 
 const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 
+const clearStoredWarehouseSelection = () => {
+  localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+  sessionStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+};
+
 export const useLoginModel = () => {
   const router = useRouter();
   const { setUser } = useAuth();
@@ -66,7 +71,7 @@ export const useLoginModel = () => {
 
       if (response.success) {
         setRequiresCaptcha(response.data.requiresCaptcha);
-        localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+        clearStoredWarehouseSelection();
         setUser({
           userId: response.data.userId,
           email: response.data.email,

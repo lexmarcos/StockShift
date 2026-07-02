@@ -29,7 +29,10 @@ const getServerSnapshot = (): boolean => false;
 
 const readStoredWarehouseId = (): string | null => {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(WAREHOUSE_STORAGE_KEY);
+  const sessionWarehouseId = sessionStorage.getItem(WAREHOUSE_STORAGE_KEY);
+  const localWarehouseId = localStorage.getItem(WAREHOUSE_STORAGE_KEY);
+  localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+  return sessionWarehouseId ?? localWarehouseId;
 };
 
 export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
@@ -45,7 +48,8 @@ export const WarehouseProvider = ({ children }: { children: ReactNode }) => {
   const setSelectedWarehouseId = (id: string) => {
     setSelectedWarehouseIdState(id);
     if (typeof window !== "undefined") {
-      localStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
+      sessionStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
+      localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
       // Redirecionar para /sales após selecionar warehouse
       push("/sales");
     }
