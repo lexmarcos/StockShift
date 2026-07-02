@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
+import useSWR from "swr";
 import { AuthProvider, useAuth } from "./auth-context";
 
 const routeState = vi.hoisted(() => ({
@@ -35,6 +36,7 @@ vi.mock("swr", () => ({
     isLoading: false,
     mutate: vi.fn(),
   })),
+  useSWRConfig: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
 // Mock api
@@ -61,36 +63,47 @@ describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     routeState.pathname = "/products";
-    localStorageMock.getItem.mockReturnValue(
-      JSON.stringify({ userId: "user-123", email: "test@example.com", fullName: "Test User" })
-    );
+    vi.mocked(useSWR).mockReturnValue({
+      data: mockMeData,
+      isLoading: false,
+      mutate: vi.fn(),
+      error: undefined,
+      isValidating: false,
+    } as ReturnType<typeof useSWR>);
   });
 
   describe("auth/me fetch", () => {
     it("should fetch complete user data on change-password route", async () => {
-      const useSWR = await import("swr");
       routeState.pathname = "/change-password";
 
       renderHook(() => useAuth(), { wrapper });
 
       await waitFor(() => {
-        const calls = vi.mocked(useSWR.default).mock.calls;
+        const calls = vi.mocked(useSWR).mock.calls;
         expect(calls.some(([key]) => key === "auth/me")).toBe(true);
       });
     });
 
     it("should not fetch complete user data on login route", async () => {
-      const useSWR = await import("swr");
       routeState.pathname = "/login";
 
       renderHook(() => useAuth(), { wrapper });
 
       await waitFor(() => {
-        expect(localStorageMock.getItem).toHaveBeenCalledWith("user-data");
+        expect(localStorageMock.removeItem).toHaveBeenCalledWith("user-data");
       });
 
-      const calls = vi.mocked(useSWR.default).mock.calls;
+      const calls = vi.mocked(useSWR).mock.calls;
       expect(calls.some(([key]) => key === "auth/me")).toBe(false);
+    });
+
+    it("should remove legacy user data from localStorage", async () => {
+      renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(localStorageMock.removeItem).toHaveBeenCalledWith("user-data");
+      });
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
     });
   });
 
@@ -117,8 +130,7 @@ describe("useAuth", () => {
     });
 
     it("should return true for any permission when user has wildcard (*)", async () => {
-      const useSWR = await import("swr");
-      vi.mocked(useSWR.default).mockReturnValue({
+      vi.mocked(useSWR).mockReturnValue({
         data: {
           success: true,
           data: {
@@ -131,7 +143,7 @@ describe("useAuth", () => {
         mutate: vi.fn(),
         error: undefined,
         isValidating: false,
-      } as ReturnType<typeof useSWR.default>);
+      } as ReturnType<typeof useSWR>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -146,14 +158,13 @@ describe("useAuth", () => {
 
   describe("hasRole", () => {
     it("should return true for existing role", async () => {
-      const useSWR = await import("swr");
-      vi.mocked(useSWR.default).mockReturnValue({
+      vi.mocked(useSWR).mockReturnValue({
         data: mockMeData,
         isLoading: false,
         mutate: vi.fn(),
         error: undefined,
         isValidating: false,
-      } as ReturnType<typeof useSWR.default>);
+      } as ReturnType<typeof useSWR>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -178,14 +189,13 @@ describe("useAuth", () => {
 
   describe("isAdmin", () => {
     it("should return false when user is not admin", async () => {
-      const useSWR = await import("swr");
-      vi.mocked(useSWR.default).mockReturnValue({
+      vi.mocked(useSWR).mockReturnValue({
         data: mockMeData,
         isLoading: false,
         mutate: vi.fn(),
         error: undefined,
         isValidating: false,
-      } as ReturnType<typeof useSWR.default>);
+      } as ReturnType<typeof useSWR>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -197,8 +207,7 @@ describe("useAuth", () => {
     });
 
     it("should return true when user has ADMIN role", async () => {
-      const useSWR = await import("swr");
-      vi.mocked(useSWR.default).mockReturnValue({
+      vi.mocked(useSWR).mockReturnValue({
         data: {
           success: true,
           data: {
@@ -211,7 +220,7 @@ describe("useAuth", () => {
         mutate: vi.fn(),
         error: undefined,
         isValidating: false,
-      } as ReturnType<typeof useSWR.default>);
+      } as ReturnType<typeof useSWR>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -224,7 +233,7 @@ describe("useAuth", () => {
   });
 
   describe("isAuthenticated", () => {
-    it("should return true when user exists in localStorage", async () => {
+    it("should return true when auth/me returns a user", async () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await waitFor(() => {
@@ -234,8 +243,14 @@ describe("useAuth", () => {
       expect(result.current.isAuthenticated).toBe(true);
     });
 
-    it("should return false when no user in localStorage", async () => {
-      localStorageMock.getItem.mockReturnValue(null);
+    it("should return false when auth/me has no user data", async () => {
+      vi.mocked(useSWR).mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        mutate: vi.fn(),
+        error: undefined,
+        isValidating: false,
+      } as ReturnType<typeof useSWR>);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 

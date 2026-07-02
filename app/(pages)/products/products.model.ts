@@ -96,6 +96,17 @@ export const buildLatestBatchPriceByProduct = (
   return result;
 };
 
+export const buildBatchCountByProduct = (
+  batches: readonly ProductBatchPriceSource[],
+): Record<string, number> => {
+  const groups = groupBatchesByProduct(batches);
+  const result: Record<string, number> = {};
+  for (const [productId, productBatches] of groups) {
+    result[productId] = productBatches.length;
+  }
+  return result;
+};
+
 // Largest page count rendered without truncation. Below this every page gets
 // its own button; above it the range collapses to first, last and a window
 // around the current page, with ellipses marking the hidden gaps.
@@ -356,6 +367,11 @@ export const useProductsModel = () => {
     [warehouseBatchesData]
   );
 
+  const batchCountByProduct = useMemo(
+    () => buildBatchCountByProduct(warehouseBatchesData?.data ?? []),
+    [warehouseBatchesData]
+  );
+
   // Each mobile card lazily fetches its own image via useProductImageUrl, so the
   // list only filters here; missing thumbnails are resolved per row.
   const filteredProducts = useMemo(
@@ -591,6 +607,7 @@ export const useProductsModel = () => {
     products,
     filteredProducts,
     latestBatchPriceByProduct,
+    batchCountByProduct,
     isLoading,
     error: error || null,
     requiresWarehouse: !warehouseId,

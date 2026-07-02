@@ -84,6 +84,7 @@ describe("useLoginModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it("should initialize with default form values and state", () => {
@@ -149,6 +150,7 @@ describe("useLoginModel", () => {
 
   it("should clear stale selected warehouse after successful login", async () => {
     localStorage.setItem("selected-warehouse-id", "old-warehouse");
+    sessionStorage.setItem("selected-warehouse-id", "old-warehouse");
     mockApiPost.mockReturnValue({
       json: () => Promise.resolve(successfulLoginResponse),
     });
@@ -163,6 +165,7 @@ describe("useLoginModel", () => {
     });
 
     expect(localStorage.getItem("selected-warehouse-id")).toBeNull();
+    expect(sessionStorage.getItem("selected-warehouse-id")).toBeNull();
   });
 
   it("should redirect to /change-password when mustChangePassword is true", async () => {

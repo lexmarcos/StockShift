@@ -8,9 +8,9 @@ export interface RegisterResponse {
     businessName: string;
     userId: string;
     userEmail: string;
-    accessToken: string;
-    refreshToken: string;
-    tokenType: string;
-    expiresIn: number;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    tokenType?: string | null;
+    expiresIn?: number | null;
   };
 }

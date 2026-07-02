@@ -993,6 +993,7 @@ const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
         key={product.id}
         product={product}
         latestBatchPrice={props.latestBatchPriceByProduct[product.id] ?? null}
+        batchCount={props.batchCountByProduct[product.id] ?? 0}
         buildEditUrl={props.buildEditUrl}
         onOpenDeleteDialog={props.onOpenDeleteDialog}
       />
@@ -1003,15 +1004,18 @@ const ProductsMobileCards = ({ props }: { props: ProductsViewProps }) => (
 const ProductMobileCard = ({
   product,
   latestBatchPrice,
+  batchCount,
   buildEditUrl,
   onOpenDeleteDialog,
 }: {
   product: Product;
   latestBatchPrice: LatestBatchPrice | null;
+  batchCount: number;
   buildEditUrl: (productId: string) => string;
   onOpenDeleteDialog: (product: Product) => void;
 }) => {
   const priceLabel = latestBatchPrice?.sellingPriceLabel ?? "Sem preço";
+  const batchLabel = batchCount === 1 ? "lote" : "lotes";
 
   return (
     <div
@@ -1025,7 +1029,7 @@ const ProductMobileCard = ({
         </h3>
         <ProductCategoryBadge name={product.categoryName} />
         <span className="font-mono text-xs font-medium text-neutral-300">
-          {priceLabel} • {product.totalQuantity} Unids
+          {priceLabel} • {product.totalQuantity} Unids • {batchCount} {batchLabel}
         </span>
       </div>
       <div className="flex shrink-0 self-start">

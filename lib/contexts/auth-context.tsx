@@ -10,10 +10,9 @@ import {
   useMemo,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
-
-const PUBLIC_PATHS = ["/login", "/register"];
+import { isPublicPath as matchesPublicPath } from "@/lib/auth/public-paths";
 
 interface BaseUser {
   userId: string;
@@ -59,14 +58,25 @@ const WAREHOUSE_STORAGE_KEY = "selected-warehouse-id";
 
 const fetcher = (url: string) => api.get(url).json<MeResponse>();
 
+const createUserFromMeResponse = (meData: MeResponse): User => ({
+  userId: meData.data.id,
+  email: meData.data.email,
+  fullName: meData.data.fullName,
+  tenantId: meData.data.tenantId,
+  roles: meData.data.roles,
+  permissions: meData.data.permissions,
+  mustChangePassword: meData.data.mustChangePassword,
+});
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [baseUser, setBaseUserState] = useState<BaseUser | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const { push } = useRouter();
   const pathname = usePathname();
+  const { mutate: clearSwrCache } = useSWRConfig();
 
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
-  const shouldFetchMe = baseUser && !isPublicPath;
+  const isPublicPath = matchesPublicPath(pathname);
+  const shouldFetchMe = !isInitializing && !isPublicPath;
 
   // Fetch complete user data with roles/permissions
   const {
@@ -86,42 +96,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
   });
 
-  // Initialize from localStorage
+  // Remove legacy plaintext user data from localStorage.
   useEffect(() => {
-    const stored = localStorage.getItem(USER_STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as BaseUser;
-        setBaseUserState(parsed);
-      } catch (error) {
-        console.error("Failed to parse stored user data:", error);
-        localStorage.removeItem(USER_STORAGE_KEY);
-      }
-    }
+    localStorage.removeItem(USER_STORAGE_KEY);
     setIsInitializing(false);
   }, []);
 
-  // Merge base user with /me data
   const fullUser = useMemo<User | null>(() => {
-    if (!baseUser || !meData?.data) return null;
-    return {
-      ...baseUser,
-      tenantId: meData.data.tenantId,
-      roles: meData.data.roles,
-      permissions: meData.data.permissions,
-      mustChangePassword: meData.data.mustChangePassword,
-    };
-  }, [baseUser, meData]);
+    if (!meData?.data) return null;
+    return createUserFromMeResponse(meData);
+  }, [meData]);
 
   const setUser = useCallback((user: BaseUser | null) => {
     setBaseUserState(user);
+    localStorage.removeItem(USER_STORAGE_KEY);
     if (user) {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      // Descarta qualquer /me em cache de uma sessão anterior antes de navegar
+      // para uma rota protegida, evitando expor os dados do usuário anterior.
+      clearSwrCache("auth/me", undefined, { revalidate: false });
       mutateMe();
-    } else {
-      localStorage.removeItem(USER_STORAGE_KEY);
     }
-  }, [mutateMe]);
+  }, [mutateMe, clearSwrCache]);
 
   const logout = useCallback(async () => {
     try {
@@ -131,10 +126,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       localStorage.removeItem(USER_STORAGE_KEY);
       localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+      sessionStorage.removeItem(WAREHOUSE_STORAGE_KEY);
       setBaseUserState(null);
+      // Limpa todo o cache do SWR para não vazar dados do usuário anterior
+      // (roles/permissions/nome) para o próximo login no mesmo tab.
+      await clearSwrCache(() => true, undefined, { revalidate: false });
       push("/login");
     }
-  }, [push]);
+  }, [push, clearSwrCache]);
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
@@ -157,8 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return fullUser?.roles?.includes("ADMIN") ?? false;
   }, [fullUser?.roles]);
 
-  const isLoading = isInitializing || (!!baseUser && isMeLoading);
-  const isAuthenticated = !!baseUser;
+  const isLoading = isInitializing || (!isPublicPath && isMeLoading);
+  const isAuthenticated = !!baseUser || !!meData?.data;
 
   const contextValue = useMemo<AuthContextValue>(
     () => ({

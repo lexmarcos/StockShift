@@ -47,6 +47,7 @@ const baseProps = {
   products: [],
   filteredProducts: [],
   latestBatchPriceByProduct: {},
+  batchCountByProduct: {},
   isLoading: false,
   error: null,
   requiresWarehouse: false,
@@ -249,12 +250,13 @@ describe("ProductsView - delete action", () => {
             sellingPriceLabel: "R$ 20,00",
           },
         }}
+        batchCountByProduct={{ "prod-cafe": 3 }}
       />
     );
 
     expect(screen.getAllByText("Café Torrado 1kg").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Bebidas").length).toBeGreaterThan(0);
-    expect(screen.getByText("R$ 20,00 • 12 Unids")).toBeTruthy();
+    expect(screen.getByText("R$ 20,00 • 12 Unids • 3 lotes")).toBeTruthy();
     expect(screen.getByRole("img", { name: /foto de café torrado/i })).toBeTruthy();
   });
 

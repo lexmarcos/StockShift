@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import Script from "next/script";
 import "./globals.css";
 import { WarehouseProvider } from "@/lib/contexts/warehouse-context";
@@ -37,15 +38,8 @@ type AppleStartupScreen = {
 
 const SPLASH_SCREEN_BASE_PATH = "/splash_screens";
 const CLARITY_PROJECT_ID = "wumq9sa7e2";
+const CLARITY_SCRIPT_URL = `https://www.clarity.ms/tag/${CLARITY_PROJECT_ID}`;
 const SHOULD_LOAD_CLARITY = process.env.NODE_ENV === "production";
-
-const clarityScript = `
-  (function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");
-`;
 
 const appleStartupScreens: AppleStartupScreen[] = [
   { fileName: "10.2__iPad_landscape.png", width: 2160, height: 1620, pixelRatio: 2, orientation: "landscape" },
@@ -159,11 +153,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+
   return (
     <html lang="pt-BR">
       <head>
@@ -190,8 +187,9 @@ export default function RootLayout({
         {SHOULD_LOAD_CLARITY && (
           <Script
             id="microsoft-clarity"
+            src={CLARITY_SCRIPT_URL}
+            nonce={nonce}
             strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: clarityScript }}
           />
         )}
       </body>
