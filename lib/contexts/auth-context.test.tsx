@@ -36,6 +36,7 @@ vi.mock("swr", () => ({
     isLoading: false,
     mutate: vi.fn(),
   })),
+  useSWRConfig: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
 // Mock api

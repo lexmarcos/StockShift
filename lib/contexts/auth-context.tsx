@@ -10,10 +10,9 @@ import {
   useMemo,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
-
-const PUBLIC_PATHS = ["/login", "/register"];
+import { isPublicPath as matchesPublicPath } from "@/lib/auth/public-paths";
 
 interface BaseUser {
   userId: string;
@@ -74,8 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const { push } = useRouter();
   const pathname = usePathname();
+  const { mutate: clearSwrCache } = useSWRConfig();
 
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const isPublicPath = matchesPublicPath(pathname);
   const shouldFetchMe = !isInitializing && !isPublicPath;
 
   // Fetch complete user data with roles/permissions
@@ -111,9 +111,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setBaseUserState(user);
     localStorage.removeItem(USER_STORAGE_KEY);
     if (user) {
+      // Descarta qualquer /me em cache de uma sessão anterior antes de navegar
+      // para uma rota protegida, evitando expor os dados do usuário anterior.
+      clearSwrCache("auth/me", undefined, { revalidate: false });
       mutateMe();
     }
-  }, [mutateMe]);
+  }, [mutateMe, clearSwrCache]);
 
   const logout = useCallback(async () => {
     try {
@@ -125,9 +128,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
       sessionStorage.removeItem(WAREHOUSE_STORAGE_KEY);
       setBaseUserState(null);
+      // Limpa todo o cache do SWR para não vazar dados do usuário anterior
+      // (roles/permissions/nome) para o próximo login no mesmo tab.
+      await clearSwrCache(() => true, undefined, { revalidate: false });
       push("/login");
     }
-  }, [push]);
+  }, [push, clearSwrCache]);
 
   const hasPermission = useCallback(
     (permission: string): boolean => {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isPublicPath } from "@/lib/auth/public-paths";
 
-const PUBLIC_PATHS = ["/login", "/register", "/offline"];
 const CSP_NONCE_HEADER = "x-nonce";
 
 const SECURITY_HEADERS = [
@@ -32,13 +32,9 @@ export function middleware(request: NextRequest): NextResponse {
 function createAuthRedirectResponse(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
 
-  // Páginas públicas que não precisam de autenticação.
-  // "/offline" é pública para o service worker pré-cachear a página de offline
-  // real, e não o HTML de /login (redirecionamento de auth corromperia o fallback).
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
-
-  // Se for uma página pública, permite o acesso
-  if (isPublicPath) {
+  // Páginas públicas que não precisam de autenticação (ver lib/auth/public-paths).
+  // Se for uma página pública, permite o acesso.
+  if (isPublicPath(pathname)) {
     return null;
   }
 
